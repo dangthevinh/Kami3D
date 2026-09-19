@@ -1,10 +1,17 @@
 name: Auto-merge
 
-# Merges a pull request automatically once its checks pass.
+# Merges a dependency pull request automatically — but only after its checks
+# actually pass, and only when it is safe to do so.
 #
-# Applies to Dependabot pull requests and to any PR carrying the "automerge"
-# label, so day-to-day dependency work needs no manual step while anything
-# unusual still waits for a human.
+# Two gates, both explicit:
+#   1. the `automerge` label. Dependabot PRs earn it only for patch and minor
+#      updates, so a major version bump can never be merged here.
+#   2. `gh pr checks --watch`, which blocks until CI reports green and fails the
+#      job on red. Nothing merges on an unverified commit.
+#
+# Branch protection is deliberately NOT used as the gate: this repository pushes
+# straight to main from scripts/publish.sh, and required status checks would
+# block those direct pushes too.
 on:
   pull_request:
     types: [opened, reopened, synchronize, labeled, ready_for_review]
@@ -14,24 +21,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  enable-auto-merge:
-    name: Enable auto-merge
+  label-safe-updates:
+    name: Label safe updates
     runs-on: ubuntu-latest
-    if: >-
-      github.event.pull_request.draft == false &&
-      (github.actor == 'dependabot[bot]' ||
-       contains(github.event.pull_request.labels.*.name, 'automerge'))
-    steps:
-      - name: Enable auto-merge (squash)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: gh pr merge --auto --squash --delete-branch "$PR_URL"
-
-  dependabot-metadata:
-    name: Label Dependabot PRs
-    runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    # Skip the `labeled` re-entry so adding the label cannot loop.
+    if: github.actor == 'dependabot[bot]' && github.event.action != 'labeled'
     permissions:
       pull-requests: write
       contents: read
@@ -42,7 +36,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Label patch and minor updates for auto-merge
+      - name: Label patch and minor updates
         if: >-
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
           steps.meta.outputs.update-type == 'version-update:semver-minor'
@@ -50,3 +44,38 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr edit "$PR_URL" --add-label automerge
+
+      - name: Comment on major updates instead
+        if: steps.meta.outputs.update-type == 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PACKAGE: ${{ steps.meta.outputs.dependency-names }}
+        run: |
+          gh pr comment "$PR_URL" --body "**Major update to \`$PACKAGE\` — auto-merge is deliberately not enabled.**
+
+          Major bumps change behaviour and usually need a migration (for example Next 16 replaced the `middleware`
+          file convention with `proxy`, and removed the `eslint` key from `next.config.ts`). Run `npm run check` and
+          `npm run build` on this branch, then label the PR `automerge` to merge it on green." || true
+
+  merge-when-green:
+    name: Merge when green
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # The one gate: the label. No actor bypass, no package exception.
+    if: >-
+      github.event.pull_request.state == 'open' &&
+      github.event.pull_request.draft == false &&
+      contains(github.event.pull_request.labels.*.name, 'automerge')
+    steps:
+      - name: Wait for CI to report green
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --interval 20 --fail-fast
+
+      - name: Squash-merge and delete the branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --squash --delete-branch
