@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUserId } from "@/lib/auth";
 import { appendQuizEntry, readQuizHistory } from "@/lib/demo-store";
-import { badgesForScore } from "@/lib/profile";
-import { getSupabase } from "@/lib/supabase";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { badgesForScore, readQuizHistoryFor } from "@/lib/profile";
 import { TABLES } from "@/lib/supabase";
+import { getSupabaseServer } from "@/lib/supabase-server";
 import { QUIZ_MODES, type QuizMode } from "@/types/animal";
 
 export const dynamic = "force-dynamic";
@@ -13,39 +12,18 @@ export const dynamic = "force-dynamic";
 /**
  * Quiz score sink.
  *
- * Scores and badges are recomputed server-side from `score / totalQuestions` and
- * never trusted from the client, so a tampered request cannot mint badges.
- * Storage is Supabase when configured (Clerk user id as the key), otherwise a
+ * Badges are recomputed server-side from `score / totalQuestions` and never
+ * trusted from the client, so a tampered request cannot mint badges. Storage is
+ * the signed-in account's rows in Supabase when available, otherwise a
  * first-party cookie so Demo Mode still has a working profile page.
  */
-
-interface QuizRow {
-  score: number;
-  total_questions: number;
-  mode: QuizMode;
-  badges_unlocked: string[];
-  created_at: string;
-}
 
 export async function GET() {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const supabase = getSupabase();
-    if (supabase) {
-      const { data, error } = await supabase
-        .from(TABLES.quizScores)
-        .select("score, total_questions, mode, badges_unlocked, created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (!error) {
-        const history = (data as QuizRow[] | null) ?? [];
-        return NextResponse.json({ history, source: "supabase" });
-      }
-      console.warn("[kami3d] quiz history read failed:", error.message);
-    }
+    const history = await readQuizHistoryFor(userId);
+    if (history) return NextResponse.json({ history, source: "supabase" });
   }
 
   return NextResponse.json({ history: await readQuizHistory(), source: userId ? "cookie-fallback" : "demo" });
@@ -85,14 +63,12 @@ export async function POST(request: Request) {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const writer = getSupabaseAdmin() ?? getSupabase();
-    if (writer) {
-      const { error } = await writer
-        .from(TABLES.quizScores)
-        .insert({ user_id: userId, ...entry });
+    const supabase = await getSupabaseServer();
+    if (supabase) {
+      const { error } = await supabase.from(TABLES.quizScores).insert({ user_id: userId, ...entry });
 
       if (!error) {
-        const history = await readHistoryFrom(userId);
+        const history = (await readQuizHistoryFor(userId)) ?? [];
         return NextResponse.json({
           badges,
           best: Math.max(...history.map((row) => row.score), rawScore),
@@ -100,7 +76,8 @@ export async function POST(request: Request) {
           source: "supabase",
         });
       }
-      console.warn("[kami3d] quiz score write failed, falling back to cookie:", error.message);
+
+      console.warn("[kami3d] quiz score write fell back to cookie:", error.message);
     }
   }
 
@@ -111,18 +88,4 @@ export async function POST(request: Request) {
     history,
     source: "demo",
   });
-}
-
-async function readHistoryFrom(userId: string): Promise<QuizRow[]> {
-  const supabase = getSupabase();
-  if (!supabase) return [];
-
-  const { data } = await supabase
-    .from(TABLES.quizScores)
-    .select("score, total_questions, mode, badges_unlocked, created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(20);
-
-  return (data as QuizRow[] | null) ?? [];
 }

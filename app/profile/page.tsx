@@ -8,8 +8,7 @@ import { AnimalCard } from "@/components/animal/AnimalCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals } from "@/lib/animals";
-import { isClerkEnabled } from "@/lib/env";
-import { isAuthConfigured } from "@/lib/env.server";
+import { isClerkEnabled, isSupabaseConfigured } from "@/lib/env";
 import { getViewerProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { BADGES } from "@/types/animal";
@@ -25,10 +24,11 @@ export const dynamic = "force-dynamic";
 export default async function ProfilePage() {
   const [profile, animals] = await Promise.all([getViewerProfile(), getAllAnimals()]);
 
-  // Resource-based auth check (Clerk's recommended replacement for path-matching
-  // middleware): this page is the thing that owns personal data, so this is where
-  // the requirement is enforced. In Demo Mode no keys exist, so it stays open.
-  if (isAuthConfigured && !profile.signedIn) redirect("/sign-in");
+  // Resource-based auth check: this page owns personal data, so this is where the
+  // requirement lives rather than in path-matching middleware. Supabase Auth is the
+  // default provider and Clerk the alternative; with neither configured the page
+  // stays open and reads the browser-local collection instead.
+  if ((isSupabaseConfigured || isClerkEnabled) && !profile.signedIn) redirect("/sign-in");
 
   const favorites = animals.filter((animal) => profile.favoriteIds.includes(animal.id));
   const unlockedBadges = new Set(profile.badges);

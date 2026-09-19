@@ -3,15 +3,18 @@ import "server-only";
 import { getCurrentUserId } from "@/lib/auth";
 import { readFavoriteIds as readCookieFavorites, readQuizHistory as readCookieQuiz } from "@/lib/demo-store";
 import { TABLES } from "@/lib/supabase";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseServer } from "@/lib/supabase-server";
 import { BADGES } from "@/types/animal";
 
 /**
  * Everything the profile page (and the score APIs) need about the current
  * visitor, resolved from whichever storage tier is active.
  *
- * One module owns these reads so the profile page, the favourites endpoint and
- * the quiz endpoint can never disagree about what the visitor has earned.
+ * Personal rows are read with the **signed-in Supabase client**, so row level
+ * security decides what comes back — the application never holds a key that could
+ * bypass it. Returning `null` means "this tier is unavailable", which is what
+ * makes callers fall back to the browser-local collection instead of reporting an
+ * empty one.
  */
 
 export interface QuizEntry {
@@ -43,21 +46,8 @@ export function badgesForScore(score: number, total: number): string[] {
   return BADGES.filter((badge) => ratio >= badge.threshold).map((badge) => badge.id);
 }
 
-/**
- * Personal rows are read through the service role.
- *
- * Clerk is the identity provider, so Supabase never sees a JWT it could use for
- * `auth.uid()` — RLS therefore denies the anon key, and every per-user read/write
- * is mediated by the server. Returns `null` when privileged access is not
- * configured, which makes callers fall back to the cookie store instead of
- * silently reporting "no favourites".
- */
-function privilegedClient() {
-  return getSupabaseAdmin();
-}
-
 export async function readFavoriteIdsFor(userId: string): Promise<string[] | null> {
-  const supabase = privilegedClient();
+  const supabase = await getSupabaseServer();
   if (!supabase) return null;
 
   const { data, error } = await supabase.from(TABLES.favorites).select("animal_id").eq("user_id", userId);
@@ -69,7 +59,7 @@ export async function readFavoriteIdsFor(userId: string): Promise<string[] | nul
 }
 
 export async function readQuizHistoryFor(userId: string): Promise<QuizEntry[] | null> {
-  const supabase = privilegedClient();
+  const supabase = await getSupabaseServer();
   if (!supabase) return null;
 
   const { data, error } = await supabase

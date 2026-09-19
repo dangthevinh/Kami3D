@@ -98,17 +98,31 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 
 1. Create a project, then run `supabase/schema.sql` in the SQL editor.
 2. Run `supabase/seed.sql` (generated — see below) to load the 24 species.
-3. Put the URL and the **anon** key in `NEXT_PUBLIC_SUPABASE_*`, and the **service role** key in
-   `SUPABASE_SERVICE_ROLE_KEY`.
+3. Put the URL and the **anon or publishable** key in `NEXT_PUBLIC_SUPABASE_*`. The service-role key is optional
+   and only needed for privileged maintenance — sign-in, favourites and scores all work without it.
 
-Clerk is the identity provider, so Supabase never sees a JWT it could use for `auth.uid()`. Per-user tables
-therefore have RLS enabled with **no** anon policies: every personal read and write is mediated by the server with
-the service role. `animals` is the only table the browser reads directly.
+`animals` is publicly readable. Every personal table is protected by row level security keyed on
+`auth.uid()::text`, so a signed-in visitor can only ever read and write their own rows, and the anon role has no
+access at all. Nothing in the application holds a key that could bypass that.
 
-### Enabling auth
+### Accounts and sign-in
 
-Add both Clerk keys and restart. `middleware.ts` constructs `clerkMiddleware()` only when both are present, and
-`/profile` becomes a protected route. Without keys the middleware is a pass-through, so Demo Mode is unaffected.
+**Supabase Auth is the default provider** and needs nothing beyond the project above. Set `NEXT_PUBLIC_SUPABASE_URL`
+and a key, restart, and `/sign-in` and `/sign-up` become real email + password forms. Pressing sign-out clears the
+session cookie in the browser; `middleware.ts` refreshes it on every request that carries one, and skips the round
+trip entirely for anonymous traffic.
+
+Two project settings are worth knowing about:
+
+- **Confirm email** (Authentication → Sign In / Providers → Email). Supabase enables it by default: a new account
+  is created but cannot sign in until the emailed link is opened, and the form says so. Turn it off while you are
+  testing and sign-up signs you in immediately.
+- **Minimum password length** is enforced at 8 characters by the form (Supabase's own default is 6).
+
+**Clerk is supported as an alternative.** Add both Clerk keys instead of the Supabase ones and the app uses Clerk's
+hosted sign-in and `<UserButton />`; `middleware.ts` constructs `clerkMiddleware()` only when both are present.
+`lib/auth.ts` holds the preference order in one place. With neither configured, `/sign-in` explains what to add and
+the whole app still works in Demo Mode with a browser-local collection.
 
 ---
 

@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const ENV_SAMPLE = [
+  "# Supabase Auth — the default provider, and all that is needed:",
+  "NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon or publishable key>",
+  "",
+  "# …or Clerk instead, if you prefer its hosted UI:",
   "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_…",
   "CLERK_SECRET_KEY=sk_test_…",
-  "NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>",
-  "SUPABASE_SERVICE_ROLE_KEY=<service role key>",
 ].join("\n");
 
 /**
@@ -27,10 +29,10 @@ export function DemoAuthNotice({ mode }: { mode: "sign-in" | "sign-up" }) {
         {mode === "sign-in" ? "Sign-in is not configured yet" : "Accounts are not configured yet"}
       </h1>
       <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">
-        Kami3D ships without credentials so it runs anywhere. Add your Clerk keys to
+        Kami3D ships without credentials so it runs anywhere. Add your Supabase (or Clerk) keys to
         <code className="mx-1 rounded bg-white/8 px-1.5 py-0.5 text-[12px] text-neon">.env.local</code>
-        and restart the dev server — this page will then render the real Clerk form, and favourites will sync to
-        Supabase.
+        and restart the dev server — this page then renders a real sign-in form and your collection syncs to the
+        database.
       </p>
 
       <div className="mt-5 rounded-2xl bg-void/60 p-4 ring-1 ring-white/10">

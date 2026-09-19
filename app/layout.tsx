@@ -2,9 +2,9 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 
+import { SupabaseAuthSlot } from "@/components/auth/SupabaseAuthSlot";
 import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { Footer } from "@/components/layout/Footer";
-import { GuestMenu } from "@/components/layout/GuestMenu";
 import { Navbar } from "@/components/layout/Navbar";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { isClerkEnabled, publicEnv } from "@/lib/env";
@@ -50,7 +50,10 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const authSlot = isClerkEnabled ? <UserMenu /> : <GuestMenu />;
+  // Chosen at build time from public configuration, so the layout never reads
+  // cookies and every route can stay statically rendered. SupabaseAuthSlot
+  // resolves the signed-in account in the browser for the same reason.
+  const authSlot = isClerkEnabled ? <UserMenu /> : <SupabaseAuthSlot />;
 
   const shell = (
     <>

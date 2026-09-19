@@ -6,11 +6,13 @@
 --   supabase db execute --file supabase/schema.sql
 --
 -- Design notes
---  * Identity lives in Clerk, not Supabase, so `user_id` columns are TEXT and hold
---    the Clerk user id ("user_2ab..."). There is deliberately no FK to auth.users.
---  * Consequently RLS denies the anon key on per-user tables: all personal reads
---    and writes go through the server with the service-role key. `animals` is the
---    only table the browser may read directly.
+--  * Identity comes from Supabase Auth by default (Clerk is supported as an
+--    alternative). `user_id` is TEXT so either provider's id fits the same column,
+--    and row level security compares it against `auth.uid()::text`.
+--  * Personal rows are therefore protected by the database itself: the anon role has
+--    no access, and a signed-in visitor only ever sees their own rows. No
+--    service-role key is needed for favourites or scores to work.
+--  * `animals` is the only table the browser reads without signing in.
 --  * Every animal is renderable in 3D without assets: `model_url` may be NULL and
 --    the app falls back to the procedural rig described by `silhouette`.
 -- ===========================================================================
@@ -114,7 +116,7 @@ create table if not exists public.user_favorites (
   constraint user_favorites_unique_per_user unique (user_id, animal_id)
 );
 
-comment on table public.user_favorites is 'Clerk user id -> favourited species. Written server-side with the service role.';
+comment on table public.user_favorites is 'Owner id -> favourited species. Held as TEXT so either Supabase Auth (a uuid) or Clerk (a "user_…" id) fits the same column; RLS compares it against auth.uid()::text.';
 
 create index if not exists user_favorites_user_idx on public.user_favorites (user_id, created_at desc);
 create index if not exists user_favorites_animal_idx on public.user_favorites (animal_id);
@@ -167,10 +169,40 @@ create policy "animals are publicly readable"
   to anon, authenticated
   using (true);
 
--- Per-user tables intentionally have NO anon/authenticated policies. RLS therefore
--- denies the anon key outright, and the server acts with the service role, which
--- bypasses RLS. This is the correct model when the identity provider is external:
--- there is no Supabase JWT for `auth.uid()` to trust.
+-- Per-user tables are readable and writable only by their owner. Supabase Auth
+-- supplies `auth.uid()`; `user_id` is TEXT so that a deployment using Clerk
+-- instead of Supabase Auth can store its own id in the same column (see the note
+-- on the column below).
+
+drop policy if exists "favourites are visible to their owner" on public.user_favorites;
+create policy "favourites are visible to their owner"
+  on public.user_favorites for select
+  to authenticated
+  using (user_id = auth.uid()::text);
+
+drop policy if exists "favourites are added by their owner" on public.user_favorites;
+create policy "favourites are added by their owner"
+  on public.user_favorites for insert
+  to authenticated
+  with check (user_id = auth.uid()::text);
+
+drop policy if exists "favourites are removed by their owner" on public.user_favorites;
+create policy "favourites are removed by their owner"
+  on public.user_favorites for delete
+  to authenticated
+  using (user_id = auth.uid()::text);
+
+drop policy if exists "scores are visible to their owner" on public.quiz_scores;
+create policy "scores are visible to their owner"
+  on public.quiz_scores for select
+  to authenticated
+  using (user_id = auth.uid()::text);
+
+drop policy if exists "scores are recorded by their owner" on public.quiz_scores;
+create policy "scores are recorded by their owner"
+  on public.quiz_scores for insert
+  to authenticated
+  with check (user_id = auth.uid()::text);
 
 -- ---------------------------------------------------------------------------
 -- Grants
@@ -178,8 +210,14 @@ create policy "animals are publicly readable"
 
 grant usage on schema public to anon, authenticated;
 grant select on public.animals to anon, authenticated;
-revoke all on public.user_favorites from anon, authenticated;
-revoke all on public.quiz_scores from anon, authenticated;
+
+-- The anon role gets nothing on personal tables: signing in is what grants access,
+-- and the policies above then limit it to the visitor's own rows.
+revoke all on public.user_favorites from anon;
+revoke all on public.quiz_scores from anon;
+
+grant select, insert, delete on public.user_favorites to authenticated;
+grant select, insert on public.quiz_scores to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images, call recordings)

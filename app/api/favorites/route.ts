@@ -3,29 +3,26 @@ import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { readFavoriteIds, writeFavoriteIds } from "@/lib/demo-store";
 import { readFavoriteIdsFor } from "@/lib/profile";
-import { getSupabase } from "@/lib/supabase";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { TABLES } from "@/lib/supabase";
+import { getSupabaseServer } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Favourites endpoint.
  *
- * Three tiers, in order of preference:
- *   1. Clerk user + Supabase  -> rows in `user_favorites`
- *   2. Supabase service role  -> used for writes when RLS is locked down
- *   3. Demo Mode              -> an httpOnly cookie, so the feature genuinely
- *                                works with zero configuration
+ * Two tiers:
+ *   1. Signed in -> rows in `user_favorites`, written with the visitor's own
+ *      Supabase session so row level security is the thing enforcing ownership.
+ *   2. Signed out, or the database is unreachable -> an httpOnly cookie, so the
+ *      feature genuinely works with no account and no schema applied.
  */
-
-const readFromDatabase = readFavoriteIdsFor;
 
 export async function GET() {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const ids = await readFromDatabase(userId);
+    const ids = await readFavoriteIdsFor(userId);
     if (ids) return NextResponse.json({ ids, source: "supabase" });
   }
 
@@ -47,20 +44,23 @@ export async function POST(request: Request) {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const writer = getSupabaseAdmin();
-    if (writer) {
-      const current = (await readFromDatabase(userId)) ?? [];
+    const supabase = await getSupabaseServer();
+    if (supabase) {
+      const current = (await readFavoriteIdsFor(userId)) ?? [];
       const isFavorite = current.includes(animalId);
 
       const { error } = isFavorite
-        ? await writer.from(TABLES.favorites).delete().eq("user_id", userId).eq("animal_id", animalId)
-        : await writer.from(TABLES.favorites).insert({ user_id: userId, animal_id: animalId });
+        ? await supabase.from(TABLES.favorites).delete().eq("user_id", userId).eq("animal_id", animalId)
+        : await supabase.from(TABLES.favorites).insert({ user_id: userId, animal_id: animalId });
 
       if (!error) {
         const ids = isFavorite ? current.filter((id) => id !== animalId) : [...current, animalId];
         return NextResponse.json({ ids, favorite: !isFavorite, source: "supabase" });
       }
-      console.warn("[kami3d] favourite write failed, falling back to cookie:", error.message);
+
+      // A missing table (schema not applied yet) lands here, which is exactly the
+      // case the cookie fallback exists for.
+      console.warn("[kami3d] favourite write fell back to cookie:", error.message);
     }
   }
 
