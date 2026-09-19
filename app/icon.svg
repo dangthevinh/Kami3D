@@ -15,12 +15,17 @@
       <stop offset="1" stop-color="#ffffff" stop-opacity="0.82"/>
     </linearGradient>
     <clipPath id="favicon-clip">
-      <rect width="48" height="48" rx="14"/>
+      <path d="M 34 0 C 38.21 0 41.986 0.061 44.963 3.037 C 47.939 6.014 48 9.79 48 14 L 48 14 C 48 38.21 47.939 41.986 44.963 44.963 C 41.986 47.939 38.21 48 34 48 L 34 48 C 9.79 48 6.014 47.939 3.037 44.963 C 0.061 41.986 0 38.21 0 34 L 0 34 C 0 9.79 0.061 6.014 3.037 3.037 C 6.014 0.061 9.79 0 14 0 L 14 0 Z"/>
+    </clipPath>
+    <!-- The cube is clipped to its own rounded silhouette, so the three faces keep
+         their sharp interior edges while the outside corners are softened. -->
+    <clipPath id="favicon-cube">
+      <path d="M 20.882 14.799 C 21.933 14.193 22.787 13.714 24 13.714 C 25.213 13.714 26.067 14.193 27.118 14.799 L 27.118 14.799 C 31.462 17.307 32.305 17.807 32.911 18.857 C 33.518 19.908 33.53 20.887 33.53 22.1 L 33.53 22.1 C 33.53 27.113 33.518 28.092 32.911 29.143 C 32.305 30.193 31.462 30.693 30.412 31.299 L 30.412 31.299 C 26.067 33.807 25.213 34.286 24 34.286 C 22.787 34.286 21.933 33.807 20.882 33.201 L 20.882 33.201 C 16.538 30.693 15.695 30.193 15.089 29.143 C 14.482 28.092 14.47 27.113 14.47 25.9 L 14.47 25.9 C 14.47 20.887 14.482 19.908 15.089 18.857 C 15.695 17.807 16.538 17.307 17.588 16.701 L 17.588 16.701 Z"/>
     </clipPath>
   </defs>
 
-  <rect width="48" height="48" rx="14" fill="url(#favicon-tile)"/>
-  <rect width="48" height="48" rx="14" fill="url(#favicon-gloss)"/>
+  <path d="M 34 0 C 38.21 0 41.986 0.061 44.963 3.037 C 47.939 6.014 48 9.79 48 14 L 48 14 C 48 38.21 47.939 41.986 44.963 44.963 C 41.986 47.939 38.21 48 34 48 L 34 48 C 9.79 48 6.014 47.939 3.037 44.963 C 0.061 41.986 0 38.21 0 34 L 0 34 C 0 9.79 0.061 6.014 3.037 3.037 C 6.014 0.061 9.79 0 14 0 L 14 0 Z" fill="url(#favicon-tile)"/>
+  <path d="M 34 0 C 38.21 0 41.986 0.061 44.963 3.037 C 47.939 6.014 48 9.79 48 14 L 48 14 C 48 38.21 47.939 41.986 44.963 44.963 C 41.986 47.939 38.21 48 34 48 L 34 48 C 9.79 48 6.014 47.939 3.037 44.963 C 0.061 41.986 0 38.21 0 34 L 0 34 C 0 9.79 0.061 6.014 3.037 3.037 C 6.014 0.061 9.79 0 14 0 L 14 0 Z" fill="url(#favicon-gloss)"/>
 
   <g clip-path="url(#favicon-clip)">
     <!-- orbit: the globe, and the ring the hotspots sit on -->
@@ -32,11 +37,13 @@
   </g>
 
   <!-- isometric cube: lit top, then two shadowed faces for depth -->
-  <polygon points="24,13 33.53,18.5 24,24 14.47,18.5" fill="url(#favicon-top)"/>
-  <polygon points="14.47,18.5 24,24 24,35 14.47,29.5" fill="#04121a" fill-opacity="0.34"/>
-  <polygon points="33.53,18.5 24,24 24,35 33.53,29.5" fill="#04121a" fill-opacity="0.55"/>
+  <g clip-path="url(#favicon-cube)">
+    <polygon points="24,13 33.53,18.5 24,24 14.47,18.5" fill="url(#favicon-top)"/>
+    <polygon points="14.47,18.5 24,24 24,35 14.47,29.5" fill="#04121a" fill-opacity="0.34"/>
+    <polygon points="33.53,18.5 24,24 24,35 33.53,29.5" fill="#04121a" fill-opacity="0.55"/>
+  </g>
 
   <!-- crisp edge so the tile holds up against any background -->
-  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="13.25"
-        stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.5"/>
+  <path d="M 34 0.75 C 37.984 0.75 41.558 0.807 44.375 3.625 C 47.193 6.442 47.25 10.016 47.25 14 L 47.25 14 C 47.25 37.984 47.193 41.558 44.375 44.375 C 41.558 47.193 37.984 47.25 34 47.25 L 34 47.25 C 10.016 47.25 6.442 47.193 3.625 44.375 C 0.807 41.558 0.75 37.984 0.75 34 L 0.75 34 C 0.75 10.016 0.807 6.442 3.625 3.625 C 6.442 0.807 10.016 0.75 14 0.75 L 14 0.75 Z"
+        stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.5" fill="none"/>
 </svg>

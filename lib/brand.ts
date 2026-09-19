@@ -13,6 +13,11 @@
  * than a flat icon, at sizes from 16 px (favicon) upward.
  */
 
+// Relative with an explicit extension on purpose: scripts/generate-icon.mjs runs
+// this module in plain Node (type stripping, no bundler), where a "@/" alias would
+// not resolve. tsconfig sets allowImportingTsExtensions for exactly this case.
+import { roundedPolygonPath, squircleRectPath } from "./squircle.ts";
+
 export const BRAND = {
   mint: "#2ee6b0",
   cyan: "#38e0ff",
@@ -20,6 +25,33 @@ export const BRAND = {
   /** Same value as --color-void, so the cube's shadowed faces match the app. */
   ink: "#04121a",
 } as const;
+
+/**
+ * Corner geometry.
+ *
+ * Both the tile and the cube use continuous-curvature corners. The tile's corners
+ * are 90°, so the rounding is dramatic and the Apple-style fullness is obvious:
+ * the cut drops from 5.80 to 4.30 units at the same nominal radius. The cube's
+ * silhouette corners are 120°, and an obtuse corner is geometrically limited —
+ * a tangent of `t` can only be cut back about 0.26·t — so its rounding is a
+ * genuine but much quieter softening, which is why it uses the longest tangent
+ * that still leaves a straight run along each edge.
+ */
+const TILE_CORNER = { tangent: 14, fullness: 1.35 };
+const CUBE_CORNER = { tangent: 3.6, fullness: 1.35 };
+
+/** The cube's outer silhouette: top, upper-right, lower-right, bottom, lower-left, upper-left. */
+const CUBE_OUTLINE: Array<[number, number]> = [
+  [24, 13],
+  [33.53, 18.5],
+  [33.53, 29.5],
+  [24, 35],
+  [14.47, 29.5],
+  [14.47, 18.5],
+];
+
+const TILE_PATH = squircleRectPath(0, 0, 48, 48, TILE_CORNER);
+const CUBE_PATH = roundedPolygonPath(CUBE_OUTLINE, CUBE_CORNER);
 
 export interface KamiMarkOptions {
   /**
@@ -54,12 +86,17 @@ export function kamiMarkSvg({ idPrefix = "kami", width, height }: KamiMarkOption
       <stop offset="1" stop-color="#ffffff" stop-opacity="0.82"/>
     </linearGradient>
     <clipPath id="${p}-clip">
-      <rect width="48" height="48" rx="14"/>
+      <path d="${TILE_PATH}"/>
+    </clipPath>
+    <!-- The cube is clipped to its own rounded silhouette, so the three faces keep
+         their sharp interior edges while the outside corners are softened. -->
+    <clipPath id="${p}-cube">
+      <path d="${CUBE_PATH}"/>
     </clipPath>
   </defs>
 
-  <rect width="48" height="48" rx="14" fill="url(#${p}-tile)"/>
-  <rect width="48" height="48" rx="14" fill="url(#${p}-gloss)"/>
+  <path d="${TILE_PATH}" fill="url(#${p}-tile)"/>
+  <path d="${TILE_PATH}" fill="url(#${p}-gloss)"/>
 
   <g clip-path="url(#${p}-clip)">
     <!-- orbit: the globe, and the ring the hotspots sit on -->
@@ -71,12 +108,14 @@ export function kamiMarkSvg({ idPrefix = "kami", width, height }: KamiMarkOption
   </g>
 
   <!-- isometric cube: lit top, then two shadowed faces for depth -->
-  <polygon points="24,13 33.53,18.5 24,24 14.47,18.5" fill="url(#${p}-top)"/>
-  <polygon points="14.47,18.5 24,24 24,35 14.47,29.5" fill="${BRAND.ink}" fill-opacity="0.34"/>
-  <polygon points="33.53,18.5 24,24 24,35 33.53,29.5" fill="${BRAND.ink}" fill-opacity="0.55"/>
+  <g clip-path="url(#${p}-cube)">
+    <polygon points="24,13 33.53,18.5 24,24 14.47,18.5" fill="url(#${p}-top)"/>
+    <polygon points="14.47,18.5 24,24 24,35 14.47,29.5" fill="${BRAND.ink}" fill-opacity="0.34"/>
+    <polygon points="33.53,18.5 24,24 24,35 33.53,29.5" fill="${BRAND.ink}" fill-opacity="0.55"/>
+  </g>
 
   <!-- crisp edge so the tile holds up against any background -->
-  <rect x="0.75" y="0.75" width="46.5" height="46.5" rx="13.25"
-        stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.5"/>
+  <path d="${squircleRectPath(0.75, 0.75, 46.5, 46.5, { tangent: 13.25, fullness: 1.35 })}"
+        stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.5" fill="none"/>
 </svg>`;
 }
