@@ -1,3 +1,5 @@
+![Kami3D](public/brand/kami3d-mark.svg)
+
 # Kami3D — 3D World Wildlife Encyclopedia
 
 [![CI](https://github.com/dangthevinh/Kami3D/actions/workflows/ci.yml/badge.svg)](https://github.com/dangthevinh/Kami3D/actions/workflows/ci.yml)
