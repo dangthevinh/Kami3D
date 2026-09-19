@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/* Kami3D is a dark-first product; expose a class-based dark variant for the
+   light-mode toggle in the navbar. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* --- Palette: deep-ocean night + bioluminescent accents ------------------ */
+  --color-void: #04060f;
+  --color-abyss: #070c1a;
+  --color-surface: #0b1226;
+  --color-surface-2: #121a33;
+  --color-hairline: #1e2a4a;
+
+  --color-neon: #35f0c0; /* signature mint — "alive" accent */
+  --color-glow: #38e0ff; /* cyan */
+  --color-iris: #a97bff; /* violet */
+  --color-solar: #ffb738; /* amber */
+  --color-coral: #ff5d8f; /* rose */
+
+  /* Conservation status colours */
+  --color-status-extinct: #6b7280;
+  --color-status-critical: #ff4d4d;
+  --color-status-endangered: #ff8a3d;
+  --color-status-vulnerable: #ffb738;
+  --color-status-near: #9ae66e;
+  --color-status-safe: #35f0c0;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-sora), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1.25rem;
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-drift: drift 26s linear infinite;
+  --animate-pulse-ring: pulse-ring 2.6s ease-out infinite;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-rise: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes drift {
+  from { background-position: 0 0; }
+  to { background-position: 600px 400px; }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.85); opacity: 0.85; }
+  70% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    border-color: color-mix(in oklab, var(--color-hairline) 70%, transparent);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-void);
+    color: #e8eefc;
+    font-family: var(--font-sans);
+    /* Layered radial "aurora" behind the whole product. */
+    background-image:
+      radial-gradient(60rem 40rem at 12% -10%, color-mix(in oklab, var(--color-glow) 18%, transparent), transparent 60%),
+      radial-gradient(50rem 36rem at 88% 8%, color-mix(in oklab, var(--color-iris) 16%, transparent), transparent 62%),
+      radial-gradient(70rem 50rem at 50% 118%, color-mix(in oklab, var(--color-neon) 12%, transparent), transparent 60%);
+    background-attachment: fixed;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-neon) 35%, transparent);
+    color: #04121a;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-void); }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--color-hairline) 90%, transparent);
+    border-radius: 9999px;
+    border: 2px solid var(--color-void);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: color-mix(in oklab, var(--color-neon) 45%, var(--color-hairline)); }
+
+  :focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* --- Glassmorphism ------------------------------------------------------ */
+  .glass {
+    background: linear-gradient(
+      145deg,
+      color-mix(in oklab, white 8%, transparent),
+      color-mix(in oklab, white 2%, transparent)
+    );
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid color-mix(in oklab, white 10%, transparent);
+    box-shadow:
+      0 1px 0 0 color-mix(in oklab, white 8%, transparent) inset,
+      0 24px 60px -30px rgba(0, 0, 0, 0.9);
+  }
+
+  .glass-strong {
+    background: color-mix(in oklab, var(--color-abyss) 82%, transparent);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid color-mix(in oklab, white 12%, transparent);
+  }
+
+  /* --- Neon accents ------------------------------------------------------- */
+  .neon-ring {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-neon) 45%, transparent),
+      0 0 24px -4px color-mix(in oklab, var(--color-neon) 55%, transparent);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 22px color-mix(in oklab, var(--color-neon) 45%, transparent);
+  }
+
+  /* Animated conic gradient border used on premium/hover surfaces. */
+  .aurora-border {
+    position: relative;
+  }
+  .aurora-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--aurora-angle, 0deg),
+      var(--color-neon),
+      var(--color-glow),
+      var(--color-iris),
+      var(--color-coral),
+      var(--color-neon)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  .aurora-border:hover::before,
+  .aurora-border:focus-within::before {
+    opacity: 1;
+    animation: aurora-spin 4s linear infinite;
+  }
+
+  /* --- Skeleton ----------------------------------------------------------- */
+  .shimmer {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, white 12%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .section-shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 80rem;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) { .section-shell { padding-inline: 1.5rem; } }
+  @media (min-width: 1024px) { .section-shell { padding-inline: 2rem; } }
+}
+
+@property --aurora-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes aurora-spin {
+  to { --aurora-angle: 360deg; }
+}
+
+/* The 3D canvas must own touch gestures so OrbitControls can rotate on mobile. */
+.kami-canvas canvas {
+  touch-action: none;
+  display: block;
+  outline: none;
+}
