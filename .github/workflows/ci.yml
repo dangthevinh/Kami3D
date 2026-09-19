@@ -1,0 +1,70 @@
+name: CI
+
+# Runs the full verification suite on every push and pull request. This is the
+# gate that makes "build, test, then push" automatic: nothing reaches main
+# without typecheck, the geometry/SQL check suites and a production build.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, checks & build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # Node 24 runs the .ts check suites directly via type stripping.
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Geometry, size and SQL check suites
+        run: node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs
+
+      - name: Regenerate the seed and fail if it is out of date
+        run: |
+          npm run seed:generate
+          git diff --exit-code supabase/seed.sql \
+            || (echo "::error::supabase/seed.sql is stale — run 'npm run seed:generate' and commit the result." && exit 1)
+
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://kami3d.example.com
+
+  model-pipeline:
+    name: Model fetch pipeline (dry run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # No API tokens in CI on purpose: this proves the pipeline still works when
+      # nothing is configured, and that it never downloads without a licence check.
+      - name: Dry run against the live Sketchfab search API
+        run: node scripts/fetch-models.mjs --report

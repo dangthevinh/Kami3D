@@ -13,7 +13,10 @@
     "check:size": "node --test scripts/check-size.mjs",
     "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs",
     "seed:generate": "node scripts/generate-seed.mjs",
-    "check:sql": "node --test scripts/check-sql.mjs"
+    "check:sql": "node --test scripts/check-sql.mjs",
+    "models:report": "node scripts/fetch-models.mjs --report",
+    "models:fetch": "node scripts/fetch-models.mjs --all --apply --wire",
+    "publish": "./scripts/publish.sh"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

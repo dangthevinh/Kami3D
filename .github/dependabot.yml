@@ -1,0 +1,36 @@
+version: 2
+
+updates:
+  # Application dependencies. Patch and minor bumps get labelled for auto-merge
+  # by .github/workflows/auto-merge.yml; majors wait for a human.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # three.js and its React bindings must move together or the peer ranges break.
+      three:
+        patterns:
+          - three
+          - "@types/three"
+          - "@react-three/*"
+      react:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+    ignore:
+      # @react-three/fiber 9 requires react <19.3 — let Dependabot stay inside it.
+      - dependency-name: react
+        versions: [">=19.3.0"]
+      - dependency-name: react-dom
+        versions: [">=19.3.0"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday

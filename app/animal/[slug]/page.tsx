@@ -12,6 +12,7 @@ import { LazyModelViewer, LazySizeComparison } from "@/components/3d/LazyViewers
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals, getAnimalBySlug, getRelatedAnimals } from "@/lib/animals";
+import { describeLicense, getModelAttribution } from "@/lib/attribution";
 import { publicEnv } from "@/lib/env";
 import { cn, formatLength, formatWeight } from "@/lib/utils";
 import { REGION_ANCHORS, statusToTailwind } from "@/types/animal";
@@ -60,6 +61,8 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   const related = await getRelatedAnimals(animal.slug, 4);
   const status = statusToTailwind(animal.conservation_status);
   const anchor = REGION_ANCHORS[animal.region];
+  // Credited whenever a real model is in use — the licence may require it.
+  const attribution = animal.model_url ? getModelAttribution(animal.slug) : null;
 
   // Structured data: helps search engines render a rich result for the species.
   const jsonLd = {
@@ -138,7 +141,51 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <LazyModelViewer animal={animal} />
+          <div>
+            <LazyModelViewer animal={animal} />
+
+            {attribution ? (
+              <p className="mt-2 px-1 text-[11px] leading-relaxed text-white/40">
+                3D model:{" "}
+                <a
+                  href={attribution.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-white/60 underline decoration-white/20 underline-offset-2 transition-colors hover:text-neon"
+                >
+                  {attribution.title}
+                </a>
+                {attribution.author ? (
+                  <>
+                    {" by "}
+                    <a
+                      href={attribution.authorUrl ?? attribution.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="text-white/60 underline decoration-white/20 underline-offset-2 transition-colors hover:text-neon"
+                    >
+                      {attribution.author}
+                    </a>
+                  </>
+                ) : null}
+                {" — "}
+                {attribution.licenseUrl ? (
+                  <a
+                    href={attribution.licenseUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-white/60 underline decoration-white/20 underline-offset-2 transition-colors hover:text-neon"
+                  >
+                    {describeLicense(attribution.license)}
+                  </a>
+                ) : (
+                  describeLicense(attribution.license)
+                )}
+                {" via "}
+                {attribution.provider}
+              </p>
+            ) : null}
+          </div>
 
           <section className="glass rounded-[var(--radius-card)] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">

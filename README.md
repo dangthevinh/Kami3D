@@ -1,5 +1,9 @@
 # Kami3D — 3D World Wildlife Encyclopedia
 
+[![CI](https://github.com/dangthevinh/Kami3D/actions/workflows/ci.yml/badge.svg)](https://github.com/dangthevinh/Kami3D/actions/workflows/ci.yml)
+[![Next.js](https://img.shields.io/badge/Next.js-15-000?logo=next.js)](https://nextjs.org)
+[![React Three Fiber](https://img.shields.io/badge/React%20Three%20Fiber-9-000?logo=three.js)](https://docs.pmnd.rs/react-three-fiber)
+
 An interactive encyclopedia where every species can be rotated, measured against your own body, and
 identified by its silhouette. Built with Next.js App Router, React Three Fiber, Clerk and Supabase.
 
@@ -11,6 +15,9 @@ code paths switch to Clerk auth, Supabase persistence and real ad slots.
 npm install
 npm run dev        # http://localhost:9000
 ```
+
+Optional next step: `npm run models:report` lists downloadable 3D models for every species, and
+`npm run models:fetch` pulls the redistributable ones in. See [docs/MODELS.md](docs/MODELS.md).
 
 ---
 
@@ -111,10 +118,29 @@ For an offline deployment, copy the DRACO decoder from
 
 ---
 
+## Automatic 3D models
+
+`npm run models:report` searches Sketchfab, Smithsonian Open Access and Poly Pizza for every species and prints
+what is available — nothing is downloaded, and it works with no API keys because Sketchfab's search endpoint is
+public.
+
+```bash
+npm run models:report                                    # licence audit, downloads nothing
+npm run models:fetch -- --species=lion --apply --wire    # fetch one species and wire it in
+npm run models:fetch                                     # all species (--all --apply --wire)
+```
+
+Downloads are gated on a licence allow-list (CC0, public domain, CC BY). Share-alike, no-derivatives,
+non-commercial and all-rights-reserved models are refused, and every accepted model records its author, source
+and licence in `data/model-attribution.json` — which the species page renders as a credit line. A CC BY model
+therefore cannot reach the site without its attribution.
+
+Full details, including which key each provider needs: [docs/MODELS.md](docs/MODELS.md).
+
 ## Scripts
 
 ```bash
-npm run dev             # development server
+npm run dev             # development server on :9000
 npm run build           # production build (pre-renders every species + OG image)
 npm run start           # serve the production build
 npm run typecheck       # tsc --noEmit
@@ -123,6 +149,24 @@ npm run check:rigs      # procedural rig geometry assertions
 npm run check:size      # size-comparison scale assertions for all 24 species
 npm run check:sql       # schema.sql / seed.sql / dataset agreement
 npm run seed:generate   # regenerate supabase/seed.sql
+npm run models:report   # what 3D models are available, with licences
+npm run models:fetch    # download the redistributable ones
+npm run publish -- "message"   # verify, build, commit, push — one step per phase
+```
+
+## Automation
+
+| Workflow | Trigger | What it does |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | every push and pull request | `npm ci` → typecheck → the three node check suites → fails if `supabase/seed.sql` is stale → production build. A second job runs the model pipeline with no keys, proving it degrades instead of crashing. |
+| `.github/workflows/auto-merge.yml` | Dependabot PRs and anything labelled `automerge` | enables squash auto-merge once checks pass; patch and minor dependency bumps get the label automatically, majors wait for a human. |
+| `.github/dependabot.yml` | weekly | dependency and GitHub Actions updates, grouped so `three`/`@react-three/*` and the React trio move together. |
+
+Locally, `scripts/publish.sh` (via `npm run publish`) runs the same checks plus a production build before it
+commits and pushes, and `.githooks/pre-push` runs the fast checks on every push. Enable the hook once per clone:
+
+```bash
+git config core.hooksPath .githooks
 ```
 
 The check suites run in plain Node (type-stripping, no bundler) against the pure modules in `lib/`. They are the

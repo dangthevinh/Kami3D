@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+#
+# Fast pre-push gate. Runs the typecheck and the node check suites (a few
+# seconds) so a broken commit never reaches the remote. The production build is
+# deliberately left to CI, which is where it belongs.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+# Bypass when you really mean it:  SKIP_HOOKS=1 git push
+
+if [ "${SKIP_HOOKS:-0}" = "1" ]; then
+  echo "pre-push: skipped (SKIP_HOOKS=1)"
+  exit 0
+fi
+
+cd "$(dirname "$0")/.." || exit 0
+
+echo "pre-push: typecheck"
+npm run --silent typecheck || {
+  echo "pre-push: typecheck failed — push aborted (SKIP_HOOKS=1 git push to override)" >&2
+  exit 1
+}
+
+echo "pre-push: check suites"
+node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs >/dev/null || {
+  echo "pre-push: check suites failed — push aborted (SKIP_HOOKS=1 git push to override)" >&2
+  exit 1
+}
+
+echo "pre-push: ok"

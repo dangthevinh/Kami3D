@@ -75,6 +75,31 @@ const PRESETS: Record<
 /* Model loading                                                              */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Isolates the real model so a broken asset degrades into the procedural rig
+ * instead of taking the whole viewer down. This matters because `model_url` can
+ * point at a file that has been moved, expired, or was never fetched locally —
+ * a species page should still show *something* rotatable.
+ */
+class ModelBoundary extends React.Component<
+  { fallback: React.ReactNode; children: React.ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.warn("[kami3d] model failed to load, falling back to the procedural rig:", error.message);
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
 function GltfModel({ url, wireframe }: { url: string; wireframe: boolean }) {
   // The second argument is the DRACO decoder location; vendor it into /public/draco
   // and set NEXT_PUBLIC_DRACO_DECODER_PATH for a fully offline deployment.
@@ -200,9 +225,21 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
 
         <Bounds key={resetKey} fit clip observe margin={1.25}>
           {animal.model_url ? (
-            <Center bottom>
-              <GltfModel url={animal.model_url} wireframe={wireframe} />
-            </Center>
+            <ModelBoundary
+              fallback={
+                <ProceduralAnimal
+                  kind={animal.silhouette}
+                  accent={animal.accent}
+                  wireframe={wireframe}
+                  silhouette={silhouette}
+                  phase={phase}
+                />
+              }
+            >
+              <Center bottom>
+                <GltfModel url={animal.model_url} wireframe={wireframe} />
+              </Center>
+            </ModelBoundary>
           ) : (
             <ProceduralAnimal
               kind={animal.silhouette}

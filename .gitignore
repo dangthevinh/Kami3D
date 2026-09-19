@@ -9,3 +9,8 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Model archives are an intermediate step — extract the .glb and commit that.
+# Tracked .glb files are deliberately NOT ignored: a committed model_url has to
+# resolve, or the species page would credit a model it cannot render.
+public/models/*.zip

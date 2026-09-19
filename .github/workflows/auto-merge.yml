@@ -1,0 +1,52 @@
+name: Auto-merge
+
+# Merges a pull request automatically once its checks pass.
+#
+# Applies to Dependabot pull requests and to any PR carrying the "automerge"
+# label, so day-to-day dependency work needs no manual step while anything
+# unusual still waits for a human.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    name: Enable auto-merge
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.draft == false &&
+      (github.actor == 'dependabot[bot]' ||
+       contains(github.event.pull_request.labels.*.name, 'automerge'))
+    steps:
+      - name: Enable auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash --delete-branch "$PR_URL"
+
+  dependabot-metadata:
+    name: Label Dependabot PRs
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Label patch and minor updates for auto-merge
+        if: >-
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          steps.meta.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr edit "$PR_URL" --add-label automerge
