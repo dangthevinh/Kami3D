@@ -18,7 +18,9 @@
     "models:fetch": "node scripts/fetch-models.mjs --all --apply --wire",
     "publish": "./scripts/publish.sh",
     "brand:icon": "node scripts/generate-icon.mjs",
-    "check:shapes": "node --test scripts/check-shapes.mjs"
+    "check:shapes": "node --test scripts/check-shapes.mjs",
+    "db:status": "node scripts/seed-database.mjs --status",
+    "db:seed": "node scripts/seed-database.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

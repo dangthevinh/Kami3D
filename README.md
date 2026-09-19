@@ -96,10 +96,26 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 
 ### Connecting Supabase
 
-1. Create a project, then run `supabase/schema.sql` in the SQL editor.
-2. Run `supabase/seed.sql` (generated — see below) to load the 24 species. **Do not skip this.** Favourites
-   reference a species by foreign key, so with an empty `animals` table every save is rejected — the API answers
-   409 with the run-the-seed instruction rather than pretending it worked.
+1. Create a project, then run `supabase/schema.sql` in the SQL editor (or `npm run db:schema` with an access
+   token — see below).
+2. Load the catalogue. **Do not skip this.** Favourites reference a species by foreign key, so with an empty
+   `animals` table every save is rejected — the API answers 409 with the run-the-seed instruction rather than
+   pretending it worked.
+
+   ```bash
+   npm run db:status   # what the database currently holds
+   npm run db:seed     # load or update the 24 species, idempotently
+   ```
+
+   `db:seed` needs one credential in `.env.local` (gitignored). It auto-detects either:
+
+   | Variable | Where to get it | What it does |
+   | --- | --- | --- |
+   | `SUPABASE_ACCESS_TOKEN` | <https://supabase.com/dashboard/account/tokens> (`sbp_…`) | Runs `supabase/seed.sql` verbatim through the Management API |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Project → Settings → API | Upserts through PostgREST, matched on `slug` so re-running is safe |
+
+   The anon key cannot do this by design: it has no INSERT grant on `animals` and RLS denies it on personal
+   tables. The script says so instead of failing obscurely.
 3. Put the URL and the **anon or publishable** key in `NEXT_PUBLIC_SUPABASE_*`. The service-role key is optional
    and only needed for privileged maintenance — sign-in, favourites and scores all work without it.
 
@@ -193,7 +209,9 @@ npm run check           # typecheck + all node check suites
 npm run check:rigs      # procedural rig geometry assertions
 npm run check:size      # size-comparison scale assertions for all 24 species
 npm run check:sql       # schema.sql / seed.sql / dataset agreement
-npm run seed:generate   # regenerate supabase/seed.sql
+npm run seed:generate   # regenerate supabase/seed.sql from the dataset
+npm run db:status       # what the database currently holds
+npm run db:seed         # push the catalogue into Supabase (idempotent)
 npm run models:report   # what 3D models are available, with licences
 npm run models:fetch    # download the redistributable ones
 npm run publish -- "message"   # verify, build, commit, push — one step per phase
