@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { getAnimalBySlug } from "@/lib/animals";
+import { kamiMarkSvg } from "@/lib/brand";
 import { STATUS_ABBR } from "@/types/animal";
 
 /**
@@ -13,6 +14,17 @@ import { STATUS_ABBR } from "@/types/animal";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Kami3D species card";
+
+/**
+ * The brand mark, inlined as a data URI.
+ *
+ * Satori cannot render an arbitrary SVG element, but it does rasterise an image,
+ * so the SVG from `lib/brand.ts` is embedded here rather than approximated with
+ * divs — the social card therefore carries the exact logo the site does.
+ */
+const MARK_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(
+  kamiMarkSvg({ idPrefix: "og", width: 72, height: 72 }),
+).toString("base64")}`;
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -41,24 +53,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 16,
-              background: `linear-gradient(135deg, ${accent[0]}, #38e0ff)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 30,
-              fontWeight: 800,
-              color: "#04121a",
-            }}
-          >
-            K
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 700 }}>Kami3D</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MARK_DATA_URI} width={72} height={72} alt="" />
+          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: -0.5 }}>Kami3D</div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

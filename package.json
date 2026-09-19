@@ -16,7 +16,8 @@
     "check:sql": "node --test scripts/check-sql.mjs",
     "models:report": "node scripts/fetch-models.mjs --report",
     "models:fetch": "node scripts/fetch-models.mjs --all --apply --wire",
-    "publish": "./scripts/publish.sh"
+    "publish": "./scripts/publish.sh",
+    "brand:icon": "node scripts/generate-icon.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

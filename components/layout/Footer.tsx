@@ -1,7 +1,7 @@
 import { Code2, Globe2, Leaf } from "lucide-react";
 import Link from "next/link";
 
-import { KamiLogo } from "@/components/layout/Navbar";
+import { KamiLogo } from "@/components/brand/KamiLogo";
 import { isDemoMode } from "@/lib/env";
 
 const GROUPS = [
@@ -38,7 +38,7 @@ export function Footer() {
     <footer className="relative z-10 border-t border-white/8 bg-void/60 backdrop-blur-xl">
       <div className="section-shell grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="space-y-4">
-          <KamiLogo />
+          <KamiLogo idPrefix="footer" size="md" />
           <p className="max-w-xs text-sm leading-relaxed text-white/55">
             A 3D encyclopedia of the animal kingdom — built with Next.js, React Three Fiber and Supabase.
           </p>

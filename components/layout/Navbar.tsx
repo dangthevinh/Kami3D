@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
+import { KamiLogo } from "@/components/brand/KamiLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -16,20 +17,6 @@ const NAV_LINKS = [
   { href: "/quiz", label: "Quiz", icon: Gamepad2 },
   { href: "/profile", label: "Collection", icon: Heart },
 ] as const;
-
-export function KamiLogo({ className }: { className?: string }) {
-  return (
-    <Link href="/" className={cn("group flex items-center gap-2.5", className)} aria-label="Kami3D home">
-      <span className="relative grid size-9 place-items-center rounded-xl bg-gradient-to-br from-neon to-glow text-[15px] font-black text-[#04121a] shadow-[0_0_22px_-4px_rgba(53,240,192,0.85)] transition-transform duration-300 group-hover:scale-105">
-        神
-        <span className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/40" />
-      </span>
-      <span className="font-display text-lg font-bold tracking-tight text-white">
-        Kami<span className="text-neon">3D</span>
-      </span>
-    </Link>
-  );
-}
 
 export interface NavbarProps {
   /** Clerk `<UserButton />` when auth is configured, otherwise sign-in links. */
@@ -68,7 +55,7 @@ export function Navbar({ authSlot }: NavbarProps) {
       )}
     >
       <nav className="section-shell flex h-16 items-center gap-3">
-        <KamiLogo />
+        <KamiLogo idPrefix="nav" />
 
         <ul className="ml-4 hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((link) => {
