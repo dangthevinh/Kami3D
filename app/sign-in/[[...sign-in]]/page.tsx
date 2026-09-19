@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { DemoAuthNotice } from "@/components/auth/DemoAuthNotice";
+import { activeAuthProvider } from "@/lib/auth-provider";
 import { getAuthProviders } from "@/lib/auth-providers";
-import { isClerkEnabled, isSupabaseConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -34,14 +34,16 @@ export default async function AuthPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const providers = await getAuthProviders();
+  const provider = activeAuthProvider();
+  // Google availability is only meaningful for the Supabase provider.
+  const providers = provider === "supabase" ? await getAuthProviders() : { email: false, google: false };
 
   return (
     <div className="section-shell flex min-h-[70vh] items-center justify-center pt-10">
       <div className="w-full max-w-4xl">
-        {isClerkEnabled ? (
+        {provider === "clerk" ? (
           <AuthPanel mode="sign-in" />
-        ) : isSupabaseConfigured ? (
+        ) : provider === "supabase" ? (
           <div className="mx-auto max-w-md">
             <AuthForm
               mode="sign-in"

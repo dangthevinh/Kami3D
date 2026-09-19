@@ -63,6 +63,9 @@ const projectRef = projectUrl.match(/^https:\/\/([a-z0-9]+)\.supabase\.co$/)?.[1
 const flags = new Set(process.argv.slice(2));
 const statusOnly = flags.has("--status");
 const dryRun = flags.has("--dry-run");
+/** `--schema` applies supabase/schema.sql instead of the seed. */
+const useSchema = flags.has("--schema");
+const sqlFile = useSchema ? "schema.sql" : "seed.sql";
 
 /* -------------------------------------------------------------------------- */
 /* Row shape                                                                  */
@@ -137,12 +140,12 @@ async function reportStatus() {
   return rows.length === ANIMALS.length ? 0 : 1;
 }
 
-/** Path 1: run the generated SQL through the Management API. */
-async function seedViaManagementApi() {
-  const sql = readFileSync(join(ROOT, "supabase", "seed.sql"), "utf8");
+/** Path 1: run the SQL file through the Management API. */
+async function runViaManagementApi() {
+  const sql = readFileSync(join(ROOT, "supabase", sqlFile), "utf8");
 
   if (dryRun) {
-    console.log(`Would POST ${sql.length} bytes of SQL to the Management API for project ${projectRef}.`);
+    console.log(`Would POST ${sql.length} bytes of ${sqlFile} to the Management API for project ${projectRef}.`);
     return 0;
   }
 
@@ -159,7 +162,7 @@ async function seedViaManagementApi() {
     return 1;
   }
 
-  console.log("Ran supabase/seed.sql through the Management API.");
+  console.log(`Ran supabase/${sqlFile} through the Management API.`);
   return 0;
 }
 
@@ -209,10 +212,14 @@ if (!projectRef) {
 
 if (accessToken) {
   console.log("Using SUPABASE_ACCESS_TOKEN (Management API).");
-  process.exit(await seedViaManagementApi());
+  process.exit(await runViaManagementApi());
 }
 
 if (serviceKey) {
+  if (useSchema) {
+    console.error("Applying schema.sql needs a Management API token (SUPABASE_ACCESS_TOKEN); PostgREST cannot run DDL.");
+    process.exit(2);
+  }
   console.log("Using SUPABASE_SERVICE_ROLE_KEY (PostgREST).");
   process.exit(await seedViaRest());
 }

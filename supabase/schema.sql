@@ -26,6 +26,10 @@ create extension if not exists "pgcrypto";
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+-- A mutable search_path on a function is a privilege-escalation vector (the
+-- linter flags it as function_search_path_mutable), so it is pinned. `now()`
+-- resolves from pg_catalog, which is always searched.
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -178,31 +182,31 @@ drop policy if exists "favourites are visible to their owner" on public.user_fav
 create policy "favourites are visible to their owner"
   on public.user_favorites for select
   to authenticated
-  using (user_id = auth.uid()::text);
+  using (user_id = ((select auth.uid())::text));
 
 drop policy if exists "favourites are added by their owner" on public.user_favorites;
 create policy "favourites are added by their owner"
   on public.user_favorites for insert
   to authenticated
-  with check (user_id = auth.uid()::text);
+  with check (user_id = ((select auth.uid())::text));
 
 drop policy if exists "favourites are removed by their owner" on public.user_favorites;
 create policy "favourites are removed by their owner"
   on public.user_favorites for delete
   to authenticated
-  using (user_id = auth.uid()::text);
+  using (user_id = ((select auth.uid())::text));
 
 drop policy if exists "scores are visible to their owner" on public.quiz_scores;
 create policy "scores are visible to their owner"
   on public.quiz_scores for select
   to authenticated
-  using (user_id = auth.uid()::text);
+  using (user_id = ((select auth.uid())::text));
 
 drop policy if exists "scores are recorded by their owner" on public.quiz_scores;
 create policy "scores are recorded by their owner"
   on public.quiz_scores for insert
   to authenticated
-  with check (user_id = auth.uid()::text);
+  with check (user_id = ((select auth.uid())::text));
 
 -- ---------------------------------------------------------------------------
 -- Grants

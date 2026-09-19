@@ -20,7 +20,8 @@
     "brand:icon": "node scripts/generate-icon.mjs",
     "check:shapes": "node --test scripts/check-shapes.mjs",
     "db:status": "node scripts/seed-database.mjs --status",
-    "db:seed": "node scripts/seed-database.mjs"
+    "db:seed": "node scripts/seed-database.mjs",
+    "db:schema": "node scripts/seed-database.mjs --schema"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

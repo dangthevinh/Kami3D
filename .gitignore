@@ -17,3 +17,7 @@ public/models/*.zip
 
 # Supabase CLI scratch state (created by any supabase command).
 supabase/.temp/
+
+# Guard rail: every value lives in .env.local. A tracked template in this
+# project twice collected real keys, so the filename is blocked outright.
+.env.example

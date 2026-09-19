@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isAuthConfigured } from "@/lib/env.server";
+import { activeAuthProvider } from "@/lib/auth-provider";
 import { getSupabaseUser } from "@/lib/supabase-server";
 
 /**
@@ -18,10 +18,13 @@ import { getSupabaseUser } from "@/lib/supabase-server";
  */
 
 export async function getCurrentUserId(): Promise<string | null> {
-  const supabaseUser = await getSupabaseUser();
-  if (supabaseUser) return supabaseUser.id;
+  const provider = activeAuthProvider();
+  if (provider === "none") return null;
 
-  if (!isAuthConfigured) return null;
+  if (provider === "supabase") {
+    const supabaseUser = await getSupabaseUser();
+    return supabaseUser?.id ?? null;
+  }
 
   // Loaded lazily so an unconfigured app never evaluates Clerk's key checks.
   const { auth } = await import("@clerk/nextjs/server");
@@ -30,12 +33,13 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 export async function getCurrentUser(): Promise<{ id: string; name: string | null; imageUrl: string | null } | null> {
-  const supabaseUser = await getSupabaseUser();
-  if (supabaseUser) {
-    return { id: supabaseUser.id, name: supabaseUser.email, imageUrl: null };
-  }
+  const provider = activeAuthProvider();
+  if (provider === "none") return null;
 
-  if (!isAuthConfigured) return null;
+  if (provider === "supabase") {
+    const supabaseUser = await getSupabaseUser();
+    return supabaseUser ? { id: supabaseUser.id, name: supabaseUser.email, imageUrl: null } : null;
+  }
 
   const { currentUser } = await import("@clerk/nextjs/server");
   const user = await currentUser();

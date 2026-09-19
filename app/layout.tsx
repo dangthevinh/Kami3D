@@ -7,7 +7,8 @@ import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { UserMenu } from "@/components/layout/UserMenu";
-import { isClerkEnabled, publicEnv } from "@/lib/env";
+import { activeAuthProvider } from "@/lib/auth-provider";
+import { publicEnv } from "@/lib/env";
 
 import "./globals.css";
 
@@ -50,10 +51,12 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Chosen at build time from public configuration, so the layout never reads
-  // cookies and every route can stay statically rendered. SupabaseAuthSlot
+  // One decision point shared with the server-side auth helpers, so the UI can
+  // never offer a provider the database does not understand. The layout reads no
+  // cookies, which keeps every route statically renderable; SupabaseAuthSlot
   // resolves the signed-in account in the browser for the same reason.
-  const authSlot = isClerkEnabled ? <UserMenu /> : <SupabaseAuthSlot />;
+  const provider = activeAuthProvider();
+  const authSlot = provider === "clerk" ? <UserMenu /> : <SupabaseAuthSlot />;
 
   const shell = (
     <>
@@ -67,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${sora.variable} dark`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
-        {isClerkEnabled ? (
+        {provider === "clerk" ? (
           <ClerkProvider
             appearance={{
               variables: { colorPrimary: "#35f0c0", colorBackground: "#070c1a", borderRadius: "0.9rem" },
