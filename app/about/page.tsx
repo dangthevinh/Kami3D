@@ -243,9 +243,9 @@ export default function AboutPage() {
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
           The repository ships with a typed dataset, a generated SQL seed and node checks that verify the geometry
           maths and the database agreement. Copy{" "}
-          <code className="rounded bg-white/8 px-1.5 py-0.5 text-[12px] text-neon">.env.example</code> to{" "}
-          <code className="rounded bg-white/8 px-1.5 py-0.5 text-[12px] text-neon">.env.local</code> to switch on
-          Clerk, Supabase and AdSense.
+          create a <code className="rounded bg-white/8 px-1.5 py-0.5 text-[12px] text-neon">.env.local</code>{" "}
+          (gitignored) to switch on Clerk, Supabase and AdSense. It is not committed, so a fresh clone starts in
+          Demo Mode.
         </p>
         <pre className="mt-4 overflow-x-auto rounded-2xl bg-void/70 p-4 font-mono text-[12px] leading-relaxed text-white/70 ring-1 ring-white/10">
           {RUN_COMMANDS.join("\n")}

@@ -50,23 +50,47 @@ Optional next step: `npm run models:report` lists downloadable 3D models for eve
 
 ## Configuration
 
-Copy `.env.example` to `.env.local` and fill in what you need. Every value is optional.
+There is no committed env template: the only env file is `.env.local`, which is **gitignored**. Create it and
+fill in what you need — every value is optional, and with none of them set the app runs in Demo Mode.
 
 ```bash
-# Clerk — enables /sign-in, <UserButton /> and cross-device sync
+# --- Clerk (https://dashboard.clerk.com) — enables /sign-in, <UserButton />, sync
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 
-# Supabase — catalogue, favourites, quiz scores, 3D asset storage
+# --- Supabase (https://supabase.com/dashboard) — catalogue, favourites, scores
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=      # server only, never NEXT_PUBLIC_
+NEXT_PUBLIC_SUPABASE_ANON_KEY=          # or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SERVICE_ROLE_KEY=              # server only, never NEXT_PUBLIC_
 
-# Optional
+# --- 3D model downloads
+SKETCHFAB_API_TOKEN=                    # https://sketchfab.com/settings/password
+SI_API_KEY=                             # optional, https://api.data.gov/signup/
+POLY_PIZZA_API_KEY=                     # optional, https://poly.pizza/api
+NEXT_PUBLIC_DRACO_DECODER_PATH=         # empty = the vendored copy in public/draco/
+
+# --- Site and ads
 NEXT_PUBLIC_SITE_URL=http://localhost:9000
-NEXT_PUBLIC_ADSENSE_CLIENT=
-NEXT_PUBLIC_DRACO_DECODER_PATH= # defaults to the gstatic CDN
+NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 ```
+
+| Variable | Read by | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` | app | Both required; with one missing the app stays in Demo Mode |
+| `NEXT_PUBLIC_SUPABASE_URL` + anon/publishable key | app | Public by design; RLS is what protects the data |
+| `SUPABASE_SERVICE_ROLE_KEY` | server only | Bypasses RLS. Without it, favourites and scores fall back to a cookie |
+| `SKETCHFAB_API_TOKEN` | `scripts/fetch-models.mjs` | Searching works without it, downloading does not |
+| `SI_API_KEY`, `POLY_PIZZA_API_KEY` | `scripts/fetch-models.mjs` | Optional extra model providers |
+| `NEXT_PUBLIC_SITE_URL` | app | Canonical URLs, sitemap, OG images — must match the public origin |
+| `NEXT_PUBLIC_DRACO_DECODER_PATH` | browser | Empty uses the self-hosted decoder |
+| `NEXT_PUBLIC_ADSENSE_CLIENT` | browser | Empty renders ad placeholders |
+
+> A tracked `.env.example` was removed deliberately: a template that looks like a place to paste real keys is
+> how credentials end up in a public repository. The table above is the template instead.
 
 ### Connecting Supabase
 
