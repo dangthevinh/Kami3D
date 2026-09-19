@@ -14,3 +14,6 @@ next-env.d.ts
 # Tracked .glb files are deliberately NOT ignored: a committed model_url has to
 # resolve, or the species page would credit a model it cannot render.
 public/models/*.zip
+
+# Supabase CLI scratch state (created by any supabase command).
+supabase/.temp/
