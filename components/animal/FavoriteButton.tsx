@@ -19,6 +19,7 @@ export function FavoriteButton({ animalId, animalName, variant = "icon", classNa
   const ids = useFavoritesStore((state) => state.ids);
   const load = useFavoritesStore((state) => state.load);
   const toggle = useFavoritesStore((state) => state.toggle);
+  const lastError = useFavoritesStore((state) => state.lastError);
   const [justToggled, setJustToggled] = React.useState(false);
 
   // The favourite list lives in a cookie/session, so it is synced after mount.
@@ -38,24 +39,38 @@ export function FavoriteButton({ animalId, animalName, variant = "icon", classNa
   }
 
   return (
-    <Button
-      type="button"
-      onClick={onClick}
-      variant={active ? "iris" : "secondary"}
-      size={variant === "icon" ? "icon" : "default"}
-      aria-pressed={active}
-      aria-label={active ? `Remove ${animalName} from favourites` : `Save ${animalName} to favourites`}
-      className={cn(variant === "icon" && "size-9", className)}
-    >
-      <Heart
+    <div className={cn(variant === "labelled" && "flex flex-col gap-1.5", className)}>
+      <Button
+        type="button"
+        onClick={onClick}
+        variant={active ? "iris" : "secondary"}
+        size={variant === "icon" ? "icon" : "default"}
+        aria-pressed={active}
+        // The server's explanation (for example "the catalogue is not seeded yet")
+        // is attached to the control rather than swallowed.
+        title={lastError ?? undefined}
+        aria-label={active ? `Remove ${animalName} from favourites` : `Save ${animalName} to favourites`}
         className={cn(
-          "transition-transform duration-300",
-          active && "fill-current",
-          justToggled && "scale-125",
+          variant === "icon" && "size-9",
+          lastError && "ring-2 ring-coral/60",
         )}
-      />
-      {variant === "labelled" ? <span>{active ? "Saved" : "Save"}</span> : null}
-    </Button>
+      >
+        <Heart
+          className={cn(
+            "transition-transform duration-300",
+            active && "fill-current",
+            justToggled && "scale-125",
+          )}
+        />
+        {variant === "labelled" ? <span>{active ? "Saved" : "Save"}</span> : null}
+      </Button>
+
+      {lastError && variant === "labelled" ? (
+        <p role="status" className="max-w-xs text-[11px] leading-relaxed text-coral">
+          {lastError}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

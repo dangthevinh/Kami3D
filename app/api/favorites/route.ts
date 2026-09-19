@@ -58,12 +58,26 @@ export async function POST(request: Request) {
         return NextResponse.json({ ids, favorite: !isFavorite, source: "supabase" });
       }
 
-      // A missing table (schema not applied yet) lands here, which is exactly the
-      // case the cookie fallback exists for.
-      console.warn("[kami3d] favourite write fell back to cookie:", error.message);
+      // A signed-in visitor's collection lives in the database, and the read path
+      // only ever looks there. Silently parking the write in a cookie would show a
+      // heart that disappears on the next load, so the failure is reported and the
+      // client rolls its optimistic update back.
+      console.warn("[kami3d] favourite write rejected:", error.message);
+
+      const missingSpecies = error.message.includes("foreign key") || error.code === "23503";
+      return NextResponse.json(
+        {
+          error: missingSpecies
+            ? "This species is not in the database yet, so it cannot be saved. Run supabase/seed.sql (see README) to load the catalogue."
+            : "Could not save that favourite. Please try again.",
+          ids: current,
+        },
+        { status: missingSpecies ? 409 : 502 },
+      );
     }
   }
 
+  // Signed out: the browser-local collection is the only store, and it is real.
   const ids = await readFavoriteIds();
   const isFavorite = ids.includes(animalId);
   const next = isFavorite ? ids.filter((id) => id !== animalId) : [...ids, animalId];

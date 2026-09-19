@@ -97,7 +97,9 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 ### Connecting Supabase
 
 1. Create a project, then run `supabase/schema.sql` in the SQL editor.
-2. Run `supabase/seed.sql` (generated — see below) to load the 24 species.
+2. Run `supabase/seed.sql` (generated — see below) to load the 24 species. **Do not skip this.** Favourites
+   reference a species by foreign key, so with an empty `animals` table every save is rejected — the API answers
+   409 with the run-the-seed instruction rather than pretending it worked.
 3. Put the URL and the **anon or publishable** key in `NEXT_PUBLIC_SUPABASE_*`. The service-role key is optional
    and only needed for privileged maintenance — sign-in, favourites and scores all work without it.
 
