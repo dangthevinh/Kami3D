@@ -44,9 +44,51 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MODEL_DIR = join(ROOT, "public", "models");
 const ATTRIBUTION_FILE = join(ROOT, "data", "model-attribution.json");
 const DIRECT_SOURCES_FILE = join(ROOT, "data", "model-sources.json");
+const QUERY_OVERRIDES_FILE = join(ROOT, "data", "model-queries.json");
 
 const USER_AGENT = "Kami3D-model-fetcher/1.0 (+https://github.com/dangthevinh/Kami3D)";
 const REQUEST_DELAY_MS = 350;
+
+/** Mutable run configuration, populated from the CLI flags. */
+const CONFIG = {
+  /** 12 MB: comfortably inside the documented per-model budget. */
+  maxBytes: 12 * 1024 * 1024,
+};
+
+/**
+ * Load `.env.local` / `.env`.
+ *
+ * Next.js loads these for the app, but this script runs as a plain Node process,
+ * so without this the provider keys would only work if they happened to be
+ * exported in the shell. Existing environment variables always win, and nothing
+ * is ever printed, so a token cannot leak into logs.
+ */
+async function loadEnvFiles() {
+  for (const name of [".env.local", ".env"]) {
+    const file = join(ROOT, name);
+    if (!existsSync(file)) continue;
+
+    for (const line of (await readFile(file, "utf8")).split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+
+      const separator = trimmed.indexOf("=");
+      if (separator === -1) continue;
+
+      const key = trimmed.slice(0, separator).trim();
+      let value = trimmed.slice(separator + 1).trim();
+
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+
+      if (!(key in process.env)) process.env[key] = value;
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 /* Licence policy                                                             */
@@ -158,7 +200,8 @@ const sketchfab = {
       downloadable: Boolean(model.isDownloadable),
       licenseLabel: model.license?.label ?? null,
       licenseUrl: model.license?.url ?? null,
-      sourceUrl: model.viewerUrl ?? `https://sketchfab.com/3d-models/${model.uid}`,
+      // /models/<uid> always resolves; viewerUrl carries a slug that can be "none".
+      sourceUrl: `https://sketchfab.com/models/${model.uid}`,
       faceCount: model.faceCount ?? null,
       thumbnail: model.thumbnails?.images?.[0]?.url ?? null,
       annotationCount: model.annotationCount ?? 0,
@@ -180,6 +223,13 @@ const sketchfab = {
     // Prefer a single binary glb; fall back to the gltf archive.
     const entry = manifest.glb ?? manifest.gltf;
     if (!entry?.url) throw new Error("Sketchfab returned no downloadable glb/gltf for this model");
+
+    if (typeof entry.size === "number" && entry.size > CONFIG.maxBytes) {
+      throw new Error(
+        `declared size ${(entry.size / 1048576).toFixed(1)} MB exceeds the ${(CONFIG.maxBytes / 1048576).toFixed(0)} MB budget` +
+          " (raise it with --max-mb if you really want this model)",
+      );
+    }
 
     const response = await request(entry.url, { headers: { accept: "*/*" } });
     if (!response.ok) throw new Error(`download failed: ${response.status}`);
@@ -448,10 +498,18 @@ export function rankCandidates(candidates, animal) {
       const licence = evaluateLicense(candidate.licenseLabel);
       const title = candidate.title.toLowerCase();
       let score = 0;
+      let matched = false;
 
-      if (wanted.some((term) => title === term)) score += 40;
-      else if (wanted.some((term) => title.includes(term))) score += 25;
-      else if (wanted.some((term) => term.includes(title) && title.length > 3)) score += 12;
+      if (wanted.some((term) => title === term)) {
+        score += 40;
+        matched = true;
+      } else if (wanted.some((term) => title.includes(term))) {
+        score += 25;
+        matched = true;
+      } else if (wanted.some((term) => term.includes(title) && title.length > 3)) {
+        score += 12;
+        matched = true;
+      }
 
       if (licence.spdx === "CC0-1.0" || licence.spdx === "PDM-1.0") score += 20;
       else if (licence.spdx === "CC-BY-4.0") score += 10;
@@ -462,7 +520,7 @@ export function rankCandidates(candidates, animal) {
         else if (candidate.faceCount > 500_000) score -= 15;
       }
 
-      return { candidate, licence, score };
+      return { candidate, licence, score, matched };
     })
     .sort((a, b) => b.score - a.score);
 }
@@ -472,12 +530,15 @@ export function rankCandidates(candidates, animal) {
 /* -------------------------------------------------------------------------- */
 
 function parseArgs(argv) {
-  const flags = { species: [], providers: Object.keys(PROVIDERS), all: false, apply: false, force: false, report: false, wire: false };
+  const flags = { species: [], providers: Object.keys(PROVIDERS), all: false, apply: false, force: false, report: false, wire: false, strictMatch: false, rehash: false };
   for (const arg of argv) {
     if (arg === "--all") flags.all = true;
     else if (arg === "--apply") flags.apply = true;
     else if (arg === "--force") flags.force = true;
     else if (arg === "--wire") flags.wire = true;
+    else if (arg === "--strict-match") flags.strictMatch = true;
+    else if (arg === "--rehash") flags.rehash = true;
+    else if (arg.startsWith("--max-mb=")) CONFIG.maxBytes = Number(arg.split("=")[1]) * 1024 * 1024;
     else if (arg === "--report") flags.report = true;
     else if (arg.startsWith("--species=")) flags.species.push(arg.split("=")[1]);
     else if (arg.startsWith("--provider=")) flags.providers = arg.split("=")[1].split(",");
@@ -491,9 +552,32 @@ function providerKeyFor(id) {
   return id === "polypizza" ? "polypizza" : id;
 }
 
+/**
+ * Per-species search overrides.
+ *
+ * A species' display name is not always the best search term: searching Sketchfab
+ * for "Common Octopus" happily returns an octopus *fillet*, and some names simply
+ * have no matches while their genus does. `data/model-queries.json` maps
+ * `slug -> query` and can also add words that must appear in the title.
+ *
+ *   { "common-octopus": { "query": "octopus vulgaris", "reject": ["fillet", "sashimi", "food"] } }
+ */
+async function loadQueryOverrides() {
+  if (!existsSync(QUERY_OVERRIDES_FILE)) return {};
+  try {
+    return JSON.parse(await readFile(QUERY_OVERRIDES_FILE, "utf8"));
+  } catch (error) {
+    throw new Error(`data/model-queries.json is not valid JSON: ${error.message}`);
+  }
+}
+
 /** Gather candidates for one species from every enabled provider. */
-async function gatherCandidates(animal, providers) {
+async function gatherCandidates(animal, providers, overrides = {}) {
   const results = [];
+  const override = overrides[animal.slug] ?? {};
+  const query = override.query ?? animal.name;
+
+  if (override.query) console.log(`   (searching "${override.query}" instead of "${animal.name}")`);
 
   for (const id of providers) {
     const provider = PROVIDERS[providerKeyFor(id)];
@@ -506,8 +590,21 @@ async function gatherCandidates(animal, providers) {
       const found =
         provider.id === "direct"
           ? await provider.searchFor(animal.slug)
-          : await provider.search(animal.name, { limit: 24 });
-      results.push(...found);
+          : await provider.search(query, { limit: 24 });
+
+      // Drop results whose title contains a rejected word ("fillet", "sashimi"…).
+      const rejected = (override.reject ?? []).map((word) => word.toLowerCase());
+      const kept = rejected.length
+        ? found.filter((candidate) => !rejected.some((word) => candidate.title.toLowerCase().includes(word)))
+        : found;
+
+      for (const candidate of found) {
+        if (!kept.includes(candidate)) {
+          console.log(`   – rejected "${candidate.title.slice(0, 50)}" (matches a reject word)`);
+        }
+      }
+
+      results.push(...kept);
     } catch (error) {
       console.warn(`  ${provider.label}: ${error.message}`);
     }
@@ -522,13 +619,14 @@ async function report(flags) {
     ? ANIMALS
     : ANIMALS.filter((animal) => flags.species.includes(animal.slug));
 
+  const overrides = await loadQueryOverrides();
   console.log(`Scanning ${animals.length} species across: ${flags.providers.join(", ")}\n`);
 
   let allowed = 0;
   let refused = 0;
 
   for (const animal of animals) {
-    const candidates = await gatherCandidates(animal, flags.providers);
+    const candidates = await gatherCandidates(animal, flags.providers, overrides);
     const ranked = rankCandidates(candidates, animal);
     const ok = ranked.filter((entry) => entry.licence.ok);
 
@@ -538,13 +636,16 @@ async function report(flags) {
       continue;
     }
 
-    for (const { candidate, licence } of ranked.slice(0, 3)) {
+    for (const { candidate, licence, matched } of ranked.slice(0, 3)) {
+      // A model whose title says nothing about the species is usually a stray
+      // result, so it is flagged rather than presented as a good match.
+      const flag = matched ? " " : "?";
       if (licence.ok) {
         allowed += 1;
-        console.log(`   ✔ ${licence.spdx.padEnd(9)} ${candidate.title.slice(0, 44).padEnd(46)} ${candidate.provider}`);
+        console.log(`   ✔${flag} ${licence.spdx.padEnd(9)} ${candidate.title.slice(0, 44).padEnd(46)} ${candidate.provider}`);
       } else {
         refused += 1;
-        console.log(`   ✘ refused   ${candidate.title.slice(0, 44).padEnd(46)} ${licence.reason}`);
+        console.log(`   ✘${flag} refused   ${candidate.title.slice(0, 44).padEnd(46)} ${licence.reason}`);
       }
     }
     console.log("");
@@ -576,6 +677,7 @@ async function fetchModels(flags) {
     ? ANIMALS
     : ANIMALS.filter((animal) => flags.species.includes(animal.slug));
 
+  const overrides = await loadQueryOverrides();
   const manifest = await readAttribution();
   let downloaded = 0;
   let skipped = 0;
@@ -589,18 +691,23 @@ async function fetchModels(flags) {
       continue;
     }
 
-    const candidates = await gatherCandidates(animal, flags.providers);
-    const best = rankCandidates(candidates, animal).find((entry) => entry.licence.ok);
+    const candidates = await gatherCandidates(animal, flags.providers, overrides);
+    const best = rankCandidates(candidates, animal).find(
+      (entry) => entry.licence.ok && (!flags.strictMatch || entry.matched),
+    );
 
     if (!best) {
-      console.log(`✘ ${animal.slug}: no candidate with a redistributable licence`);
+      console.log(
+        `✘ ${animal.slug}: no candidate with a redistributable licence${flags.strictMatch ? " AND a matching title" : ""}`,
+      );
       skipped += 1;
       continue;
     }
 
-    const { candidate, licence } = best;
+    const { candidate, licence, matched } = best;
     console.log(
-      `→ ${animal.slug}: ${candidate.title} by ${candidate.author} [${licence.spdx}] from ${candidate.provider}`,
+      `→ ${animal.slug}: ${candidate.title} by ${candidate.author} [${licence.spdx}] from ${candidate.provider}` +
+        (matched ? "" : "\n   ⚠ the title does not mention this species — check it before publishing"),
     );
 
     if (!flags.apply) {
@@ -666,6 +773,44 @@ async function fetchModels(flags) {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Recompute `bytes` and `sha256` for every model already on disk.
+ *
+ * Run after compressing or otherwise editing a fetched model, so the manifest
+ * describes the file that is actually committed rather than the download it
+ * originally came from.
+ */
+async function rehash() {
+  const manifest = await readAttribution();
+  let updated = 0;
+
+  for (const [slug, entry] of Object.entries(manifest)) {
+    const file = join(MODEL_DIR, `${slug}.glb`);
+    if (!existsSync(file)) {
+      console.log(`? ${slug}: no local file, leaving the entry alone`);
+      continue;
+    }
+
+    const buffer = await readFile(file);
+    manifest[slug] = {
+      ...entry,
+      file: `/models/${slug}.glb`,
+      format: "glb",
+      bytes: buffer.length,
+      sha256: createHash("sha256").update(buffer).digest("hex"),
+      verifiedAt: new Date().toISOString(),
+    };
+    updated += 1;
+  }
+
+  await writeAttribution(manifest);
+  console.log(`Rehashed ${updated} model(s) in data/model-attribution.json.`);
+}
+
+/* -------------------------------------------------------------------------- */
+
+await loadEnvFiles();
+
 const flags = parseArgs(process.argv.slice(2));
 
 if (flags.help) {
@@ -678,12 +823,18 @@ if (flags.help) {
   --apply                 actually download (default is a dry run)
   --wire                  also set model_url in data/animals.ts to the local file
   --force                 replace an existing local model
+  --strict-match          skip candidates whose title does not name the species
+  --max-mb=<n>            refuse models larger than n megabytes (default 12)
+  --rehash                recompute bytes/sha256 for models already on disk
+                          (run after compressing them)
 
 Environment:
   SKETCHFAB_API_TOKEN     Sketchfab OAuth token (required to download)
   SI_API_KEY              Smithsonian Open Access key
   POLY_PIZZA_API_KEY      Poly Pizza key
 `);
+} else if (flags.rehash) {
+  await rehash();
 } else if (flags.report || (!flags.all && flags.species.length === 0)) {
   await report(flags);
 } else {

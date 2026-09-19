@@ -9,12 +9,19 @@
 export const publicEnv = {
   clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  // Supabase is migrating from the legacy anon JWT to "sb_publishable_…" keys.
+  // Both are public and interchangeable for the client, so accept either.
+  supabaseAnonKey:
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:9000",
   adsenseClient: process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "",
-  dracoDecoderPath:
-    process.env.NEXT_PUBLIC_DRACO_DECODER_PATH ||
-    "https://www.gstatic.com/draco/versioned/decoders/1.5.7/",
+  /**
+   * Self-hosted by default: the decoder is vendored in `public/draco/` (copied
+   * from three) because every model fetched by `npm run models:fetch` is
+   * DRACO-compressed. Pointing at the CDN is still possible through the env var
+   * if you would rather not ship the ~1.8 MB of decoder files.
+   */
+  dracoDecoderPath: process.env.NEXT_PUBLIC_DRACO_DECODER_PATH || "/draco/",
 } as const;
 
 /** Clerk is only wired up when the publishable key is present in the client bundle. */

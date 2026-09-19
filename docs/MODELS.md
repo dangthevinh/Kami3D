@@ -105,8 +105,55 @@ than showing a broken canvas.
 Providers hand you whatever they have; compress before committing. See `docs/ASSETS.md` for the DRACO pipeline
 (`gltf-transform optimize … --compress draco`). Budget: **≤ 1.5 MB and ≤ 75k triangles** per model.
 
-## Scale correctness
+## Scale and orientation
 
-A downloaded model is *not* automatically the right size. `SizeComparison` uses the recorded measurements in
-`data/animals.ts`, not the mesh's own units, so a model exported in centimetres will look wrong beside the human
-until you either rescale it or leave `model_url` unset for that species. Check the species page after fetching.
+Mesh units do **not** need normalising. `ModelViewer` wraps the model in `<Center bottom>` inside `<Bounds>`, so
+any scale or origin offset is framed automatically, and the size chart on a species page is drawn from the
+procedural rigs plus the recorded measurements in `data/animals.ts` — never from the mesh. A model exported in
+centimetres will therefore still look right.
+
+What does vary between models is **orientation and pose**: one may face -Z, another may be modelled lying down.
+Give each newly fetched species one look in the browser; that is the only thing the pipeline cannot check for you.
+
+## What the shipped catalogue contains
+
+24 species fetched from Sketchfab, all **CC BY 4.0**, and all compressed with:
+
+```bash
+gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp --texture-size 1024
+```
+
+**61 MB → 10 MB (84% smaller)**, with a valid glTF 2.0 container and `KHR_draco_mesh_compression` in
+`extensionsRequired` for every file.
+
+Because the models are DRACO-compressed, the decoder is vendored in `public/draco/` (copied from
+`three/examples/jsm/libs/draco/`) and is the **default** decoder path — no CDN request, and the app works
+offline. After compressing or otherwise editing a model, refresh its manifest entry:
+
+```bash
+npm run models:fetch -- --rehash
+```
+
+## Search overrides
+
+A species' display name is not always the best search term — searching Sketchfab for "Common Octopus" returns an
+octopus *fillet*. `data/model-queries.json` overrides the query and can reject words that must not appear in a
+title:
+
+```json
+{
+  "common-octopus": {
+    "query": "octopus",
+    "reject": ["fillet", "sashimi", "food", "dish", "plate", "cooked", "recipe"]
+  },
+  "gooty-tarantula": { "query": "tarantula" }
+}
+```
+
+`--strict-match` goes further and refuses any candidate whose title does not name the species.
+
+## Known imperfections in the current set
+
+Attribution is complete and every licence is redistributable, but a few models are *representatives* rather than
+the exact taxon: `gooty-tarantula` is a Mexican red-knee tarantula, and `weddell-seal` is a generic seal. Replace
+them through `data/model-sources.json` when you find better ones.

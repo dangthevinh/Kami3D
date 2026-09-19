@@ -1,0 +1,16 @@
+{
+  "common-octopus": {
+    "query": "octopus",
+    "reject": ["fillet", "sashimi", "food", "dish", "plate", "cooked", "recipe", "tako"]
+  },
+  "gooty-tarantula": {
+    "query": "tarantula",
+    "reject": ["dead", "preserved", "specimen jar"]
+  },
+  "green-anaconda": {
+    "query": "anaconda snake"
+  },
+  "weddell-seal": {
+    "query": "seal"
+  }
+}

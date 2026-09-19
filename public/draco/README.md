@@ -1,19 +1,31 @@
-# DRACO decoder (vendor this folder for offline deployments)
+# Draco 3D Data Compression
 
-The 3D viewer loads its DRACO decoder from the gstatic CDN by default. To serve it yourself:
+Draco is an open-source library for compressing and decompressing 3D geometric meshes and point clouds. It is intended to improve the storage and transmission of 3D graphics.
 
-```bash
-cp -R node_modules/three/examples/jsm/libs/draco/* public/draco/
+[Website](https://google.github.io/draco/) | [GitHub](https://github.com/google/draco)
+
+## Contents
+
+This folder contains three utilities:
+
+* `draco_decoder.js` — Emscripten-compiled decoder, compatible with any modern browser.
+* `draco_decoder.wasm` — WebAssembly decoder, compatible with newer browsers and devices.
+* `draco_wasm_wrapper.js` — JavaScript wrapper for the WASM decoder.
+
+Each file is provided in two variations:
+
+* **Default:** Latest stable builds, tracking the project's [master branch](https://github.com/google/draco).
+* **glTF:** Builds targeted by the [glTF mesh compression extension](https://github.com/KhronosGroup/glTF/tree/master/extensions/2.0/Khronos/KHR_draco_mesh_compression), tracking the [corresponding Draco branch](https://github.com/google/draco/tree/gltf_2.0_draco_extension).
+
+Either variation may be used with `DRACOLoader`:
+
+```js
+var dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('path/to/decoders/');
 ```
 
-Then set the decoder path in `.env.local`:
+Further [documentation on GitHub](https://github.com/google/draco/tree/master/javascript/example#static-loading-javascript-decoder).
 
-```
-NEXT_PUBLIC_DRACO_DECODER_PATH=/draco/
-```
+## License
 
-`next.config.ts` already serves everything under `/draco/*` with
-`Cache-Control: public, max-age=31536000, immutable`, so these files are cached for a year.
-
-The decoder is only fetched when a species actually has a `model_url`; the procedural rigs used by
-the rest of the catalogue never need it.
+[Apache License 2.0](https://github.com/google/draco/blob/master/LICENSE)

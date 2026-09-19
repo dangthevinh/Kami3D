@@ -135,6 +135,9 @@ non-commercial and all-rights-reserved models are refused, and every accepted mo
 and licence in `data/model-attribution.json` — which the species page renders as a credit line. A CC BY model
 therefore cannot reach the site without its attribution.
 
+The shipped catalogue already contains **24 DRACO-compressed models (10 MB, down from 61 MB)** under CC BY 4.0,
+with the decoder vendored in `public/draco/` so nothing is fetched from a CDN.
+
 Full details, including which key each provider needs: [docs/MODELS.md](docs/MODELS.md).
 
 ## Scripts
