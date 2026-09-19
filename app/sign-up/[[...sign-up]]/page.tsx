@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthPanel } from "@/components/auth/AuthPanel";
 import { DemoAuthNotice } from "@/components/auth/DemoAuthNotice";
+import { getAuthProviders } from "@/lib/auth-providers";
 import { isClerkEnabled, isSupabaseConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -20,12 +21,20 @@ function resolveRedirect(params: Record<string, string | string[] | undefined>):
   return value;
 }
 
+/** An OAuth refusal or a failed code exchange arrives back here as a query param. */
+function resolveError(params: Record<string, string | string[] | undefined>): string | null {
+  const raw = params.error_description ?? params.error;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value ? value : null;
+}
+
 export default async function AuthPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  const providers = await getAuthProviders();
 
   return (
     <div className="section-shell flex min-h-[70vh] items-center justify-center pt-10">
@@ -34,7 +43,12 @@ export default async function AuthPage({
           <AuthPanel mode="sign-up" />
         ) : isSupabaseConfigured ? (
           <div className="mx-auto max-w-md">
-            <AuthForm mode="sign-up" redirectTo={resolveRedirect(params)} />
+            <AuthForm
+              mode="sign-up"
+              redirectTo={resolveRedirect(params)}
+              googleEnabled={providers.google}
+              initialError={resolveError(params)}
+            />
           </div>
         ) : (
           <DemoAuthNotice mode="sign-up" />

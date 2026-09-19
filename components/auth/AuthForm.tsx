@@ -4,6 +4,7 @@ import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { Button } from "@/components/ui/button";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { cn } from "@/lib/utils";
@@ -42,16 +43,26 @@ export interface AuthFormProps {
   mode: Mode;
   /** Where to land after a successful sign-in. */
   redirectTo?: string;
+  /** Whether the Supabase project has the Google provider switched on. */
+  googleEnabled?: boolean;
+  /** An error handed back by /auth/callback or by an OAuth refusal. */
+  initialError?: string | null;
   className?: string;
 }
 
-export function AuthForm({ mode, redirectTo = "/", className }: AuthFormProps) {
+export function AuthForm({
+  mode,
+  redirectTo = "/",
+  googleEnabled = false,
+  initialError = null,
+  className,
+}: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(initialError);
   const [notice, setNotice] = React.useState<string | null>(null);
 
   const supabase = getSupabaseBrowser();
@@ -116,6 +127,18 @@ export function AuthForm({ mode, redirectTo = "/", className }: AuthFormProps) {
       </p>
 
       <div className="mt-6 space-y-4">
+        <GoogleButton
+          enabled={googleEnabled}
+          redirectTo={redirectTo}
+          label={isSignUp ? "Sign up with Google" : "Continue with Google"}
+        />
+
+        <div className="flex items-center gap-3" aria-hidden>
+          <span className="h-px flex-1 bg-white/10" />
+          <span className="text-[11px] uppercase tracking-wide text-white/35">or use email</span>
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+
         <label className="block">
           <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-wide text-white/50">Email</span>
           <span className="relative block">
