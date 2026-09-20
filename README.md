@@ -21,6 +21,9 @@ npm run dev        # http://localhost:9000
 Optional next step: `npm run models:report` lists downloadable 3D models for every species, and
 `npm run models:fetch` pulls the redistributable ones in. See [docs/MODELS.md](docs/MODELS.md).
 
+> **Progress and roadmap: [PLAN.md](PLAN.md)** — every phase, what shipped, how it was verified, and what is
+> still open.
+
 ---
 
 ## What is in here
