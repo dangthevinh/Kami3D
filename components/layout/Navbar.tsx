@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Compass, Gamepad2, Heart, Menu, Search, Sparkles, X } from "lucide-react";
+import { Compass, Gamepad2, Heart, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: "/", label: "Home", icon: Sparkles },
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/quiz", label: "Quiz", icon: Gamepad2 },
+  { href: "/leaderboard", label: "Most viewed", icon: Trophy },
   { href: "/profile", label: "Collection", icon: Heart },
 ] as const;
 

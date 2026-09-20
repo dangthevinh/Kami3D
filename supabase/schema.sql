@@ -277,6 +277,70 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- Daily view history (feeds the trend charts)
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.animal_views_daily (
+  animal_id uuid not null references public.animals (id) on delete cascade,
+  day       date not null default current_date,
+  views     integer not null default 0 check (views >= 0),
+  -- One row per species per day: the upsert below lands on this key.
+  primary key (animal_id, day)
+);
+
+comment on table public.animal_views_daily is
+  'One row per species per day. Written only by increment_animal_view(); read by the leaderboard trend charts.';
+
+create index if not exists animal_views_daily_day_idx on public.animal_views_daily (day desc);
+
+alter table public.animal_views_daily enable row level security;
+
+-- Aggregate daily counts, not personal data, so the catalogue's readers may see
+-- them. There is deliberately no insert/update policy: the only writer is the
+-- function below.
+drop policy if exists "daily views are publicly readable" on public.animal_views_daily;
+create policy "daily views are publicly readable"
+  on public.animal_views_daily for select
+  to anon, authenticated
+  using (true);
+
+grant select on public.animal_views_daily to anon, authenticated;
+
+-- Both counters move together in one call, so a view can never be counted in the
+-- total but lost from the history (or the other way round).
+create or replace function public.increment_animal_view(animal_slug text)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  target_id uuid;
+  new_count integer;
+begin
+  if animal_slug is null or length(animal_slug) = 0 or length(animal_slug) > 120 then
+    return 0;
+  end if;
+
+  update public.animals
+     set view_count = view_count + 1
+   where slug = animal_slug
+  returning id, view_count into target_id, new_count;
+
+  if target_id is null then
+    return 0;
+  end if;
+
+  insert into public.animal_views_daily (animal_id, day, views)
+  values (target_id, current_date, 1)
+  on conflict (animal_id, day)
+    do update set views = public.animal_views_daily.views + 1;
+
+  return new_count;
+end;
+$$;
+
 revoke all on function public.increment_animal_view(text) from public;
 grant execute on function public.increment_animal_view(text) to anon, authenticated;
 

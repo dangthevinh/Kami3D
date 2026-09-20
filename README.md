@@ -142,6 +142,23 @@ Each species card shows how many times its page has been opened, counted in the 
   guard against a refresh inflating the number, not an analytics identity.
 - With no database configured there is no counter to read, so the figure is omitted rather than invented.
 
+### Leaderboard and trends
+
+`/leaderboard` ranks species by total views and charts the last thirty days.
+
+- `animal_views_daily` holds one row per species per day, keyed `(animal_id, day)`. The increment function writes
+  the total and the daily row **in the same call**, so a view can never land in one and be lost from the other.
+  Day counts are aggregate, not personal data, so the table is publicly readable — and has no insert or update
+  policy at all, which means the function remains the only way in.
+- `lib/trend.ts` is the chart maths: gap-filling, sparkline paths, bar geometry and the summary figures. It is
+  pure and tested, with dates pinned so the suite cannot fail on a particular calendar day.
+- The charts are server-rendered SVG, so the page ships no client JavaScript and the sparklines can be rendered
+  straight into static HTML.
+
+> The advisors warn that `increment_animal_view` is a `SECURITY DEFINER` function executable by `anon`. That is
+> deliberate and the reason it exists: the catalogue is public, and this is a narrower door than granting `anon`
+> UPDATE on `animals`. The function takes a slug, increments one integer in one column of one row and returns it.
+
 ### Accounts and sign-in
 
 **Supabase Auth is the default provider** and needs nothing beyond the project above. Set `NEXT_PUBLIC_SUPABASE_URL`

@@ -14,6 +14,7 @@ const GROUPS = [
       { href: "/explore?region=Oceans", label: "Ocean life" },
       { href: "/explore?prehistoric=true", label: "Prehistoric 3D" },
       { href: "/quiz", label: "Silhouette quiz" },
+      { href: "/leaderboard", label: "Most viewed" },
     ],
   },
   {
