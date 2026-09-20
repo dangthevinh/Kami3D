@@ -21,7 +21,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **7** | Chế độ Sáng / Tối cho người dùng | ✅ Hoàn thành |
 | **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | ✅ 5/6 mục xong — Mục 5 (âm thanh) chờ asset |
 | **9** | Âm thanh loài: pipeline tải + kiểm licence | ✅ Hoàn thành — 6/24 loài có tiếng kêu, mode quiz sound đã bật |
-| **10** | Review toàn diện & đề xuất cải tiến | 📝 Đã ghi prompt, chưa chạy |
+| **10** | Review toàn diện & đề xuất cải tiến | ✅ Hoàn thành — báo cáo ở [docs/REVIEW.md](docs/REVIEW.md) |
 | **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
@@ -36,7 +36,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
 | JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 143.4 · `/explore` 146.5 · `/quiz` 153.3 · `/animal/[slug]` 139.2 kB (ngân sách 165) |
 | Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
-| CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
+| CI | GitHub Actions xanh — typecheck → checks → build → bundle budget mỗi lần push |
+| **Rủi ro đang mở** | **R1** Clerk đi vòng qua RLS bằng service role (P0) · **R2** `/api/views` có thể bị bơm · **R3** thiếu `app/error.tsx`/`loading.tsx` · **R4** kiến trúc dữ liệu O(N) · **R5** không có giám sát lỗi · **R6** GLB không được `dispose` + chưa có KTX2 · **R7** chưa sẵn sàng i18n · **R8** egress chưa có trần. Chi tiết + SQL ở [docs/REVIEW.md](docs/REVIEW.md) |
 | Bảo mật database | Supabase advisors: **0 phát hiện security**; 2 cảnh báo `anon_security_definer_function_executable` là **cố ý** và hẹp (`increment_animal_view`, `quiz_stats`) |
 
 **Tech stack đang chạy**: Next.js `15.5.25` (App Router) · React `19.2.8` · Tailwind CSS `4` ·
@@ -501,9 +502,26 @@ Hãy review thật sâu, thẳng thắn và mang tính thực chiến (productio
 **Đầu ra kỳ vọng**: báo cáo 7 phần theo đúng format trên, trong đó phần 3 phải là SQL chạy được ngay,
 và phần 7 phải chỉ ra chính xác section nào của PLAN.md cần sửa/thêm.
 
+**Đã chạy** → [docs/REVIEW.md](docs/REVIEW.md) (435 dòng, 7 phần đúng format). Kết quả gọn:
+
+| Phần | Kết luận chính |
+| --- | --- |
+| 1. Tổng quan | 7 điểm mạnh **có số đo**, 8 rủi ro xếp theo mức thiệt hại (R1–R8) |
+| 2. Kiến trúc | 7 đề xuất; quan trọng nhất là Clerk Third-Party Auth để RLS thành hàng rào thật, và tách `getAnimalSummaries` khỏi `getAllAnimals` |
+| 3. RLS SQL | Hàm `current_user_id()` hợp nhất Supabase + Clerk, policy đầy đủ cho 4 bảng + `app_admins` + `is_admin()` + storage — copy-paste chạy được |
+| 4. 3D | Vòng đời bộ nhớ là lỗ hổng thật (GLB không dispose), KTX2 là món nặng nhất còn lại, kèm đoạn code dispose |
+| 5. SEO | 7 việc còn thiếu, xếp theo giá trị (ảnh OG đang 375–624 kB, thiếu images trong sitemap…) |
+| 6. Roadmap | P0 (4 việc, ~5 giờ) → P1 (6 việc) → P2 (5 việc khi lên hàng nghìn loài) |
+| 7. PLAN.md | 7 section cần sửa — **đã áp dụng ngay trong commit này** |
+
 ---
 
 ## ⚙️ Phase 11 — Hệ thống Settings hoàn chỉnh
+
+> **Điều kiện tiên quyết (từ review Phase 10)**: hoàn thành **P0.1** trước — bật Clerk làm Third-Party Auth trong
+> Supabase và áp `public.current_user_id()` (`docs/REVIEW.md` §3.1). Bảng `user_settings` là bảng người dùng thứ
+> tư; nếu làm trước P0.1 thì nó lại phải ghi bằng service role và lặp lại đúng vấn đề R1. Policy của nó nên là
+> `user_id = public.current_user_id()` cho cả bốn lệnh SELECT/INSERT/UPDATE/DELETE.
 
 **Mục tiêu**: một trang `/settings` (Dark + Glassmorphism) cho người dùng đã đăng nhập tuỳ chỉnh 6 nhóm
 preference — Appearance, 3D Performance, Audio, Language & Region, Notifications, Account — và **lưu vào
@@ -609,6 +627,10 @@ create table user_settings (
 ---
 
 ## 🦁 Phase 12 — Admin tự động tìm & tải model 3D thật
+
+> **Bước 0 (từ review Phase 10)**: tạo bảng `public.app_admins` + hàm `public.is_admin()` và policy cho admin sửa
+> `animals` / upload storage — SQL sẵn ở `docs/REVIEW.md` §3.6–3.7. Không có vai trò admin ở tầng dữ liệu thì
+> không thể mở CMS một cách an toàn.
 
 > ⚠️ **Đọc trước khi làm: phần lớn phase này đã có sẵn.** [fetch-models.mjs](file:///Users/macbookpro2015/Kami/Kami3D/scripts/fetch-models.mjs) đã là
 > pipeline tải model thật (Sketchfab + Smithsonian + Poly Pizza + danh sách tự khai), có kiểm licence và ghi
@@ -719,7 +741,11 @@ create table model_assets (
 | 1 | **Cập nhật `CLERK_SECRET_KEY`** | Key hiện tại trả **403 / code 1010** (đã bị xoay). Lấy key mới ở Clerk Dashboard → API Keys rồi dán vào `.env.local`. **Đây là việc duy nhất đang chặn đăng nhập.** |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm — mọi bước còn lại đã verify bằng session thật qua API. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
+| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | Hiện Clerk đi vòng qua RLS bằng service role; bật Clerk làm Third-Party Auth trong Supabase rồi áp SQL ở `docs/REVIEW.md` §3.1–3.3 |
+| 5 | **P0.2 — chống bơm lượt xem** | `/api/views` chỉ có cookie 6 giờ; thêm rate limit + kiểm `Sec-Fetch-Site` |
+| 6 | **P0.3 — `app/error.tsx` + `global-error.tsx` + `loading.tsx`** | Thiếu tầng lỗi/đang tải ở route: một lỗi server component hiện ra trang trắng mặc định |
+| 7 | **P0.4 — `dispose()` geometry/material của GLB** | Đoạn code sẵn ở `docs/REVIEW.md` §4.2; kiểm bằng `renderer.info.memory` |
+| 8 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
 | 5 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
 | 6 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
 
@@ -738,6 +764,8 @@ npm run check:theme  # bảng màu sáng/tối: đủ token + độ tương ph�
 npm run check:camera # toán camera của ModelViewer: preset, bay, xoay, zoom
 npm run check:bundle  # sau khi build: ngân sách JS mỗi route + luật "không 3D/auth ở first paint"
 npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
+npm run audit:perf   # Chrome thật: TTFB/FCP/LCP/CLS + byte tải trước và sau `load`
+npm run check:bundle # sau khi build: ngân sách JS mỗi route + luật "không 3D/auth ở first paint"
 npm run check:quiz   # bộ sinh câu hỏi + luật tính điểm của quiz
 npm run check:globe  # toán địa cầu: camera bay tới vùng, xếp hạng pin theo vùng
 npm run check:sounds # chính sách licence âm thanh, cửa sổ kích thước, tên file chống path traversal
@@ -750,6 +778,16 @@ npm run sounds:report # Chrome không cần: dò bản ghi từng loài, KHÔNG 
 ---
 
 ## 📌 Quyết định thiết kế đáng nhớ
+
+0. **(Từ review Phase 10) Danh tính phải hợp nhất trước khi thêm bảng người dùng thứ tư.** Clerk sẽ được cấu hình
+   làm Third-Party Auth của Supabase để `auth.jwt()->>'sub'` trả về đúng người dùng, nhờ đó policy dùng chung một
+   hàm `public.current_user_id()` cho cả hai provider và **service role không còn cần** cho dữ liệu cá nhân. Bất kỳ
+   bảng per-user mới nào (ví dụ `user_settings` ở Phase 11) đều dùng hàm đó, không lặp lại `auth.uid()`.
+0b. **(Từ review) Asset ưu tiên Storage, repo chỉ là fallback.** Khi có Supabase, model và tiếng kêu được phát từ
+   bucket; bản trong `public/` chỉ để Demo Mode và self-host chạy được mà không cần key. Hai đường này phải được
+   ghi rõ ở một chỗ (`lib/animals.ts`) thay vì mỗi nơi tự quyết.
+0c. **(Từ review) Chuỗi i18n tách khỏi JSX trước khi thêm ngôn ngữ thứ hai.** Khoảng 250 chuỗi tiếng Anh đang nằm
+   rải trong component; gom vào `lib/i18n/en.ts` là việc rẻ, còn refactor sau khi đã có 3 ngôn ngữ là việc đắt.
 
 1. **Mọi tích hợp đều tuỳ chọn và suy giảm mềm.** Không key Clerk, không Supabase, không model,
    không âm thanh — mỗi thứ đều lùi về một trạng thái vẫn dùng được, không bao giờ trắng trang.
