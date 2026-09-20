@@ -345,6 +345,54 @@ revoke all on function public.increment_animal_view(text) from public;
 grant execute on function public.increment_animal_view(text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Anonymous quiz statistics
+-- ---------------------------------------------------------------------------
+
+-- A public quiz leaderboard would mean publishing other people's rows, and
+-- `quiz_scores` is owner-only by policy (and `anon` holds no grant on the table
+-- at all). What a visitor *can* be shown is the shape of everybody's play without
+-- anybody's identity: how many rounds exist, how good they were, how many people
+-- played, and when the last one landed.
+--
+-- It is the same door as `increment_animal_view()`: SECURITY DEFINER with an empty
+-- `search_path`, returning aggregates that cannot be traced back to a `user_id`.
+create or replace function public.quiz_stats()
+returns jsonb
+language sql
+security definer
+stable
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'rounds',         count(*),
+    'players',        count(distinct user_id),
+    'bestScore',      coalesce(max(score), 0),
+    'totalQuestions', coalesce(max(total_questions), 0),
+    'averagePercent', coalesce(round(avg(score::numeric / nullif(total_questions, 0)) * 100), 0),
+    'perfect',        count(*) filter (where score = total_questions),
+    'lastPlayedAt',   max(created_at),
+    'byMode',         coalesce(
+                        (
+                          select jsonb_object_agg(by_mode.mode, by_mode.rounds)
+                            from (
+                              select mode, count(*) as rounds
+                                from public.quiz_scores
+                               group by mode
+                            ) as by_mode
+                        ),
+                        '{}'::jsonb
+                      )
+  )
+  from public.quiz_scores;
+$$;
+
+comment on function public.quiz_stats() is
+  'Anonymised quiz aggregates for the public leaderboard: counts and averages, never a user_id or a single round.';
+
+revoke all on function public.quiz_stats() from public;
+grant execute on function public.quiz_stats() to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images, call recordings)
 -- ---------------------------------------------------------------------------
 

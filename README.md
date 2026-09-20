@@ -314,6 +314,7 @@ npm run check:auth      # the session hint that keeps auth SDKs off anonymous pa
 npm run check:theme     # both palettes: token completeness and WCAG contrast maths
 npm run check:quality   # device tier rules (saveData, weak hardware, unknown APIs)
 npm run check:camera    # viewer camera maths: presets, damped flights, orbit, dolly
+npm run check:quiz      # quiz round builder (variants, determinism) + scoring rules
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
 npm run audit:theme     # a real browser: unreadable text and dark panels in light mode
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint

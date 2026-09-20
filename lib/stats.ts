@@ -78,6 +78,51 @@ export async function getDailyTrend(days = 30): Promise<Map<string, SpeciesTrend
   return trends;
 }
 
+export interface QuizStats {
+  rounds: number;
+  players: number;
+  bestScore: number;
+  totalQuestions: number;
+  averagePercent: number;
+  perfect: number;
+  lastPlayedAt: string | null;
+  byMode: Record<string, number>;
+}
+
+/**
+ * Anonymised quiz aggregates, for the public leaderboard.
+ *
+ * `quiz_scores` is owner-only by policy and `anon` holds no grant on the table, so
+ * a per-visitor public board is impossible by design. This reads the one thing the
+ * database is willing to expose: counts and averages, via the `quiz_stats()`
+ * function — no `user_id`, no single round, nothing to trace back to a person.
+ *
+ * `null` means "no database on this deployment", which the page renders as
+ * nothing at all rather than as a chart of zeroes.
+ */
+export async function getQuizStats(): Promise<QuizStats | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.rpc("quiz_stats");
+  if (error) {
+    console.warn("[kami3d] quiz statistics unavailable:", error.message);
+    return null;
+  }
+
+  const raw = (data ?? {}) as Partial<QuizStats>;
+  return {
+    rounds: Number(raw.rounds ?? 0),
+    players: Number(raw.players ?? 0),
+    bestScore: Number(raw.bestScore ?? 0),
+    totalQuestions: Number(raw.totalQuestions ?? 0),
+    averagePercent: Number(raw.averagePercent ?? 0),
+    perfect: Number(raw.perfect ?? 0),
+    lastPlayedAt: typeof raw.lastPlayedAt === "string" ? raw.lastPlayedAt : null,
+    byMode: (raw.byMode ?? {}) as Record<string, number>,
+  };
+}
+
 /** The whole catalogue's daily series, for the headline chart. */
 export async function getOverallTrend(days = 30): Promise<DailyCount[]> {
   const trends = await getDailyTrend(days);

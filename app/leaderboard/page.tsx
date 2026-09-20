@@ -7,7 +7,7 @@ import { DailyBars } from "@/components/stats/DailyBars";
 import { LeaderboardList } from "@/components/stats/LeaderboardList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
-import { getMostViewed, getDailyTrend, getOverallTrend } from "@/lib/stats";
+import { getMostViewed, getDailyTrend, getOverallTrend, getQuizStats } from "@/lib/stats";
 import { isSupabaseConfigured } from "@/lib/env";
 import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, graph, speciesItemListJsonLd } from "@/lib/seo";
@@ -35,10 +35,11 @@ export const revalidate = 300;
 const WINDOW_DAYS = 30;
 
 export default async function LeaderboardPage() {
-  const [ranked, overall, trends] = await Promise.all([
+  const [ranked, overall, trends, quizStats] = await Promise.all([
     getMostViewed(12),
     getOverallTrend(WINDOW_DAYS),
     getDailyTrend(WINDOW_DAYS),
+    getQuizStats(),
   ]);
 
   const summary = summarise(overall);
@@ -130,6 +131,54 @@ export default async function LeaderboardPage() {
           <DailyBars points={overall} height={56} label={`Daily views across the catalogue for the last ${WINDOW_DAYS} days`} />
         </div>
       </section>
+
+      {quizStats ? (
+        <section className="glass rounded-[var(--radius-card)] p-5">
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-semibold text-white">Quiz rounds</h2>
+              <p className="text-xs text-white/50">
+                Counts and averages only — a per-visitor board would mean publishing other people&apos;s rows, and
+                `quiz_scores` is owner-only by policy.
+              </p>
+            </div>
+            {quizStats.lastPlayedAt ? (
+              <p className="text-[11px] tabular-nums text-white/40">
+                last round {quizStats.lastPlayedAt.slice(0, 10)}
+              </p>
+            ) : null}
+          </header>
+
+          {quizStats.rounds > 0 ? (
+            <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Rounds played", value: formatCount(quizStats.rounds) },
+                { label: "People", value: formatCount(quizStats.players) },
+                {
+                  label: "Best round",
+                  value: quizStats.totalQuestions > 0 ? `${quizStats.bestScore}/${quizStats.totalQuestions}` : "—",
+                },
+                { label: "Average", value: `${Math.round(quizStats.averagePercent)}%` },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl bg-white/6 p-3 ring-1 ring-white/10">
+                  <dt className="text-[10px] uppercase tracking-wide text-white/45">{item.label}</dt>
+                  <dd className="mt-0.5 font-display text-xl font-bold tabular-nums text-white">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-3 text-sm text-white/55">
+              No rounds recorded on this deployment yet — the first one to finish a quiz appears here.
+            </p>
+          )}
+
+          {quizStats.perfect > 0 ? (
+            <p className="mt-3 text-[11px] text-white/40">
+              {formatCount(quizStats.perfect)} flawless {quizStats.perfect === 1 ? "round" : "rounds"} so far.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       {hasHistory ? (
         <LeaderboardList species={ranked} trends={trends} />

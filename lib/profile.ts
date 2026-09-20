@@ -40,11 +40,13 @@ export interface ViewerProfile {
   roundsPlayed: number;
 }
 
-/** Badge unlocks are always derived from the ratio, never trusted from input. */
-export function badgesForScore(score: number, total: number): string[] {
-  const ratio = total > 0 ? score / total : 0;
-  return BADGES.filter((badge) => ratio >= badge.threshold).map((badge) => badge.id);
-}
+/**
+ * Badge unlocks are always derived from the ratio, never trusted from input.
+ *
+ * Re-exported from `lib/quiz-scoring.ts` so the browser's optimistic badge list
+ * and this server-side recomputation are literally the same function.
+ */
+export { badgesForScore } from "@/lib/quiz-scoring";
 
 export async function readFavoriteIdsFor(userId: string): Promise<string[] | null> {
   const supabase = await getPersonalDataClient();

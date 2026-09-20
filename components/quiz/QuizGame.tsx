@@ -1,15 +1,16 @@
 "use client";
 
-import { Check, Gamepad2, RotateCcw, Timer, Trophy, Volume2, X } from "lucide-react";
+import { Check, Gamepad2, Lightbulb, Pause, Play, RotateCcw, Timer, Trophy, Volume2, X } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import * as React from "react";
 
-import dynamic from "next/dynamic";
-
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn, shuffle } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ANSWER_SECONDS, QUESTIONS_PER_ROUND, buildRound, isCorrect, type QuizQuestion } from "@/lib/quiz";
+import { accuracyPercent, badgesForScore, bestStreakOf, scoreAnswer } from "@/lib/quiz-scoring";
+import { cn } from "@/lib/utils";
 import { BADGES, type Animal, type QuizMode } from "@/types/animal";
 
 /** Loaded only once a round starts, so the intro screen stays JS-light. */
@@ -26,163 +27,314 @@ const SilhouetteStage = dynamic(
   },
 );
 
-const QUESTIONS_PER_ROUND = 10;
-const SECONDS_PER_QUESTION = 15;
+/** How long the feedback stays up before the round moves on by itself. */
+const FEEDBACK_MS = 1400;
 
-interface Question {
-  animal: Animal;
-  options: Animal[];
+/** An unfinished round, kept in the browser so a refresh does not eat it. */
+const STORAGE_KEY = "kami-quiz-round";
+
+interface SavedRound {
+  seed: string;
+  index: number;
+  correct: number;
+  points: number;
+  answers: boolean[];
 }
 
-type Phase = "ready" | "playing" | "finished";
-
-function buildRound(animals: Animal[], pool: Animal[]): Question[] {
-  const chosen = shuffle(pool, `round-${animals.length}-${Date.now()}`).slice(0, QUESTIONS_PER_ROUND);
-
-  return chosen.map((animal, index) => {
-    // Distractors prefer the same class/region, which makes the round worth playing.
-    const similar = shuffle(
-      animals.filter(
-        (candidate) =>
-          candidate.id !== animal.id && (candidate.category === animal.category || candidate.region === animal.region),
-      ),
-      `distract-${animal.slug}-${index}`,
-    );
-
-    const fallback = shuffle(
-      animals.filter((candidate) => candidate.id !== animal.id),
-      `fallback-${animal.slug}-${index}`,
-    );
-
-    const distractors = [...similar, ...fallback]
-      .filter((candidate, position, list) => list.findIndex((item) => item.id === candidate.id) === position)
-      .slice(0, 3);
-
-    return { animal, options: shuffle([animal, ...distractors], `options-${animal.slug}`) };
-  });
+interface Feedback {
+  correct: boolean;
+  timedOut: boolean;
+  points: number;
+  speedBonus: number;
+  streakBonus: number;
 }
 
-/** Badges earned by a single round, computed identically on the client and the server. */
-export function badgesForScore(score: number, total: number): string[] {
-  const ratio = total > 0 ? score / total : 0;
-  return BADGES.filter((badge) => ratio >= badge.threshold).map((badge) => badge.id);
+function readSavedRound(): SavedRound | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SavedRound>;
+    if (typeof parsed.seed !== "string") return null;
+    if (typeof parsed.index !== "number" || parsed.index <= 0 || parsed.index >= QUESTIONS_PER_ROUND) return null;
+    if (!Array.isArray(parsed.answers)) return null;
+    return {
+      seed: parsed.seed,
+      index: parsed.index,
+      correct: typeof parsed.correct === "number" ? parsed.correct : 0,
+      points: typeof parsed.points === "number" ? parsed.points : 0,
+      answers: parsed.answers.map(Boolean),
+    };
+  } catch {
+    return null;
+  }
 }
 
+/**
+ * The silhouette round.
+ *
+ * Questions come from `lib/quiz.ts` (seeded, so a round can be rebuilt exactly),
+ * points from `lib/quiz-scoring.ts`. The stored score stays the **correct count**:
+ * the server recomputes badges from it, and a round of ten right answers is worth
+ * the same badges however fast they were given.
+ */
 export function QuizGame({ animals }: { animals: Animal[] }) {
-  const [phase, setPhase] = React.useState<Phase>("ready");
-  const [questions, setQuestions] = React.useState<Question[]>([]);
+  const [phase, setPhase] = React.useState<"ready" | "playing" | "finished">("ready");
+  const [seed, setSeed] = React.useState("");
   const [index, setIndex] = React.useState(0);
   const [selected, setSelected] = React.useState<string | null>(null);
-  const [score, setScore] = React.useState(0);
+  const [feedback, setFeedback] = React.useState<Feedback | null>(null);
+  const [correct, setCorrect] = React.useState(0);
+  const [points, setPoints] = React.useState(0);
   const [streak, setStreak] = React.useState(0);
-  const [bestStreak, setBestStreak] = React.useState(0);
-  const [timeLeft, setTimeLeft] = React.useState(SECONDS_PER_QUESTION);
+  const [answers, setAnswers] = React.useState<boolean[]>([]);
+  const [timeLeft, setTimeLeft] = React.useState<number>(ANSWER_SECONDS.default);
+  const [paused, setPaused] = React.useState(false);
   const [saved, setSaved] = React.useState<{ badges: string[]; best: number; source: string } | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [resumable, setResumable] = React.useState<SavedRound | null>(null);
+
+  const advanceTimer = React.useRef<number | null>(null);
+  const wrapper = React.useRef<HTMLDivElement>(null);
 
   const playable = React.useMemo(() => animals.filter((animal) => !animal.premium), [animals]);
-  const current = questions[index];
+  const pool = playable.length >= QUESTIONS_PER_ROUND ? playable : animals;
 
-  const start = React.useCallback(() => {
-    setQuestions(buildRound(animals, playable.length >= QUESTIONS_PER_ROUND ? playable : animals));
-    setIndex(0);
-    setSelected(null);
-    setScore(0);
-    setStreak(0);
-    setBestStreak(0);
-    setTimeLeft(SECONDS_PER_QUESTION);
-    setSaved(null);
-    setPhase("playing");
-  }, [animals, playable]);
+  // Rebuilt from the seed, so a resumed round is the same round.
+  const round = React.useMemo(() => (seed ? buildRound(pool, { seed }) : []), [pool, seed]);
+  const current = round[index];
 
-  const finish = React.useCallback(
-    async (finalScore: number) => {
-      setPhase("finished");
-      setSaving(true);
-      try {
-        const response = await fetch("/api/quiz", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            score: finalScore,
-            totalQuestions: QUESTIONS_PER_ROUND,
-            mode: "silhouette" satisfies QuizMode,
-            badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND),
-          }),
-        });
-        const data = (await response.json()) as { badges?: string[]; best?: number; source?: string };
-        setSaved({ badges: data.badges ?? badgesForScore(finalScore, QUESTIONS_PER_ROUND), best: data.best ?? finalScore, source: data.source ?? "demo" });
-      } catch {
-        setSaved({ badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND), best: finalScore, source: "offline" });
-      } finally {
-        setSaving(false);
-      }
+  React.useEffect(() => {
+    setResumable(readSavedRound());
+  }, []);
+
+  /**
+   * Keyboard play needs the quiz to hold the focus.
+   *
+   * Clicking "Start round" focuses that button, and the button is unmounted the
+   * moment the round begins — so without this the shortcuts silently do nothing
+   * until the player happens to click inside the question. Re-focusing on every
+   * question keeps 1–4 and Enter working for the whole round.
+   */
+  React.useEffect(() => {
+    wrapper.current?.focus();
+  }, [index, phase]);
+
+  // Persist the round as it is played, and forget it once it is over.
+  React.useEffect(() => {
+    if (phase !== "playing" || !seed) return;
+    try {
+      const snapshot: SavedRound = { seed, index, correct, points, answers };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      // Private mode: the round simply is not resumable.
+    }
+  }, [answers, correct, index, phase, points, seed]);
+
+  const clearSaved = React.useCallback(() => {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ditto.
+    }
+    setResumable(null);
+  }, []);
+
+  const start = React.useCallback(
+    (resume: SavedRound | null) => {
+      if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
+
+      const nextSeed = resume?.seed ?? String(Date.now());
+      setSeed(nextSeed);
+      setIndex(resume?.index ?? 0);
+      setCorrect(resume?.correct ?? 0);
+      setPoints(resume?.points ?? 0);
+      setAnswers(resume?.answers ?? []);
+      // The held streak does not survive a break: it counts answers given in a
+      // row, and a resumed round has not been in a row. The *best* streak is
+      // still recovered from the answers for the finish screen.
+      setStreak(0);
+      setSelected(null);
+      setFeedback(null);
+      setTimeLeft(ANSWER_SECONDS.default);
+      setSaved(null);
+      setResumable(null);
+      setPhase("playing");
     },
     [],
   );
 
+  const finish = React.useCallback(async (finalScore: number) => {
+    setPhase("finished");
+    clearSaved();
+    setSaving(true);
+    try {
+      const response = await fetch("/api/quiz", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          score: finalScore,
+          totalQuestions: QUESTIONS_PER_ROUND,
+          mode: "silhouette" satisfies QuizMode,
+          badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND),
+        }),
+      });
+      const data = (await response.json()) as { badges?: string[]; best?: number; source?: string };
+      setSaved({
+        badges: data.badges ?? badgesForScore(finalScore, QUESTIONS_PER_ROUND),
+        best: data.best ?? finalScore,
+        source: data.source ?? "demo",
+      });
+    } catch {
+      setSaved({ badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND), best: finalScore, source: "offline" });
+    } finally {
+      setSaving(false);
+    }
+  }, [clearSaved]);
+
+  /** Moves to the next question, or ends the round. */
+  const advance = React.useCallback(() => {
+    if (advanceTimer.current !== null) {
+      window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
+
+    setSelected(null);
+    setFeedback(null);
+    setTimeLeft(ANSWER_SECONDS.default);
+
+    if (index + 1 >= QUESTIONS_PER_ROUND) {
+      void finish(correct);
+      return;
+    }
+    setIndex((value) => value + 1);
+  }, [correct, finish, index]);
+
   const answer = React.useCallback(
-    (animalId: string | null) => {
+    (optionId: string | null) => {
       if (!current || selected !== null) return;
 
-      const correct = animalId === current.animal.id;
-      const nextScore = correct ? score + 1 : score;
-      const nextStreak = correct ? streak + 1 : 0;
+      const wasCorrect = isCorrect(current, optionId);
+      const scored = scoreAnswer({
+        correct: wasCorrect,
+        secondsLeft: timeLeft,
+        secondsAllowed: ANSWER_SECONDS.default,
+        streakBefore: streak,
+      });
 
-      setSelected(animalId ?? "timeout");
-      setScore(nextScore);
-      setStreak(nextStreak);
-      setBestStreak((value) => Math.max(value, nextStreak));
+      setSelected(optionId ?? "timeout");
+      setFeedback({
+        correct: wasCorrect,
+        timedOut: optionId === null,
+        points: scored.points,
+        speedBonus: scored.speedBonus,
+        streakBonus: scored.streakBonus,
+      });
+      setCorrect((value) => value + (wasCorrect ? 1 : 0));
+      setPoints((value) => value + scored.points);
+      setStreak(scored.streak);
+      setAnswers((value) => [...value, wasCorrect]);
 
-      window.setTimeout(() => {
-        if (index + 1 >= questions.length) {
-          void finish(nextScore);
-        } else {
-          setIndex((value) => value + 1);
-          setSelected(null);
-          setTimeLeft(SECONDS_PER_QUESTION);
-        }
-      }, 1100);
+      advanceTimer.current = window.setTimeout(advance, FEEDBACK_MS);
     },
-    [current, finish, index, questions.length, score, selected, streak],
+    [advance, current, selected, streak, timeLeft],
   );
+
+  React.useEffect(() => {
+    return () => {
+      if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
+    };
+  }, []);
+
+  // The clock stops while the tab is in the background: a round that keeps
+  // counting down behind another tab is lost to the browser, not to the player.
+  React.useEffect(() => {
+    const onVisibility = () => setPaused(document.visibilityState === "hidden");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   // Countdown for the active question.
   React.useEffect(() => {
-    if (phase !== "playing" || selected !== null) return;
+    if (phase !== "playing" || selected !== null || paused) return;
     if (timeLeft <= 0) {
       answer(null);
       return;
     }
     const id = window.setTimeout(() => setTimeLeft((value) => value - 1), 1000);
     return () => window.clearTimeout(id);
-  }, [answer, phase, selected, timeLeft]);
+  }, [answer, paused, phase, selected, timeLeft]);
+
+  /** 1-4 answer, Enter moves on. Ignored when a control has focus. */
+  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement | null;
+    if (target && target !== event.currentTarget && target.closest("button, a, input, select, textarea")) return;
+
+    if (phase === "playing" && current) {
+      const digit = Number(event.key);
+      if (Number.isInteger(digit) && digit >= 1 && digit <= current.options.length) {
+        if (selected === null) answer(current.options[digit - 1].id);
+        event.preventDefault();
+        return;
+      }
+      if (event.key === "Enter" && selected !== null) {
+        advance();
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (event.key === "Enter" && phase === "ready") {
+      start(resumable);
+      event.preventDefault();
+    }
+  }
+
+  /* ---------------------------------------------------------------- ready --- */
 
   if (phase === "ready") {
     return (
-      <div className="glass rounded-[var(--radius-card)] p-6 text-center sm:p-10">
+      <div ref={wrapper} onKeyDown={onKeyDown} tabIndex={0} aria-keyshortcuts="1 2 3 4 Enter" className="glass rounded-[var(--radius-card)] p-6 text-center outline-none focus-visible:ring-2 focus-visible:ring-neon/60 sm:p-10">
         <span className="inline-flex items-center gap-2 rounded-full bg-neon/12 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-neon ring-1 ring-neon/30">
           <Gamepad2 className="size-3" />
-          Silhouette round
+          Mixed round
         </span>
         <h2 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">
           {QUESTIONS_PER_ROUND} shadows. How many can you name?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/60">
-          Each animal appears as a slowly rotating dark model. You get {SECONDS_PER_QUESTION} seconds per question —
-          faster answers build a streak, and finishing the round banks badges on your profile.
+          Six silhouettes to identify, then questions about where a species lives, what kind of animal it is, and
+          whether it is longer than something familiar. {ANSWER_SECONDS.default} seconds each; answering fast and in a
+          row is worth extra points, and finishing the round banks badges on your profile.
         </p>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button size="lg" onClick={start}>
-            <Gamepad2 />
-            Start round
-          </Button>
-          <Button size="lg" variant="secondary" disabled title="Needs call recordings uploaded for each species">
+          {resumable ? (
+            <>
+              <Button size="lg" onClick={() => start(resumable)}>
+                <Play />
+                Continue round ({resumable.index}/{QUESTIONS_PER_ROUND})
+              </Button>
+              <Button size="lg" variant="secondary" onClick={() => start(null)}>
+                <RotateCcw />
+                Start a new round
+              </Button>
+            </>
+          ) : (
+            <Button size="lg" onClick={() => start(null)}>
+              <Gamepad2 />
+              Start round
+            </Button>
+          )}
+          <Button size="lg" variant="ghost" disabled title="Needs call recordings uploaded for each species">
             <Volume2 />
             Sound mode (needs recordings)
           </Button>
         </div>
+
+        <p className="mt-4 text-[11px] text-white/40">
+          Keyboard: <kbd className="rounded bg-white/8 px-1">1</kbd>–<kbd className="rounded bg-white/8 px-1">4</kbd> to
+          answer, <kbd className="rounded bg-white/8 px-1">Enter</kbd> to move on.
+        </p>
 
         <ul className="mt-8 flex flex-wrap justify-center gap-2">
           {BADGES.map((badge) => (
@@ -199,9 +351,11 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
     );
   }
 
+  /* ------------------------------------------------------------- finished --- */
+
   if (phase === "finished") {
-    const accuracy = Math.round((score / QUESTIONS_PER_ROUND) * 100);
-    const earned = saved?.badges ?? badgesForScore(score, QUESTIONS_PER_ROUND);
+    const accuracy = accuracyPercent({ correct, total: QUESTIONS_PER_ROUND });
+    const earned = saved?.badges ?? badgesForScore(correct, QUESTIONS_PER_ROUND);
 
     return (
       <div className="glass rounded-[var(--radius-card)] p-6 text-center sm:p-10">
@@ -209,10 +363,10 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
           <Trophy className="size-10 text-solar" />
         </div>
         <h2 className="mt-4 font-display text-3xl font-bold text-white">
-          {score} / {QUESTIONS_PER_ROUND}
+          {correct} / {QUESTIONS_PER_ROUND}
         </h2>
         <p className="mt-1 text-sm text-white/60">
-          {accuracy}% accuracy · best streak {bestStreak}
+          {accuracy}% accuracy · {points.toLocaleString()} points · best streak {bestStreakOf(answers)}
           {saving ? " · saving…" : saved ? ` · saved (${saved.source})` : ""}
         </p>
 
@@ -236,7 +390,7 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
         </ul>
 
         <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Button size="lg" onClick={start}>
+          <Button size="lg" onClick={() => start(null)}>
             <RotateCcw />
             Play again
           </Button>
@@ -251,19 +405,34 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
     );
   }
 
+  /* -------------------------------------------------------------- playing --- */
+
   if (!current) return null;
 
   const answered = selected !== null;
-  const wasCorrect = selected === current.animal.id;
+  const wasCorrect = feedback?.correct ?? false;
 
   return (
-    <div className="space-y-4">
+    <div
+      ref={wrapper}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      aria-keyshortcuts="1 2 3 4 Enter"
+      className="space-y-4 outline-none focus-visible:ring-2 focus-visible:ring-neon/60"
+    >
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="outline">
-          Question {index + 1} / {questions.length}
+          Question {index + 1} / {QUESTIONS_PER_ROUND}
         </Badge>
-        <Badge variant="neon">Score {score}</Badge>
+        <Badge variant="neon">Score {correct}</Badge>
+        <Badge variant="iris">{points.toLocaleString()} pts</Badge>
         {streak > 1 ? <Badge variant="solar">🔥 {streak} streak</Badge> : null}
+        {paused ? (
+          <Badge variant="outline">
+            <Pause className="size-3" />
+            Paused — the clock stops while this tab is hidden
+          </Badge>
+        ) : null}
         <span
           className={cn(
             "ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium ring-1 tabular-nums",
@@ -278,45 +447,58 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
       <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
         <div
           className="h-full rounded-full bg-gradient-to-r from-neon to-glow transition-[width] duration-300"
-          style={{ width: `${((index + (answered ? 1 : 0)) / questions.length) * 100}%` }}
+          style={{ width: `${((index + (answered ? 1 : 0)) / QUESTIONS_PER_ROUND) * 100}%` }}
         />
       </div>
 
-      <SilhouetteStage animal={current.animal} reveal={answered} />
+      <p className="font-display text-lg font-semibold text-white">{current.prompt}</p>
 
-      {/* Remounting on `answered` restarts the CSS entrance animation, which
-          replaces the AnimatePresence swap that used to live here. */}
-      <React.Fragment key={answered ? "feedback" : `options-${current.animal.id}`}>
+      <SilhouetteStage animal={current.subject} reveal={answered} />
+
+      <React.Fragment key={answered ? "feedback" : `options-${current.id}`}>
         {answered ? (
           <div
+            aria-live="polite"
             className={cn(
-              "animate-rise-in",
-              "rounded-2xl p-4 ring-1",
+              "animate-rise-in rounded-2xl p-4 ring-1",
               wasCorrect ? "bg-neon/12 ring-neon/30" : "bg-coral/12 ring-coral/30",
             )}
           >
             <p className={cn("flex items-center gap-2 text-sm font-semibold", wasCorrect ? "text-neon" : "text-coral")}>
               {wasCorrect ? <Check className="size-4" /> : <X className="size-4" />}
-              {wasCorrect ? "Correct!" : selected === "timeout" ? "Out of time" : "Not quite"}
+              {wasCorrect ? "Correct!" : feedback?.timedOut ? "Out of time" : "Not quite"}
+              {wasCorrect ? (
+                <span className="ml-1 font-normal text-white/55">
+                  +{feedback?.points ?? 0} pts
+                  {feedback && feedback.speedBonus + feedback.streakBonus > 0
+                    ? ` (speed +${feedback.speedBonus} · streak +${feedback.streakBonus})`
+                    : ""}
+                </span>
+              ) : null}
             </p>
             <p className="mt-1 text-sm text-white/70">
-              <strong className="font-semibold text-white">{current.animal.name}</strong>{" "}
-              <em className="italic text-white/50">{current.animal.latin_name}</em> — {current.animal.region},{" "}
-              {current.animal.habitat}
+              <strong className="font-semibold text-white">{current.subject.name}</strong>{" "}
+              <em className="italic text-white/50">{current.subject.latin_name}</em> — {current.reveal}
+            </p>
+            <p className="mt-2 text-[11px] text-white/40">
+              Answer: {current.options.find((option) => option.id === current.answerId)?.label}
             </p>
           </div>
         ) : (
           <ul className="animate-fade-in grid gap-2 sm:grid-cols-2">
-            {current.options.map((option) => (
+            {current.options.map((option, position) => (
               <li key={option.id}>
                 <button
                   type="button"
                   onClick={() => answer(option.id)}
-                  className="group w-full rounded-2xl bg-white/6 px-4 py-3.5 text-left text-sm text-white/85 ring-1 ring-white/10 transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:ring-neon/40"
+                  className="group flex w-full items-start gap-2 rounded-2xl bg-white/6 px-4 py-3.5 text-left text-sm text-white/85 ring-1 ring-white/10 transition-all hover:-translate-y-0.5 hover:bg-white/10 hover:ring-neon/40"
                 >
-                  <span className="block font-medium">{option.name}</span>
-                  <span className="block text-[11px] text-white/45">
-                    {option.category} · {option.region}
+                  <kbd className="mt-0.5 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/50">
+                    {position + 1}
+                  </kbd>
+                  <span className="min-w-0">
+                    <span className="block font-medium">{option.label}</span>
+                    {option.hint ? <span className="block text-[11px] text-white/45">{option.hint}</span> : null}
                   </span>
                 </button>
               </li>
@@ -326,12 +508,22 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
       </React.Fragment>
 
       {!answered ? (
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-white/35">
+            <Lightbulb className="size-3" />
+            The model reveals itself either way.
+          </span>
           <Button variant="ghost" size="sm" onClick={() => answer(null)}>
             Skip question
           </Button>
         </div>
-      ) : null}
+      ) : (
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" onClick={advance}>
+            Next question (Enter)
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

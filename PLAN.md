@@ -28,7 +28,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **100** bài trong **12** suite (`npm run check`) |
+| Test tự động | **126** bài trong **14** suite (`npm run check:suites`) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
 | JS thật trước `load` (đo bằng Chrome) | **~140 kB** mọi trang; bundle 3D tải **sau** khi trang đã dùng được |
 | CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
@@ -218,7 +218,7 @@ Performance/Loading states.
 | 0 | Nền tảng: chất lượng thiết bị + cổng chặn bundle trong CI | ✅ Hoàn thành |
 | 1 | Production ModelViewer | ✅ Hoàn thành |
 | 2 | SizeComparison với scale real-time | ✅ Hoàn thành |
-| 3 | Quiz 3D hoàn chỉnh | ⏳ Chưa bắt đầu |
+| 3 | Quiz 3D hoàn chỉnh | ✅ Hoàn thành |
 | 4 | Enhanced InteractiveGlobe | ⏳ Chưa bắt đầu |
 | 5 | Âm thanh cho quiz "đoán qua tiếng kêu" | ⏸️ Chờ asset + quyết định |
 
@@ -283,12 +283,16 @@ Kiểm chứng trong Chrome thật: kéo slider 175 → 120 cm thì nhãn đổi
 
 | Việc | Chi tiết | Trạng thái |
 | --- | --- | --- |
-| Mở khoá model thật | Trả lời xong mới tráo silhouette → `.glb` thật, tự xoay | ⏳ |
-| Biến thể câu hỏi | Trong 2 mode hiện có: đoán loài / vùng / lớp / lớn-hơn-nhỏ-hơn. Bộ sinh ở `lib/quiz.ts` (thuần, seed tất định) + `check-quiz.mjs` | ⏳ |
-| Điểm theo thời gian | Thưởng tốc độ + streak; **badge vẫn do server tính lại** | ⏳ |
-| Lưu vòng đang chơi | Refresh không mất lượt, có "tiếp tục vòng dở" | ⏳ |
-| Bàn phím + a11y | `1–4` chọn, `Enter` tiếp, `aria-live`, **dừng đồng hồ khi tab bị ẩn** | ⏳ |
-| Bảng xếp hạng quiz | Top điểm theo mode trên `/leaderboard` (schema `quiz_scores` đã có) | ⏳ |
+| Bộ sinh câu hỏi thuần | `lib/quiz.ts`: 4 loại câu (loài / vùng / lớp / **so kích thước với thứ quen thuộc**), seed tất định → cùng seed dựng lại đúng vòng đó; 10 bài test | ✅ |
+| Mở khoá model thật | Trả lời xong mới tráo sang `.glb` thật (có `Bounds` để cá voi 27 m và axolotl đều vừa khung); **không tải model nào trước khi trả lời** | ✅ |
+| Điểm theo thời gian | `lib/quiz-scoring.ts`: 100 điểm + thưởng tốc độ (theo **tỉ lệ** thời gian còn lại, không ưu ái đồng hồ dài) + thưởng streak (tối đa 50); **số câu đúng vẫn là thứ lưu DB và tính badge** — 9 bài test | ✅ |
+| Lưu vòng đang chơi | `localStorage` khoá `kami-quiz-round`; màn hình đầu hiện "Continue round (n/10)"; badge/điểm dựng lại từ seed | ✅ |
+| Bàn phím + a11y | `1–4` chọn, `Enter` sang câu sau, `aria-live` cho phản hồi, tự focus khu vực chơi (nếu không thì phím im lặng), **đồng hồ dừng khi tab bị ẩn** | ✅ |
+| Bảng xếp hạng quiz | `quiz_scores` là **owner-only theo RLS** và `anon` không có grant nào trên bảng, nên bảng xếp hạng theo từng người là bất khả thi về mặt thiết kế. Thay bằng `public.quiz_stats()` (SECURITY DEFINER, `search_path` rỗng, như `increment_animal_view`) trả **số liệu tổng hợp ẩn danh**: số vòng, số người, điểm cao nhất, trung bình %, số vòng tuyệt đối, theo mode — không có `user_id`, không có dòng nào của ai | ✅ (khác kế hoạch ban đầu, có lý do) |
+
+**Bằng chứng Mục 3** — `check-quiz` (8 bài: cùng seed = cùng vòng, đủ 4 lựa chọn và đáp án nằm trong đó, không lặp loài, vùng/lớp chỉ ra đáp án hợp lệ, câu so kích thước phải so với **thứ gần nhất** và đáp án khớp `length_m`, fuzz 100 seed) + `check-scoring` (9 bài: thưởng tốc độ theo tỉ lệ, streak tăng rồi kẹp trần, điểm bị chặn hai đầu, chia 0 an toàn).
+Trong Chrome thật: **chơi trọn 10 câu bằng bàn phím** → màn kết thúc hiện "1 / 10 · 10% accuracy · **147 points** · best streak 1 · saved (demo)", vòng đã lưu bị xoá khỏi `localStorage`; đang chơi mà **reload** → hiện "Continue round (2/10)" và vào đúng **câu 3**; giả lập tab bị ẩn → hiện chip *Paused* và **đồng hồ đứng yên 4 giây** rồi chạy lại khi quay về; `quiz_stats()` gọi được bằng **anon key** (thử với 1 dòng test: rounds 1, best 9, average 90%) rồi đã xoá dòng test.
+*Chưa kiểm chứng được ở máy này*: hình ảnh model thật hiện ra sau khi trả lời (Chrome headless ở đây không có WebGL) — đường code nằm cùng chỗ với ModelScene đã kiểm chứng, và có `Suspense` fallback về rig.
 
 *Không làm ở mục này*: thêm mode **mới** vào `QUIZ_MODES` sẽ cần migration + `check-sql.mjs`; đề xuất dùng biến
 thể câu hỏi trong 2 mode sẵn có trước.
@@ -346,6 +350,7 @@ npm run check:theme  # bảng màu sáng/tối: đủ token + độ tương ph�
 npm run check:camera # toán camera của ModelViewer: preset, bay, xoay, zoom
 npm run check:bundle  # sau khi build: ngân sách JS mỗi route + luật "không 3D/auth ở first paint"
 npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
+npm run check:quiz   # bộ sinh câu hỏi + luật tính điểm của quiz
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào

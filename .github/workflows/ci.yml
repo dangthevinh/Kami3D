@@ -38,8 +38,10 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Geometry, size and SQL check suites
-        run: node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs
+      # A glob, not a list: a new `check-*.mjs` suite is picked up by CI the moment
+      # it exists, instead of waiting for somebody to remember to add it here.
+      - name: Check suites
+        run: npm run check:suites
 
       - name: Regenerate the seed and fail if it is out of date
         run: |
