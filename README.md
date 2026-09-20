@@ -178,6 +178,18 @@ npm run seed:generate   # rewrites supabase/seed.sql from data/animals.ts
 Editing a species means editing one typed object. The `Animal` interface in `types/animal.ts` mirrors the SQL
 schema column for column.
 
+### Map data
+
+The globe is drawn from **Natural Earth**'s 110m land polygons (<https://www.naturalearthdata.com>), which are
+**public domain**. `public/geo/land-110m.json` is that layer simplified to two decimal places (~1.1 km at the
+equator — far finer than the 2048px texture it feeds) and committed, so the globe needs no external request and no
+photo licence.
+
+`lib/earth-map.ts` holds the projection and the point-in-polygon test as pure functions, and `npm run check:geo`
+proves them against real coordinates: twelve cities must fall on land, seven mid-ocean points must not, and the
+land fraction has to come out near 29%. Getting the projection wrong would put Africa in the Pacific, which is
+exactly the kind of mistake nobody notices from a screenshot of the code.
+
 ### Adding your own species
 
 1. Append an entry to `data/animals.ts` (all fields are required; `model_url`, `image_url` and `sound_url`

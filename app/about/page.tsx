@@ -47,6 +47,7 @@ const SECTIONS = [
     title: "Data sources and accuracy",
     points: [
       "Conservation categories follow the IUCN Red List of Threatened Species. Measurements are typical adult values, rounded for display.",
+      "The globe is drawn from Natural Earth's 110m land polygons, which are public domain — the same licence rule the 3D models go through.",
       "Descriptions and fun facts are editorial summaries written for a general audience; they are not a substitute for a primary source.",
       "Found an error? Species data lives in one typed dataset and a generated SQL seed, so a correction is a one-line change.",
     ],

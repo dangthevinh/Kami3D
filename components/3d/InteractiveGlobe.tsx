@@ -16,6 +16,8 @@ import {
   regionMarkers,
   vector3ToLatLng,
 } from "@/lib/globe";
+import { createEarthCanvas } from "@/lib/earth-texture";
+import type { LandData } from "@/lib/earth-map";
 import { useExploreStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { REGION_ANCHORS, type Region } from "@/types/animal";
@@ -39,15 +41,44 @@ export interface InteractiveGlobeProps {
 /* Scene                                                                      */
 /* -------------------------------------------------------------------------- */
 
-function useProceduralTexture() {
+/**
+ * The globe's surface texture.
+ *
+ * Starts as the bare graticule the app shipped with and swaps to the real world
+ * map — Natural Earth's public-domain land polygons, drawn in the product's own
+ * palette — as soon as the 76 KB of geometry arrives. The swap is deliberately
+ * not a loading spinner: the grid is a complete, honest globe, so a visitor on a
+ * slow connection still sees something worth looking at, and a failed fetch simply
+ * leaves it in place.
+ */
+function useEarthTexture() {
+  const [land, setLand] = React.useState<LandData | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+
+    fetch("/geo/land-110m.json")
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((data: LandData) => {
+        if (active && Array.isArray(data?.polygons)) setLand(data);
+      })
+      .catch((error: unknown) => {
+        console.warn("[kami3d] world map unavailable, keeping the graticule:", (error as Error).message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const texture = React.useMemo(() => {
-    const canvas = createGraticuleCanvas(2048);
+    const canvas = land ? createEarthCanvas(land, { width: 2048 }) : createGraticuleCanvas(2048);
     const map = new THREE.CanvasTexture(canvas);
     map.colorSpace = THREE.SRGBColorSpace;
     map.anisotropy = 8;
     map.needsUpdate = true;
     return map;
-  }, []);
+  }, [land]);
 
   React.useEffect(() => () => texture.dispose(), [texture]);
   return texture;
@@ -199,7 +230,7 @@ function TexturedGlobeSurface({ url }: { url: string }) {
 
 function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
   const region = useExploreStore((state) => state.region);
-  const procedural = useProceduralTexture();
+  const procedural = useEarthTexture();
   const glow = useGlowTexture();
 
   const groupRef = React.useRef<THREE.Group>(null);
