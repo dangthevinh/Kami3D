@@ -338,7 +338,7 @@ hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/s
 | 1 | **Cập nhật `CLERK_SECRET_KEY`** | Key hiện tại trả **403 / code 1010** (đã bị xoay). Lấy key mới ở Clerk Dashboard → API Keys rồi dán vào `.env.local`. **Đây là việc duy nhất đang chặn đăng nhập.** |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm — mọi bước còn lại đã verify bằng session thật qua API. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | Âm thanh loài | Chưa có file ghi âm → chế độ "đoán qua tiếng kêu" và nút âm thanh đang tắt. |
+| 4 | Âm thanh loài (**chặn Mục 5 của Phase 8**) | Chưa có file ghi âm → chế độ "đoán qua tiếng kêu" và nút âm thanh đang tắt. Cần bạn quyết: (a) tôi tự tìm & tải CC0/CC-BY qua pipeline có kiểm licence (~24 file, 2–6 MB, tải theo yêu cầu), hay (b) giữ tắt. Khuyến nghị (b) trước. |
 | 5 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
 | 6 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
 
@@ -347,7 +347,8 @@ hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/s
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 69 bài test trong 9 suite (hình học rig, tỉ lệ, SQL, squircle, JSON-LD, session hint)
+npm run check        # typecheck + 133 bài test trong 15 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu)
+npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 37 route
 npm run db:status    # database đang có bao nhiêu loài
 npm run models:report # model nào tải được, kèm license
