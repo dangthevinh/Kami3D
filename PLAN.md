@@ -18,6 +18,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **4** | Quiz 3D, quảng cáo, tối ưu hiệu năng/SEO/mobile | ✅ Hoàn thành |
 | **5** | Phát sinh: CI/CD, model 3D thật, brand, auth, MCP | ✅ Hoàn thành (còn 1 việc chờ bạn) |
 | **6** | Tăng tốc tải trang & SEO | ✅ Hoàn thành |
+| **7** | Chế độ Sáng / Tối cho người dùng | ✅ Hoàn thành |
 
 **Số liệu hiện tại**
 
@@ -26,7 +27,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **69** bài trong **9** suite (`npm run check`) |
+| Test tự động | **76** bài trong **10** suite (`npm run check`) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
 | JS thật trước `load` (đo bằng Chrome) | **~140 kB** mọi trang; bundle 3D tải **sau** khi trang đã dùng được |
 | CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
@@ -34,7 +35,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 
 **Tech stack đang chạy**: Next.js `15.5.25` (App Router) · React `19.2.8` · Tailwind CSS `4` ·
 React Three Fiber `9` + drei `10` + three `0.186` · Clerk `7` · Supabase `2.116` + `@supabase/ssr` ·
-Lucide `1`. **Không còn thư viện animation nào** — mọi chuyển động là CSS (`app/globals.css`).
+next-themes `0.4` · Lucide `1`. **Không còn thư viện animation nào** — mọi chuyển động là CSS
+(`app/globals.css`).
 
 ---
 
@@ -173,6 +175,22 @@ Chi tiết đầy đủ và cách tự đo lại: [docs/PERFORMANCE.md](docs/PER
 
 ---
 
+## ✅ Phase 7 — Chế độ Sáng / Tối
+
+**Yêu cầu**: "tạo chế độ tối sáng cho user", đặt trong mục **Settings**.
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| Menu **Settings** trên navbar | `components/layout/SettingsMenu.tsx` — nút bánh răng, mở panel *Settings → Appearance* với 2 lựa chọn **Light** / **Dark**; đóng khi bấm ra ngoài hoặc `Esc` | ✅ |
+| Nhớ lựa chọn | `next-themes` (`components/theme/ThemeProvider.tsx`) ghi class lên `<html>` **trước lần paint đầu** nên không nháy sai theme; lưu ở `localStorage` khoá `kami-theme`; mặc định **Dark** | ✅ |
+| Bảng màu sáng | Khối `.light` trong `app/globals.css` định nghĩa lại ~20 token. Toàn bộ UI viết dạng `text-white/60`, `bg-white/6`, `ring-white/12`, và Tailwind v4 biên dịch chúng thành `color-mix(in oklab, var(--color-white) …)` — nên đổi `--color-white` sang màu mực **lật toàn bộ ~220 utility cùng lúc** | ✅ |
+| Accent đủ tương phản | Neon/glow/iris/solar/coral giữ hue nhưng tối đi; `--color-on-accent` (mực nằm *trên* nền accent) thành trắng ở theme sáng | ✅ |
+| Chip tình trạng bảo tồn | Các sắc độ `-300` của Tailwind (vô hình trên nền trắng) được thay bằng mức 700 trong `.light` | ✅ |
+| Sân khấu 3D | Vẫn **tối ở cả hai theme** (`.kami-canvas`): mọi scene được chiếu sáng cho phòng tối, đổi nền trắng sẽ mất viền sáng của model | ✅ |
+| Đo bằng số, không bằng mắt | `npm run check:theme` (6 bài: đủ token + WCAG AA cả hai chiều) và `npm run audit:theme` (Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng) | ✅ 12/12 route × theme đạt |
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -194,6 +212,8 @@ npm run build        # build production 37 route
 npm run db:status    # database đang có bao nhiêu loài
 npm run models:report # model nào tải được, kèm license
 npm run audit:perf   # Chrome thật: TTFB/FCP/LCP/CLS + byte tải trước và sau `load`
+npm run check:theme  # bảng màu sáng/tối: đủ token + độ tương phản WCAG AA
+npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào

@@ -34,7 +34,9 @@ export function BackgroundParticles() {
           duration: 12 + c * 16,
           delay: -Number((a * 12).toFixed(2)),
           drift: -30 + b * 60,
-          color: d > 0.66 ? "#38e0ff" : d > 0.33 ? "#35f0c0" : "#a97bff",
+          // Theme tokens, so a mote darkens with the rest of the palette in
+          // light mode instead of glowing white-on-white.
+          color: d > 0.66 ? "var(--color-glow)" : d > 0.33 ? "var(--color-neon)" : "var(--color-iris)",
           opacity: 0.18 + d * 0.36,
         };
       }),
@@ -48,7 +50,7 @@ export function BackgroundParticles() {
         className="absolute inset-0 opacity-[0.12] animate-drift"
         style={{
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.35) 1px, transparent 1px)",
+            "linear-gradient(to right, var(--kami-grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--kami-grid-line) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
           maskImage: "radial-gradient(70% 60% at 50% 30%, #000 20%, transparent 78%)",
           WebkitMaskImage: "radial-gradient(70% 60% at 50% 30%, #000 20%, transparent 78%)",
@@ -85,7 +87,12 @@ export function BackgroundParticles() {
       ))}
 
       {/* Vignette keeps text legible over the aurora */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_35%,rgba(4,6,15,0.85)_100%)]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(120% 90% at 50% 0%, transparent 35%, var(--kami-vignette) 100%)",
+        }}
+      />
     </div>
   );
 }

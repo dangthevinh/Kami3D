@@ -158,7 +158,7 @@ export function UnlockModal({ premiumAnimals }: { premiumAnimals: Animal[] }) {
                     }}
                     className="group flex flex-col items-center gap-3"
                   >
-                    <span className="grid size-16 place-items-center rounded-full bg-neon text-[#04121a] shadow-[0_0_40px_-6px_rgba(53,240,192,0.9)] transition-transform group-hover:scale-105">
+                    <span className="grid size-16 place-items-center rounded-full bg-neon text-on-accent shadow-[0_0_40px_-6px_rgba(53,240,192,0.9)] transition-transform group-hover:scale-105">
                       <Play className="size-6 translate-x-0.5 fill-current" />
                     </span>
                     <span className="text-sm font-medium text-white/85">

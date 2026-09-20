@@ -197,6 +197,39 @@ switching:
 With neither configured, `/sign-in` explains what to add and the whole app still works in Demo Mode with a
 browser-local collection.
 
+### Light and dark
+
+The visitor picks a theme in the navbar's **Settings** menu (the gear, next to the account area) →
+*Appearance* → **Light** or **Dark**. Dark is the default, and the choice is remembered per browser in
+`localStorage` under `kami-theme`.
+
+It is a palette, not a second stylesheet. The whole UI is written as white overlays on a night canvas —
+`text-white/60`, `bg-white/6`, `ring-white/12` — and Tailwind v4 compiles those to
+`color-mix(in oklab, var(--color-white) N%, transparent)`. The `.light` block in `app/globals.css` therefore
+redefines a few dozen tokens, and **every one of those 220-odd utilities flips at once**:
+
+| Token | Dark | Light | Why |
+| --- | --- | --- | --- |
+| `--color-white` | `#fff` | `#0a1024` | the overlays above become ink instead of light |
+| `--color-void` / `--color-abyss` | `#04060f` / `#070c1a` | `#f4f6fc` / `#fff` | page and panel surfaces |
+| `--color-neon` and friends | bright | darkened | the same hues, legible on white |
+| `--color-*-300` | Tailwind default | 700-level | IUCN status chips vanish on white otherwise |
+| `--color-on-accent` | `#04121a` | `#fff` | ink for text *on* a solid accent fill |
+
+Two decisions worth knowing:
+
+- **The 3D stage stays dark in both themes.** Every scene is lit for a dark room (key light, violet rim, contact
+  shadows on a dark floor); re-lighting three scenes for daylight would change how the models read. The viewer
+  keeps its own night surface, like a photo lightbox — `.kami-canvas` in `app/globals.css`.
+- **Contrast is tested, not eyeballed.** `npm run check:theme` parses both palettes out of the stylesheet and
+  asserts WCAG AA in both directions (accent text on the page, *and* the on-accent ink on a solid accent fill);
+  `npm run audit:theme` drives a real browser over every route in both themes and reports unreadable text and
+  dark panels that failed to follow the theme. Both pass today, for all 12 route/theme combinations.
+
+To follow the operating system instead of defaulting to dark, set `enableSystem` and
+`defaultTheme="system"` in `components/theme/ThemeProvider.tsx` — the provider is already `next-themes`, which
+writes the class before the first paint, so there is no flash either way.
+
 ---
 
 ## Data
@@ -278,6 +311,8 @@ npm run check:size      # size-comparison scale assertions for all 24 species
 npm run check:sql       # schema.sql / seed.sql / dataset agreement
 npm run check:seo       # JSON-LD graph shape, absolute URLs, script-tag escaping
 npm run check:auth      # the session hint that keeps auth SDKs off anonymous pages
+npm run check:theme     # both palettes: token completeness and WCAG contrast maths
+npm run audit:theme     # a real browser: unreadable text and dark panels in light mode
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
                         #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
 npm run seed:generate   # regenerate supabase/seed.sql from the dataset

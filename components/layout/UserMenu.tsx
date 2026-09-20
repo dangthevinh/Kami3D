@@ -1,6 +1,7 @@
 "use client";
 
 import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 
 import { GuestMenu } from "@/components/layout/GuestMenu";
 
@@ -28,10 +29,19 @@ import { GuestMenu } from "@/components/layout/GuestMenu";
  * live inside a statically rendered layout without reading cookies on the server.
  */
 export function UserMenu() {
+  // Clerk paints its own popover, so it needs the theme too. `resolvedTheme` is
+  // undefined until mount, which falls back to the dark product default.
+  const { resolvedTheme } = useTheme();
+  const light = resolvedTheme === "light";
+
   return (
     <ClerkProvider
       appearance={{
-        variables: { colorPrimary: "#35f0c0", colorBackground: "#070c1a", borderRadius: "0.9rem" },
+        variables: {
+          colorPrimary: "#0b8f6e",
+          colorBackground: light ? "#ffffff" : "#070c1a",
+          borderRadius: "0.9rem",
+        },
       }}
     >
       {/* Until Clerk has loaded there is no state to show, and a visitor who

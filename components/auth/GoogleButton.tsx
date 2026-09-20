@@ -101,9 +101,12 @@ export function GoogleButton({ enabled, redirectTo = "/", label = "Continue with
         title={enabled ? undefined : "Enable the Google provider in Supabase to switch this on"}
         className={cn(
           "flex h-11 w-full items-center justify-center gap-2.5 rounded-full px-4 text-sm font-medium transition",
-          "bg-white text-[#1f1f1f] hover:bg-white/90 active:scale-[0.99]",
+          // Google's button is white in both themes, so it keeps a literal white
+          // (the `white` token means "ink" in light mode) and borrows a hairline
+          // so it does not disappear on a light card.
+          "bg-[#ffffff] text-[#1f1f1f] ring-1 ring-black/10 hover:bg-[#f1f3f4] active:scale-[0.99]",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon/70 focus-visible:ring-offset-2 focus-visible:ring-offset-void",
-          (!enabled || busy) && "cursor-not-allowed opacity-45 hover:bg-white",
+          (!enabled || busy) && "cursor-not-allowed opacity-45 hover:bg-[#ffffff]",
         )}
       >
         {busy ? <Loader2 className="size-4 animate-spin" /> : <GoogleGlyph className="size-[18px]" />}

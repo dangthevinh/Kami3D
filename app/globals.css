@@ -12,6 +12,11 @@
   --color-surface-2: #121a33;
   --color-hairline: #1e2a4a;
 
+  /* Body copy, and the one colour that has to work in both themes. */
+  --color-fg: #e8eefc;
+  /* Ink for text/icons sitting *on* a solid accent fill. */
+  --color-on-accent: #04121a;
+
   --color-neon: #35f0c0; /* signature mint — "alive" accent */
   --color-glow: #38e0ff; /* cyan */
   --color-iris: #a97bff; /* violet */
@@ -31,6 +36,12 @@
 
   --radius-card: 1.25rem;
 
+  /* Ambient layer and 3D stage, per theme. */
+  --kami-grid-line: rgba(255, 255, 255, 0.35);
+  --kami-vignette: rgba(4, 6, 15, 0.85);
+  --kami-glass-shadow: rgba(0, 0, 0, 0.9);
+  --kami-stage: radial-gradient(120% 120% at 50% 0%, #101a33 0%, #05080f 62%);
+
   --animate-float: float 7s ease-in-out infinite;
   --animate-drift: drift 26s linear infinite;
   --animate-pulse-ring: pulse-ring 2.6s ease-out infinite;
@@ -44,6 +55,67 @@
   --animate-rise-in: rise-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-pop-in: pop-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-drop-in: drop-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/**
+ * Light theme.
+ *
+ * Kami3D is written as white overlays on a night canvas: 220-odd utilities read
+ * `text-white/60`, `bg-white/6`, `ring-white/12`. Tailwind v4 compiles those to
+ * `color-mix(in oklab, var(--color-white) N%, transparent)`, so redefining the
+ * token here flips every one of them at once — which is the only reason a light
+ * mode is a palette rather than a rewrite of forty components.
+ *
+ * The accents keep their hues but are darkened until they read on a light
+ * surface, and Tailwind's `-300` shades (used by the IUCN status chips) are
+ * replaced with their 700-level counterparts, which is what those chips need on
+ * white. Solid accent fills take `--color-on-accent` (white) instead of the dark
+ * ink they use at night.
+ *
+ * The 3D canvases deliberately stay dark in both themes: they are a lit studio
+ * (see `.kami-canvas`), and a model rendered against a white page loses the rim
+ * light that the whole scene is built around.
+ */
+.light {
+  color-scheme: light;
+
+  --color-void: #f4f6fc;
+  --color-abyss: #ffffff;
+  --color-surface: #e9eefb;
+  --color-surface-2: #dde5f8;
+  --color-hairline: #c9d4ea;
+
+  --color-fg: #0a1024;
+  /* Every `white` utility now means ink. */
+  --color-white: #0a1024;
+  --color-on-accent: #ffffff;
+
+  /* Chosen so both directions pass WCAG AA: `text-neon` on the page background
+     and white on a solid `bg-neon` fill. `npm run check:theme` measures it. */
+  --color-neon: #0f7d61;
+  --color-glow: #0b7291;
+  --color-iris: #6a4ad4;
+  --color-solar: #8f5f0a;
+  --color-coral: #cf2568;
+
+  --color-status-extinct: #6b7280;
+  --color-status-critical: #d92d20;
+  --color-status-endangered: #c2410c;
+  --color-status-vulnerable: #a16207;
+  --color-status-near: #4d7c0f;
+  --color-status-safe: #0f7d61;
+
+  --color-slate-300: #475569;
+  --color-red-300: #b91c1c;
+  --color-orange-300: #c2410c;
+  --color-amber-300: #a16207;
+  --color-lime-300: #4d7c0f;
+  --color-emerald-300: #047857;
+  --color-sky-300: #0369a1;
+
+  --kami-grid-line: rgba(10, 16, 36, 0.16);
+  --kami-vignette: rgba(244, 246, 252, 0.86);
+  --kami-glass-shadow: rgba(15, 23, 42, 0.12);
 }
 
 @keyframes float {
@@ -100,6 +172,8 @@
   :root {
     color-scheme: dark;
   }
+  /* next-themes writes `class="dark"` or `class="light"` on <html>; the block
+     above is the no-JavaScript default so a crawler never sees an unstyled page. */
 
   * {
     border-color: color-mix(in oklab, var(--color-hairline) 70%, transparent);
@@ -113,7 +187,7 @@
   body {
     min-height: 100dvh;
     background-color: var(--color-void);
-    color: #e8eefc;
+    color: var(--color-fg);
     font-family: var(--font-sans);
     /* Layered radial "aurora" behind the whole product. */
     background-image:
@@ -126,7 +200,7 @@
 
   ::selection {
     background: color-mix(in oklab, var(--color-neon) 35%, transparent);
-    color: #04121a;
+    color: var(--color-on-accent);
   }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -158,22 +232,22 @@
   .glass {
     background: linear-gradient(
       145deg,
-      color-mix(in oklab, white 8%, transparent),
-      color-mix(in oklab, white 2%, transparent)
+      color-mix(in oklab, var(--color-white) 8%, transparent),
+      color-mix(in oklab, var(--color-white) 2%, transparent)
     );
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid color-mix(in oklab, white 10%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-white) 10%, transparent);
     box-shadow:
-      0 1px 0 0 color-mix(in oklab, white 8%, transparent) inset,
-      0 24px 60px -30px rgba(0, 0, 0, 0.9);
+      0 1px 0 0 color-mix(in oklab, var(--color-white) 8%, transparent) inset,
+      0 24px 60px -30px var(--kami-glass-shadow);
   }
 
   .glass-strong {
     background: color-mix(in oklab, var(--color-abyss) 82%, transparent);
     backdrop-filter: blur(22px) saturate(160%);
     -webkit-backdrop-filter: blur(22px) saturate(160%);
-    border: 1px solid color-mix(in oklab, white 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-white) 12%, transparent);
   }
 
   /* --- Neon accents ------------------------------------------------------- */
@@ -224,7 +298,7 @@
     background-image: linear-gradient(
       90deg,
       transparent 0%,
-      color-mix(in oklab, white 12%, transparent) 50%,
+      color-mix(in oklab, var(--color-white) 12%, transparent) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -281,4 +355,17 @@
   touch-action: none;
   display: block;
   outline: none;
+}
+
+/**
+ * The 3D stage.
+ *
+ * Every scene here is lit for a dark room — a key light, a violet rim and
+ * contact shadows that assume a dark floor. Rather than re-light three scenes for
+ * daylight, the viewer keeps its own night surface in both themes, the way a
+ * photo lightbox does. It is also what stops a light-mode page from flashing a
+ * transparent canvas before WebGL has painted its first frame.
+ */
+.kami-canvas {
+  background: var(--kami-stage);
 }

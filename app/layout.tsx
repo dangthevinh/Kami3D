@@ -3,6 +3,7 @@ import { Inter, Sora } from "next/font/google";
 
 import { AuthSlot } from "@/components/auth/AuthSlot";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -80,8 +81,12 @@ const siteJsonLd = (() => {
 })();
 
 export const viewport: Viewport = {
-  themeColor: "#04060f",
-  colorScheme: "dark",
+  // Both themes, so the browser chrome matches whichever one is active.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#04060f" },
+  ],
+  colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -98,13 +103,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const provider = activeAuthProvider();
 
   return (
-    <html lang="en" className={`${inter.variable} ${sora.variable} dark`} suppressHydrationWarning>
+    // No theme class here: next-themes writes `light` or `dark` before the first
+    // paint, and `globals.css` keeps the dark tokens as the default for the case
+    // where JavaScript never runs.
+    <html lang="en" className={`${inter.variable} ${sora.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
-        <JsonLd data={siteJsonLd} />
-        <BackgroundParticles />
-        <Navbar authSlot={<AuthSlot provider={provider} />} />
-        <main className="relative z-10 pb-24">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <JsonLd data={siteJsonLd} />
+          <BackgroundParticles />
+          <Navbar authSlot={<AuthSlot provider={provider} />} />
+          <main className="relative z-10 pb-24">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

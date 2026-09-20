@@ -73,7 +73,7 @@ function ViewerMenu({ viewer }: { viewer: Viewer }) {
         aria-label={`Account menu for ${viewer.email ?? "your account"}`}
         className="flex items-center gap-2 rounded-full bg-white/6 py-1 pl-1 pr-2.5 ring-1 ring-white/12 transition-colors hover:bg-white/12"
       >
-        <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-neon to-iris text-[12px] font-bold text-[#04121a]">
+        <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-neon to-iris text-[12px] font-bold text-on-accent">
           {initialsFor(viewer.email)}
         </span>
         <ChevronDown className={cn("size-3.5 text-white/50 transition-transform", open && "rotate-180")} />

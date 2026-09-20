@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { KamiLogo } from "@/components/brand/KamiLogo";
+import { SettingsMenu } from "@/components/layout/SettingsMenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -130,6 +131,8 @@ export function Navbar({ authSlot }: NavbarProps) {
         </form>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
+          <SettingsMenu />
+
           <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
             <Link href="/quiz">Play quiz</Link>
           </Button>

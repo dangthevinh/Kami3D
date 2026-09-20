@@ -14,7 +14,9 @@ export function Sparkline({
   width = 120,
   height = 34,
   className,
-  color = "#35f0c0",
+  // A CSS variable rather than a hex value: the accent is darkened for the light
+  // theme, and this SVG is rendered on the server in both.
+  color = "var(--color-neon)",
 }: {
   points: readonly DailyCount[];
   width?: number;

@@ -10,12 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-neon text-[#04121a] font-semibold shadow-[0_10px_30px_-10px_rgba(53,240,192,0.75)] hover:bg-neon/90",
+          "bg-neon text-on-accent font-semibold shadow-[0_10px_30px_-10px_rgba(53,240,192,0.75)] hover:bg-neon/90",
         secondary: "bg-white/8 text-white/90 ring-1 ring-white/12 backdrop-blur hover:bg-white/14",
         outline: "border border-white/15 bg-transparent text-white/85 hover:border-neon/60 hover:text-white",
         ghost: "text-white/70 hover:bg-white/8 hover:text-white",
-        danger: "bg-coral/90 text-white hover:bg-coral",
-        iris: "bg-iris text-[#0b0620] font-semibold hover:bg-iris/90 shadow-[0_10px_30px_-10px_rgba(169,123,255,0.75)]",
+        danger: "bg-coral/90 text-on-accent hover:bg-coral",
+        iris: "bg-iris text-on-accent font-semibold hover:bg-iris/90 shadow-[0_10px_30px_-10px_rgba(169,123,255,0.75)]",
       },
       size: {
         sm: "h-8 px-3 text-xs",
