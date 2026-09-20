@@ -7,6 +7,7 @@ import {
   Grid,
   Html,
   Line,
+  MeshReflectorMaterial,
   OrbitControls,
   useAnimations,
   useGLTF,
@@ -75,7 +76,13 @@ export interface LightPresetConfig {
  * offer a retry rather than leaving the visitor with a silent downgrade.
  */
 class ModelBoundary extends React.Component<
-  { fallback: React.ReactNode; onFail?: (reason: string) => void; children: React.ReactNode },
+  {
+    fallback: React.ReactNode;
+    onFail?: (reason: string) => void;
+    children: React.ReactNode;
+    /** What failed, for the log line — "model" unless a decorative layer uses it. */
+    label?: string;
+  },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -85,7 +92,9 @@ class ModelBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error) {
-    console.warn("[kami3d] model failed to load, falling back to the procedural rig:", error.message);
+    console.warn(
+      `[kami3d] ${this.props.label ?? "model"} failed to load, using the fallback: ${error.message}`,
+    );
     this.props.onFail?.(error.message);
   }
 
@@ -530,6 +539,31 @@ export function ModelScene({
         fadeStrength={1.4}
         infiniteGrid
       />
+
+      {/* The mirror floor (Phase 11). It is inside its own boundary with a null
+          fallback on purpose: a decorative reflection must never be able to take the
+          viewer down, and a GPU that refuses the extra render target just gets the
+          plain studio floor it had before. */}
+      {quality.reflections ? (
+        <ModelBoundary label="floor reflection" fallback={null}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 0]}>
+            <planeGeometry args={[48, 48]} />
+            <MeshReflectorMaterial
+              resolution={quality.reflectorResolution}
+              mirror={0.35}
+              mixBlur={1.4}
+              mixStrength={0.6}
+              blur={[300, 100]}
+              depthScale={1.1}
+              minDepthThreshold={0.4}
+              maxDepthThreshold={1.35}
+              color={light.fog}
+              metalness={0.4}
+              roughness={0.9}
+            />
+          </mesh>
+        </ModelBoundary>
+      ) : null}
 
       <OrbitControls
         makeDefault

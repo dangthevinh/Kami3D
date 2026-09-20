@@ -33,11 +33,13 @@
     "check:camera": "node --test scripts/check-camera.mjs",
     "check:quiz": "node --test scripts/check-quiz.mjs scripts/check-scoring.mjs",
     "check:sounds": "node --test scripts/check-sounds.mjs",
+    "check:settings": "node --test scripts/check-settings.mjs",
     "sounds:report": "node scripts/fetch-sounds.mjs --report",
     "sounds:fetch": "node scripts/fetch-sounds.mjs --all --apply --wire",
     "check:bundle": "node scripts/bundle-budget.mjs",
     "audit:perf": "node scripts/audit-browser.mjs",
-    "audit:theme": "node scripts/audit-theme.mjs"
+    "audit:theme": "node scripts/audit-theme.mjs",
+    "audit:settings": "node scripts/audit-settings.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

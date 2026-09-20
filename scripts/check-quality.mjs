@@ -16,7 +16,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { QUALITY_PROFILES, qualityFor, readDeviceFacts, tierFor } from "../lib/quality.ts";
+import {
+  QUALITY_PROFILES,
+  applyQualityOverrides,
+  qualityFor,
+  readDeviceFacts,
+  tierFor,
+  tierForPreset,
+} from "../lib/quality.ts";
 
 const facts = (overrides = {}) => ({
   deviceMemory: 8,
@@ -122,3 +129,87 @@ test("qualityFor returns the profile of the tier it chose", () => {
   assert.equal(profile.tier, "high");
   assert.deepEqual({ ...profile, tier: undefined }, { ...QUALITY_PROFILES.high, tier: undefined });
 });
+
+/* -------------------------------------------------------------------------- */
+/* Phase 11 — the visitor's overrides                                         */
+/* -------------------------------------------------------------------------- */
+
+const overrides = (patch = {}) => ({
+  preset: "auto",
+  shadows: true,
+  reflections: true,
+  maxDpr: 2,
+  ...patch,
+});
+
+test("automatic keeps the measured tier, and a preset overrules it", () => {
+  assert.equal(tierForPreset("auto", "low"), "low");
+  assert.equal(tierForPreset("auto", "high"), "high");
+  assert.equal(tierForPreset("ultra", "low"), "ultra");
+  assert.equal(tierForPreset("low", "high"), "low");
+});
+
+test("ultra is a decision, never a measurement", () => {
+  // No device is ever *measured* as ultra — only asked to be.
+  const measured = [
+    facts(),
+    facts({ deviceMemory: 64, hardwareConcurrency: 64, saveData: false }),
+    facts({ deviceMemory: 2 }),
+  ].map((entry) => tierFor(entry));
+
+  assert.ok(!measured.includes("ultra"), `device detection returned ultra: ${measured.join(", ")}`);
+  assert.ok(QUALITY_PROFILES.ultra.dpr[1] > QUALITY_PROFILES.high.dpr[1]);
+  assert.ok(QUALITY_PROFILES.ultra.reflectorResolution > QUALITY_PROFILES.high.reflectorResolution);
+});
+
+test("a setting can only take quality away from the tier it is given", () => {
+  const low = qualityFor(facts({ deviceMemory: 2 }));
+  const high = qualityFor(facts());
+
+  // Off is off, whatever the tier wanted.
+  assert.equal(applyQualityOverrides(high, overrides({ shadows: false })).shadows, false);
+  assert.equal(applyQualityOverrides(high, overrides({ shadows: false })).contactShadows, false);
+  assert.equal(applyQualityOverrides(high, overrides({ reflections: false })).reflections, false);
+
+  // On is on only where the tier can afford it.
+  assert.equal(applyQualityOverrides(low, overrides({ shadows: true })).shadows, false);
+  assert.equal(applyQualityOverrides(low, overrides({ reflections: true })).reflections, false);
+});
+
+test("the pixel-ratio ceiling caps dpr without ever inverting the range", () => {
+  const high = qualityFor(facts());
+  assert.deepEqual(applyQualityOverrides(high, overrides({ maxDpr: 1 })).dpr, [1, 1]);
+  assert.deepEqual(applyQualityOverrides(high, overrides({ maxDpr: 1.5 })).dpr, [1, 1.5]);
+  assert.deepEqual(applyQualityOverrides(high, overrides({ maxDpr: 2 })).dpr, [1, 1.8]);
+
+  for (const tier of Object.keys(QUALITY_PROFILES)) {
+    const profile = applyQualityOverrides(qualityFor(facts()), overrides({ preset: tier, maxDpr: 1 }));
+    assert.ok(profile.dpr[0] <= profile.dpr[1], `${tier}: dpr range inverted`);
+    assert.ok(profile.dpr[0] >= 1, `${tier}: dpr below 1`);
+  }
+});
+
+test("a preset reaches every field a canvas reads", () => {
+  const base = qualityFor(facts({ deviceMemory: 2 }));
+  const ultra = applyQualityOverrides(base, overrides({ preset: "ultra" }));
+
+  assert.equal(ultra.tier, "ultra");
+  assert.ok(ultra.starCount > base.starCount);
+  assert.ok(ultra.globeSegments > base.globeSegments);
+  assert.ok(ultra.shadowMapSize > base.shadowMapSize);
+  assert.equal(ultra.shadows, true);
+  assert.equal(ultra.reflections, true);
+  assert.ok(ultra.reflectorResolution > 0);
+});
+
+test("every profile declares the reflection layer the scene renders", () => {
+  for (const [tier, profile] of Object.entries(QUALITY_PROFILES)) {
+    assert.equal(typeof profile.reflections, "boolean", `${tier}: reflections must be a boolean`);
+    assert.ok(Number.isInteger(profile.reflectorResolution), `${tier}: reflectorResolution must be an integer`);
+    assert.ok(profile.reflectorResolution >= 64, `${tier}: a reflector below 64px is not worth rendering`);
+  }
+
+  // The cheapest tier does not pay for a second render pass.
+  assert.equal(QUALITY_PROFILES.low.reflections, false);
+});
+

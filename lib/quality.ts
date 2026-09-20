@@ -18,7 +18,15 @@
  * is "assume mid-range", not "assume weak".
  */
 
-export type QualityTier = "low" | "balanced" | "high";
+import type { QualityPreset } from "@/lib/user-settings";
+
+/**
+ * `ultra` is the one tier the device detector never returns: it exists only
+ * because a visitor can ask for it in `/settings` (Phase 11). Detection stays
+ * conservative — guessing "ultra" on hardware that never told us its specs is how
+ * a stutter ships — while an explicit choice is a decision, not a guess.
+ */
+export type QualityTier = "low" | "balanced" | "high" | "ultra";
 
 export interface DeviceFacts {
   /** `navigator.deviceMemory` in GB. Null when the browser does not say. */
@@ -46,6 +54,10 @@ export interface QualityProfile {
   globeSegments: number;
   /** Cap on the shadow map, in pixels. */
   shadowMapSize: number;
+  /** The mirror floor under the model — an extra render pass, so it is a tier choice. */
+  reflections: boolean;
+  /** Resolution of that mirror's render target, in pixels. */
+  reflectorResolution: number;
 }
 
 /**
@@ -56,9 +68,10 @@ export interface QualityProfile {
  * — stars, then contact shadows, then resolution and shadow-map size.
  */
 export const QUALITY_PROFILES: Record<QualityTier, Omit<QualityProfile, "tier">> = {
-  low: { dpr: [1, 1.25], shadows: false, contactShadows: false, starCount: 400, globeSegments: 48, shadowMapSize: 512 },
-  balanced: { dpr: [1, 1.6], shadows: true, contactShadows: true, starCount: 900, globeSegments: 72, shadowMapSize: 1024 },
-  high: { dpr: [1, 1.8], shadows: true, contactShadows: true, starCount: 1500, globeSegments: 96, shadowMapSize: 1024 },
+  low: { dpr: [1, 1.25], shadows: false, contactShadows: false, starCount: 400, globeSegments: 48, shadowMapSize: 512, reflections: false, reflectorResolution: 128 },
+  balanced: { dpr: [1, 1.6], shadows: true, contactShadows: true, starCount: 900, globeSegments: 72, shadowMapSize: 1024, reflections: true, reflectorResolution: 256 },
+  high: { dpr: [1, 1.8], shadows: true, contactShadows: true, starCount: 1500, globeSegments: 96, shadowMapSize: 1024, reflections: true, reflectorResolution: 512 },
+  ultra: { dpr: [1, 2], shadows: true, contactShadows: true, starCount: 2400, globeSegments: 128, shadowMapSize: 2048, reflections: true, reflectorResolution: 1024 },
 };
 
 /** The tier a set of facts adds up to. */
@@ -84,6 +97,60 @@ export function tierFor(facts: DeviceFacts): QualityTier {
 export function qualityFor(facts: DeviceFacts): QualityProfile {
   const tier = tierFor(facts);
   return { tier, ...QUALITY_PROFILES[tier] };
+}
+
+/**
+ * A visitor's quality preferences (Phase 11), as `/settings` stores them.
+ *
+ * Declared structurally rather than imported so this module keeps its only
+ * dependency being the type of the preset name: the checks drive it with plain
+ * objects, and nothing here can accidentally start reading the database.
+ */
+export interface QualityOverrides {
+  /** `auto` leaves the measurement in charge. */
+  preset: QualityPreset;
+  /** Shadows at all. `false` can only ever remove them, never add them. */
+  shadows: boolean;
+  reflections: boolean;
+  /** Ceiling for the canvas resolution, whatever the tier would like. */
+  maxDpr: number;
+}
+
+const PRESET_TIERS: Record<QualityPreset, QualityTier | null> = {
+  auto: null,
+  low: "low",
+  medium: "balanced",
+  high: "high",
+  ultra: "ultra",
+};
+
+/** The tier a preset asks for, or the measured one when the preset is `auto`. */
+export function tierForPreset(preset: QualityPreset, measured: QualityTier): QualityTier {
+  return PRESET_TIERS[preset] ?? measured;
+}
+
+/**
+ * The profile after the visitor's settings have had their say.
+ *
+ * The rules are deliberately one-directional: a setting can take quality *away*
+ * from the tier (no shadows, a lower DPR ceiling, no mirror floor) but never add
+ * what the tier decided this device cannot afford — except by naming a higher
+ * preset, which is the visitor explicitly overruling the measurement.
+ */
+export function applyQualityOverrides(profile: QualityProfile, overrides: QualityOverrides): QualityProfile {
+  const tier = tierForPreset(overrides.preset, profile.tier);
+  const base = QUALITY_PROFILES[tier];
+  const ceiling = overrides.maxDpr > 0 ? overrides.maxDpr : base.dpr[1];
+  const dpr: [number, number] = [Math.min(base.dpr[0], ceiling), Math.min(base.dpr[1], ceiling)];
+
+  return {
+    tier,
+    ...base,
+    dpr,
+    shadows: base.shadows && overrides.shadows,
+    contactShadows: base.contactShadows && overrides.shadows,
+    reflections: base.reflections && overrides.reflections,
+  };
 }
 
 /** The slice of the browser this module reads; injectable for the checks. */

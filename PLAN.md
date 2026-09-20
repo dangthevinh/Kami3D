@@ -22,7 +22,13 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | ✅ 5/6 mục xong — Mục 5 (âm thanh) chờ asset |
 | **9** | Âm thanh loài: pipeline tải + kiểm licence | ✅ Hoàn thành — 6/24 loài có tiếng kêu, mode quiz sound đã bật |
 | **10** | Review toàn diện & đề xuất cải tiến | ✅ Hoàn thành — báo cáo ở [docs/REVIEW.md](docs/REVIEW.md) |
-| **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | 📝 Đã ghi prompt, chưa triển khai |
+| **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | ✅ Hoàn thành — 6 nhóm, mọi cột có tác dụng thật |
+| **12** | Admin tự động tìm & tải model 3D | 📝 Đã ghi prompt — lưu ý: pipeline đã có sẵn một phần |
+| **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | 📝 Đã ghi prompt, chưa triển khai |
+| **14** | Habitat & Species Distribution Maps (`/map`) | 📝 Đã ghi prompt, chưa triển khai |
+| **15** | Conservation Threat & Risk Maps | 📝 Đã ghi prompt, chưa triển khai |
+| **16** | Timeline & Story Maps | 📝 Đã ghi prompt, chưa triển khai |
+| **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
 
@@ -31,10 +37,11 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **155** bài trong **16** suite (`npm run check:suites`) |
+| Test tự động | **189** bài trong **17** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
+| Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
-| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 143.4 · `/explore` 146.5 · `/quiz` 153.3 · `/animal/[slug]` 139.2 kB (ngân sách 165) |
+| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 146.5 · `/explore` 151.8 · `/quiz` 156.7 · `/animal/[slug]` 142.6 · `/settings` ~133 kB (ngân sách 165) — SettingsProvider thêm ~3–5 kB mỗi route |
 | Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
 | CI | GitHub Actions xanh — typecheck → checks → build → bundle budget mỗi lần push |
 | **Rủi ro đang mở** | **R1** Clerk đi vòng qua RLS bằng service role (P0) · **R2** `/api/views` có thể bị bơm · **R3** thiếu `app/error.tsx`/`loading.tsx` · **R4** kiến trúc dữ liệu O(N) · **R5** không có giám sát lỗi · **R6** GLB không được `dispose` + chưa có KTX2 · **R7** chưa sẵn sàng i18n · **R8** egress chưa có trần. Chi tiết + SQL ở [docs/REVIEW.md](docs/REVIEW.md) |
@@ -626,6 +633,91 @@ create table user_settings (
 
 ---
 
+## ✅ Phase 11 — Kết quả: hệ thống Settings hoàn chỉnh
+
+**Trạng thái: đã giao.** Trang `/settings`, bảng `user_settings` (đã áp lên project thật), 6 nhóm preference, và
+**mọi cột đều có tác dụng thật** — không có cột nào chỉ nằm trong database (ràng buộc #7 của phase).
+
+### 1. Database
+
+| Việc | Chi tiết |
+| --- | --- |
+| Migration | `user_settings` và `user_settings_accent_default`, đã áp lên project `ztihljcpeylprcgblnpv` |
+| Hàm dùng chung | `public.current_user_id()` = `coalesce(auth.uid()::text, jwt ->> 'sub')` — từ nay bảng per-user mới chỉ cần gọi hàm này thay vì lặp lại `auth.uid()` |
+| RLS | owner-only cho **cả 4 lệnh** `select / insert / update / delete`; `update` có **cả** `USING` và `WITH CHECK` (thiếu `WITH CHECK` là người dùng sửa được `user_id` sang người khác) |
+| Ràng buộc | CHECK cho mọi enum và range: `theme`, `accent_color`, `glass_intensity`, `quality_preset`, `max_dpr`, `master_volume`/`animal_volume` 0–100, `language`, `measurement_unit` |
+| Trigger | dùng lại `public.set_updated_at()`, không viết trigger mới |
+| Quyền | `revoke all … from anon`; `grant select, insert, update, delete … to authenticated` |
+
+`supabase/schema.sql` đã được cập nhật đúng bằng migration đang chạy, và `scripts/check-sql.mjs` nay phủ luôn
+bảng mới (+10 test): mọi cột `not null` và có default, **default của schema bằng default của app**, **CHECK của
+từng enum bằng đúng danh sách option của app**, `max_dpr`/volume bằng đúng biên mà app clamp, và policy owner-only
+của cả 4 lệnh. Đây là loại lệch mà nếu không có test thì sẽ lộ ra thành "UI cho chọn một giá trị mà database từ chối".
+
+### 2. Những file đã thêm
+
+| File | Vai trò |
+| --- | --- |
+| `lib/user-settings.ts` | Mô hình thuần: kiểu, default, danh sách option, `coerceUserSettings` (sửa giá trị hỏng thay vì ném lỗi), `patchToRow`, `volumeGain`, `settingsAttributes` |
+| `lib/settings-store.ts` | Đọc/ghi/xoá dòng của chính người dùng qua `lib/personal-data.ts` (Supabase Auth → RLS; Clerk → service role + lọc `user_id`), và hàm xoá dữ liệu cá nhân |
+| `app/api/settings/route.ts` | `GET` (kể cả khách chưa đăng nhập), `POST` patch từng phần, `DELETE` xoá dữ liệu cá nhân |
+| `components/settings/SettingsProvider.tsx` | Nguồn sự thật phía client: đọc `localStorage` trước, chỉ hỏi server khi cookie phiên nói có phiên; ghi lạc quan + ghi lại vào `localStorage` |
+| `components/settings/SettingsScreen.tsx` + `Controls.tsx` | 6 nhóm A–F; mọi control là form control thật (`input type=radio`, `button role=switch`, `input type=range`) |
+| `app/settings/page.tsx` | Trang duy nhất render theo từng người dùng (đọc phiên ở server để thẻ Account đúng ngay từ first paint) |
+| `lib/i18n.ts` | Dictionary `en`/`vi` + `translate()` — lớp i18n đầu tiên (R7) |
+| `lib/ui-sound.ts` | Tiếng đúng/sai của quiz, tổng hợp bằng Web Audio (không tải file nào) |
+| `components/animal/Measurement.tsx` | Lá client in số đo theo đơn vị người dùng chọn, để `InfoPanel` vẫn là server component |
+| `scripts/check-settings.mjs` | 18 test mới (`npm run check:settings`) |
+
+### 3. Sáu nhóm, và tác dụng thật của từng nhóm
+
+| Nhóm | Cột | Nối vào đâu |
+| --- | --- | --- |
+| A. Appearance | `theme`, `accent_color`, `glass_intensity`, `reduce_motion` | `next-themes` + block "visitor's own preferences" trong `app/globals.css`: `html[data-accent]` đổi `--color-neon` (5 màu, có bản riêng cho light theme), `html[data-glass]` đổi blur/alpha của `.glass`, `html[data-motion=reduced]` tắt animation/transition |
+| B. 3D Performance | `quality_preset`, `enable_shadows`, `enable_reflections`, `max_dpr`, `auto_rotate` | `lib/quality.ts` (`applyQualityOverrides` + tier mới `ultra`) → `components/3d/useQuality.ts` → `CanvasShell` (dpr, shadows), `ModelScene` (sàn gương `MeshReflectorMaterial`, `autoRotate`), `AnimalPreview` |
+| C. Audio | `master_volume`, `animal_volume`, `ui_sounds`, `autoplay_sounds` | `volumeGain()` nhân master × kênh, áp vào `SoundButton` và `CallPlayer` của quiz; `uiSounds` bật tiếng đúng/sai trong quiz; `autoplaySounds` tự phát khi mở trang loài (và báo đúng khi trình duyệt chặn) |
+| D. Language & Region | `language`, `measurement_unit` | `document.documentElement.lang` + dictionary của bảng này; đơn vị đo chảy vào `SizeComparison` (toggle trong chart nay ghi thẳng vào setting), `InfoPanel`, `AnimalCard`, `PremiumTeaser`, `formatWeight` (thêm pound/short ton) |
+| E. Notifications | `email_notifications`, `push_notifications` | Chỉ lưu cờ, **và UI nói rõ chưa gửi gì** (ràng buộc #6) |
+| F. Account | — | Thông tin người đăng nhập + nút xoá dữ liệu cá nhân (favourites + quiz scores + settings) bằng quyền của chính người dùng |
+
+### 4. Khác biệt so với prompt (có lý do)
+
+1. **`accent_color` mặc định `emerald`, không phải `cyan`.** `emerald` chính là màu mint `#35f0c0` mà sản phẩm
+   đang dùng (`--color-neon`), nên một dòng chưa ai sửa vẫn trông y như trước; để `cyan` là tự ý đổi màu mọi bề
+   mặt nhấn cho người chưa từng mở `/settings`. Cả schema lẫn app đều dùng `emerald`, và `check-sql.mjs` giữ hai
+   bên khớp nhau.
+2. **`quality_preset` mặc định `auto` và có thêm giá trị `auto`.** Đây là giá trị duy nhất giữ cho `lib/quality.ts`
+   tiếp tục đo thiết bị — tức là hành vi đang chạy. Chọn một preset cố định nghĩa là người dùng tự quyết định
+   thay vì app đoán. Tier `ultra` chỉ đến từ lựa chọn của người dùng, không bao giờ từ phép đo (có test).
+3. **`/settings` có "System", menu nhanh trên navbar thì không.** Menu nhanh giữ đúng hai lựa chọn Sáng/Tối như
+   bạn đã yêu cầu; ba lựa chọn nằm ở trang đầy đủ, nơi có chỗ để giải thích.
+4. **Ngôn ngữ hiện phủ bảng Settings**, chưa phủ nội dung loài — và UI nói thẳng điều đó (`page.scope`) thay vì
+   để nửa bản dịch trông như lỗi.
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **189 test** (thêm 18 của `check-settings`, 6 của `check-quality`, 10 của `check-sql`), và
+  `npx tsc --noEmit` sạch.
+- `npm run build` + `npm run check:bundle`: mọi route trong ngân sách, `three`/Clerk vẫn chỉ tải sau khi trang dùng được;
+  SettingsProvider thêm ~3–5 kB vào JS khởi đầu mỗi route (bảng số liệu ở đầu tài liệu).
+- **`npm run audit:settings` (mới)**: mở `/settings` bằng Chrome thật và đo — 19/19 đạt. Nó chứng minh bằng số đo
+  chứ không bằng lời: đổi accent thì `--color-neon` và màu chữ của `.text-neon` đổi theo (`#35f0c0` → `#a97bff`,
+  và `#6a4ad4` khi ở light theme); glass `low` làm blur của panel thành 6px; reduce-motion làm `animation-duration`
+  của một phần tử có animation thành ≤ 0.001s; theme thì đổi class trên `<html>`; và cả bốn lựa chọn còn nguyên sau
+  khi tải lại, đồng thời áp cho cả route khác. Audit còn bắt được một lỗi thật: người dùng cũ (đã chọn theme trước
+  Phase 11, tức chỉ có key `kami-theme`) từng bị ghi đè về dark — nay được migrate đúng, và có test cho đúng ca đó.
+- `npm run audit:theme` trên 10 cặp route × theme (thêm `/settings`): đạt hết — không có chữ nào dưới WCAG AA và
+  không có panel tối nào sót lại ở light mode.
+- `npm run audit:perf` (local, Chrome không throttle): `/explore` TTFB 1.7s, FCP 2.2s, CLS 0, JS trước `load` 156.6 kB.
+  CLS bằng 0 là điểm đáng nói: các thuộc tính `data-*` được ghi **sau** hydration nên không gây nhảy layout.
+- Database: `user_settings` tồn tại, 0 dòng, RLS bật, 4 policy, 1 trigger; advisors **0 phát hiện security**.
+- Việc còn lại của phase này: **P0.1 (Clerk ↔ Supabase Third-Party Auth)** vẫn đang mở, nên khi chạy Clerk thì
+  phần ghi `user_settings` đi qua service role kèm lọc `user_id` — đúng bằng đường đi hiện tại của
+  `user_favorites`/`quiz_scores` (rủi ro R1 trong [docs/REVIEW.md](docs/REVIEW.md)). RLS đã sẵn sàng cho ngày
+  bật P0.1, không phải sửa lại.
+
+---
+
 ## 🦁 Phase 12 — Admin tự động tìm & tải model 3D thật
 
 > **Bước 0 (từ review Phase 10)**: tạo bảng `public.app_admins` + hàm `public.is_admin()` và policy cho admin sửa
@@ -731,6 +823,354 @@ create table model_assets (
    còn hơn gắn một model không rõ nguồn gốc.
 8. **Nén DRACO phải chạy ngoài bundle.** `@gltf-transform/cli` là **devDependency**, chỉ gọi từ script Node —
    `check:bundle` sẽ chặn nếu three.js/gltf kéo vào first paint.
+
+---
+
+## 🗺️ Phases 13–17 — Chương trình Data-to-Map
+
+> Chương trình này lần đầu đưa **bản đồ thật** vào Kami3D: PostGIS + MapLibre/Mapbox + Deck.gl + Turf.
+> Nó khác mọi phase trước ở một điểm: **lần đầu dự án phải tải thư viện nặng** (MapLibre ~250 kB gzip,
+> deck.gl vài trăm kB), trong khi trần First Load JS của **mọi** route hiện tại là **165 kB**
+> ([bundle-budget.mjs](file:///Users/macbookpro2015/Kami/Kami3D/scripts/bundle-budget.mjs#L44-L59)).
+> Vì vậy 7 ràng buộc chung dưới đây phải đọc **trước** khi làm bất kỳ phase nào trong nhóm.
+
+**Thứ tự phụ thuộc**: 13 (nền tảng) → 14 → 15 → 16 → 17. Phase 14–17 đều cần schema + BaseMap của 13;
+15 và 16 dùng chung cột `year` của 13. Mỗi phase phải tự đứng được (không bắt phase sau mới chạy).
+
+### Ràng buộc chung cho cả 5 phase
+
+1. **Trần bundle phải được khai báo, không được lách.** Thêm route vào `ROUTES` trong
+   [bundle-budget.mjs](file:///Users/macbookpro2015/Kami/Kami3D/scripts/bundle-budget.mjs#L44-L51) với budget riêng cho `/map` (đặt số thật, đo sau lần build đầu)
+   **và** thêm marker của thư viện bản đồ vào danh sách `FORBIDDEN` để nó không rò sang `/`, `/explore`,
+   `/animal/[slug]`. BaseMap **chỉ** được nạp qua `dynamic(..., { ssr: false })` sau khi vào viewport —
+   đúng khuôn [LazyGlobe.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/3d/LazyGlobe.tsx#L38-L54) đang dùng cho three.js.
+2. **Base map phải không cần key.** Dự án chạy được trên clone mới không có biến môi trường nào (Demo Mode).
+   Mapbox GL cần access token → vi phạm. Nên chọn **MapLibre + style keyless** (OpenFreeMap / Protomaps self-host),
+   và cho ghi đè bằng `NEXT_PUBLIC_MAP_STYLE_URL` theo đúng khuôn `NEXT_PUBLIC_DRACO_DECODER_PATH` trong
+   [README.md](file:///Users/macbookpro2015/Kami/Kami3D/README.md#L79-L94).
+3. **Licence dữ liệu địa lý là ràng buộc cứng, giống licence model và âm thanh.** GBIF: phần lớn dataset là
+   **CC BY 4.0 / CC0 nhưng bắt buộc cite DOI** của lượt tải; IUCN Red List: cần token và Terms of Use
+   **hạn chế dùng thương mại**. Nghĩa là IUCN range map có thể không dùng được cho site này — phải kiểm và ghi
+   `license` + `attribution` vào bảng từ đầu, rồi render credit như `data/model-attribution.json` đang làm,
+   **không** tải ào ạt rồi tính sau (bài học từ Phase 9: 57/59 ứng viên bị từ chối).
+4. **Demo Mode vẫn phải có bản đồ để xem.** Dữ liệu GeoJSON mẫu nằm trong `data/` và được mirror sang PostGIS,
+   đúng cách `data/animals.ts` đang là nguồn chuẩn còn Supabase chỉ là bản sao. Nếu để `/map` phụ thuộc 100%
+   vào Supabase thì clone mới mở ra là trang trắng.
+5. **Không kéo Framer Motion trở lại.** Phase 16 ghi "timeline mượt (Framer Motion)" — nhưng thư mục này đã bỏ
+   hẳn thư viện đó và `check:bundle` **chặn** nếu nó xuất hiện trong first paint (marker `framer-motion`).
+   TimelineSlider và animation migration phải làm bằng CSS + `requestAnimationFrame`.
+6. **Một WebGL context tại một thời điểm.** three.js (R3F) và deck.gl đều tạo context; trình duyệt giới hạn số
+   context và sẽ **mất context cũ** khi vượt ngưỡng. Chế độ hybrid ở Phase 17 phải dùng **đúng một** viewer 3D,
+   chỉ load model khi người dùng bấm, và `dispose()` geometry/material — đây đúng là lỗi R6 mà
+   [docs/REVIEW.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/REVIEW.md) đã ghi (GLB hiện không được dispose).
+7. **Enum châu lục không được tạo mới.** `REGIONS` và `REGION_ANCHORS` (`{lat, lng, label, blurb}`) đã có trong
+   [types/animal.ts](file:///Users/macbookpro2015/Kami/Kami3D/types/animal.ts#L45-L58) và đang được globe + trang loài + `check:globe` dùng.
+   Bộ lọc theo châu lục và việc đồng bộ Globe→Map phải dùng lại đúng hai hằng số này; mọi bảng/cột enum mới phải
+   khớp SQL CHECK như `check:sql` đang ép.
+
+---
+
+## 🗺️ Phase 13 — Nền tảng Data-to-Map
+
+**Mục tiêu**: dựng hạ tầng dùng chung cho cả nhóm: `BaseMap.tsx` tái sử dụng được, PostGIS + bảng
+`animal_geodata`, hook/context bật-tắt layer, và cầu nối Globe → Map.
+
+**Prompt để triển khai Phase 13**:
+
+````markdown
+Phase 13 cho Kami3D – Xây dựng nền tảng Data-to-Map.
+
+Tech bắt buộc:
+- Next.js 15 App Router + TypeScript
+- Mapbox GL JS hoặc MapLibre GL (ưu tiên MapLibre nếu muốn miễn phí)
+- react-map-gl
+- Deck.gl (để xử lý heatmap, cluster, lớn dữ liệu)
+- Supabase + PostGIS (bật extension postgis)
+- Turf.js (xử lý không gian phía client khi cần)
+
+Yêu cầu:
+1. Tạo component `components/map/BaseMap.tsx` có thể tái sử dụng:
+   - Hỗ trợ style tối (dark) phù hợp Kami3D
+   - Có controls: zoom, compass, geolocate, fullscreen
+   - Hỗ trợ nhiều layer (vector, heatmap, fill, line, symbol)
+   - Responsive + touch-friendly
+
+2. Thiết lập Supabase với PostGIS:
+   - Bật extension postgis
+   - Tạo bảng `animal_geodata` với cột geometry (Polygon / MultiPolygon / Point)
+   - RLS cơ bản
+
+3. Tạo hook `useMapLayers` và context để bật/tắt layer dễ dàng
+
+4. Tích hợp sẵn với InteractiveGlobe hiện có (có thể chuyển từ Globe → Map view)
+
+Output cần có:
+- SQL setup PostGIS + bảng animal_geodata
+- BaseMap.tsx hoàn chỉnh
+- Ví dụ layer cơ bản (habitat polygon)
+- Cách chuyển đổi tọa độ lat/lng ↔ Mapbox
+````
+
+**Ràng buộc riêng của Phase 13**:
+
+1. **Thứ tự toạ độ là cái bẫy số một.** GeoJSON/MapLibre dùng `[lng, lat]`, còn `LatLng` của dự án
+   ([lib/globe.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/globe.ts#L19-L22)) là `{ lat, lng }`. Mọi chỗ giao nhau phải đi qua
+   helper chuyển đổi đặt cạnh `lib/globe.ts` (ví dụ `toLngLat`/`fromLngLat`), **không** truyền thẳng object,
+   và phải có test trong một suite `check-geo` — đảo trục thì bản đồ vẫn render, chỉ sai chỗ, nên không có test
+   là sẽ không ai phát hiện.
+2. **`animal_geodata` nên gánh luôn `year` và `kind` ngay từ đầu.** Phase 15 cần threat layer, Phase 16 cần
+   range theo năm — nếu Phase 13 chỉ có `animal_id + geometry` thì 15 và 16 sẽ phải `alter table` liên tục.
+   Đề xuất: `kind text check in ('habitat_current','habitat_historic','protected_area','occurrence')`,
+   `year int null`, `source text`, `license text`, `attribution text`, `geometry geometry(Geometry, 4326)`,
+   index **GiST** trên `geometry` và index `(animal_id, kind, year)`.
+3. **PostGIS theo convention Supabase**: `create extension if not exists postgis with schema extensions;`
+   (đặt trong `schema.sql` để `npm run db:schema` áp được), và **cấm** để `geometry` rơi vào schema `public`
+   mà không có RLS. Ràng buộc dữ liệu: chỉ nhận `ST_IsValid` — nạp polygon tự giao nhau vào PostGIS rồi
+   `ST_Intersects` sẽ trả kết quả sai một cách im lặng.
+4. **RLS giống `sound_assets`**: `enable row level security` + một policy `SELECT to anon, authenticated
+   using (true)` + `grant select`. **Không có write policy** — upload địa lý đi qua Edge Function với service
+   role (Phase 17), browser không được ghi.
+5. **`useMapLayers` viết bằng Zustand, không phải Context mới.** `zustand@5` đã là dependency
+   ([package.json](file:///Users/macbookpro2015/Kami/Kami3D/package.json#L58)). Yêu cầu thêm một điều mà prompt chưa nói: trạng thái layer
+   phải **đồng bộ lên URL** (`?layers=habitat,density&species=lion`) để chia sẻ được link và để SSR biết
+   render gì — nếu chỉ nằm trong memory thì mọi view bản đồ đều không share được.
+6. **Đừng tự viết controls.** MapLibre đã có `NavigationControl` (zoom + compass), `GeolocateControl`,
+   `FullscreenControl`, `ScaleControl`; tự viết lại vừa thừa vừa mất touch behavior.
+
+---
+
+## 🦓 Phase 14 — Habitat & Species Distribution Maps
+
+**Mục tiêu**: trang `/map` (hoặc `/explore/map`) với habitat polygon click được, heatmap mật độ, panel bật/tắt
+layer kèm opacity, và bộ lọc châu lục / IUCN / category.
+
+**Prompt để triển khai Phase 14**:
+
+````markdown
+Tiếp tục Phase 14 – Habitat & Species Distribution Maps cho Kami3D.
+
+Xây dựng trang `/map` hoặc `/explore/map` với các tính năng:
+
+1. **Habitat Layer**:
+   - Hiển thị vùng sinh sống thực tế của từng loài (Polygon từ IUCN / GBIF hoặc dữ liệu tự có)
+   - Click vào polygon → hiện thông tin loài + nút xem 3D model
+
+2. **Density Heatmap**:
+   - Heatmap mật độ quan sát / mật độ quần thể (dùng Deck.gl HeatmapLayer)
+   - Có thanh lọc theo loài hoặc nhóm loài
+
+3. **Multi-layer Control**:
+   - Panel bên phải cho phép bật/tắt:
+     - Habitat range
+     - Observation density
+     - Protected areas
+     - Human pressure / deforestation (nếu có dữ liệu)
+   - Opacity slider cho từng layer
+
+4. **Filter & Search**:
+   - Lọc theo châu lục, IUCN status (Endangered, Vulnerable…), category
+   - Search loài → bay đến vùng phân bố của loài đó
+
+5. Tích hợp với hệ thống hiện có:
+   - Click loài trên map → mở ModelViewer 3D hoặc trang chi tiết
+   - Đồng bộ với InteractiveGlobe (chọn châu lục trên Globe → filter map)
+
+Yêu cầu kỹ thuật:
+- Dùng Deck.gl + react-map-gl
+- Dữ liệu GeoJSON hoặc vector tiles
+- Performance tốt khi có hàng trăm polygon
+- UI Glassmorphism + Dark theme Kami3D
+
+Trả về code đầy đủ các component chính + ví dụ dữ liệu GeoJSON mẫu.
+````
+
+**Ràng buộc riêng của Phase 14**:
+
+1. **"Hàng trăm polygon" chưa cần vector tiles.** Ở quy mô này, một GeoJSON response + `ST_AsGeoJSON` là đủ và
+   rẻ; vector tiles (`ST_AsMVT` qua RPC) chỉ nên làm khi vượt khoảng một nghìn feature hoặc khi payload vượt
+   ~1 MB. Làm tiles sớm là tối ưu hoá sai chỗ, đúng loại việc đã bị loại ở Phase 10.
+2. **Đơn giản hoá geometry trước khi trả về**: `ST_SimplifyPreserveTopology(geometry, 0.01)` + bỏ cột thừa.
+   Range map gốc của IUCN rất chi tiết; gửi nguyên si là payload phình mà mắt người không thấy khác.
+3. **Bộ lọc dùng lại enum có sẵn**: châu lục = `REGIONS`, tình trạng bảo tồn = `statusToTailwind`/IUCN status đã
+   có trong [types/animal.ts](file:///Users/macbookpro2015/Kami/Kami3D/types/animal.ts) — không định nghĩa lại danh sách.
+4. **Heatmap phải nói rõ dữ liệu là gì.** "Mật độ quần thể" gần như không có nguồn mở; "mật độ quan sát" thì có
+   (GBIF occurrence). Nhãn UI phải ghi đúng cái đang vẽ, kèm số bản ghi và khoảng thời gian, nếu không người
+   xem sẽ đọc heatmap quan sát thành bản đồ mật độ loài.
+5. **Đồng bộ Globe → Map là một chiều và qua URL**: Globe đang gọi `onRegionSelect(region)`
+   ([LazyGlobe.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/3d/LazyGlobe.tsx#L38-L54)). Chuyển chế độ thì ghi `region` vào cùng state layer
+   đã đồng bộ URL ở Phase 13 — không dựng thêm store thứ hai cho cùng một khái niệm.
+
+---
+
+## 🔥 Phase 15 — Conservation Threat & Risk Maps
+
+**Mục tiêu**: overlay các lớp mối đe dọa (mất rừng, human footprint, rủi ro khí hậu, poaching, khu bảo tồn)
+với legend rõ ràng, click ra mức rủi ro + loài bị ảnh hưởng, và Risk Score tính được.
+
+**Prompt để triển khai Phase 15**:
+
+````markdown
+Phase 15 – Conservation Threat & Risk Maps cho Kami3D.
+
+Xây dựng hệ thống overlay mối đe dọa:
+
+1. Các lớp dữ liệu chính:
+   - Deforestation / Forest loss (heatmap hoặc polygon)
+   - Human footprint / Urban expansion
+   - Climate risk (nhiệt độ tăng, hạn hán, mực nước biển)
+   - Poaching / Illegal trade hotspots (nếu có)
+   - Protected area boundaries
+
+2. Tính năng:
+   - Layer control có legend màu sắc rõ ràng
+   - Click vào vùng → hiện mức độ rủi ro + các loài bị ảnh hưởng
+   - "Risk Score" tổng hợp cho từng khu vực
+   - So sánh "Trước đây vs Hiện tại" (nếu có dữ liệu lịch sử)
+
+3. Kết hợp với động vật:
+   - Khi chọn 1 loài, map chỉ hiện các mối đe dọa liên quan đến loài đó
+   - Highlight những phần habitat đang bị đe dọa nặng
+
+4. Admin có thể upload / cập nhật dữ liệu đe dọa (GeoJSON hoặc shapefile → PostGIS)
+
+Output cần có:
+- Component ThreatLayerPanel
+- Ví dụ tích hợp Deck.gl với nhiều layer
+- Cách tính risk score đơn giản
+- UI legend đẹp
+````
+
+**Ràng buộc riêng của Phase 15**:
+
+1. **Threat layer không thuộc về một loài** → cần bảng riêng `threat_layers` (kind, severity, year, source,
+   license, attribution, geometry), tách khỏi `animal_geodata`. Quan hệ "loài nào bị ảnh hưởng" là **join không
+   gian** (`ST_Intersects`) chứ không phải cột `animal_id` — gán sẵn `animal_id` cho từng polygon đe dọa là
+   nhân bản dữ liệu và sẽ lệch mỗi lần habitat cập nhật.
+2. **Risk Score phải là hàm thuần, có test.** Đặt trong `lib/risk.ts` với input/output bằng số rõ ràng
+   (ví dụ trung bình có trọng số của `severity × % habitat bị giao`), và thêm suite `check:risk`. Một con số
+   hiển thị cho người dùng mà không test được thì không nên hiển thị.
+3. **"Trước đây vs Hiện tại" dùng chính cột `year` của Phase 13** — không tạo bảng lịch sử riêng. Slider so sánh
+   chính là Phase 16 thu gọn, nên để chung một cơ chế.
+4. **Legend phải đạt contrast trên dark theme**: nền tối + màu severity nhạt là chỗ dễ mất chữ nhất; legend
+   nằm trong panel glassmorphism nên phải kiểm bằng `audit:theme` (script đã có) chứ không chỉ nhìn mắt.
+5. **Nguồn dữ liệu phải nói thẳng là có hay không.** "Poaching hotspots" và "human pressure" không có nguồn mở
+   đáng tin ở độ phân giải loài; nếu không có thì **bỏ layer đó**, không vẽ bằng dữ liệu suy diễn. Mỗi layer
+   trong panel phải kèm nguồn + năm + licence.
+
+---
+
+## ⏳ Phase 16 — Timeline & Story Maps
+
+**Mục tiêu**: timeline range lịch sử (1900 → nay) có annotation sự kiện, và story map đường di cư có animation
+play/stop, click điểm dừng chân ra thông tin + 3D.
+
+**Prompt để triển khai Phase 16**:
+
+````markdown
+Phase 16 – Timeline & Story Maps cho Kami3D.
+
+Xây dựng 2 tính năng chính:
+
+1. **Historical Range Timeline**:
+   - Thanh thời gian (ví dụ 1900 → 2026)
+   - Khi kéo thanh, vùng phân bố của loài thay đổi theo năm
+   - Có annotation sự kiện lịch sử (săn bắt hàng loạt, thành lập khu bảo tồn, tuyệt chủng cục bộ…)
+   - Hỗ trợ nhiều loài cùng lúc để so sánh
+
+2. **Migration Story Map**:
+   - Hiển thị đường di cư theo mùa (LineString / Arc)
+   - Animation đường bay / đường đi theo thời gian
+   - Click vào điểm dừng chân → hiện thông tin + ảnh / 3D
+   - Có chế độ "Play migration" tự động chạy animation
+
+3. Kết hợp 3D:
+   - Khi xem migration, có thể mở model 3D của loài đang di chuyển
+   - Hoặc hiển thị model 3D nhỏ tại các điểm quan trọng trên map
+
+Yêu cầu:
+- Dùng Mapbox/MapLibre + Deck.gl TripsLayer hoặc ArcLayer cho animation
+- Dữ liệu migration dạng timestamped GeoJSON
+- UI thanh timeline mượt (Framer Motion)
+- Mobile-friendly
+
+Trả về code hoàn chỉnh cho TimelineSlider + MigrationLayer + trang demo.
+````
+
+**Ràng buộc riêng của Phase 16**:
+
+1. **Bỏ Framer Motion khỏi yêu cầu** (xem ràng buộc chung #5). TimelineSlider dùng `<input type="range">`
+   hoặc slider CSS với `requestAnimationFrame` khi autoplay — mượt hơn, và không đánh đổi bundle.
+2. **Dữ liệu range lịch sử gần như không có nguồn mở.** IUCN có bản đồ hiện tại, không có chuỗi theo năm; dữ
+   liệu lịch sử thường phải số hoá tay từ tài liệu. Nên định nghĩa rõ: **annotation sự kiện** (có nguồn, có
+   trích dẫn) tách khỏi **polygon theo năm** (chỉ hiển thị khi thật sự có dữ liệu), và UI phải hiển thị
+   "chưa có dữ liệu cho năm này" thay vì nội suy ra một vùng không có thật.
+3. **Animation phải tôn trọng `prefers-reduced-motion`** — autoplay migration là chuyển động liên tục, đúng
+   loại cần tắt theo cài đặt hệ điều hành (và theo setting Phase 11 `reduce_motion`). Không được autoplay khi
+   người dùng đã xin giảm chuyển động.
+4. **Migration cần bảng riêng** `migration_routes` (animal_id, season, geometry LineString, stops jsonb, source)
+   vì nó là *đường*, không phải *vùng* — nhét vào `animal_geodata` sẽ làm hỏng mọi truy vấn habitat.
+5. **Mobile**: timeline + panel layer cùng lúc chiếm gần hết màn hình điện thoại; phải có chế độ thu gọn
+   (chỉ một panel mở tại một thời điểm) và `touch-action` đúng để kéo timeline không bị bản đồ nuốt gesture.
+
+---
+
+## 🛠️ Phase 17 — Admin Geospatial Pipeline & 3D-Map Hybrid
+
+**Mục tiêu**: trang `/admin/geodata` upload + preview + version dữ liệu không gian, và chế độ xem hybrid
+bản đồ phân bố ↔ ModelViewer 3D.
+
+**Prompt để triển khai Phase 17**:
+
+````markdown
+Phase 17 – Admin Geospatial Pipeline & 3D-Map Hybrid cho Kami3D.
+
+1. Admin Tools:
+   - Trang `/admin/geodata`
+   - Upload GeoJSON / Shapefile / CSV có tọa độ
+   - Tự động nhận diện geometry và import vào PostGIS
+   - Gán dữ liệu không gian cho từng loài (animal_id)
+   - Xem trước trên map trước khi publish
+   - Quản lý version dữ liệu (historical range theo năm)
+
+2. 3D + Map Hybrid View:
+   - Tạo chế độ xem kết hợp:
+     - Bên trái / dưới: bản đồ phân bố
+     - Bên phải / trên: ModelViewer 3D của loài
+   - Click vùng trên map → model 3D tương ứng highlight hoặc load
+   - Có thể đặt model 3D "neo" theo tọa độ thực (nếu muốn experiment)
+
+3. Performance & Data Pipeline:
+   - Dùng Python (hoặc Edge Function) để xử lý GeoPandas → tối ưu geometry
+   - Hỗ trợ vector tiles nếu dữ liệu lớn
+   - Caching layer thông minh
+
+Output cần có:
+- Trang Admin upload + preview
+- Component HybridMap3DView
+- Ví dụ pipeline xử lý dữ liệu đơn giản
+- Hướng dẫn kết nối dữ liệu IUCN / GBIF (nếu public)
+````
+
+**Ràng buộc riêng của Phase 17**:
+
+1. **Upload không được ghi DB trực tiếp từ browser.** `animal_geodata` không có write policy (Phase 13 #4),
+   nên luồng đúng là: browser → **Edge Function** (giữ service role) → `ST_IsValid` + `ST_SimplifyPreserveTopology`
+   → insert. Đẩy anon key kèm quyền ghi là mở đường cho bất kỳ ai ghi đè habitat.
+2. **"Admin" chưa tồn tại trong schema.** Phase này cần một khái niệm role (ví dụ Clerk `app_metadata.role`)
+   cộng với kiểm tra phía Edge Function; không có role thì đừng làm trang `/admin` — hoặc gating bằng biến môi
+   trường cho môi trường local, và nói rõ đó không phải bảo mật thật.
+3. **Shapefile không chạy được trong Edge Function** (Deno runtime, không có GDAL). Hai lựa chọn trung thực:
+   convert ở client bằng `shpjs` rồi gửi GeoJSON, hoặc để pipeline Python ngoài repo (GeoPandas) — và pipeline
+   đó phải theo đúng khuôn CLI của dự án: `--report` (dry run, in ra sẽ nhập gì) trước, `--apply` sau, có test.
+4. **Version dữ liệu = append, không UPDATE đè.** Giữ `source_version` + `year` và chỉ chọn bản mới nhất khi
+   truy vấn; ghi đè là mất khả năng so sánh "trước vs hiện tại" mà Phase 15/16 cần.
+5. **Hybrid view chỉ một WebGL context** (ràng buộc chung #6): bản đồ là canvas WebGL của MapLibre, nên viewer
+   3D phải là canvas **thứ hai duy nhất**, mount khi bấm, và `dispose()` GLB khi đổi loài — đây chính là lỗi R6
+   trong [docs/REVIEW.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/REVIEW.md) chưa được xử lý. "Neo model 3D theo tọa độ thực"
+   trong prompt nên coi là **thí nghiệm tách riêng**, không nằm trong luồng chính: nó cần model đã ở toạ độ
+   thật, trong khi 24 GLB hiện tại không có.
+6. **Caching**: cache theo `(animal_id, kind, year)` với `revalidate` hợp lý thay vì "caching layer thông minh"
+   chung chung; dữ liệu địa lý thay đổi rất chậm nên `force-cache` + revalidate theo ngày là đủ.
 
 ---
 

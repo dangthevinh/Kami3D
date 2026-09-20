@@ -118,6 +118,85 @@
   --kami-glass-shadow: rgba(15, 23, 42, 0.12);
 }
 
+/**
+ * The visitor's own preferences (Phase 11): `html[data-accent]`,
+ * `html[data-glass]` and `html[data-motion]`, written by
+ * `components/settings/SettingsProvider.tsx` from the row in `user_settings`.
+ *
+ * All three are attribute selectors on `<html>` rather than props threaded through
+ * components: the tokens below are what the existing utilities already read, so one
+ * attribute re-tints, flattens or de-animates the whole product without a single
+ * component knowing that a preference exists.
+ */
+
+/* --- Accent --------------------------------------------------------------
+   `--color-neon` is what `text-neon`, `bg-neon`, `ring-neon`, `::selection` and
+   the focus ring read, so re-pointing it re-tints every accent surface at once.
+   Each accent needs its own light value: the night hues are unreadable on a white
+   page, and `npm run check:theme` measures exactly that class of mistake. */
+html[data-accent="cyan"] { --color-neon: #38e0ff; }
+html[data-accent="emerald"] { --color-neon: #35f0c0; }
+html[data-accent="violet"] { --color-neon: #a97bff; }
+html[data-accent="amber"] { --color-neon: #ffb738; }
+html[data-accent="rose"] { --color-neon: #ff5d8f; }
+
+html.light[data-accent="cyan"] { --color-neon: #0b7291; }
+html.light[data-accent="emerald"] { --color-neon: #0f7d61; }
+html.light[data-accent="violet"] { --color-neon: #6a4ad4; }
+html.light[data-accent="amber"] { --color-neon: #8f5f0a; }
+html.light[data-accent="rose"] { --color-neon: #cf2568; }
+
+/* --- Glassmorphism intensity ---------------------------------------------
+   `low` is the cheap setting: less blur, flatter panels and the most opaque
+   background of the three — which is also what a device that struggles with
+   `backdrop-filter` wants. `high` is the most transparent and the most blurred.
+   The `medium` values are the ones the product shipped with, so the fallbacks in
+   `.glass` below render identically before the attribute is applied. */
+html[data-glass="low"] {
+  --kami-glass-blur: 6px;
+  --kami-glass-strong-blur: 8px;
+  --kami-glass-saturate: 110%;
+  --kami-glass-top: 5%;
+  --kami-glass-bottom: 1.5%;
+  --kami-glass-strong-alpha: 92%;
+}
+
+html[data-glass="medium"] {
+  --kami-glass-blur: 16px;
+  --kami-glass-strong-blur: 22px;
+  --kami-glass-saturate: 140%;
+  --kami-glass-top: 8%;
+  --kami-glass-bottom: 2%;
+  --kami-glass-strong-alpha: 82%;
+}
+
+html[data-glass="high"] {
+  --kami-glass-blur: 28px;
+  --kami-glass-strong-blur: 36px;
+  --kami-glass-saturate: 170%;
+  --kami-glass-top: 11%;
+  --kami-glass-bottom: 3%;
+  --kami-glass-strong-alpha: 68%;
+}
+
+/* --- Reduced motion ------------------------------------------------------
+   The visitor's switch is not the operating system's, and both have to work: the
+   media query in `@layer base` handles the OS, this handles the setting, so
+   someone on a machine that never exposes the preference can still ask for calm.
+   The two blocks are deliberately the same declarations — a selector list cannot
+   be OR-ed with a media query in one rule. */
+html[data-motion="reduced"] {
+  scroll-behavior: auto;
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
@@ -230,13 +309,16 @@
 @layer components {
   /* --- Glassmorphism ------------------------------------------------------ */
   .glass {
+    /* Intensity comes from `html[data-glass]` (Phase 11); the fallbacks are the
+       values the product shipped with, so a first paint before the attribute is
+       applied looks unchanged. */
     background: linear-gradient(
       145deg,
-      color-mix(in oklab, var(--color-white) 8%, transparent),
-      color-mix(in oklab, var(--color-white) 2%, transparent)
+      color-mix(in oklab, var(--color-white) var(--kami-glass-top, 8%), transparent),
+      color-mix(in oklab, var(--color-white) var(--kami-glass-bottom, 2%), transparent)
     );
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(var(--kami-glass-blur, 16px)) saturate(var(--kami-glass-saturate, 140%));
+    -webkit-backdrop-filter: blur(var(--kami-glass-blur, 16px)) saturate(var(--kami-glass-saturate, 140%));
     border: 1px solid color-mix(in oklab, var(--color-white) 10%, transparent);
     box-shadow:
       0 1px 0 0 color-mix(in oklab, var(--color-white) 8%, transparent) inset,
@@ -244,9 +326,9 @@
   }
 
   .glass-strong {
-    background: color-mix(in oklab, var(--color-abyss) 82%, transparent);
-    backdrop-filter: blur(22px) saturate(160%);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    background: color-mix(in oklab, var(--color-abyss) var(--kami-glass-strong-alpha, 82%), transparent);
+    backdrop-filter: blur(var(--kami-glass-strong-blur, 22px)) saturate(var(--kami-glass-saturate, 140%));
+    -webkit-backdrop-filter: blur(var(--kami-glass-strong-blur, 22px)) saturate(var(--kami-glass-saturate, 140%));
     border: 1px solid color-mix(in oklab, var(--color-white) 12%, transparent);
   }
 

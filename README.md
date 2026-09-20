@@ -35,6 +35,7 @@ Optional next step: `npm run models:report` lists downloadable 3D models for eve
 | `/animal/[slug]` | Species page: 3D model viewer, size comparison, fact sheet, favourites, dynamic OG image |
 | `/quiz` | Ten-round 3D silhouette quiz with timers, streaks and badges |
 | `/profile` | Collection: favourites, badges, score history |
+| `/settings` | Preferences: appearance, 3D quality, audio, language and units, notifications, account |
 | `/sign-in`, `/sign-up` | Clerk forms, or an explainer while Clerk is unconfigured |
 | `/about` | How it is built, data sources, ad policy, accessibility notes |
 
@@ -221,11 +222,47 @@ Freesound is the primary provider and needs `FREESOUND_API_KEY`; without a real 
 `npm run check:sounds` fails if a species plays a call it has no credit for — CC BY makes that a licence term, not
 a nicety.
 
+### Preferences
+
+The gear in the navbar opens a small panel — **Light** or **Dark**, and a link to `/settings` — and
+`/settings` is the full panel: appearance (theme, accent, glass intensity, reduce motion), 3D quality
+(preset, shadows, floor reflection, maximum pixel ratio, auto-rotate), audio (master and call volume,
+interface sounds, autoplay), language and measurement units, notification flags, and the account card
+with **delete my data**.
+
+Three tiers, in the order they are consulted, and one table: `public.user_settings`, one row per visitor,
+read and written through `/api/settings`. A signed-in visitor's choices live in Postgres and follow them
+to another device; a guest's live in `localStorage` under `kami-settings` and work exactly the same way on
+this browser. The database wins when both exist — except for a change made in the tab *while* the row was
+still loading, which is re-applied and pushed up rather than silently lost.
+
+**Every preference has a real effect**, which is the only reason to store one:
+
+| Setting | What it changes |
+| --- | --- |
+| theme | the `light`/`dark` class next-themes writes before the first paint |
+| accent colour | `html[data-accent]` re-points `--color-neon`, so buttons, links, focus rings and highlights re-tint together (five colours, each with its own light-theme value) |
+| glass intensity | `html[data-glass]` sets the blur radius and panel alpha that `.glass` and `.glass-strong` read |
+| reduce motion | `html[data-motion="reduced"]` stops CSS animation and transitions, and stops 3D models and previews from auto-rotating |
+| quality preset, shadows, reflections, max DPR | `lib/quality.ts` → `CanvasShell` (pixel ratio, shadow maps), `ModelScene` (mirror floor), `AnimalPreview` |
+| auto-rotate | the initial state of the viewer's spin, overridable in the toolbar |
+| master / call volume | multiplied into `SoundButton` and the quiz's call player |
+| interface sounds | the correct/wrong tones in the quiz, synthesised with Web Audio (no file to download) |
+| autoplay calls | plays a recorded call when a species page opens, and says so when the browser blocks it |
+| measurement unit | the size chart, the fact sheet, the cards and `formatWeight` (pounds, then short tons) |
+| language | the `lang` attribute and this panel's own copy; the catalogue is still English, and the panel says so |
+| notification flags | stored only — **nothing is sent yet**, and the UI says that rather than letting a switch look live |
+
+The defaults are the schema defaults, and `scripts/check-sql.mjs` compares them column by column: the
+default of every column must equal the default the app ships, the CHECK constraint of every enum must equal
+the app's own option list, and the app's clamping must match the column's range. A preference the UI offers
+and the database rejects is a failing test, not a production surprise.
+
 ### Light and dark
 
 The visitor picks a theme in the navbar's **Settings** menu (the gear, next to the account area) →
-*Appearance* → **Light** or **Dark**. Dark is the default, and the choice is remembered per browser in
-`localStorage` under `kami-theme`.
+*Appearance* → **Light** or **Dark**, or **System** on `/settings`. Dark is the default, and the choice is
+remembered in the account when there is one and in `localStorage` under `kami-theme` otherwise.
 
 It is a palette, not a second stylesheet. The whole UI is written as white overlays on a night canvas —
 `text-white/60`, `bg-white/6`, `ring-white/12` — and Tailwind v4 compiles those to
@@ -341,12 +378,14 @@ npm run check:camera    # viewer camera maths: presets, damped flights, orbit, d
 npm run check:quiz      # quiz round builder (variants, determinism) + scoring rules
 npm run check:globe     # globe camera maths (fly-to, facing region) + pin ranking
 npm run check:sounds    # call licences, size window, ranking, catalogue/credit agreement
+npm run check:settings  # settings model: bounds, column mapping, palette reuse, i18n completeness
 npm run sounds:report   # what recordings are available, downloads nothing
 npm run sounds:fetch    # download + credit every species that lacks a call (--upload for Storage)
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
                         #   (scripts/check-*.mjs are all node:test suites and all run in CI;
                         #    tools that need a build or a browser are named differently)
 npm run audit:theme     # a real browser: unreadable text and dark panels in light mode
+npm run audit:settings  # a real browser: the preferences actually re-tint, de-animate and persist
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
                         #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
 npm run seed:generate   # regenerate supabase/seed.sql from the dataset

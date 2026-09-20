@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
+import { useMeasurementUnit } from "@/components/animal/Measurement";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCount, formatWeight } from "@/lib/utils";
 import { statusToTailwind, type Animal } from "@/types/animal";
@@ -33,6 +34,7 @@ export interface AnimalCardProps {
  * still making the entire tile clickable and keyboard focusable.
  */
 export function AnimalCard({ animal, unlocked = true, onLockedActivate, className }: AnimalCardProps) {
+  const unit = useMeasurementUnit();
   const [previewReady, setPreviewReady] = React.useState(false);
   const [canHover, setCanHover] = React.useState(false);
   const timer = React.useRef<number | null>(null);
@@ -188,7 +190,7 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
             {animal.scale_ratio} m
           </span>
           <span className="size-1 rounded-full bg-white/20" />
-          <span>{formatWeight(animal.weight_kg)}</span>
+          <span>{formatWeight(animal.weight_kg, unit)}</span>
           {/* Real page views from the database. Absent in Demo Mode, where there is
               no counter to read — an invented number would be worse than none. */}
           {typeof animal.view_count === "number" ? (

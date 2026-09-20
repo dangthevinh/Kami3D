@@ -3,15 +3,17 @@
 import { Lock, Play, Sparkles } from "lucide-react";
 import * as React from "react";
 
+import { useMeasurementUnit } from "@/components/animal/Measurement";
 import { UnlockModal } from "@/components/premium/UnlockModal";
 import { Button } from "@/components/ui/button";
 import { useExploreStore } from "@/lib/store";
 import { useUiStore } from "@/lib/ui-store";
-import { formatWeight } from "@/lib/utils";
+import { formatLength, formatWeight } from "@/lib/utils";
 import type { Animal } from "@/types/animal";
 
 /** Landing-page entry point into the prehistoric vault. */
 export function PremiumTeaser({ premiumAnimals }: { premiumAnimals: Animal[] }) {
+  const unit = useMeasurementUnit();
   const openReward = useUiStore((state) => state.openReward);
   const unlockedPremium = useExploreStore((state) => state.unlockedPremium);
   const unlockedCount = premiumAnimals.filter((animal) => unlockedPremium.includes(animal.slug)).length;
@@ -72,7 +74,7 @@ export function PremiumTeaser({ premiumAnimals }: { premiumAnimals: Animal[] }) 
                   </div>
                   <p className="mt-2 truncate text-sm font-medium text-white">{animal.name}</p>
                   <p className="text-[11px] text-white/45">
-                    {animal.scale_ratio} m · {formatWeight(animal.weight_kg)}
+                    {formatLength(animal.scale_ratio, unit)} · {formatWeight(animal.weight_kg, unit)}
                   </p>
                 </li>
               );

@@ -393,6 +393,96 @@ revoke all on function public.quiz_stats() from public;
 grant execute on function public.quiz_stats() to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Per-visitor settings (Phase 11)
+-- ---------------------------------------------------------------------------
+
+-- The unified identity helper every ownership policy uses: auth.uid() for
+-- Supabase Auth, the JWT 'sub' for Clerk once it is configured as a third-party
+-- auth provider. Until then it returns exactly what auth.uid() returned, so
+-- applying it changes nothing for the Supabase path and does not loosen anything.
+create or replace function public.current_user_id()
+returns text
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(
+    (select auth.uid())::text,
+    nullif((select auth.jwt()) ->> 'sub', '')
+  );
+$$;
+
+revoke all on function public.current_user_id() from public;
+grant execute on function public.current_user_id() to anon, authenticated;
+
+create table if not exists public.user_settings (
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            text not null unique,
+  theme              text not null default 'dark'      check (theme in ('system', 'dark', 'light')),
+  -- 'emerald' is the mint the product already ships (--color-neon: #35f0c0), so
+  -- the database default and the app default agree and an untouched row is invisible.
+  accent_color       text not null default 'emerald'   check (accent_color in ('cyan', 'emerald', 'violet', 'amber', 'rose')),
+  glass_intensity    text not null default 'medium'    check (glass_intensity in ('low', 'medium', 'high')),
+  reduce_motion      boolean not null default false,
+  -- 'auto' leaves the device tier in lib/quality.ts in charge; the rest override it.
+  quality_preset     text not null default 'auto'      check (quality_preset in ('auto', 'low', 'medium', 'high', 'ultra')),
+  enable_shadows     boolean not null default true,
+  enable_reflections boolean not null default true,
+  max_dpr            numeric not null default 1.5      check (max_dpr in (1, 1.5, 2)),
+  auto_rotate        boolean not null default true,
+  master_volume      integer not null default 80       check (master_volume between 0 and 100),
+  animal_volume      integer not null default 70       check (animal_volume between 0 and 100),
+  ui_sounds          boolean not null default true,
+  autoplay_sounds    boolean not null default false,
+  language           text not null default 'vi'        check (language in ('vi', 'en')),
+  measurement_unit   text not null default 'metric'    check (measurement_unit in ('metric', 'imperial')),
+  email_notifications boolean not null default true,
+  push_notifications  boolean not null default false,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
+);
+
+comment on table public.user_settings is
+  'Per-visitor preferences. Every column is read by the app; nothing here is decorative.';
+
+drop trigger if exists user_settings_touch on public.user_settings;
+create trigger user_settings_touch
+  before update on public.user_settings
+  for each row execute function public.set_updated_at();
+
+alter table public.user_settings enable row level security;
+
+-- Owner-only, all four verbs. UPDATE carries WITH CHECK as well as USING: without
+-- it a visitor could rewrite user_id and hand their row to somebody else.
+drop policy if exists "settings are visible to their owner" on public.user_settings;
+create policy "settings are visible to their owner"
+  on public.user_settings for select
+  to authenticated
+  using (user_id = public.current_user_id());
+
+drop policy if exists "settings are created by their owner" on public.user_settings;
+create policy "settings are created by their owner"
+  on public.user_settings for insert
+  to authenticated
+  with check (user_id = public.current_user_id());
+
+drop policy if exists "settings are updated by their owner" on public.user_settings;
+create policy "settings are updated by their owner"
+  on public.user_settings for update
+  to authenticated
+  using (user_id = public.current_user_id())
+  with check (user_id = public.current_user_id());
+
+drop policy if exists "settings are deleted by their owner" on public.user_settings;
+create policy "settings are deleted by their owner"
+  on public.user_settings for delete
+  to authenticated
+  using (user_id = public.current_user_id());
+
+revoke all on public.user_settings from anon;
+grant select, insert, update, delete on public.user_settings to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Sound assets (animal calls)
 -- ---------------------------------------------------------------------------
 

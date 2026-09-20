@@ -1,7 +1,9 @@
 import { Activity, Apple, Clock, Globe2, Layers, MapPin, Ruler, Scale, Sparkles } from "lucide-react";
+import * as React from "react";
 
+import { Measurement } from "@/components/animal/Measurement";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatLength, formatWeight } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { REGION_ANCHORS, statusToTailwind, type Animal } from "@/types/animal";
 
 /**
@@ -26,15 +28,17 @@ export function InfoPanel({ animal }: { animal: Animal }) {
   const status = statusToTailwind(animal.conservation_status);
   const anchor = REGION_ANCHORS[animal.region];
 
-  const facts = [
+  const facts: { icon: typeof MapPin; label: string; value: React.ReactNode }[] = [
     { icon: MapPin, label: "Habitat", value: animal.habitat },
     { icon: Apple, label: "Diet", value: animal.diet },
     { icon: Globe2, label: "Region", value: `${anchor.label} — ${anchor.blurb}` },
     { icon: Layers, label: "Class", value: animal.category },
     { icon: Clock, label: "Lifespan", value: animal.lifespan_years },
-    { icon: Scale, label: "Weight", value: formatWeight(animal.weight_kg) },
-    { icon: Ruler, label: "Length", value: formatLength(animal.length_m) },
-    { icon: Activity, label: "Height", value: animal.height_m > 0 ? formatLength(animal.height_m) : "—" },
+    // Weight, length and height are the three numbers a visitor may want in feet
+    // and pounds; they hydrate from the leaf so the rest of this stays on the server.
+    { icon: Scale, label: "Weight", value: <Measurement kind="weight" value={animal.weight_kg} /> },
+    { icon: Ruler, label: "Length", value: <Measurement kind="length" value={animal.length_m} /> },
+    { icon: Activity, label: "Height", value: animal.height_m > 0 ? <Measurement kind="height" value={animal.height_m} /> : "—" },
   ];
 
   return (

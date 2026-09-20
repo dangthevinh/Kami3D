@@ -10,8 +10,18 @@ export function formatNumber(value: number, options?: Intl.NumberFormatOptions) 
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1, ...options }).format(value);
 }
 
-/** "1.4 t" for heavy animals, "45 kg" for lighter ones. */
-export function formatWeight(kg: number) {
+/**
+ * "1.4 t" for heavy animals, "45 kg" for lighter ones.
+ *
+ * Imperial reports pounds up to a short ton, because nobody pictures 130 tonnes as
+ * 287,000 pounds: the visitor who chose feet gets a unit a person would say out
+ * loud at both ends of the range.
+ */
+export function formatWeight(kg: number, unit: MeasurementUnit = "metric") {
+  if (unit === "imperial") {
+    const pounds = kg / 0.45359237;
+    return pounds >= 2000 ? `${formatNumber(pounds / 2000)} tn` : `${formatNumber(pounds)} lb`;
+  }
   if (kg >= 1000) return `${formatNumber(kg / 1000)} t`;
   return `${formatNumber(kg)} kg`;
 }

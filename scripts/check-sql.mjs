@@ -20,6 +20,20 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { ANIMALS } from "../data/animals.ts";
+import {
+  ACCENT_COLORS,
+  DEFAULT_USER_SETTINGS,
+  GLASS_INTENSITIES,
+  LANGUAGES,
+  MAX_DPRS,
+  MEASUREMENT_UNITS,
+  QUALITY_PRESETS,
+  SETTINGS_COLUMNS,
+  THEME_CHOICES,
+  VOLUME_RANGE,
+  coerceUserSettings,
+  settingsToRow,
+} from "../lib/user-settings.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const schema = readFileSync(join(root, "supabase", "schema.sql"), "utf8");
@@ -195,3 +209,126 @@ test("seed escapes apostrophes rather than breaking the statement", () => {
   assert.equal(oddQuotes, 0, "seed contains an unbalanced single quote");
   assert.ok(!/''''/.test(body), "seed contains a suspiciously escaped quote sequence");
 });
+
+/* -------------------------------------------------------------------------- */
+/* Phase 11 — user_settings                                                   */
+/* -------------------------------------------------------------------------- */
+
+const settingsTable = readTable("user_settings");
+const settingsColumns = new Map(settingsTable.columns.map((column) => [column.name, column]));
+
+test("user_settings has a column for every preference the app can set", () => {
+  const missing = Object.values(SETTINGS_COLUMNS).filter((column) => !settingsColumns.has(column));
+  assert.deepEqual(missing, [], `schema is missing settings columns: ${missing.join(", ")}`);
+});
+
+test("every settings column is NOT NULL with a default, so a partial insert works", () => {
+  const fragile = Object.values(SETTINGS_COLUMNS).filter((column) => {
+    const definition = settingsColumns.get(column);
+    // A preference the client always sends still needs a default: the row is
+    // created by an upsert of whichever group the visitor touched first.
+    return !definition || !definition.notNull || !definition.hasDefault;
+  });
+
+  assert.deepEqual(fragile, [], `these columns have no default: ${fragile.join(", ")}`);
+});
+
+test("the schema's defaults are the model's defaults", () => {
+  const mismatches = [];
+
+  for (const [key, column] of Object.entries(SETTINGS_COLUMNS)) {
+    const definition = settingsColumns.get(column)?.definition ?? "";
+    const match = definition.match(/default\s+('([^']*)'|[a-z0-9.]+)/i);
+    const declared = match ? (match[2] ?? match[1]) : null;
+    const expected = String(DEFAULT_USER_SETTINGS[key]);
+
+    if (declared !== expected) mismatches.push(`${column}: schema says ${declared}, model says ${expected}`);
+  }
+
+  assert.deepEqual(mismatches, [], mismatches.join(" | "));
+});
+
+test("every enum preference's CHECK allows exactly the values the model can produce", () => {
+  const mapped = {
+    theme: THEME_CHOICES,
+    accent_color: ACCENT_COLORS,
+    glass_intensity: GLASS_INTENSITIES,
+    quality_preset: QUALITY_PRESETS,
+    language: LANGUAGES,
+    measurement_unit: MEASUREMENT_UNITS,
+  };
+
+  for (const [column, allowed] of Object.entries(mapped)) {
+    const declared = settingsTable.checks.get(column);
+    assert.ok(declared?.length, `schema has no CHECK for user_settings.${column}`);
+    assert.deepEqual([...declared].sort(), [...allowed].sort(), `user_settings.${column} CHECK drifted from the model`);
+  }
+});
+
+test("max_dpr and the volumes are constrained to the ranges the model clamps to", () => {
+  const dpr = settingsColumns.get("max_dpr")?.definition ?? "";
+  const dprValues = (dpr.match(/check\s*\(\s*max_dpr\s+in\s*\(([^)]*)\)/i)?.[1] ?? "")
+    .split(",")
+    .map((entry) => Number(entry.trim()))
+    .filter((entry) => Number.isFinite(entry));
+  assert.deepEqual(dprValues, [...MAX_DPRS], "max_dpr CHECK drifted from MAX_DPRS");
+
+  for (const column of ["master_volume", "animal_volume"]) {
+    const definition = settingsColumns.get(column)?.definition ?? "";
+    const range = definition.match(/check\s*\(\s*\w+\s+between\s+(-?\d+)\s+and\s+(-?\d+)\s*\)/i);
+    assert.ok(range, `user_settings.${column} has no range CHECK`);
+    assert.equal(Number(range[1]), VOLUME_RANGE.min, `${column} lower bound`);
+    assert.equal(Number(range[2]), VOLUME_RANGE.max, `${column} upper bound`);
+  }
+});
+
+test("a whole settings row the app builds only names real columns", () => {
+  const row = settingsToRow(coerceUserSettings({ masterVolume: 5000 }), "user_2abc");
+  const unknown = Object.keys(row).filter((column) => column !== "user_id" && !settingsColumns.has(column));
+
+  assert.deepEqual(unknown, [], `the app writes columns the schema does not have: ${unknown.join(", ")}`);
+  assert.equal(row.master_volume, VOLUME_RANGE.max);
+});
+
+test("user_settings is owner-only for all four verbs, and update re-checks the owner", () => {
+  assert.ok(
+    /alter table public\.user_settings enable row level security/.test(schema),
+    "user_settings must have RLS enabled",
+  );
+
+  for (const verb of ["select", "insert", "update", "delete"]) {
+    const policy = new RegExp(
+      `on public\\.user_settings for ${verb}\\b[\\s\\S]{0,400}?user_id = public\\.current_user_id\\(\\)`,
+      "i",
+    );
+    assert.ok(policy.test(schema), `user_settings has no ${verb} policy restricted to its owner`);
+  }
+
+  const update = schema.slice(schema.indexOf("on public.user_settings for update"));
+  const body = update.slice(0, update.indexOf(";"));
+  assert.ok(/using \(/.test(body) && /with check \(/.test(body), "the update policy needs both USING and WITH CHECK");
+});
+
+test("anon cannot read or write user_settings", () => {
+  assert.ok(
+    /revoke all on public\.user_settings from anon/.test(schema),
+    "user_settings must revoke the anon role explicitly",
+  );
+  assert.ok(!/grant[^;]*on public\.user_settings[^;]*to anon/.test(schema), "anon must not be granted user_settings");
+});
+
+test("user_settings reuses the shared updated_at trigger instead of writing its own", () => {
+  assert.ok(
+    /create trigger user_settings_touch[\s\S]{0,160}execute function public\.set_updated_at\(\)/.test(schema),
+    "user_settings must reuse public.set_updated_at()",
+  );
+});
+
+test("the identity helper every owner policy uses is defined once and granted", () => {
+  assert.ok(/create or replace function public\.current_user_id\(\)/.test(schema), "current_user_id() is missing");
+  assert.ok(
+    /grant execute on function public\.current_user_id\(\) to anon, authenticated/.test(schema),
+    "current_user_id() must be executable by authenticated (and anon, which has no rows to see)",
+  );
+});
+

@@ -1,19 +1,26 @@
 "use client";
 
 import { Check, Moon, Settings2, Sun } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * The Settings menu: where a visitor's own preferences live.
+ * The Settings menu: the quick switch in the navbar, and the way in to `/settings`.
  *
- * It currently holds one preference — appearance — because that is the only one
- * that exists, and a menu with a single honest row beats a settings page with
- * four empty ones. Anything per-visitor added later (units, sound, reduced
- * motion) belongs in this panel.
+ * It holds the one preference a visitor changes often enough to want it one click
+ * away — appearance — plus a link to the full panel. Everything else (accent,
+ * glass, 3D quality, audio, units, notifications) lives at `/settings`, where
+ * there is room to explain what a switch actually does.
+ *
+ * Light and Dark, and no "System" row: that was a deliberate call — the OS
+ * preference is still honoured as the *initial* guess by `next-themes`, but a
+ * three-way switch in a 288-pixel popover is a worse control than a two-way one.
+ * The full panel offers System for visitors who want the page to follow the OS.
  *
  * It is a client component in the navbar so it works for signed-out visitors too,
  * and it never reads a cookie on the server: the stored theme is read on the
@@ -27,6 +34,7 @@ const THEMES = [
 
 export function SettingsMenu() {
   const { theme, setTheme } = useTheme();
+  const { update } = useSettings();
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const container = React.useRef<HTMLDivElement>(null);
@@ -50,6 +58,13 @@ export function SettingsMenu() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  function chooseTheme(value: "light" | "dark") {
+    // next-themes repaints immediately; the settings context is what stores the
+    // choice (in the account when there is one, in this browser otherwise).
+    setTheme(value);
+    update({ theme: value });
+  }
 
   return (
     <div ref={container} className="relative">
@@ -76,7 +91,7 @@ export function SettingsMenu() {
           <section className="mt-3">
             <div className="flex items-baseline justify-between px-1">
               <h3 className="text-xs font-medium text-white/75">Appearance</h3>
-              <span className="text-[10px] text-white/35">Saved in this browser</span>
+              <span className="text-[10px] text-white/35">Saved for you</span>
             </div>
 
             <div
@@ -90,7 +105,7 @@ export function SettingsMenu() {
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setTheme(option.value)}
+                    onClick={() => chooseTheme(option.value)}
                     aria-pressed={active}
                     title={option.hint}
                     className={cn(
@@ -114,6 +129,15 @@ export function SettingsMenu() {
           <p className="mt-3 px-1 text-[11px] leading-relaxed text-white/40">
             The 3D viewers keep their own dark studio in both themes, so a model is lit the same way either way.
           </p>
+
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="mt-3 flex items-center justify-between rounded-xl bg-white/6 px-3 py-2.5 text-xs font-medium text-white/80 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            All settings
+            <span className="text-[10px] text-white/40">accent · 3D · audio · units</span>
+          </Link>
         </div>
       ) : null}
     </div>

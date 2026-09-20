@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import * as React from "react";
 
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +18,8 @@ import {
   type QuizQuestion,
 } from "@/lib/quiz";
 import { accuracyPercent, badgesForScore, bestStreakOf, scoreAnswer } from "@/lib/quiz-scoring";
+import { playTone } from "@/lib/ui-sound";
+import { volumeGain } from "@/lib/user-settings";
 import { cn } from "@/lib/utils";
 import { BADGES, type Animal, type QuizMode } from "@/types/animal";
 
@@ -49,6 +52,8 @@ export const MIN_CALL_SPECIES = 4;
  * is the largest thing on the card.
  */
 function CallPlayer({ url, animalName }: { url: string; animalName: string }) {
+  const { settings } = useSettings();
+  const gain = volumeGain(settings.masterVolume, settings.animalVolume);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
@@ -69,6 +74,7 @@ function CallPlayer({ url, animalName }: { url: string; animalName: string }) {
     }
 
     try {
+      audio.volume = gain;
       await audio.play();
       setPlaying(true);
     } catch {
@@ -167,6 +173,7 @@ function readSavedRound(): SavedRound | null {
  * the same badges however fast they were given.
  */
 export function QuizGame({ animals }: { animals: Animal[] }) {
+  const { settings: sound } = useSettings();
   const [phase, setPhase] = React.useState<"ready" | "playing" | "finished">("ready");
   const [mode, setMode] = React.useState<RoundMode>("silhouette");
   const [seed, setSeed] = React.useState("");
@@ -332,6 +339,10 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
         speedBonus: scored.speedBonus,
         streakBonus: scored.streakBonus,
       });
+      // The tone the uiSounds setting turns on: it says what the card already says,
+      // which is the only justification a sound effect needs.
+      if (sound.uiSounds) playTone(wasCorrect ? "correct" : "wrong", volumeGain(sound.masterVolume, 100));
+
       setCorrect((value) => value + (wasCorrect ? 1 : 0));
       setPoints((value) => value + scored.points);
       setStreak(scored.streak);
@@ -339,7 +350,7 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
 
       advanceTimer.current = window.setTimeout(advance, FEEDBACK_MS);
     },
-    [advance, current, selected, streak, timeLeft],
+    [advance, current, selected, streak, timeLeft, sound.uiSounds, sound.masterVolume],
   );
 
   React.useEffect(() => {

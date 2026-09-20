@@ -6,6 +6,7 @@ import * as React from "react";
 import { CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { useQuality } from "@/components/3d/useQuality";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import type { SilhouetteKind } from "@/types/animal";
 
 /**
@@ -25,6 +26,8 @@ export function AnimalPreview({
   className?: string;
 }) {
   const quality = useQuality();
+  // A spinning hover preview is decoration; reduce-motion turns it off.
+  const { settings } = useSettings();
 
   return (
     <CanvasShell
@@ -46,7 +49,7 @@ export function AnimalPreview({
       </group>
 
       <OrbitControls
-        autoRotate
+        autoRotate={!settings.reduceMotion}
         autoRotateSpeed={1.4}
         enablePan={false}
         enableZoom={false}

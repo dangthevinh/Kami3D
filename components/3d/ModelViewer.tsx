@@ -7,6 +7,7 @@ import * as React from "react";
 import { CanvasFallback, CanvasShell } from "@/components/3d/CanvasShell";
 import { ModelScene, type ModelViewerApi } from "@/components/3d/ModelScene";
 import { useQuality } from "@/components/3d/useQuality";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import { Button } from "@/components/ui/button";
 import { CAMERA_PRESETS, type CameraPresetId } from "@/lib/camera-presets";
 import { publicEnv } from "@/lib/env";
@@ -156,7 +157,14 @@ export interface ModelViewerProps {
 export function ModelViewer({ animal, className, silhouette = false }: ModelViewerProps) {
   const [preset, setPreset] = React.useState<LightPreset>("studio");
   const [wireframe, setWireframe] = React.useState(false);
-  const [autoRotate, setAutoRotate] = React.useState(true);
+  /**
+   * Auto-rotation has two authors: the setting (what the visitor asked for) and the
+   * toolbar (what they want right now, in this view). `spinOverride` is null until
+   * the toolbar is used, so the setting applies until it is overridden — and
+   * reduce-motion wins over both, because a model that keeps turning is exactly
+   * the motion that setting exists to stop.
+   */
+  const [spinOverride, setSpinOverride] = React.useState<boolean | null>(null);
   const [showMeasurements, setShowMeasurements] = React.useState(false);
   const [resetKey, setResetKey] = React.useState(0);
   const [attempt, setAttempt] = React.useState(0);
@@ -179,6 +187,8 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
   const apiRef = React.useRef<ModelViewerApi | null>(null);
 
   const quality = useQuality();
+  const { settings } = useSettings();
+  const autoRotate = (spinOverride ?? settings.autoRotate) && !settings.reduceMotion;
   const config = PRESETS[preset];
   const phase = React.useMemo(() => seededRandom(animal.slug) * 6, [animal.slug]);
 
@@ -368,7 +378,7 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
 
         <div className="glass pointer-events-auto flex items-center gap-1 rounded-full p-1">
           <ToolbarToggle label="Wireframe" active={wireframe} onClick={() => setWireframe((value) => !value)} />
-          <ToolbarToggle label="Auto-spin" active={autoRotate} onClick={() => setAutoRotate((value) => !value)} />
+          <ToolbarToggle label="Auto-spin" active={autoRotate} onClick={() => setSpinOverride((value) => !(value ?? settings.autoRotate))} />
           <ToolbarToggle
             label="Dimensions"
             active={showMeasurements}

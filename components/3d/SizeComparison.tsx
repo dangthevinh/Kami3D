@@ -9,6 +9,7 @@ import * as THREE from "three";
 import { CanvasFallback, CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { useQuality } from "@/components/3d/useQuality";
+import { useSettings } from "@/components/settings/SettingsProvider";
 import {
   REFERENCE_FIGURES,
   VIEWER_HEIGHT_CM,
@@ -39,7 +40,6 @@ import type { Animal } from "@/types/animal";
  */
 
 const HEIGHT_STORAGE_KEY = "kami-height";
-const UNIT_STORAGE_KEY = "kami-unit";
 
 /** The fixed 1.75 m human is replaced: the row shows the visitor instead. */
 const REFERENCE_FIGURES_WITHOUT_HUMAN = REFERENCE_FIGURES.filter((figure) => figure.id !== "human");
@@ -209,7 +209,11 @@ export function SizeComparison({ animal, className }: SizeComparisonProps) {
   const [referenceIds, setReferenceIds] = React.useState<string[]>(["human", "whale"]);
   const [showRulers, setShowRulers] = React.useState(true);
   const [viewerHeightCm, setViewerHeightCm] = React.useState<number>(VIEWER_HEIGHT_CM.default);
-  const [unit, setUnit] = React.useState<MeasurementUnit>("metric");
+  // The unit is the visitor's setting (Phase 11), not this component's own state:
+  // the toggle below writes to it, so the chart, the fact sheet and the cards can
+  // never disagree about whether the site speaks metres or feet.
+  const { settings, update } = useSettings();
+  const unit = settings.measurementUnit;
 
   // Read once on mount: touching storage during render would make the server and
   // client disagree about the size of the human in the chart.
@@ -217,7 +221,6 @@ export function SizeComparison({ animal, className }: SizeComparisonProps) {
     try {
       const storedHeight = Number(window.localStorage.getItem(HEIGHT_STORAGE_KEY));
       if (Number.isFinite(storedHeight) && storedHeight > 0) setViewerHeightCm(clampHeight(storedHeight));
-      if (window.localStorage.getItem(UNIT_STORAGE_KEY) === "imperial") setUnit("imperial");
     } catch {
       // Private mode, blocked storage: the defaults are fine.
     }
@@ -230,14 +233,6 @@ export function SizeComparison({ animal, className }: SizeComparisonProps) {
       // Ditto.
     }
   }, [viewerHeightCm]);
-
-  React.useEffect(() => {
-    try {
-      window.localStorage.setItem(UNIT_STORAGE_KEY, unit);
-    } catch {
-      // Ditto.
-    }
-  }, [unit]);
 
   const toggle = (id: string) =>
     setReferenceIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -330,7 +325,7 @@ export function SizeComparison({ animal, className }: SizeComparisonProps) {
             <button
               key={option}
               type="button"
-              onClick={() => setUnit(option)}
+              onClick={() => update({ measurementUnit: option })}
               aria-pressed={unit === option}
               className={cn(
                 "rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-colors",

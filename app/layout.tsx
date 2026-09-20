@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 
 import { AuthSlot } from "@/components/auth/AuthSlot";
+import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
@@ -109,11 +110,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${inter.variable} ${sora.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <ThemeProvider>
-          <JsonLd data={siteJsonLd} />
-          <BackgroundParticles />
-          <Navbar authSlot={<AuthSlot provider={provider} />} />
-          <main className="relative z-10 pb-24">{children}</main>
-          <Footer />
+          {/* Preferences are read in the browser (see SettingsProvider): the layout
+              still reads no cookies, so every route stays statically renderable. */}
+          <SettingsProvider authConfigured={provider !== "none"}>
+            <JsonLd data={siteJsonLd} />
+            <BackgroundParticles />
+            <Navbar authSlot={<AuthSlot provider={provider} />} />
+            <main className="relative z-10 pb-24">{children}</main>
+            <Footer />
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

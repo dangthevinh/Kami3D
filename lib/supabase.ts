@@ -16,6 +16,7 @@ export const TABLES = {
   favorites: "user_favorites",
   quizScores: "quiz_scores",
   viewsDaily: "animal_views_daily",
+  settings: "user_settings",
 } as const;
 
 export const ANIMAL_COLUMNS =
