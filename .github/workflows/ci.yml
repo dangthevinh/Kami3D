@@ -52,6 +52,14 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://kami3d.example.com
 
+      # Reads the HTML the build just produced and fails if any content route
+      # grew past its JavaScript budget, or if three.js / an auth SDK crept back
+      # into the first paint. See scripts/check-bundle.mjs.
+      - name: Bundle budget
+        run: npm run check:bundle
+        env:
+          NEXT_PUBLIC_SITE_URL: https://kami3d.example.com
+
   model-pipeline:
     name: Model fetch pipeline (dry run)
     runs-on: ubuntu-latest

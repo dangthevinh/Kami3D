@@ -98,6 +98,30 @@ Inter and Sora are loaded through `next/font/google` with `display: swap` (self-
 request and no render-blocking `<link>`). Sora is requested **without a weight list**, which downloads the single
 variable file instead of four static instances.
 
+## Device tiers
+
+The same canvas settings used to go to every device: `dpr={[1, 1.8]}`, a 1024² shadow map, contact shadows and a
+1500-star sky. `lib/quality.ts` decides once, from facts the browser offers freely — `deviceMemory`,
+`hardwareConcurrency`, `saveData`, and whether the pointer is coarse:
+
+| Tier | When | dpr | Shadows | Stars | Globe segments |
+| --- | --- | --- | --- | --- | --- |
+| `low` | `saveData`, ≤ 2 GB, or ≤ 2 cores | 1.25 | off | 400 | 48 |
+| `balanced` | everything not proven otherwise — phones, and browsers that share nothing | 1.6 | on | 900 | 72 |
+| `high` | ≥ 8 GB **and** ≥ 8 cores **and** a fine pointer | 1.8 | on | 1500 | 96 |
+
+Two rules matter more than the numbers:
+
+- **`saveData` outranks everything.** It is the visitor asking us to be cheap, not a hint.
+- **Unknown is mid-range, never "high".** Firefox and Safari do not implement `navigator.deviceMemory`; guessing
+  high on a device that never answered is how a stutter ships.
+
+`components/3d/useQuality.ts` reads the facts in an effect, not during render. A client component inside a
+statically rendered page is still server-rendered, so reading during render described the **build machine** (8
+cores, no `deviceMemory`) and hydration then disagreed with the HTML. The first render now uses the middle profile
+and the measured one replaces it immediately after mount; the chosen tier is visible as `data-quality` on every 3D
+wrapper, which is what the browser checks assert on.
+
 ## Per-canvas rules
 
 1. **One live canvas per surface.** The globe is a single canvas for eight regions; the quiz renders one
@@ -182,7 +206,18 @@ robots file and web app manifest are fully static.
 
 ```bash
 npm run build        # build + per-route First Load JS report
-npm run check        # typecheck, rig geometry, size maths, SQL agreement, SEO graph, session hint
+npm run check        # typecheck, rig geometry, size maths, SQL agreement, SEO graph, session hint, themes, tiers
+npm run check:bundle # after a build: per-route JS budget and the "no eager 3D/auth" rule (also runs in CI)
 npm run audit:perf   # real browser: TTFB/FCP/LCP/CLS and what was fetched before and after load
 THROTTLE=1 npm run audit:perf   # the same, on Slow 4G with a 4x CPU slowdown
 ```
+
+## The bundle budget moved into CI
+
+`next build`'s "First Load JS" column is an accounting of a route's chunk graph, and twice it did not describe
+what a browser actually downloaded: Clerk's 239 kB CDN payload was invisible to it, and it said nothing about the
+3D bundles being requested before the first paint. `scripts/check-bundle.mjs` closes that gap without a browser —
+it reads the HTML the build produced, takes the exact `<script src>` list out of it (which *is* what a browser
+fetches), gzips those files and fails when a route exceeds its budget, when `three`/Clerk/Supabase/`framer-motion`
+appear in the first paint, or when three.js has vanished from the build altogether. It runs after the build in CI, so
+a bundle regression is a red check rather than a discovery six weeks later.

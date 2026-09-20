@@ -3,6 +3,7 @@
 import { Canvas, type CanvasProps } from "@react-three/fiber";
 import { Component, Suspense, type ReactNode } from "react";
 
+import { useQuality } from "@/components/3d/useQuality";
 import { cn } from "@/lib/utils";
 
 /**
@@ -45,18 +46,28 @@ export interface CanvasShellProps extends Omit<CanvasProps, "children"> {
 }
 
 export function CanvasShell({ children, className, fallback, label, ...canvasProps }: CanvasShellProps) {
+  // Resolution and shadow maps come from the device, not from a constant: a phone
+  // that cannot afford a 1.8 dpr now renders one it can afford, and a desktop
+  // keeps the settings the product was designed with. See `lib/quality.ts`.
+  const quality = useQuality();
+
   return (
     <div
       className={cn("kami-canvas relative h-full w-full overflow-hidden", className)}
       role="img"
       aria-label={label}
+      // Observable on purpose: the tier decides resolution and shadows, and
+      // without this there is no way to check which one a device got — the
+      // browser audit asserts on it (see scripts/audit-*.mjs).
+      data-quality={quality.tier}
+      data-quality-dpr={quality.dpr[1]}
     >
       <WebGLBoundary fallback={fallback ?? <CanvasFallback />}>
         <Canvas
-          dpr={[1, 1.8]}
-          shadows
+          dpr={canvasProps.dpr ?? quality.dpr}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           {...canvasProps}
+          shadows={quality.shadows && canvasProps.shadows !== false}
         >
           <Suspense fallback={null}>{children}</Suspense>
         </Canvas>

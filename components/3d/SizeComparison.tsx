@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { CanvasFallback, CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
+import { useQuality } from "@/components/3d/useQuality";
 import { REFERENCE_FIGURES, figureFromAnimal, layoutFigures, type FigureSpec } from "@/lib/size-comparison";
 import { cn } from "@/lib/utils";
 import type { Animal } from "@/types/animal";
@@ -33,6 +34,8 @@ function ComparisonScene({
   referenceIds: string[];
   showRulers: boolean;
 }) {
+  const quality = useQuality();
+
   const { figures } = React.useMemo(() => {
     const references = REFERENCE_FIGURES.filter((reference) => referenceIds.includes(reference.id));
     const specs: FigureSpec[] = [figureFromAnimal(animal), ...references];
@@ -53,7 +56,9 @@ function ComparisonScene({
         ))}
       </Bounds>
 
-      <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={60} blur={3} far={12} color="#000000" />
+      {quality.contactShadows ? (
+        <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={60} blur={3} far={12} color="#000000" />
+      ) : null}
       <Grid
         position={[0, -0.02, 0]}
         args={[60, 60]}

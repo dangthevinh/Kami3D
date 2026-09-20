@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 import { CanvasFallback, CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
+import { useQuality } from "@/components/3d/useQuality";
 import { Button } from "@/components/ui/button";
 import { publicEnv } from "@/lib/env";
 import { cn, seededRandom } from "@/lib/utils";
@@ -175,6 +176,7 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
   const [resetKey, setResetKey] = React.useState(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
+  const quality = useQuality();
   const config = PRESETS[preset];
   const phase = React.useMemo(() => seededRandom(animal.slug) * 6, [animal.slug]);
 
@@ -218,7 +220,7 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
           intensity={config.key}
           color={config.keyColor}
           castShadow
-          shadow-mapSize={[1024, 1024]}
+          shadow-mapSize={[quality.shadowMapSize, quality.shadowMapSize]}
         />
         <directionalLight position={[-5, 1.5, -4]} intensity={config.fill} color={config.fillColor} />
         <spotLight position={[0, 4.5, -6]} intensity={config.rim} color={config.rimColor} angle={0.9} penumbra={1} />
@@ -251,7 +253,9 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
           )}
         </Bounds>
 
-        <ContactShadows position={[0, -0.01, 0]} opacity={0.42} scale={16} blur={2.6} far={5} color="#000000" />
+        {quality.contactShadows ? (
+          <ContactShadows position={[0, -0.01, 0]} opacity={0.42} scale={16} blur={2.6} far={5} color="#000000" />
+        ) : null}
         <Grid
           position={[0, -0.02, 0]}
           args={[24, 24]}

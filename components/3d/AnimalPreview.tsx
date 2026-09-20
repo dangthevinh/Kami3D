@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
+import { useQuality } from "@/components/3d/useQuality";
 import type { SilhouetteKind } from "@/types/animal";
 
 /**
@@ -23,6 +24,8 @@ export function AnimalPreview({
   accent: [string, string];
   className?: string;
 }) {
+  const quality = useQuality();
+
   return (
     <CanvasShell
       className={className}
@@ -37,7 +40,9 @@ export function AnimalPreview({
 
       <group position={[0, -0.75, 0]}>
         <ProceduralAnimal kind={kind} accent={accent} scale={1.05} />
-        <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={4} blur={2.4} far={2} color="#000000" />
+        {quality.contactShadows ? (
+          <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={4} blur={2.4} far={2} color="#000000" />
+        ) : null}
       </group>
 
       <OrbitControls

@@ -7,6 +7,7 @@ import * as React from "react";
 import * as THREE from "three";
 
 import { CanvasShell, CanvasFallback } from "@/components/3d/CanvasShell";
+import { useQuality } from "@/components/3d/useQuality";
 import { Button } from "@/components/ui/button";
 import {
   createGlowCanvas,
@@ -230,6 +231,7 @@ function TexturedGlobeSurface({ url }: { url: string }) {
 
 function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
   const region = useExploreStore((state) => state.region);
+  const quality = useQuality();
   const procedural = useEarthTexture();
   const glow = useGlowTexture();
 
@@ -282,7 +284,7 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
       <directionalLight position={[-5, -2, -3.5]} intensity={0.9} color="#a97bff" />
       <pointLight position={[0, 0, 3.2]} intensity={6} distance={12} color="#35f0c0" />
 
-      <Stars radius={70} depth={45} count={1500} factor={3.4} saturation={0} fade speed={0.35} />
+      <Stars radius={70} depth={45} count={quality.starCount} factor={3.4} saturation={0} fade speed={0.35} />
 
       <group ref={groupRef}>
         <mesh
@@ -291,13 +293,13 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
           }}
           onClick={handleGlobeClick}
         >
-          <sphereGeometry args={[GLOBE_RADIUS, 96, 96]} />
+          <sphereGeometry args={[GLOBE_RADIUS, quality.globeSegments, quality.globeSegments]} />
           {textureUrl ? <TexturedGlobeSurface url={textureUrl} /> : <GlobeMaterial map={procedural} />}
         </mesh>
 
         {/* Atmosphere rim */}
         <mesh scale={1.045}>
-          <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
+          <sphereGeometry args={[GLOBE_RADIUS, Math.round(quality.globeSegments / 1.5), Math.round(quality.globeSegments / 1.5)]} />
           <meshBasicMaterial
             color="#38e0ff"
             transparent

@@ -312,6 +312,8 @@ npm run check:sql       # schema.sql / seed.sql / dataset agreement
 npm run check:seo       # JSON-LD graph shape, absolute URLs, script-tag escaping
 npm run check:auth      # the session hint that keeps auth SDKs off anonymous pages
 npm run check:theme     # both palettes: token completeness and WCAG contrast maths
+npm run check:quality   # device tier rules (saveData, weak hardware, unknown APIs)
+npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
 npm run audit:theme     # a real browser: unreadable text and dark panels in light mode
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
                         #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
@@ -327,7 +329,7 @@ npm run publish -- "message"   # verify, build, commit, push — one step per ph
 
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | every push and pull request | `npm ci` → typecheck → the three node check suites → fails if `supabase/seed.sql` is stale → production build. A second job runs the model pipeline with no keys, proving it degrades instead of crashing. |
+| `.github/workflows/ci.yml` | every push and pull request | `npm ci` → typecheck → the node check suites → fails if `supabase/seed.sql` is stale → production build → **bundle budget** (`check:bundle`: per-route JavaScript limit plus "no three.js, Clerk or Supabase in the first paint"). A second job runs the model pipeline with no keys, proving it degrades instead of crashing. |
 | `.github/workflows/auto-merge.yml` | Dependabot PRs and anything labelled `automerge` | enables squash auto-merge once checks pass; patch and minor dependency bumps get the label automatically, majors wait for a human. |
 | `.github/dependabot.yml` | weekly | dependency and GitHub Actions updates, grouped so `three`/`@react-three/*` and the React trio move together. |
 

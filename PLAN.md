@@ -19,6 +19,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **5** | Phát sinh: CI/CD, model 3D thật, brand, auth, MCP | ✅ Hoàn thành (còn 1 việc chờ bạn) |
 | **6** | Tăng tốc tải trang & SEO | ✅ Hoàn thành |
 | **7** | Chế độ Sáng / Tối cho người dùng | ✅ Hoàn thành |
+| **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | 🚧 Đang làm — xem bảng trạng thái trong phase |
 
 **Số liệu hiện tại**
 
@@ -188,6 +189,127 @@ Chi tiết đầy đủ và cách tự đo lại: [docs/PERFORMANCE.md](docs/PER
 | Chip tình trạng bảo tồn | Các sắc độ `-300` của Tailwind (vô hình trên nền trắng) được thay bằng mức 700 trong `.light` | ✅ |
 | Sân khấu 3D | Vẫn **tối ở cả hai theme** (`.kami-canvas`): mọi scene được chiếu sáng cho phòng tối, đổi nền trắng sẽ mất viền sáng của model | ✅ |
 | Đo bằng số, không bằng mắt | `npm run check:theme` (6 bài: đủ token + WCAG AA cả hai chiều) và `npm run audit:theme` (Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng) | ✅ 12/12 route × theme đạt |
+
+---
+
+## 🚀 Phase 8 — Advanced 3D Features & Polish
+
+> **Bạn gọi nhóm việc này là "Phase 5".** Trong tài liệu này số 5 đã dùng cho phần *phát sinh* (CI/CD, model
+> thật, brand, auth, MCP), 6–7 cho *tăng tốc + SEO* và *chế độ Sáng/Tối*, nên nó được đánh số tiếp là **8**.
+> Nếu muốn đánh số lại toàn bộ tài liệu thì nói một câu, sửa một lượt.
+
+**Yêu cầu**: nâng 5 phần 3D lên mức production — InteractiveGlobe, ModelViewer, SizeComparison, Quiz 3D, và
+Performance/Loading states.
+
+**Mốc đo không được phá** (đo lại sau mỗi mục):
+
+| Chỉ số | Hiện tại | Ngưỡng |
+| --- | --- | --- |
+| JS **trước** `load` (Chrome, cache lạnh) | ~140–152 kB | **≤ 160 kB** |
+| Bundle 3D | tải **sau** `load` | vẫn phải ở sau `load` |
+| Test | 76 bài / 10 suite | chỉ tăng |
+| Contrast sáng/tối | 12/12 route đạt AA | giữ nguyên |
+| CI | xanh | xanh sau **mỗi** mục |
+
+**Trạng thái từng mục**
+
+| # | Mục | Trạng thái |
+| --- | --- | --- |
+| 0 | Nền tảng: chất lượng thiết bị + cổng chặn bundle trong CI | ✅ Hoàn thành |
+| 1 | Production ModelViewer | ⏳ Chưa bắt đầu |
+| 2 | SizeComparison với scale real-time | ⏳ Chưa bắt đầu |
+| 3 | Quiz 3D hoàn chỉnh | ⏳ Chưa bắt đầu |
+| 4 | Enhanced InteractiveGlobe | ⏳ Chưa bắt đầu |
+| 5 | Âm thanh cho quiz "đoán qua tiếng kêu" | ⏸️ Chờ asset + quyết định |
+
+### Mục 0 — Nền tảng: chất lượng thiết bị & cổng chặn bundle
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| `lib/quality.ts` | Từ `deviceMemory`, `hardwareConcurrency`, `devicePixelRatio`, `(pointer: coarse)`, `saveData` → `tier` (low/balanced/high) + `dpr`, bóng, contact shadow, số sao, số segment, cỡ shadow map | ✅ |
+| `components/3d/useQuality.ts` | Hook **hai pha**: render đầu dùng profile giữa (server cũng render client component nên HTML phải hợp lệ), đo thật trong `useEffect` sau khi mount → không lệch hydration | ✅ |
+| `CanvasShell` + các scene | dpr/bóng lấy từ tier; số sao và segment của cầu, contact shadow, cỡ shadow map đều theo tier. Tier hiện ra ở `data-quality` trên wrapper (đọc được trong devtools) | ✅ |
+| `scripts/check-quality.mjs` | 10 bài: `saveData` thắng mọi tín hiệu, máy yếu → low, điện thoại → balanced (không bao giờ high), browser không khai báo gì → balanced, API lạ/giá trị rác không làm sập, các profile xếp đúng thứ tự | ✅ |
+| `scripts/check-bundle.mjs` | Đọc **HTML do build sinh ra**, lấy đúng danh sách `<script src>` (bỏ `polyfills` vì là `nomodule`), gzip lại và chặn nếu: vượt ngân sách, hoặc có `three`/`Clerk`/`Supabase`/`framer-motion` trong first paint, hoặc three.js biến mất khỏi build | ✅ |
+| Bước CI mới | `ci.yml` chạy `npm run check:bundle` **sau** bước build — từ nay lỗi "bundle phình" làm đỏ CI | ✅ |
+
+**Số đo Mục 0** (`npm run check:bundle`, JS khởi đầu mỗi route, gzip -6, không tính polyfills):
+
+| Route | JS khởi đầu | Số chunk | Ngân sách |
+| --- | --- | --- | --- |
+| `/quiz` | 147.7 kB | 13 | 165 |
+| `/explore` | 143.7 kB | 13 | 165 |
+| `/` | 140.7 kB | 12 | 165 |
+| `/animal/[slug]` | 137.8 kB | 11 | 165 |
+| `/leaderboard` | 127.6 kB | 9 | 165 |
+| `/about` | 125.8 kB | 9 | 165 |
+
+Số này khớp với phép đo bằng Chrome thật (`/about` 126.6 kB, `/` 142.3 kB — chênh lệch do mức nén). Tier đã kiểm chứng trong browser: máy 2 GB → `low` với dpr 1.25, `saveData` → `low`, desktop → `balanced` (máy đo chỉ có 4 core, đúng luật "không đoán high").
+
+Ý nghĩa của cổng chặn: đúng hai lỗi đã xảy ra trong dự án (Clerk CDN 239 kB tải cho khách, bundle 3D chạy trước
+first paint) đều **vô hình** trong báo cáo `next build`. Từ mục này, máy chặn thay vì mắt người.
+
+### Mục 1 — Production ModelViewer
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| Animation GLB | `useAnimations`, chọn clip, play/pause, tốc độ — chỉ hiện khi model thật sự có clip | ⏳ |
+| Camera preset | Trước / bên / trên / 3-4, animate bằng lerp; toán ở `lib/camera-presets.ts` | ⏳ |
+| Overlay số đo | Nhãn `length_m`/`height_m` vẽ trên model (`Line` + `Html`), bật/tắt | ⏳ |
+| Tiến độ tải thật | `useProgress` → % xác định + pha "giải nén DRACO"; rig procedural hiện **ngay**, tráo sang GLB khi xong | ⏳ |
+| Thử lại khi lỗi | Nút "Thử lại" thay vì im lặng rơi về rig | ⏳ |
+| Lưu ảnh | PNG từ canvas, 0 dependency | ⏳ |
+| Bàn phím | Mũi tên xoay, `+/-` zoom, `R` reset, `F` fullscreen, `W` wireframe | ⏳ |
+
+### Mục 2 — SizeComparison với scale real-time
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| "Chiều cao của bạn" | Slider 100–220 cm, hình người co giãn theo thời gian thực, lưu `localStorage` | ⏳ |
+| Câu so sánh sống | "bằng 1.4× chiều cao của bạn", toán ở `lib/size-comparison.ts`, có test biên | ⏳ |
+| Đơn vị mét / feet-inch | Mở rộng `formatLength`/`formatHeight` + test | ⏳ |
+| Thêm mốc tham chiếu | Hươu cao cổ 5.5 m, voi châu Phi 3.2 m, mèo nhà 0.25 m | ⏳ |
+| Chuyển cảnh | Lerp khi bật/tắt hình tham chiếu | ⏳ |
+
+### Mục 3 — Quiz 3D hoàn chỉnh
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| Mở khoá model thật | Trả lời xong mới tráo silhouette → `.glb` thật, tự xoay | ⏳ |
+| Biến thể câu hỏi | Trong 2 mode hiện có: đoán loài / vùng / lớp / lớn-hơn-nhỏ-hơn. Bộ sinh ở `lib/quiz.ts` (thuần, seed tất định) + `check-quiz.mjs` | ⏳ |
+| Điểm theo thời gian | Thưởng tốc độ + streak; **badge vẫn do server tính lại** | ⏳ |
+| Lưu vòng đang chơi | Refresh không mất lượt, có "tiếp tục vòng dở" | ⏳ |
+| Bàn phím + a11y | `1–4` chọn, `Enter` tiếp, `aria-live`, **dừng đồng hồ khi tab bị ẩn** | ⏳ |
+| Bảng xếp hạng quiz | Top điểm theo mode trên `/leaderboard` (schema `quiz_scores` đã có) | ⏳ |
+
+*Không làm ở mục này*: thêm mode **mới** vào `QUIZ_MODES` sẽ cần migration + `check-sql.mjs`; đề xuất dùng biến
+thể câu hỏi trong 2 mode sẵn có trước.
+
+### Mục 4 — Enhanced InteractiveGlobe
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| Bay tới vùng | Camera lerp tới anchor của vùng trong ~700 ms; toán ở `lib/globe.ts` + test | ⏳ |
+| Pin theo loài | Hover pin → tooltip 3 loài đứng đầu theo lượt xem; bấm → mở thẳng trang loài | ⏳ |
+| Texture bậc thang | Bóng độ sâu đại dương + tô độ cao đất liền từ **cùng** dữ liệu Natural Earth (không thêm KB); graticule thành lớp mờ tắt được | ⏳ |
+| Bàn phím & a11y | Mũi tên xoay/nghiêng, `+/-` zoom, `Tab` qua các pin, `Enter` chọn vùng | ⏳ |
+| Đồng bộ URL | Chọn vùng ghi `/explore?region=…` bằng `router.replace` | ⏳ |
+| Tiết kiệm pin | `frameloop="demand"` khi không tương tác và tab bị ẩn | ⏳ |
+
+### Mục 5 — Âm thanh cho quiz "đoán qua tiếng kêu" (chờ asset)
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| `scripts/fetch-sounds.mjs` | Cùng khuôn với `fetch-models.mjs`: chỉ nhận CC0/CC-BY, ghi `data/sound-attribution.json`, từ chối licence không rõ | ⏸️ |
+| Credit trên trang loài | Như credit model hiện có | ⏸️ |
+| Dung lượng | ~24 file 10–30 s ≈ 2–6 MB, tải **theo yêu cầu** khi vào mode sound | ⏸️ |
+
+Chặn bởi: cần quyết định có tải âm thanh có bản quyền phù hợp về hay không (xem *Việc còn lại*).
+
+### Định nghĩa "xong" của Phase 8
+
+5 mục chạy thật trên production build, **≥ 100 bài test**, JS trước `load` **≤ 160 kB**, 12/12 route đạt AA ở cả
+hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/sau ghi ngay trong bảng của nó.
 
 ---
 

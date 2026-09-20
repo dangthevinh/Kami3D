@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useQuality } from "@/components/3d/useQuality";
 import { whenIdle } from "@/lib/idle";
 
 /**
@@ -44,6 +45,7 @@ export function MountWhenVisible({
 }: MountWhenVisibleProps) {
   const container = React.useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = React.useState(false);
+  const quality = useQuality();
 
   React.useEffect(() => {
     const node = container.current;
@@ -71,7 +73,15 @@ export function MountWhenVisible({
   }, [idleTimeout, rootMargin]);
 
   return (
-    <div ref={container} className={className}>
+    <div
+      ref={container}
+      className={className}
+      // Which quality profile this device was given, on the element that exists
+      // before any WebGL does: it can be asserted without waiting for a canvas,
+      // and read in devtools when a visitor reports a stutter.
+      data-quality={quality.tier}
+      data-quality-dpr={quality.dpr[1]}
+    >
       {mounted ? children : placeholder}
     </div>
   );
