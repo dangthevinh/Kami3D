@@ -1,26 +1,31 @@
 "use client";
 
 import { Html, OrbitControls, Stars, useTexture } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
-import { MapPin, RotateCcw, Sparkles } from "lucide-react";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { Layers, MapPin, RotateCcw, Sparkles } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 import * as THREE from "three";
 
 import { CanvasShell, CanvasFallback } from "@/components/3d/CanvasShell";
 import { useQuality } from "@/components/3d/useQuality";
 import { Button } from "@/components/ui/button";
+import { approach, dolly as dollyToward, hasArrived, orbitBy } from "@/lib/camera-presets";
 import {
   createGlowCanvas,
   createGraticuleCanvas,
+  cameraTargetFor,
   latLngToVector3,
   nearestRegion,
+  regionFacingCamera,
   regionMarkers,
   vector3ToLatLng,
+  type GlobePin,
 } from "@/lib/globe";
 import { createEarthCanvas } from "@/lib/earth-texture";
 import type { LandData } from "@/lib/earth-map";
 import { useExploreStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { cn, formatCount } from "@/lib/utils";
 import { REGION_ANCHORS, type Region } from "@/types/animal";
 
 const GLOBE_RADIUS = 1;
@@ -28,31 +33,26 @@ const HOTSPOT_RADIUS = 1.008;
 /** Below this dot product the marker is on the far side of the globe. */
 const FRONT_FACING_THRESHOLD = 0.18;
 
-export interface InteractiveGlobeProps {
-  /** Species per region, shown on the hotspot labels. */
-  counts?: Record<string, number>;
-  /** Optional equirectangular earth map (e.g. from Supabase Storage). */
-  textureUrl?: string | null;
-  /** Extra side effect on selection — the home page uses it to route to /explore. */
-  onRegionSelect?: (region: Region) => void;
-  className?: string;
-}
+/** How far one arrow key turns the camera, and one zoom key closes in. */
+const KEY_YAW = Math.PI / 24;
+const KEY_PITCH = Math.PI / 48;
+const KEY_ZOOM = 0.86;
+
+/** The camera the globe opens with, and what "reset" returns to. */
+const HOME_CAMERA: [number, number, number] = [0, 0.6, 3.1];
 
 /* -------------------------------------------------------------------------- */
-/* Scene                                                                      */
+/* Textures                                                                   */
 /* -------------------------------------------------------------------------- */
 
 /**
- * The globe's surface texture.
+ * The world map, fetched once.
  *
- * Starts as the bare graticule the app shipped with and swaps to the real world
- * map — Natural Earth's public-domain land polygons, drawn in the product's own
- * palette — as soon as the 76 KB of geometry arrives. The swap is deliberately
- * not a loading spinner: the grid is a complete, honest globe, so a visitor on a
- * slow connection still sees something worth looking at, and a failed fetch simply
- * leaves it in place.
+ * Lifted into the DOM half so the detail control knows whether the map exists yet:
+ * "show me the map" is a button that has to be able to say "not loaded", and a hook
+ * buried inside the canvas cannot tell it.
  */
-function useEarthTexture() {
+function useLandData() {
   const [land, setLand] = React.useState<LandData | null>(null);
 
   React.useEffect(() => {
@@ -72,14 +72,35 @@ function useEarthTexture() {
     };
   }, []);
 
+  return land;
+}
+
+/**
+ * The globe's surface, in two tiers.
+ *
+ * The grid is drawn first and always: it is a complete, honest globe, so a visitor
+ * on a slow connection (or one whose 76 KB of coastlines failed to arrive) still
+ * sees something worth looking at — never a spinner. The map replaces it when the
+ * geometry is there, and the visitor can switch back.
+ *
+ * Cost scales with the device: a low tier draws a 1024px texture without the depth
+ * and relief passes, which are the two expensive strokes in the renderer.
+ */
+function useEarthTexture(land: LandData | null, detail: "grid" | "map", width: number) {
+  const coarse = width <= 1024;
+
   const texture = React.useMemo(() => {
-    const canvas = land ? createEarthCanvas(land, { width: 2048 }) : createGraticuleCanvas(2048);
+    const canvas =
+      detail === "map" && land
+        ? createEarthCanvas(land, { width, depth: !coarse, relief: !coarse })
+        : createGraticuleCanvas(width);
+
     const map = new THREE.CanvasTexture(canvas);
     map.colorSpace = THREE.SRGBColorSpace;
-    map.anisotropy = 8;
+    map.anisotropy = coarse ? 4 : 8;
     map.needsUpdate = true;
     return map;
-  }, [land]);
+  }, [coarse, detail, land, width]);
 
   React.useEffect(() => () => texture.dispose(), [texture]);
   return texture;
@@ -97,15 +118,20 @@ function useGlowTexture() {
   return texture;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Markers                                                                    */
+/* -------------------------------------------------------------------------- */
+
 interface HotspotProps {
   region: Region;
   count: number;
+  species: GlobePin[];
   active: boolean;
   glow: THREE.Texture;
   onSelect: (region: Region) => void;
 }
 
-function RegionHotspot({ region, count, active, glow, onSelect }: HotspotProps) {
+function RegionHotspot({ region, count, species, active, glow, onSelect }: HotspotProps) {
   const anchor = REGION_ANCHORS[region];
   const groupRef = React.useRef<THREE.Group>(null);
   const labelRef = React.useRef<HTMLDivElement>(null);
@@ -182,13 +208,7 @@ function RegionHotspot({ region, count, active, glow, onSelect }: HotspotProps) 
       </mesh>
 
       <sprite ref={haloRef} position={[0, 0, 0.004]}>
-        <spriteMaterial
-          map={glow}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          opacity={0.4}
-        />
+        <spriteMaterial map={glow} transparent depthWrite={false} blending={THREE.AdditiveBlending} opacity={0.4} />
       </sprite>
 
       <Html center distanceFactor={2.4} zIndexRange={[20, 0]} style={{ pointerEvents: "none" }}>
@@ -199,25 +219,150 @@ function RegionHotspot({ region, count, active, glow, onSelect }: HotspotProps) 
             className={cn(
               "flex -translate-y-8 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium backdrop-blur",
               "ring-1 transition-colors",
-              active
-                ? "bg-neon/20 text-neon ring-neon/45"
-                : "bg-void/70 text-white/75 ring-white/15 hover:text-white",
+              active ? "bg-neon/20 text-neon ring-neon/45" : "bg-void/70 text-white/75 ring-white/15 hover:text-white",
             )}
           >
             <MapPin className="size-3" />
             {anchor.label}
             <span className={cn("tabular-nums", active ? "text-neon/80" : "text-white/45")}>{count}</span>
           </button>
+
+          {/* The three most-opened species here, straight into their pages: the
+              globe stops being a filter and becomes a way in. */}
+          {species.length > 0 ? (
+            <ul className="mt-1 w-max space-y-0.5 rounded-xl bg-void/80 p-1.5 ring-1 ring-white/12 backdrop-blur">
+              {species.map((pin) => (
+                <li key={pin.slug}>
+                  <Link
+                    href={`/animal/${pin.slug}`}
+                    className="flex items-center justify-between gap-3 rounded-lg px-2 py-1 text-[11px] text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <span className="truncate">{pin.name}</span>
+                    <span className="tabular-nums text-white/35">{formatCount(pin.views)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </Html>
     </group>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Camera                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** What the DOM half can ask the globe's camera to do. */
+export interface GlobeApi {
+  flyTo(region: Region): void;
+  orbit(yaw: number, pitch: number): void;
+  zoom(factor: number): void;
+  /** The region currently facing the camera, for the Enter key. */
+  facingRegion(): Region | null;
+  goHome(): void;
+}
+
+function GlobeRig({
+  apiRef,
+  onFlightChange,
+}: {
+  apiRef: React.RefObject<GlobeApi | null>;
+  onFlightChange?: (flying: boolean) => void;
+}) {
+  const camera = useThree((state) => state.camera);
+  const controls = useThree((state) => state.controls) as { update: () => void } | null;
+  const region = useExploreStore((state) => state.region);
+
+  const flight = React.useRef<THREE.Vector3 | null>(null);
+  const firstRun = React.useRef(true);
+  const focused = React.useRef<Region | null>(null);
+
+  const send = React.useCallback(
+    (target: { x: number; y: number; z: number }) => {
+      flight.current = new THREE.Vector3(target.x, target.y, target.z);
+      onFlightChange?.(true);
+    },
+    [onFlightChange],
+  );
+
+  const flyTo = React.useCallback(
+    (next: Region) => {
+      // Keep the visitor's zoom: a fly-to is a turn, not a jump cut.
+      send(cameraTargetFor(next, camera.position.length(), 0.35));
+    },
+    [camera, send],
+  );
+
+  /** Selecting a region turns the globe to face it, however it was selected. */
+  React.useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    if (region === "All") {
+      send({ x: HOME_CAMERA[0], y: HOME_CAMERA[1], z: HOME_CAMERA[2] });
+      return;
+    }
+    flyTo(region);
+  }, [flyTo, region, send]);
+
+  React.useEffect(() => {
+    apiRef.current = {
+      flyTo,
+      orbit(yaw, pitch) {
+        const next = orbitBy({ x: 0, y: 0, z: 0 }, camera.position, yaw, pitch);
+        send({ ...next, y: Math.max(-camera.position.length() * 0.98, Math.min(camera.position.length() * 0.98, next.y)) });
+      },
+      zoom(factor) {
+        const next = dollyToward({ x: 0, y: 0, z: 0 }, camera.position, factor, 1.55, 4.4);
+        send(next);
+      },
+      facingRegion() {
+        return regionFacingCamera(camera.position);
+      },
+      goHome() {
+        send({ x: HOME_CAMERA[0], y: HOME_CAMERA[1], z: HOME_CAMERA[2] });
+      },
+    };
+
+    return () => {
+      apiRef.current = null;
+    };
+  }, [apiRef, camera, flyTo, send]);
+
+  useFrame((_, delta) => {
+    const target = flight.current;
+    if (!target) return;
+
+    const stepped = approach(camera.position, target, delta, 4.5);
+    camera.position.set(stepped.x, stepped.y, stepped.z);
+    camera.lookAt(0, 0, 0);
+    controls?.update();
+
+    if (hasArrived(camera.position, target, 0.004)) {
+      flight.current = null;
+      focused.current = null;
+      onFlightChange?.(false);
+    }
+  });
+
+  return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Scene                                                                      */
+/* -------------------------------------------------------------------------- */
+
 interface GlobeSceneProps {
   counts: Record<string, number>;
+  species: Record<string, GlobePin[]>;
   textureUrl?: string | null;
+  land: LandData | null;
+  detail: "grid" | "map";
   onSelect: (region: Region) => void;
+  apiRef: React.RefObject<GlobeApi | null>;
 }
 
 function GlobeMaterial({ map }: { map: THREE.Texture }) {
@@ -229,14 +374,16 @@ function TexturedGlobeSurface({ url }: { url: string }) {
   return <GlobeMaterial map={map} />;
 }
 
-function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
+function GlobeScene({ counts, species, textureUrl, land, detail, onSelect, apiRef }: GlobeSceneProps) {
   const region = useExploreStore((state) => state.region);
   const quality = useQuality();
-  const procedural = useEarthTexture();
+  const textureWidth = quality.tier === "low" ? 1024 : 2048;
+  const procedural = useEarthTexture(land, detail, textureWidth);
   const glow = useGlowTexture();
 
   const groupRef = React.useRef<THREE.Group>(null);
   const interacting = React.useRef(false);
+  const flying = React.useRef(false);
   const idleSince = React.useRef(0);
   const pointerDownAt = React.useRef<{ x: number; y: number } | null>(null);
 
@@ -246,13 +393,14 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
     const group = groupRef.current;
     if (!group) return;
 
-    if (interacting.current) {
+    if (interacting.current || flying.current) {
       idleSince.current = 0;
       return;
     }
 
     idleSince.current += delta;
-    // Idle spin: the globe only drifts once the visitor stops touching it.
+    // Idle spin: the globe only drifts once the visitor stops touching it — and
+    // not while the camera is flying somewhere, which would read as drift.
     if (idleSince.current > 2.4) {
       group.rotation.y += delta * 0.055;
     }
@@ -299,7 +447,9 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
 
         {/* Atmosphere rim */}
         <mesh scale={1.045}>
-          <sphereGeometry args={[GLOBE_RADIUS, Math.round(quality.globeSegments / 1.5), Math.round(quality.globeSegments / 1.5)]} />
+          <sphereGeometry
+            args={[GLOBE_RADIUS, Math.round(quality.globeSegments / 1.5), Math.round(quality.globeSegments / 1.5)]}
+          />
           <meshBasicMaterial
             color="#38e0ff"
             transparent
@@ -315,6 +465,7 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
             key={marker.region}
             region={marker.region}
             count={counts[marker.region] ?? 0}
+            species={species[marker.region] ?? []}
             active={region === marker.region}
             glow={glow}
             onSelect={onSelect}
@@ -341,6 +492,8 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
         target={[0, 0, 0]}
         makeDefault
       />
+
+      <GlobeRig apiRef={apiRef} onFlightChange={(value) => { flying.current = value; }} />
     </>
   );
 }
@@ -349,31 +502,138 @@ function GlobeScene({ counts, textureUrl, onSelect }: GlobeSceneProps) {
 /* Public component                                                           */
 /* -------------------------------------------------------------------------- */
 
-export function InteractiveGlobe({ counts = {}, textureUrl = null, onRegionSelect, className }: InteractiveGlobeProps) {
+export interface InteractiveGlobeProps {
+  counts?: Record<string, number>;
+  /** The most-viewed species per region, shown on the pins. */
+  species?: Record<string, GlobePin[]>;
+  /** Optional equirectangular earth map (e.g. from Supabase Storage). */
+  textureUrl?: string | null;
+  /** Extra side effect on selection — the home page uses it to route to /explore. */
+  onRegionSelect?: (region: Region) => void;
+  className?: string;
+}
+
+export function InteractiveGlobe({
+  counts = {},
+  species = {},
+  textureUrl = null,
+  onRegionSelect,
+  className,
+}: InteractiveGlobeProps) {
   const region = useExploreStore((state) => state.region);
   const setRegion = useExploreStore((state) => state.setRegion);
   const reset = useExploreStore((state) => state.reset);
-  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
 
-  const active = region === "All" ? null : REGION_ANCHORS[region];
+  const [detail, setDetail] = React.useState<"grid" | "map">("map");
+  const [hidden, setHidden] = React.useState(false);
+  const [flying, setFlying] = React.useState(false);
+  const land = useLandData();
+
+  const apiRef = React.useRef<GlobeApi | null>(null);
+  const container = React.useRef<HTMLDivElement>(null);
+
+  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+  const showingAll = region === ("All" as typeof region);
+  const active = showingAll ? null : REGION_ANCHORS[region as Region];
+
+  // A hidden tab does not need 60 frames a second of globe.
+  React.useEffect(() => {
+    const onVisibility = () => setHidden(document.visibilityState === "hidden");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const handleSelect = React.useCallback(
     (next: Region) => {
       setRegion(next);
       onRegionSelect?.(next);
+
+      // The address bar is someone else's job: `ExploreUrlFilters` mirrors the store,
+      // and having two writers here raced over the same history entry.
     },
-    [setRegion, onRegionSelect],
+    [onRegionSelect, setRegion],
   );
 
+  const goHome = React.useCallback(() => {
+    reset();
+    apiRef.current?.goHome();
+  }, [reset]);
+
+  /** Arrows turn the globe, + and - zoom, Enter takes whatever is facing you. */
+  function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement | null;
+    if (target && target !== event.currentTarget && target.closest("button, a, input, select, textarea")) return;
+
+    const api = apiRef.current;
+    if (!api) return;
+
+    switch (event.key) {
+      case "ArrowLeft":
+        api.orbit(KEY_YAW, 0);
+        break;
+      case "ArrowRight":
+        api.orbit(-KEY_YAW, 0);
+        break;
+      case "ArrowUp":
+        api.orbit(0, KEY_PITCH);
+        break;
+      case "ArrowDown":
+        api.orbit(0, -KEY_PITCH);
+        break;
+      case "+":
+      case "=":
+        api.zoom(KEY_ZOOM);
+        break;
+      case "-":
+      case "_":
+        api.zoom(1 / KEY_ZOOM);
+        break;
+      case "Enter":
+      case " ": {
+        const facing = api.facingRegion();
+        if (facing) handleSelect(facing);
+        else api.goHome();
+        break;
+      }
+      case "r":
+      case "R":
+        goHome();
+        break;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+  }
+
   return (
-    <div className={cn("relative", className)}>
+    <div
+      ref={container}
+      className={cn("relative outline-none focus-visible:ring-2 focus-visible:ring-neon/60", className)}
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      aria-busy={flying}
+      aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - Enter R"
+      aria-label="Interactive 3D globe. Use the arrow keys to turn it and Enter to pick the region in view."
+    >
       <CanvasShell
+        // `never` while the tab is hidden: nothing changes on screen, so nothing
+        // needs drawing. OrbitControls still works the moment the tab returns.
+        frameloop={hidden ? "never" : "always"}
         className="h-[340px] sm:h-[440px] lg:h-[560px]"
-        camera={{ position: [0, 0.6, 3.1], fov: 42, near: 0.1, far: 200 }}
+        camera={{ position: HOME_CAMERA, fov: 42, near: 0.1, far: 200 }}
         label="Interactive 3D globe. Click a highlighted region to filter the species list."
         fallback={<CanvasFallback message="Your device could not start WebGL — use the region list instead." />}
       >
-        <GlobeScene counts={counts} textureUrl={textureUrl} onSelect={handleSelect} />
+        <GlobeScene
+          counts={counts}
+          species={species}
+          textureUrl={textureUrl}
+          land={land}
+          detail={land ? detail : "grid"}
+          onSelect={handleSelect}
+          apiRef={apiRef}
+        />
       </CanvasShell>
 
       {/* HUD: keyboard/touch friendly alternative to clicking the globe */}
@@ -389,7 +649,7 @@ export function InteractiveGlobe({ counts = {}, textureUrl = null, onRegionSelec
               {active.label}
               <button
                 type="button"
-                onClick={reset}
+                onClick={goHome}
                 className="ml-0.5 rounded-full px-1.5 text-neon/70 transition-colors hover:bg-neon/20 hover:text-neon"
                 aria-label="Clear region filter"
               >
@@ -404,29 +664,40 @@ export function InteractiveGlobe({ counts = {}, textureUrl = null, onRegionSelec
         </div>
 
         <div className="pointer-events-auto flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <FilterChip label="All regions" active={region === "All"} onClick={() => setRegion("All")} />
+          <FilterChip label="All regions" active={showingAll} onClick={goHome} />
           {markersToChips(counts).map(({ region: chipRegion, label, count }) => (
             <FilterChip
               key={chipRegion}
               label={`${label} · ${count}`}
               active={region === chipRegion}
-              onClick={() => setRegion(chipRegion)}
+              onClick={() => handleSelect(chipRegion)}
             />
           ))}
         </div>
       </div>
 
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={reset}
-        className="glass absolute right-3 top-3"
-        aria-label="Reset globe filters"
-      >
-        <RotateCcw />
-        Reset
-      </Button>
+      <div className="absolute right-3 top-3 flex items-center gap-2">
+        {/* Two tiers of globe, and the visitor gets to choose: the grid draws
+            instantly and is cheaper; the map is the drawn world. */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="glass"
+          onClick={() => setDetail((value) => (value === "map" ? "grid" : "map"))}
+          aria-pressed={detail === "map"}
+          title={land ? "Switch between the drawn map and the grid" : "The world map is still loading"}
+          disabled={!land && detail === "map"}
+        >
+          <Layers />
+          {detail === "map" ? "Map" : "Grid"}
+        </Button>
+
+        <Button type="button" variant="ghost" size="sm" onClick={goHome} className="glass" aria-label="Reset globe filters">
+          <RotateCcw />
+          Reset
+        </Button>
+      </div>
     </div>
   );
 }
@@ -439,9 +710,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       aria-pressed={active}
       className={cn(
         "shrink-0 rounded-full px-3 py-1.5 text-[11px] font-medium ring-1 backdrop-blur transition-colors",
-        active
-          ? "bg-neon/20 text-neon ring-neon/40"
-          : "bg-void/60 text-white/65 ring-white/12 hover:bg-white/10 hover:text-white",
+        active ? "bg-neon/20 text-neon ring-neon/40" : "bg-void/60 text-white/65 ring-white/12 hover:bg-white/10 hover:text-white",
       )}
     >
       {label}

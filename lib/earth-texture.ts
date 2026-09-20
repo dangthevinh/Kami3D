@@ -37,12 +37,21 @@ export interface EarthTextureOptions {
   graticule?: boolean;
   /** Soft green outline along every coast. Costs a shadow pass. */
   coastlineGlow?: boolean;
+  /**
+   * Ocean depth tiers: the same coastline stroked wider and fainter, twice, so the
+   * sea darkens as it leaves the land — continental shelf, then slope, then abyss.
+   * It is *distance from the coast* drawn with the geometry we already have, not
+   * bathymetry; calling it elevation data would be a lie.
+   */
+  depth?: boolean;
+  /** Inner shading along every coast, which is what makes land read as raised. */
+  relief?: boolean;
 }
 
 export function createEarthCanvas(data: LandData, options: EarthTextureOptions = {}): HTMLCanvasElement {
   const width = options.width ?? 2048;
   const height = Math.round(width / 2);
-  const { graticule = true, coastlineGlow = true } = options;
+  const { graticule = true, coastlineGlow = true, depth = true, relief = true } = options;
 
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -75,12 +84,44 @@ export function createEarthCanvas(data: LandData, options: EarthTextureOptions =
     ctx.closePath();
   }
 
+  // Depth tiers, drawn *under* the land: each stroke is wider and fainter than the
+  // last, so the blue fades outward from every coast.
+  if (depth) {
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.filter = `blur(${Math.max(2, width * 0.0025)}px)`;
+
+    for (const tier of [
+      { color: "rgba(18, 58, 92, 0.85)", scale: 0.008 },
+      { color: "rgba(11, 36, 64, 0.7)", scale: 0.02 },
+    ]) {
+      ctx.strokeStyle = tier.color;
+      ctx.lineWidth = Math.max(4, width * tier.scale);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
   const land = ctx.createLinearGradient(0, 0, 0, height);
   land.addColorStop(0, LAND.north);
   land.addColorStop(0.5, LAND.equator);
   land.addColorStop(1, LAND.south);
   ctx.fillStyle = land;
   ctx.fill();
+
+  // Relief: the same coast, clipped to the land and blurred inwards, so the inland
+  // edge of every continent is a shade darker than its middle.
+  if (relief) {
+    ctx.save();
+    ctx.clip();
+    ctx.strokeStyle = "rgba(3, 16, 12, 0.5)";
+    ctx.lineWidth = Math.max(3, width * 0.006);
+    ctx.lineJoin = "round";
+    ctx.filter = `blur(${Math.max(1, width * 0.002)}px)`;
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Continental shelf: a wider, fainter stroke sitting just outside the coast.
   if (coastlineGlow) {

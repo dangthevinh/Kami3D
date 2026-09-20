@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { useExploreStore } from "@/lib/store";
@@ -19,9 +19,17 @@ import { REGIONS, type Region } from "@/types/animal";
  * The filters themselves are applied to the shared store after hydration, once
  * per distinct query string, so later interaction with the filter bar is never
  * overwritten.
+ *
+ * This component is also the **only** writer of the other direction. The globe and
+ * the filter bar just set the store; a single effect mirrors the region back into
+ * the address bar. Letting each control write the URL itself produced two
+ * `router.replace` calls racing for the same history entry, and one of them lost:
+ * the address bar kept a region the visitor had just cleared.
  */
 export function ExploreUrlFilters() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const region = useExploreStore((state) => state.region);
   const setRegion = useExploreStore((state) => state.setRegion);
   const setQuery = useExploreStore((state) => state.setQuery);
   const setShowPrehistoric = useExploreStore((state) => state.setShowPrehistoric);
@@ -46,6 +54,18 @@ export function ExploreUrlFilters() {
       setPrehistoricOnly(true);
     }
   }, [searchParams, setPrehistoricOnly, setQuery, setRegion, setShowPrehistoric]);
+
+  // Store → URL. Skipped until the deep link above has been applied, so a
+  // pre-filtered entry never gets rewritten to the default view on mount.
+  React.useEffect(() => {
+    if (applied.current === null) return;
+
+    const wanted = region === "All" ? null : region;
+    const current = searchParams.get("region");
+    if (current === wanted) return;
+
+    router.replace(wanted ? `/explore?region=${encodeURIComponent(wanted)}` : "/explore", { scroll: false });
+  }, [region, router, searchParams]);
 
   return null;
 }

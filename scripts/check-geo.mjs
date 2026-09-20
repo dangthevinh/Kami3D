@@ -136,9 +136,20 @@ test("the texture renderer covers the canvas and traces every landmass", async (
   // A recording stub stands in for a real canvas, so the drawing *code* is
   // exercised here too — the data being right is not the same as the renderer
   // using it.
-  const calls = { fillRect: [], moveTo: 0, lineTo: 0, closePath: 0, fill: 0, stroke: 0, gradients: 0 };
+  const calls = { fillRect: [], moveTo: 0, lineTo: 0, closePath: 0, fill: 0, stroke: 0, gradients: 0, clip: 0, filters: 0 };
 
   const stubContext = {
+    // Depth tiers blur their strokes and the relief pass is clipped to the land;
+    // both are recorded so the test can prove the renderer actually used them.
+    clip: () => {
+      calls.clip += 1;
+    },
+    set filter(value) {
+      if (typeof value === "string" && value !== "none") calls.filters += 1;
+    },
+    get filter() {
+      return "none";
+    },
     createLinearGradient: () => {
       calls.gradients += 1;
       return { addColorStop: () => {} };
@@ -185,6 +196,9 @@ test("the texture renderer covers the canvas and traces every landmass", async (
   assert.equal(calls.closePath, data.polygons.length, "every ring should be closed");
   assert.ok(calls.fill >= 1, "land must be filled");
   assert.ok(calls.gradients >= 2, "ocean and land should use gradients");
+  assert.equal(calls.clip, 1, "the relief pass is clipped to the land so it cannot darken the ocean");
+  // One blur for the depth tiers (shared by both strokes) and one for the relief.
+  assert.ok(calls.filters >= 2, `depth tiers and relief should blur, got ${calls.filters} filter passes`);
 
   const strokesWithoutGrid = calls.stroke;
   const subpathsWithoutGrid = calls.moveTo;
@@ -201,6 +215,16 @@ test("the texture renderer covers the canvas and traces every landmass", async (
   );
   assert.ok(calls.stroke > strokesWithoutGrid, "the graticule should add strokes");
   assert.equal(calls.fillRect.length, 2, "each render fills its own ocean exactly once");
+
+  // A ceiling-tier render skips both expensive passes, which is the whole point of
+  // having them as options: the cheap texture has to stay cheap.
+  const before = { stroke: calls.stroke, clip: calls.clip, filters: calls.filters, fillRect: calls.fillRect.length };
+  createEarthCanvas(data, { width: 512, graticule: false, depth: false, relief: false, coastlineGlow: false });
+  assert.equal(calls.clip, before.clip, "no clipping without relief");
+  assert.equal(calls.filters, before.filters, "no blur passes without depth or relief");
+  // One stroke only: the coastline itself. No shelf, no slope, no glow.
+  assert.equal(calls.stroke, before.stroke + 1, "the cheap tier draws the coastline and nothing else");
+  assert.equal(calls.fillRect.length, before.fillRect + 1, "the ocean still fills");
 
   delete globalThis.document;
 });

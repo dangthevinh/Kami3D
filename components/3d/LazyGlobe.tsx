@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 
 import { MountWhenVisible } from "@/components/3d/MountWhenVisible";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { GlobePin } from "@/lib/globe";
 import type { Region } from "@/types/animal";
 
 /**
@@ -41,14 +42,16 @@ const InteractiveGlobe = dynamic(
 
 export interface LazyGlobeProps {
   counts?: Record<string, number>;
+  /** Most-opened species per region, shown on the map pins. */
+  species?: Record<string, GlobePin[]>;
   onRegionSelect?: (region: Region) => void;
   className?: string;
 }
 
-export function LazyGlobe({ counts = {}, onRegionSelect, className }: LazyGlobeProps) {
+export function LazyGlobe({ counts = {}, species = {}, onRegionSelect, className }: LazyGlobeProps) {
   return (
     <MountWhenVisible className={className} placeholder={<GlobeSkeleton />}>
-      <InteractiveGlobe counts={counts} onRegionSelect={onRegionSelect} />
+      <InteractiveGlobe counts={counts} species={species} onRegionSelect={onRegionSelect} />
     </MountWhenVisible>
   );
 }

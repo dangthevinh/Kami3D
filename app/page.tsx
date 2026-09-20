@@ -97,7 +97,7 @@ export default async function HomePage() {
             </dl>
           </div>
 
-          <HomeGlobe counts={counts} />
+          <HomeGlobe counts={counts} animals={animals} />
         </div>
       </section>
 

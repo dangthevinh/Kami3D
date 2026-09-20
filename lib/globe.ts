@@ -1,4 +1,6 @@
-import { REGIONS, REGION_ANCHORS, type Region } from "@/types/animal";
+// Relative with an explicit extension: the Node check suites run this module
+// directly (type stripping, no bundler), where a "@/" alias would not resolve.
+import { REGIONS, REGION_ANCHORS, type Region } from "../types/animal.ts";
 
 /**
  * Pure spherical-math helpers for the interactive globe.
@@ -52,13 +54,25 @@ export function vector3ToLatLng(point: Vec3): LatLng {
   return { lat, lng: ((lng + 540) % 360) - 180 };
 }
 
-/** Great-circle distance in degrees, used to snap a globe click to a region. */
+/**
+ * Great-circle distance in degrees, used to snap a globe click to a region.
+ *
+ * Haversine rather than the spherical law of cosines: `acos` is ill-conditioned
+ * near zero, and here the interesting cases are exactly the small ones — is this
+ * click on the anchor or a continent away? The law of cosines answers "0.0000009°
+ * away" for a point that is *on* the anchor; haversine answers zero.
+ */
 export function angularDistance(a: LatLng, b: LatLng): number {
   const lat1 = a.lat * DEG2RAD;
   const lat2 = b.lat * DEG2RAD;
+  const dLat = lat2 - lat1;
   const dLng = (b.lng - a.lng) * DEG2RAD;
-  const cos = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(dLng);
-  return Math.acos(Math.min(1, Math.max(-1, cos))) * RAD2DEG;
+
+  const h =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+  return 2 * Math.asin(Math.min(1, Math.sqrt(h))) * RAD2DEG;
 }
 
 /** Nearest region to a point, or `null` when the click lands mid-ocean. */
@@ -76,6 +90,90 @@ export function nearestRegion(point: LatLng, maxDistance = 62): Region | null {
   }
 
   return bestDistance <= maxDistance ? best : null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Camera                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** Highest the camera may sit above the horizon before the view goes vertical. */
+export const MAX_CAMERA_ELEVATION = 0.92;
+
+/**
+ * Where a camera should sit to look at a region.
+ *
+ * The direction is the anchor itself, lifted towards the north pole by
+ * `elevation` so the view has a horizon rather than looking straight down at a
+ * point. Near the poles there is nothing to lift towards without tipping the view
+ * over the top, so the elevation is spent only as far as the geometry allows —
+ * which is why the clamp is applied after blending rather than before.
+ */
+export function cameraTargetFor(region: Region, distance = 3.1, elevation = 0.35): Vec3 {
+  const anchor = REGION_ANCHORS[region];
+  const direction = latLngToVector3(anchor.lat, anchor.lng, 1);
+
+  const lifted = {
+    x: direction.x,
+    y: direction.y + elevation * (1 - Math.abs(direction.y)),
+    z: direction.z,
+  };
+
+  const length = Math.hypot(lifted.x, lifted.y, lifted.z) || 1;
+  let unit = { x: lifted.x / length, y: lifted.y / length, z: lifted.z / length };
+
+  if (Math.abs(unit.y) > MAX_CAMERA_ELEVATION) {
+    const budget = Math.sqrt(1 - MAX_CAMERA_ELEVATION * MAX_CAMERA_ELEVATION);
+    const horizontal = Math.hypot(unit.x, unit.z) || 1;
+    unit = {
+      x: (unit.x / horizontal) * budget,
+      y: Math.sign(unit.y) * MAX_CAMERA_ELEVATION,
+      z: (unit.z / horizontal) * budget,
+    };
+  }
+
+  return { x: unit.x * distance, y: unit.y * distance, z: unit.z * distance };
+}
+
+/**
+ * The region a camera is looking at, given its position on a sphere centred on the
+ * globe. Used by the keyboard: Enter picks whatever is facing the visitor.
+ */
+export function regionFacingCamera(position: Vec3, maxDistance = 62): Region | null {
+  const length = Math.hypot(position.x, position.y, position.z) || 1;
+  const point = vector3ToLatLng({ x: position.x / length, y: position.y / length, z: position.z / length });
+  return nearestRegion(point, maxDistance);
+}
+
+/**
+ * The most-viewed species per region, capped per region.
+ *
+ * Pure and sorted, so the globe's tooltips and their tests agree on what "top"
+ * means: views first, then the catalogue's own popularity as a tie-break for the
+ * many species that have never been opened.
+ */
+export interface GlobePin {
+  slug: string;
+  name: string;
+  views: number;
+}
+
+export function topSpeciesByRegion<
+  T extends { region: string; slug: string; name: string; view_count?: number | null; popularity: number },
+>(animals: readonly T[], limitPerRegion = 3): Record<string, GlobePin[]> {
+  const grouped: Record<string, GlobePin[]> = {};
+
+  const ranked = [...animals].sort(
+    (a, b) => (b.view_count ?? 0) - (a.view_count ?? 0) || b.popularity - a.popularity,
+  );
+
+  for (const animal of ranked) {
+    const list = grouped[animal.region] ?? (grouped[animal.region] = []);
+    if (list.length < limitPerRegion) {
+      list.push({ slug: animal.slug, name: animal.name, views: animal.view_count ?? 0 });
+    }
+  }
+
+  return grouped;
 }
 
 /** All region anchors with their unit-sphere positions precomputed. */

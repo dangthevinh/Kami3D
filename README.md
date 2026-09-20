@@ -315,6 +315,7 @@ npm run check:theme     # both palettes: token completeness and WCAG contrast ma
 npm run check:quality   # device tier rules (saveData, weak hardware, unknown APIs)
 npm run check:camera    # viewer camera maths: presets, damped flights, orbit, dolly
 npm run check:quiz      # quiz round builder (variants, determinism) + scoring rules
+npm run check:globe     # globe camera maths (fly-to, facing region) + pin ranking
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
                         #   (scripts/check-*.mjs are all node:test suites and all run in CI;
                         #    tools that need a build or a browser are named differently)

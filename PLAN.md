@@ -19,7 +19,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **5** | Phát sinh: CI/CD, model 3D thật, brand, auth, MCP | ✅ Hoàn thành (còn 1 việc chờ bạn) |
 | **6** | Tăng tốc tải trang & SEO | ✅ Hoàn thành |
 | **7** | Chế độ Sáng / Tối cho người dùng | ✅ Hoàn thành |
-| **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | 🚧 Đang làm — xem bảng trạng thái trong phase |
+| **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | ✅ 5/6 mục xong — Mục 5 (âm thanh) chờ asset |
 
 **Số liệu hiện tại**
 
@@ -28,11 +28,12 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **126** bài trong **14** suite (`npm run check:suites`) |
+| Test tự động | **133** bài trong **15** suite (`npm run check:suites`) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
-| JS thật trước `load` (đo bằng Chrome) | **~140 kB** mọi trang; bundle 3D tải **sau** khi trang đã dùng được |
+| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 143.4 · `/explore` 146.5 · `/quiz` 153.3 · `/animal/[slug]` 139.2 kB (ngân sách 165) |
+| Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
 | CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
-| Bảo mật database | Supabase advisors: **0 phát hiện security** |
+| Bảo mật database | Supabase advisors: **0 phát hiện security**; 2 cảnh báo `anon_security_definer_function_executable` là **cố ý** và hẹp (`increment_animal_view`, `quiz_stats`) |
 
 **Tech stack đang chạy**: Next.js `15.5.25` (App Router) · React `19.2.8` · Tailwind CSS `4` ·
 React Three Fiber `9` + drei `10` + three `0.186` · Clerk `7` · Supabase `2.116` + `@supabase/ssr` ·
@@ -219,7 +220,7 @@ Performance/Loading states.
 | 1 | Production ModelViewer | ✅ Hoàn thành |
 | 2 | SizeComparison với scale real-time | ✅ Hoàn thành |
 | 3 | Quiz 3D hoàn chỉnh | ✅ Hoàn thành |
-| 4 | Enhanced InteractiveGlobe | ⏳ Chưa bắt đầu |
+| 4 | Enhanced InteractiveGlobe | ✅ Hoàn thành |
 | 5 | Âm thanh cho quiz "đoán qua tiếng kêu" | ⏸️ Chờ asset + quyết định |
 
 ### Mục 0 — Nền tảng: chất lượng thiết bị & cổng chặn bundle
@@ -301,12 +302,17 @@ thể câu hỏi trong 2 mode sẵn có trước.
 
 | Việc | Chi tiết | Trạng thái |
 | --- | --- | --- |
-| Bay tới vùng | Camera lerp tới anchor của vùng trong ~700 ms; toán ở `lib/globe.ts` + test | ⏳ |
-| Pin theo loài | Hover pin → tooltip 3 loài đứng đầu theo lượt xem; bấm → mở thẳng trang loài | ⏳ |
-| Texture bậc thang | Bóng độ sâu đại dương + tô độ cao đất liền từ **cùng** dữ liệu Natural Earth (không thêm KB); graticule thành lớp mờ tắt được | ⏳ |
-| Bàn phím & a11y | Mũi tên xoay/nghiêng, `+/-` zoom, `Tab` qua các pin, `Enter` chọn vùng | ⏳ |
-| Đồng bộ URL | Chọn vùng ghi `/explore?region=…` bằng `router.replace` | ⏳ |
-| Tiết kiệm pin | `frameloop="demand"` khi không tương tác và tab bị ẩn | ⏳ |
+| Bay tới vùng | Chọn vùng (chip, pin, bàn phím hay deep link) → camera bay tới anchor bằng damping hàm mũ, **giữ nguyên mức zoom** (bay là *quay*, không phải cắt cảnh). Toán ở `lib/globe.ts#cameraTargetFor` + `regionFacingCamera` | ✅ |
+| Pin theo loài | Mỗi pin vùng mở ra **3 loài được xem nhiều nhất** của vùng đó (kèm số lượt xem), bấm là vào thẳng trang loài — `topSpeciesByRegion()` thuần, có test | ✅ |
+| Texture bậc thang | Hai tầng: lưới graticule (vẽ ngay, luôn có) và bản đồ thật; nút **Map/Grid** cho người xem chọn. Bản đồ thêm **bậc độ sâu đại dương** (thềm → sườn → vực, vẽ bằng chính đường bờ có sẵn) và **đổ bóng ven bờ** để đất nổi lên. Máy tier `low` vẽ 1024px và bỏ hai lượt blur | ✅ |
+| Bàn phím & a11y | `←→↑↓` xoay/nghiêng, `+/-` zoom, **`Enter` chọn vùng đang quay mặt vào camera**, `R` reset; `aria-keyshortcuts`, `tabIndex`, `aria-busy` khi đang bay. Chip vùng vẫn là đường bàn phím đầy đủ | ✅ |
+| Đồng bộ URL | `ExploreUrlFilters` là **nơi duy nhất** ghi URL: store → `/explore?region=…` bằng `router.replace`. (Bản đầu để cả globe lẫn island cùng ghi thì hai lệnh `replace` tranh nhau một history entry và một lệnh bị mất — đã sửa) | ✅ |
+| Tiết kiệm pin | Tab bị ẩn → `frameloop="never"` (không vẽ gì); vòng quay tự động cũng dừng khi đang bay hoặc đang bị kéo | ✅ |
+| Sửa kèm | `angularDistance` chuyển sang **haversine**: luật cosin cho ra "0.0000009°" cho một điểm *nằm ngay trên* anchor, còn haversine cho 0 — và đây đúng là khoảng cách nhỏ mà việc snap click cần | ✅ |
+
+**Bằng chứng Mục 4** — `check-globe` (8 bài: round-trip toạ độ, camera đúng khoảng cách và đúng vùng, không bao giờ vượt cực, "nhìn vào vùng nào thì trả về vùng đó", giữa đại dương thì không chọn gì, xếp hạng pin theo lượt xem rồi tới độ phổ biến) + 2 bài mới trong `check-geo` (bậc độ sâu/ven bờ có chạy, và bậc rẻ tiền **không** chạy chúng).
+Trong Chrome thật: deep link `/explore?region=Asia` → chip Asia đang bật; bấm chip Africa → URL thành `?region=Africa`; bấm Reset → vùng và URL cùng về mặc định; nút Map/Grid đổi nhãn; vùng chứa đủ `aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown + - Enter R"` và `tabIndex=0`.
+*Chưa kiểm chứng được ở máy này*: chuyển động camera thật (bay tới vùng, phím mũi tên) vì Chrome headless ở đây không có WebGL — toán đã có test, phần nối scene nằm cùng chỗ với rig của ModelViewer đã kiểm chứng.
 
 ### Mục 5 — Âm thanh cho quiz "đoán qua tiếng kêu" (chờ asset)
 
@@ -351,6 +357,7 @@ npm run check:camera # toán camera của ModelViewer: preset, bay, xoay, zoom
 npm run check:bundle  # sau khi build: ngân sách JS mỗi route + luật "không 3D/auth ở first paint"
 npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
 npm run check:quiz   # bộ sinh câu hỏi + luật tính điểm của quiz
+npm run check:globe  # toán địa cầu: camera bay tới vùng, xếp hạng pin theo vùng
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào

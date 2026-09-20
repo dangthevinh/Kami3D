@@ -6,6 +6,7 @@ import { AnimalGrid } from "@/components/animal/AnimalGrid";
 import { FilterBar } from "@/components/animal/FilterBar";
 import { LazyGlobe } from "@/components/3d/LazyGlobe";
 import { UnlockModal } from "@/components/premium/UnlockModal";
+import { topSpeciesByRegion } from "@/lib/globe";
 import { useExploreStore } from "@/lib/store";
 import { useFilteredAnimals } from "@/lib/use-filtered-animals";
 import { cn } from "@/lib/utils";
@@ -39,10 +40,13 @@ export function ExploreExperience({
 }: ExploreExperienceProps) {
   const visible = useFilteredAnimals(animals);
   const premiumAnimals = React.useMemo(() => animals.filter((animal) => animal.premium), [animals]);
+  const pins = React.useMemo(() => topSpeciesByRegion(animals), [animals]);
 
   return (
     <div className={cn("space-y-5", className)}>
-      {showGlobe ? <LazyGlobe counts={counts} onRegionSelect={onRegionSelect} /> : null}
+      {/* On /explore the globe *is* the region filter; the address bar follows the
+          store, mirrored once by `ExploreUrlFilters`. */}
+      {showGlobe ? <LazyGlobe counts={counts} species={pins} onRegionSelect={onRegionSelect} /> : null}
 
       {showFilters ? <FilterBar resultCount={visible.length} totalCount={animals.length} /> : null}
 
