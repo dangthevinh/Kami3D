@@ -11,6 +11,20 @@ const supabaseHost = (() => {
   }
 })();
 
+/**
+ * Canonical URLs, the sitemap and every OpenGraph tag are built from
+ * `NEXT_PUBLIC_SITE_URL`. A deployment that forgets it used to publish
+ * `http://localhost:9000` as its canonical origin — which tells Google not to
+ * index the real site. `lib/env.server.ts` now falls back to the platform's own
+ * production URL, and this warns when even that is missing.
+ */
+if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_SITE_URL && !process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+  console.warn(
+    "[kami3d] NEXT_PUBLIC_SITE_URL is not set: canonical URLs, the sitemap and og:url will point at " +
+      "http://localhost:9000. Set it to the public origin before deploying.",
+  );
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,

@@ -7,7 +7,7 @@ import { ExploreExperience } from "@/components/animal/ExploreExperience";
 import { ExploreUrlFilters } from "@/components/animal/ExploreUrlFilters";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getAllAnimals, getRegionCounts, getStatistics } from "@/lib/animals";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, collectionPageJsonLd, graph, speciesItemListJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: "Explore every species in 3D",
     description:
       "Filter 24 3D animal models by region, class and conservation status — or spin the globe and pick a continent.",
-    url: `${publicEnv.siteUrl}/explore`,
+    url: `${siteUrl}/explore`,
     siteName: "Kami3D",
   },
   twitter: { card: "summary_large_image" },
@@ -41,13 +41,13 @@ export default async function ExplorePage() {
 
   const jsonLd = graph([
     collectionPageJsonLd(
-      publicEnv.siteUrl,
+      siteUrl,
       "Kami3D — 3D World Wildlife Encyclopedia",
       "Every species in the Kami3D catalogue, filterable by region, taxonomic class and IUCN conservation status.",
       animals.length,
     ),
-    speciesItemListJsonLd(publicEnv.siteUrl, "Kami3D species", animals),
-    breadcrumbJsonLd(publicEnv.siteUrl, [
+    speciesItemListJsonLd(siteUrl, "Kami3D species", animals),
+    breadcrumbJsonLd(siteUrl, [
       { name: "Home", path: "/" },
       { name: "Explore", path: "/explore" },
     ]),

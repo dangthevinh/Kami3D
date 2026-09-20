@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals, getAnimalBySlug, getRelatedAnimals } from "@/lib/animals";
 import { describeLicense, getModelAttribution } from "@/lib/attribution";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, graph, speciesJsonLd } from "@/lib/seo";
 import { cn, formatLength, formatWeight } from "@/lib/utils";
 import { REGION_ANCHORS, statusToTailwind } from "@/types/animal";
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: "article",
       title,
       description,
-      url: `${publicEnv.siteUrl}/animal/${animal.slug}`,
+      url: `${siteUrl}/animal/${animal.slug}`,
       siteName: "Kami3D",
     },
     twitter: {
@@ -70,8 +70,8 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   // Structured data: one graph per species page — the taxon, where it sits in the
   // site, and how a searcher got here. See lib/seo.ts.
   const jsonLd = graph([
-    speciesJsonLd(publicEnv.siteUrl, animal),
-    breadcrumbJsonLd(publicEnv.siteUrl, [
+    speciesJsonLd(siteUrl, animal),
+    breadcrumbJsonLd(siteUrl, [
       { name: "Home", path: "/" },
       { name: "Explore", path: "/explore" },
       { name: animal.name, path: `/animal/${animal.slug}` },

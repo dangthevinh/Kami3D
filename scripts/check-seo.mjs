@@ -18,6 +18,7 @@ import {
   graph,
   organizationJsonLd,
   speciesItemListJsonLd,
+  resolveSiteUrl,
   serializeJsonLd,
   speciesJsonLd,
   websiteJsonLd,
@@ -54,6 +55,24 @@ const LION = {
   is_prehistoric: false,
   popularity: 5,
 };
+
+test("the published origin prefers configuration, then the platform, then localhost", () => {
+  assert.equal(
+    resolveSiteUrl({ explicit: "https://kami3d.app", platform: "kami3d.vercel.app", fallback: "http://localhost:9000" }),
+    "https://kami3d.app",
+  );
+  // A trailing slash would otherwise produce "https://kami3d.app//animal/lion".
+  assert.equal(resolveSiteUrl({ explicit: "https://kami3d.app/", fallback: "http://localhost:9000" }), "https://kami3d.app");
+  assert.equal(
+    resolveSiteUrl({ explicit: "  ", platform: "kami3d.vercel.app", fallback: "http://localhost:9000" }),
+    "https://kami3d.vercel.app",
+  );
+  assert.equal(
+    resolveSiteUrl({ platform: "https://kami3d.netlify.app/", fallback: "http://localhost:9000" }),
+    "https://kami3d.netlify.app",
+  );
+  assert.equal(resolveSiteUrl({ fallback: "http://localhost:9000" }), "http://localhost:9000");
+});
 
 test("the graph wrapper is the only place @context is declared", () => {
   const data = graph([websiteJsonLd(FACTS), organizationJsonLd(FACTS)]);

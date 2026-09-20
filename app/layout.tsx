@@ -7,7 +7,7 @@ import { BackgroundParticles } from "@/components/layout/BackgroundParticles";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { activeAuthProvider } from "@/lib/auth-provider";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 import { SITE_DESCRIPTION, SITE_GITHUB, SITE_NAME, graph, organizationJsonLd, websiteJsonLd, type SiteFacts } from "@/lib/seo";
 
 import "./globals.css";
@@ -20,7 +20,7 @@ const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap"
 const SITE_TITLE = "Kami3D — 3D World Wildlife Encyclopedia";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(publicEnv.siteUrl),
+  metadataBase: new URL(siteUrl),
   title: {
     default: SITE_TITLE,
     template: "%s · Kami3D",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: publicEnv.siteUrl,
+    url: siteUrl,
     locale: "en",
   },
   twitter: {
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
  */
 const siteJsonLd = (() => {
   const facts: SiteFacts = {
-    siteUrl: publicEnv.siteUrl,
+    siteUrl: siteUrl,
     name: SITE_NAME,
     description: SITE_DESCRIPTION,
     githubUrl: SITE_GITHUB,

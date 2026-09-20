@@ -4,7 +4,7 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { QuizGame } from "@/components/quiz/QuizGame";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getAllAnimals } from "@/lib/animals";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, graph } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -50,11 +50,11 @@ export default async function QuizPage() {
             educationalLevel: "Beginner",
             learningResourceType: "Quiz",
             inLanguage: "en",
-            isPartOf: { "@id": `${publicEnv.siteUrl}/#website` },
-            url: `${publicEnv.siteUrl}/quiz`,
+            isPartOf: { "@id": `${siteUrl}/#website` },
+            url: `${siteUrl}/quiz`,
             numberOfQuestions: 10,
           },
-          breadcrumbJsonLd(publicEnv.siteUrl, [
+          breadcrumbJsonLd(siteUrl, [
             { name: "Home", path: "/" },
             { name: "Quiz", path: "/quiz" },
           ]),

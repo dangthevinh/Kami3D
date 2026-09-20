@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 
 /**
  * Personal and machine surfaces stay out of the index: the collection page is
@@ -15,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/profile", "/sign-in", "/sign-up"],
       },
     ],
-    sitemap: `${publicEnv.siteUrl}/sitemap.xml`,
-    host: publicEnv.siteUrl,
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

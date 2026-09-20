@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getAllAnimals } from "@/lib/animals";
-import { publicEnv } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 
 /**
  * Static sitemap: the landing surfaces plus one entry per species.
@@ -14,15 +14,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${publicEnv.siteUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${publicEnv.siteUrl}/explore`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${publicEnv.siteUrl}/quiz`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${publicEnv.siteUrl}/leaderboard`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
-    { url: `${publicEnv.siteUrl}/about`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${siteUrl}/explore`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/quiz`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/leaderboard`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
+    { url: `${siteUrl}/about`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   const speciesRoutes: MetadataRoute.Sitemap = animals.map((animal) => ({
-    url: `${publicEnv.siteUrl}/animal/${animal.slug}`,
+    url: `${siteUrl}/animal/${animal.slug}`,
     lastModified: animal.created_at ? new Date(animal.created_at) : now,
     changeFrequency: "monthly",
     priority: animal.premium ? 0.6 : 0.8,

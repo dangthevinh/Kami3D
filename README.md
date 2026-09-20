@@ -90,7 +90,7 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | Bypasses RLS. Without it, favourites and scores fall back to a cookie |
 | `SKETCHFAB_API_TOKEN` | `scripts/fetch-models.mjs` | Searching works without it, downloading does not |
 | `SI_API_KEY`, `POLY_PIZZA_API_KEY` | `scripts/fetch-models.mjs` | Optional extra model providers |
-| `NEXT_PUBLIC_SITE_URL` | app | Canonical URLs, sitemap, OG images — must match the public origin |
+| `NEXT_PUBLIC_SITE_URL` | app | Canonical URLs, sitemap, OG images — must match the public origin. Falls back to the Vercel/Netlify production URL, then to `http://localhost:9000` (which the build warns about) |
 | `NEXT_PUBLIC_DRACO_DECODER_PATH` | browser | Empty uses the self-hosted decoder |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | browser | Empty renders ad placeholders |
 

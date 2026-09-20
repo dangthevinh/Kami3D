@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { isAdsEnabled, isDemoMode, publicEnv } from "@/lib/env";
+import { isAdsEnabled, isDemoMode } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 
 export const metadata: Metadata = {
   title: "About & data sources",
@@ -112,7 +113,7 @@ export default function AboutPage() {
         <div className="mt-5 flex flex-wrap items-center gap-2">
           {isDemoMode ? <Badge variant="solar">Running in Demo Mode</Badge> : <Badge variant="neon">Supabase connected</Badge>}
           {isAdsEnabled ? <Badge variant="outline">AdSense configured</Badge> : <Badge variant="outline">Ad placeholders</Badge>}
-          <Badge variant="iris">Site: {publicEnv.siteUrl.replace(/^https?:\/\//, "")}</Badge>
+          <Badge variant="iris">Site: {siteUrl.replace(/^https?:\/\//, "")}</Badge>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">

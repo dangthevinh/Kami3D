@@ -14,6 +14,35 @@ import type { Animal } from "@/types/animal";
  *   - URLs are absolute, because a crawler resolves them outside the page.
  */
 
+export interface SiteUrlInput {
+  /** `NEXT_PUBLIC_SITE_URL`, the documented setting. */
+  explicit?: string | undefined;
+  /** The host's own production URL (Vercel, Netlify), used when nothing is set. */
+  platform?: string | undefined;
+  /** Last resort — the local development origin. */
+  fallback: string;
+}
+
+/**
+ * The origin this deployment publishes.
+ *
+ * Everything a crawler resolves — canonical tags, `og:url`, the sitemap and every
+ * `@id` in the structured-data graph — is built from this value, and getting it
+ * wrong is one of the few SEO mistakes worse than having no tags at all: a
+ * canonical pointing at another host tells Google not to index this one. So an
+ * explicit setting wins, a platform-provided production URL is trusted next, and
+ * the localhost default is only a development convenience (the build warns when
+ * it is what production would publish).
+ */
+export function resolveSiteUrl({ explicit, platform, fallback }: SiteUrlInput): string {
+  const trim = (value: string) => value.trim().replace(/\/+$/, "");
+
+  if (explicit?.trim()) return trim(explicit);
+  if (platform?.trim()) return `https://${trim(platform).replace(/^https?:\/\//, "")}`;
+
+  return trim(fallback);
+}
+
 export interface SiteFacts {
   siteUrl: string;
   name: string;

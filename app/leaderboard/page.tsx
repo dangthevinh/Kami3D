@@ -8,7 +8,8 @@ import { LeaderboardList } from "@/components/stats/LeaderboardList";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
 import { getMostViewed, getDailyTrend, getOverallTrend } from "@/lib/stats";
-import { isSupabaseConfigured, publicEnv } from "@/lib/env";
+import { isSupabaseConfigured } from "@/lib/env";
+import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, graph, speciesItemListJsonLd } from "@/lib/seo";
 import { summarise } from "@/lib/trend";
 import { formatCount } from "@/lib/utils";
@@ -71,8 +72,8 @@ export default async function LeaderboardPage() {
     <div className="section-shell space-y-6 pt-10">
       <JsonLd
         data={graph([
-          speciesItemListJsonLd(publicEnv.siteUrl, "Most viewed Kami3D species", ranked),
-          breadcrumbJsonLd(publicEnv.siteUrl, [
+          speciesItemListJsonLd(siteUrl, "Most viewed Kami3D species", ranked),
+          breadcrumbJsonLd(siteUrl, [
             { name: "Home", path: "/" },
             { name: "Most viewed", path: "/leaderboard" },
           ]),
