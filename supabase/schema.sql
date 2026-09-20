@@ -9,9 +9,14 @@
 --  * Identity comes from Supabase Auth by default (Clerk is supported as an
 --    alternative). `user_id` is TEXT so either provider's id fits the same column,
 --    and row level security compares it against `auth.uid()::text`.
---  * Personal rows are therefore protected by the database itself: the anon role has
+--  * With Supabase Auth the database enforces ownership itself: the anon role has
 --    no access, and a signed-in visitor only ever sees their own rows. No
 --    service-role key is needed for favourites or scores to work.
+--  * With Clerk as the identity provider, `auth.uid()` is always null (Supabase
+--    never sees a token of its own), so the server writes with the service role and
+--    filters every query by `user_id`. The policies below still matter: they are
+--    what stops the public anon key from touching personal rows at all. See
+--    `lib/personal-data.ts` for where that choice is made.
 --  * `animals` is the only table the browser reads without signing in.
 --  * Every animal is renderable in 3D without assets: `model_url` may be NULL and
 --    the app falls back to the procedural rig described by `silhouette`.

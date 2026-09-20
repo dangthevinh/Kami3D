@@ -4,7 +4,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { readFavoriteIds, writeFavoriteIds } from "@/lib/demo-store";
 import { readFavoriteIdsFor } from "@/lib/profile";
 import { TABLES } from "@/lib/supabase";
-import { getSupabaseServer } from "@/lib/supabase-server";
+import { getPersonalDataClient } from "@/lib/personal-data";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const supabase = await getSupabaseServer();
+    const supabase = await getPersonalDataClient();
     if (supabase) {
       const current = (await readFavoriteIdsFor(userId)) ?? [];
       const isFavorite = current.includes(animalId);

@@ -8,7 +8,8 @@ import { AnimalCard } from "@/components/animal/AnimalCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals } from "@/lib/animals";
-import { isClerkEnabled, isSupabaseConfigured } from "@/lib/env";
+import { isSignInAvailable } from "@/lib/auth-provider";
+import { isClerkEnabled } from "@/lib/env";
 import { getViewerProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { BADGES } from "@/types/animal";
@@ -28,7 +29,7 @@ export default async function ProfilePage() {
   // requirement lives rather than in path-matching middleware. Supabase Auth is the
   // default provider and Clerk the alternative; with neither configured the page
   // stays open and reads the browser-local collection instead.
-  if ((isSupabaseConfigured || isClerkEnabled) && !profile.signedIn) redirect("/sign-in");
+  if (isSignInAvailable() && !profile.signedIn) redirect("/sign-in");
 
   const favorites = animals.filter((animal) => profile.favoriteIds.includes(animal.id));
   const unlockedBadges = new Set(profile.badges);

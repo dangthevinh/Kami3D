@@ -137,10 +137,29 @@ Two project settings are worth knowing about:
   testing and sign-up signs you in immediately.
 - **Minimum password length** is enforced at 8 characters by the form (Supabase's own default is 6).
 
-**Clerk is supported as an alternative.** Add both Clerk keys instead of the Supabase ones and the app uses Clerk's
-hosted sign-in and `<UserButton />`; `middleware.ts` constructs `clerkMiddleware()` only when both are present.
-`lib/auth.ts` holds the preference order in one place. With neither configured, `/sign-in` explains what to add and
-the whole app still works in Demo Mode with a browser-local collection.
+**Clerk is supported as a full alternative.** Add both Clerk keys and the app uses Clerk's hosted sign-in and
+`<UserButton />`. Exactly one provider is authoritative, chosen in `lib/auth-provider.ts` and used by the layout,
+the auth pages, `middleware.ts` and the server helpers alike:
+
+| `AUTH_PROVIDER` | Behaviour |
+| --- | --- |
+| *(empty)* | Supabase when configured, otherwise Clerk, otherwise Demo Mode |
+| `supabase` | Supabase Auth, even if Clerk keys are present |
+| `clerk` | Clerk, even if Supabase is configured |
+| `none` | Demo Mode: no accounts, browser-local collection |
+
+The two providers differ in where ownership is enforced, which is the one thing worth understanding before
+switching:
+
+- **Supabase Auth** issues the JWTs the database understands, so personal rows go through the signed-in client and
+  **row level security enforces ownership in Postgres**. Nothing in the application can reach another account's rows.
+- **Clerk** authenticates the visitor, but `auth.uid()` is always null, so `SUPABASE_SERVICE_ROLE_KEY` is required
+  and every query is filtered by `user_id` in application code. Weaker than RLS — it depends on never forgetting
+  the filter — which is why both paths live side by side in `lib/personal-data.ts`. The RLS policies still apply:
+  they are what keeps the public anon key out of personal rows.
+
+With neither configured, `/sign-in` explains what to add and the whole app still works in Demo Mode with a
+browser-local collection.
 
 ---
 

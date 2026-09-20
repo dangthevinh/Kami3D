@@ -4,7 +4,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { appendQuizEntry, readQuizHistory } from "@/lib/demo-store";
 import { badgesForScore, readQuizHistoryFor } from "@/lib/profile";
 import { TABLES } from "@/lib/supabase";
-import { getSupabaseServer } from "@/lib/supabase-server";
+import { getPersonalDataClient } from "@/lib/personal-data";
 import { QUIZ_MODES, type QuizMode } from "@/types/animal";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   const userId = await getCurrentUserId();
 
   if (userId) {
-    const supabase = await getSupabaseServer();
+    const supabase = await getPersonalDataClient();
     if (supabase) {
       const { error } = await supabase.from(TABLES.quizScores).insert({ user_id: userId, ...entry });
 

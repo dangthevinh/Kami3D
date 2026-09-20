@@ -2,19 +2,19 @@ import "server-only";
 
 import { getCurrentUserId } from "@/lib/auth";
 import { readFavoriteIds as readCookieFavorites, readQuizHistory as readCookieQuiz } from "@/lib/demo-store";
+import { getPersonalDataClient } from "@/lib/personal-data";
 import { TABLES } from "@/lib/supabase";
-import { getSupabaseServer } from "@/lib/supabase-server";
 import { BADGES } from "@/types/animal";
 
 /**
  * Everything the profile page (and the score APIs) need about the current
  * visitor, resolved from whichever storage tier is active.
  *
- * Personal rows are read with the **signed-in Supabase client**, so row level
- * security decides what comes back — the application never holds a key that could
- * bypass it. Returning `null` means "this tier is unavailable", which is what
- * makes callers fall back to the browser-local collection instead of reporting an
- * empty one.
+ * Which client performs the read depends on the active provider — see
+ * `lib/personal-data.ts` for why Supabase Auth uses row level security and Clerk
+ * uses the service role with ownership enforced by the query. Returning `null`
+ * means "this tier is unavailable", which is what makes callers fall back to the
+ * browser-local collection instead of reporting an empty one.
  */
 
 export interface QuizEntry {
@@ -47,7 +47,7 @@ export function badgesForScore(score: number, total: number): string[] {
 }
 
 export async function readFavoriteIdsFor(userId: string): Promise<string[] | null> {
-  const supabase = await getSupabaseServer();
+  const supabase = await getPersonalDataClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase.from(TABLES.favorites).select("animal_id").eq("user_id", userId);
@@ -59,7 +59,7 @@ export async function readFavoriteIdsFor(userId: string): Promise<string[] | nul
 }
 
 export async function readQuizHistoryFor(userId: string): Promise<QuizEntry[] | null> {
-  const supabase = await getSupabaseServer();
+  const supabase = await getPersonalDataClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase
