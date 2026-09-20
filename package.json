@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "check:rigs": "node --test scripts/check-rigs.mjs",
     "check:size": "node --test scripts/check-size.mjs",
-    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs scripts/check-format.mjs scripts/check-trend.mjs scripts/check-seo.mjs scripts/check-auth-hint.mjs scripts/check-theme.mjs scripts/check-quality.mjs",
+    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs scripts/check-format.mjs scripts/check-trend.mjs scripts/check-seo.mjs scripts/check-auth-hint.mjs scripts/check-theme.mjs scripts/check-quality.mjs scripts/check-camera.mjs",
     "seed:generate": "node scripts/generate-seed.mjs",
     "check:sql": "node --test scripts/check-sql.mjs",
     "models:report": "node scripts/fetch-models.mjs --report",
@@ -29,6 +29,7 @@
     "check:auth": "node --test scripts/check-auth-hint.mjs",
     "check:theme": "node --test scripts/check-theme.mjs",
     "check:quality": "node --test scripts/check-quality.mjs",
+    "check:camera": "node --test scripts/check-camera.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
     "audit:perf": "node scripts/audit-browser.mjs",
     "audit:theme": "node scripts/audit-theme.mjs"

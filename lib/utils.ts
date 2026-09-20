@@ -78,6 +78,49 @@ export function formatCount(value: number) {
   return scaled(value / 1_000_000_000, "B");
 }
 
+/* -------------------------------------------------------------------------- */
+/* Downloads                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/** The eight bytes every PNG starts with. */
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+/**
+ * The bytes behind a `data:` URL.
+ *
+ * The viewer paints a frame with WebGL and reads it back with `toDataURL`, which
+ * is a base64 string. A browser will not download a `data:` URL — Chrome refuses
+ * it as an insecure download and says nothing — so the string has to become a
+ * blob first, which means decoding it here.
+ *
+ * Throws on anything that is not a base64 data URL: a silently empty download is
+ * worse than a visible failure.
+ */
+export function dataUrlToBytes(dataUrl: string): Uint8Array<ArrayBuffer> {
+  const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(dataUrl);
+  if (!match || !match[2]) throw new Error("Not a base64 data URL");
+
+  const binary = atob(match[3]);
+  // An explicit ArrayBuffer keeps the result assignable to BlobPart.
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return bytes;
+}
+
+/** True when the bytes really are a PNG, so a broken capture is caught. */
+export function isPngBytes(bytes: Uint8Array): boolean {
+  return bytes.length > PNG_SIGNATURE.length && PNG_SIGNATURE.every((byte, index) => bytes[index] === byte);
+}
+
+/** The filename offered when someone saves a picture of a species. */
+export function pngFileName(slug: string): string {
+  const safe = slug
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `kami3d-${safe || "model"}.png`;
+}
+
 export function shuffle<T>(items: readonly T[], seed: string): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i -= 1) {

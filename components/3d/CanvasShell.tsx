@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas, type CanvasProps } from "@react-three/fiber";
+import * as React from "react";
 import { Component, Suspense, type ReactNode } from "react";
 
 import { useQuality } from "@/components/3d/useQuality";
@@ -45,11 +46,36 @@ export interface CanvasShellProps extends Omit<CanvasProps, "children"> {
   label?: string;
 }
 
+/**
+ * Whether this browser can start a WebGL context at all.
+ *
+ * React Three Fiber reports the failure by logging, which leaves the visitor with
+ * an empty rectangle and no explanation — and it is not a rare case: old Android
+ * builds, locked-down enterprise browsers and any machine with hardware
+ * acceleration disabled all land here. Asking first means the viewer can show its
+ * fallback panel (and say what to do) instead of a blank canvas.
+ */
+function canCreateWebGL(): boolean {
+  try {
+    const probe = document.createElement("canvas");
+    return Boolean(probe.getContext("webgl2") ?? probe.getContext("webgl"));
+  } catch {
+    return false;
+  }
+}
+
 export function CanvasShell({ children, className, fallback, label, ...canvasProps }: CanvasShellProps) {
   // Resolution and shadow maps come from the device, not from a constant: a phone
   // that cannot afford a 1.8 dpr now renders one it can afford, and a desktop
   // keeps the settings the product was designed with. See `lib/quality.ts`.
   const quality = useQuality();
+  // `null` until measured: the server and the first client render both assume the
+  // device is capable, so nothing changes for the devices that are.
+  const [webgl, setWebgl] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    setWebgl(canCreateWebGL());
+  }, []);
 
   return (
     <div
@@ -63,6 +89,9 @@ export function CanvasShell({ children, className, fallback, label, ...canvasPro
       data-quality-dpr={quality.dpr[1]}
     >
       <WebGLBoundary fallback={fallback ?? <CanvasFallback />}>
+        {webgl === false ? (
+          (fallback ?? <CanvasFallback />)
+        ) : (
         <Canvas
           dpr={canvasProps.dpr ?? quality.dpr}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
@@ -71,6 +100,7 @@ export function CanvasShell({ children, className, fallback, label, ...canvasPro
         >
           <Suspense fallback={null}>{children}</Suspense>
         </Canvas>
+        )}
       </WebGLBoundary>
     </div>
   );

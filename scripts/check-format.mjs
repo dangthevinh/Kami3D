@@ -11,7 +11,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { formatCount, formatLength, formatWeight } from "../lib/utils.ts";
+import { dataUrlToBytes, formatCount, formatLength, formatWeight, isPngBytes, pngFileName } from "../lib/utils.ts";
 
 test("formatCount picks the unit after rounding, not before", () => {
   assert.equal(formatCount(0), "0");
@@ -42,6 +42,37 @@ test("formatCount never emits a value that reads as a smaller unit", () => {
 test("formatCount survives nonsense input", () => {
   assert.equal(formatCount(Number.NaN), "0");
   assert.equal(formatCount(Number.POSITIVE_INFINITY), "0");
+});
+
+test("a captured frame survives the trip through a blob", () => {
+  // A one-pixel PNG, base64, exactly as `canvas.toDataURL` returns it.
+  const onePixel =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8AARAAE/wH/9QAAAABJRU5ErkJggg==";
+
+  const bytes = dataUrlToBytes(onePixel);
+  assert.ok(bytes.length > 60, "the decode must produce real bytes");
+  assert.equal(isPngBytes(bytes), true, "the PNG signature must survive");
+  assert.equal(dataUrlToBytes("data:image/png;base64,AA==")[0], 0);
+});
+
+test("decoding refuses anything that is not a base64 data URL", () => {
+  // A silent empty download would look like a broken button.
+  assert.throws(() => dataUrlToBytes("https://example.com/model.png"), /base64/);
+  assert.throws(() => dataUrlToBytes("data:image/png,notbase64"), /base64/);
+  assert.throws(() => dataUrlToBytes(""), /base64/);
+});
+
+test("non-PNG bytes are detected as non-PNG", () => {
+  assert.equal(isPngBytes(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9])), false);
+  assert.equal(isPngBytes(new Uint8Array(0)), false);
+});
+
+test("saved pictures get a usable filename for any slug", () => {
+  assert.equal(pngFileName("lion"), "kami3d-lion.png");
+  assert.equal(pngFileName("Tyrannosaurus Rex"), "kami3d-tyrannosaurus-rex.png");
+  assert.equal(pngFileName("../../etc/passwd"), "kami3d-etc-passwd.png");
+  assert.equal(pngFileName(""), "kami3d-model.png");
+  assert.equal(pngFileName("---"), "kami3d-model.png");
 });
 
 test("the measurement helpers keep their units straight", () => {

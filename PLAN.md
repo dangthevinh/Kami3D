@@ -28,7 +28,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **76** bài trong **10** suite (`npm run check`) |
+| Test tự động | **100** bài trong **12** suite (`npm run check`) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
 | JS thật trước `load` (đo bằng Chrome) | **~140 kB** mọi trang; bundle 3D tải **sau** khi trang đã dùng được |
 | CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
@@ -216,7 +216,7 @@ Performance/Loading states.
 | # | Mục | Trạng thái |
 | --- | --- | --- |
 | 0 | Nền tảng: chất lượng thiết bị + cổng chặn bundle trong CI | ✅ Hoàn thành |
-| 1 | Production ModelViewer | ⏳ Chưa bắt đầu |
+| 1 | Production ModelViewer | ✅ Hoàn thành |
 | 2 | SizeComparison với scale real-time | ⏳ Chưa bắt đầu |
 | 3 | Quiz 3D hoàn chỉnh | ⏳ Chưa bắt đầu |
 | 4 | Enhanced InteractiveGlobe | ⏳ Chưa bắt đầu |
@@ -253,13 +253,18 @@ first paint) đều **vô hình** trong báo cáo `next build`. Từ mục này,
 
 | Việc | Chi tiết | Trạng thái |
 | --- | --- | --- |
-| Animation GLB | `useAnimations`, chọn clip, play/pause, tốc độ — chỉ hiện khi model thật sự có clip | ⏳ |
-| Camera preset | Trước / bên / trên / 3-4, animate bằng lerp; toán ở `lib/camera-presets.ts` | ⏳ |
-| Overlay số đo | Nhãn `length_m`/`height_m` vẽ trên model (`Line` + `Html`), bật/tắt | ⏳ |
-| Tiến độ tải thật | `useProgress` → % xác định + pha "giải nén DRACO"; rig procedural hiện **ngay**, tráo sang GLB khi xong | ⏳ |
-| Thử lại khi lỗi | Nút "Thử lại" thay vì im lặng rơi về rig | ⏳ |
-| Lưu ảnh | PNG từ canvas, 0 dependency | ⏳ |
-| Bàn phím | Mũi tên xoay, `+/-` zoom, `R` reset, `F` fullscreen, `W` wireframe | ⏳ |
+| Camera preset | 3/4 · Trước · Bên · Trên, bay bằng damping theo hàm mũ; toán thuần ở `lib/camera-presets.ts` (10 bài test) | ✅ |
+| Bàn phím | `←→↑↓` xoay, `+/-` zoom, `1-4` chọn góc, `R` reset, `F` fullscreen, `W` wireframe, `M` số đo; bỏ qua phím khi đang ở trong nút/ô nhập; `aria-keyshortcuts` + `aria-busy` khi đang bay | ✅ |
+| Overlay số đo | Thước ngang + thước dọc vẽ theo bounding box **thật** của model (`Line` + `Html`), nhãn lấy từ `length_m`/`height_m` | ✅ |
+| Tiến độ tải thật | `useProgress` → `role="progressbar"` với % xác định và pha ("Downloading model" / "Decoding DRACO"); rig procedural hiện trước | ✅ |
+| Thử lại khi lỗi | Chip báo lỗi + nút **Try again**; thêm **watchdog 15 s** vì một request `.glb` bị chặn có thể không bao giờ trả lỗi, chỉ treo suspense | ✅ |
+| Lưu ảnh | `gl.render()` + `toDataURL()` trong cùng một task (không cần `preserveDrawingBuffer`), đổi sang blob URL vì Chrome **chặn tải `data:` URL**; tên file + kiểm chữ ký PNG ở `lib/utils.ts` (4 bài test) | ✅ |
+| Animation GLB | `useAnimations`: chọn clip + play/pause, **chỉ hiện khi asset có clip** | ✅ (chưa asset nào có clip) |
+| Canvas không có WebGL | Phát hiện trước khi mount: máy tắt tăng tốc phần cứng nay thấy panel giải thích thay vì khung trắng (trước đây R3F chỉ log ra console) | ✅ |
+
+**Bằng chứng Mục 1**: `check-camera` (10 bài: preset không đổi khoảng cách, bay luôn hội tụ và không vượt đích, xoay giữ nguyên bán kính và không chạm cực, dolly bị kẹp trong giới hạn) + 4 bài cho đường tải ảnh — tổng **100 bài test**.
+Kiểm chứng trong Chrome thật: viewer mount, 4 nút góc máy đổi `aria-pressed` đúng, phím `M`/`W` bật tắt đúng, phím `2` chọn góc Front, `Try again` xuất hiện khi request `.glb` bị chặn, và nút **Save** tự vô hiệu hoá khi scene chưa sẵn sàng.
+*Giới hạn của môi trường này*: Chrome headless ở đây **không có WebGL**, nên phần render (khung hình PNG, animation, bay camera thật) chỉ được xác nhận ở tầng DOM + unit test; trên máy có GPU thì cùng đường code đó chạy.
 
 ### Mục 2 — SizeComparison với scale real-time
 
@@ -335,6 +340,8 @@ npm run db:status    # database đang có bao nhiêu loài
 npm run models:report # model nào tải được, kèm license
 npm run audit:perf   # Chrome thật: TTFB/FCP/LCP/CLS + byte tải trước và sau `load`
 npm run check:theme  # bảng màu sáng/tối: đủ token + độ tương phản WCAG AA
+npm run check:camera # toán camera của ModelViewer: preset, bay, xoay, zoom
+npm run check:bundle  # sau khi build: ngân sách JS mỗi route + luật "không 3D/auth ở first paint"
 npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
 ```
 
