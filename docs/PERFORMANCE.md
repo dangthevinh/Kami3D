@@ -216,7 +216,7 @@ THROTTLE=1 npm run audit:perf   # the same, on Slow 4G with a 4x CPU slowdown
 
 `next build`'s "First Load JS" column is an accounting of a route's chunk graph, and twice it did not describe
 what a browser actually downloaded: Clerk's 239 kB CDN payload was invisible to it, and it said nothing about the
-3D bundles being requested before the first paint. `scripts/check-bundle.mjs` closes that gap without a browser —
+3D bundles being requested before the first paint. `scripts/bundle-budget.mjs` closes that gap without a browser —
 it reads the HTML the build produced, takes the exact `<script src>` list out of it (which *is* what a browser
 fetches), gzips those files and fails when a route exceeds its budget, when `three`/Clerk/Supabase/`framer-motion`
 appear in the first paint, or when three.js has vanished from the build altogether. It runs after the build in CI, so

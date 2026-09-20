@@ -24,7 +24,13 @@
  * It needs a build, so it runs after `npm run build` (locally and in CI):
  *
  *   npm run build && npm run check:bundle
- *   node scripts/check-bundle.mjs --report     # print numbers, never fail on size
+ *   node scripts/bundle-budget.mjs --report     # print numbers, never fail on size
+ *
+ * It is deliberately **not** named `check-*.mjs`: that glob is the contract for
+ * "a node:test suite that CI can run on a fresh checkout", and this file needs a
+ * production build that the check step runs before. Naming it `check-bundle.mjs`
+ * used to make `npm run check:suites` fail in CI — which is exactly how the
+ * convention was discovered.
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";

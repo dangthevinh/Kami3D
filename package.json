@@ -32,7 +32,7 @@
     "check:quality": "node --test scripts/check-quality.mjs",
     "check:camera": "node --test scripts/check-camera.mjs",
     "check:quiz": "node --test scripts/check-quiz.mjs scripts/check-scoring.mjs",
-    "check:bundle": "node scripts/check-bundle.mjs",
+    "check:bundle": "node scripts/bundle-budget.mjs",
     "audit:perf": "node scripts/audit-browser.mjs",
     "audit:theme": "node scripts/audit-theme.mjs"
   },

@@ -316,6 +316,8 @@ npm run check:quality   # device tier rules (saveData, weak hardware, unknown AP
 npm run check:camera    # viewer camera maths: presets, damped flights, orbit, dolly
 npm run check:quiz      # quiz round builder (variants, determinism) + scoring rules
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
+                        #   (scripts/check-*.mjs are all node:test suites and all run in CI;
+                        #    tools that need a build or a browser are named differently)
 npm run audit:theme     # a real browser: unreadable text and dark panels in light mode
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
                         #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
