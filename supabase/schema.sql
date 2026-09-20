@@ -393,7 +393,59 @@ revoke all on function public.quiz_stats() from public;
 grant execute on function public.quiz_stats() to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- Storage: animal-assets (models, images, call recordings)
+-- Sound assets (animal calls)
+-- ---------------------------------------------------------------------------
+
+-- One call per species: where it came from, under which licence, and where it is
+-- stored. The licence column is constrained to the only two values Kami3D ships
+-- (see `lib/sound-licenses.ts`); the pipeline refuses everything else, including
+-- the share-alike and non-commercial variants that most field recordings use.
+--
+-- Rows are written by `scripts/fetch-sounds.mjs` with the service role, and are
+-- readable by everyone because a credit line is public metadata — which is also why
+-- there is no write policy: a browser must not be able to forge a credit.
+create table if not exists public.sound_assets (
+  id               uuid primary key default gen_random_uuid(),
+  animal_id        uuid references public.animals (id) on delete cascade,
+  freesound_id     integer,
+  title            text,
+  license          text not null check (license in ('CC0', 'CC-BY')),
+  source_url       text,
+  attribution      text,
+  file_size_bytes  integer check (file_size_bytes > 0),
+  duration_seconds numeric check (duration_seconds > 0),
+  storage_path     text,
+  public_url       text,
+  downloaded_at    timestamptz not null default now(),
+  created_at       timestamptz not null default now(),
+  provider         text not null default 'wikimedia',
+  mime_type        text,
+  license_label    text,
+  -- One recording per species, which is what animals.sound_url can express.
+  constraint sound_assets_one_per_animal unique (animal_id)
+);
+
+comment on table public.sound_assets is
+  'One animal call per species: where it came from, under which licence, and where it is stored. Written by scripts/fetch-sounds.mjs with the service role.';
+comment on column public.sound_assets.license is 'Normalised to the two licences Kami3D ships: CC0 or CC-BY.';
+comment on column public.sound_assets.license_label is 'The provider''s own label, kept verbatim so a credit line can quote it.';
+comment on column public.sound_assets.attribution is 'Ready-to-render credit: title, author, licence, source.';
+
+create index if not exists sound_assets_animal_idx on public.sound_assets (animal_id);
+create index if not exists sound_assets_created_idx on public.sound_assets (created_at desc);
+
+alter table public.sound_assets enable row level security;
+
+drop policy if exists "sound credits are publicly readable" on public.sound_assets;
+create policy "sound credits are publicly readable"
+  on public.sound_assets for select
+  to anon, authenticated
+  using (true);
+
+grant select on public.sound_assets to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -419,3 +471,24 @@ create policy "animal assets are publicly readable"
   on storage.objects for select
   to anon, authenticated
   using (bucket_id = 'animal-assets');
+
+-- The calls live in a bucket of their own: a different budget (900 kB per file,
+-- against 25 MB for a model), a different licence story, and a different uploader.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'animal-sounds',
+  'animal-sounds',
+  true,
+  6291456, -- 6 MB: the ceiling the fetch pipeline enforces
+  array['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/flac', 'audio/mp4', 'audio/webm']
+)
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "animal sounds are publicly readable" on storage.objects;
+create policy "animal sounds are publicly readable"
+  on storage.objects for select
+  to anon, authenticated
+  using (bucket_id = 'animal-sounds');

@@ -17,13 +17,15 @@ import { clamp, shuffle } from "./utils.ts";
  *   region         which part of the world does it live in?
  *   class          what kind of animal is it?
  *   relative-size  is it longer than <something familiar>?
+ *   call           which animal makes this call? (the sound round: the subject has
+ *                  a recording, and the UI plays it instead of showing a silhouette)
  *
  * The subject is drawn from the pool, the kind from a rotation, and both are
  * decided by the seed: the same seed rebuilds the same round, which is what makes
  * a resumed round (and a replayed one) honest.
  */
 
-export type QuestionKind = "species" | "region" | "class" | "relative-size";
+export type QuestionKind = "species" | "region" | "class" | "relative-size" | "call";
 
 export interface QuizOption {
   /** Stable id: an animal id, a region name, a class name, or yes/no. */
@@ -59,6 +61,9 @@ export const QUESTIONS_PER_ROUND = 10;
  * Six silhouette questions carry the round — that is the game — and the other
  * four make the visitor look at something other than the outline.
  */
+/** The sound round's rotation: every question is a call. */
+export const CALL_ROUND_KINDS: QuestionKind[] = Array.from({ length: QUESTIONS_PER_ROUND }, () => "call" as QuestionKind);
+
 export const DEFAULT_ROUND_KINDS: QuestionKind[] = [
   "species",
   "species",
@@ -192,8 +197,29 @@ function sizeQuestion(subject: Subject, seed: string): QuizQuestion {
   };
 }
 
+/**
+ * The sound round: the same four-species choice, asked with the ears.
+ *
+ * Only species with a recording can be a subject, which the caller enforces by
+ * passing a pool of them — the builder would happily ask about a silent animal
+ * otherwise, and the visitor would hear nothing and be asked to name it.
+ */
+function callQuestion(subject: Subject, pool: Subject[], seed: string): QuizQuestion {
+  const base = speciesQuestion(subject, pool, seed);
+
+  return {
+    ...base,
+    id: `call-${subject.slug}`,
+    kind: "call",
+    prompt: "Which animal makes this call?",
+    reveal: `${subject.latin_name} · ${subject.region}`,
+  };
+}
+
 function buildQuestion(kind: QuestionKind, subject: Subject, pool: Subject[], seed: string): QuizQuestion {
   switch (kind) {
+    case "call":
+      return callQuestion(subject, pool, seed);
     case "region":
       return regionQuestion(subject, seed);
     case "class":

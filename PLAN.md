@@ -20,6 +20,9 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **6** | Tăng tốc tải trang & SEO | ✅ Hoàn thành |
 | **7** | Chế độ Sáng / Tối cho người dùng | ✅ Hoàn thành |
 | **8** | Advanced 3D Features & Polish (bạn gọi là "Phase 5") | ✅ 5/6 mục xong — Mục 5 (âm thanh) chờ asset |
+| **9** | Âm thanh loài: pipeline tải + kiểm licence | ✅ Hoàn thành — 6/24 loài có tiếng kêu, mode quiz sound đã bật |
+| **10** | Review toàn diện & đề xuất cải tiến | 📝 Đã ghi prompt, chưa chạy |
+| **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
 
@@ -28,7 +31,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **133** bài trong **15** suite (`npm run check:suites`) |
+| Test tự động | **155** bài trong **16** suite (`npm run check:suites`) |
+| Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
 | JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 143.4 · `/explore` 146.5 · `/quiz` 153.3 · `/animal/[slug]` 139.2 kB (ngân sách 165) |
 | Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
@@ -331,6 +335,383 @@ hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/s
 
 ---
 
+## 🔊 Phase 9 — Âm thanh loài (pipeline tải + kiểm licence)
+
+> **Đây chính là Mục 5 mà Phase 8 để ngỏ.** Phase 9 đã **chạy thật**: 6 loài có tiếng kêu CC0/CC-BY, đã
+> upload lên bucket `animal-sounds`, ghi vào `sound_assets`, gắn vào `data/animals.ts` + `supabase/seed.sql`, và
+> credit hiện trên trang loài. Mode quiz "đoán qua tiếng kêu" đã bật cho 6 loài đó.
+
+**Yêu cầu**: tiếng kêu cho từng loài, có credit đầy đủ, chỉ dùng licence cho phép (CC0 / public domain / CC BY),
+và mode quiz "đoán qua tiếng kêu" dùng chính kho âm thanh đó.
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| `lib/sound-licenses.ts` | Chính sách licence là **module thuần** chứ không nằm trong script: allowlist khớp đúng nhãn (`Creative Commons 0`, `Creative Commons Attribution`, `CC0`, `CC0 1.0`, `Public domain`, `CC BY 2.0/2.5/3.0/4.0`…), cộng regex cho mọi phiên bản CC BY chưa liệt kê. Denylist theo substring: **NC** (non-commercial — không hợp với trang có quảng cáo), **SA** (share-alike — sẽ ràng buộc cả site), **ND** (cấm sửa, mà pipeline có nén), `all rights reserved`/`©`, `sampling+`. **Từ chối được kiểm trước** regex dễ dãi, nên `CC BY-NC 4.0` không thể lọt qua thành CC BY thường. Nhãn rỗng → từ chối | ✅ |
+| Cửa sổ kích thước & thời lượng | **12 kB – 900 kB**, 1–180 s. Đây là dải bản ghi thật: khảo sát Commons thấy từ 12 kB (tiếng chip 0.9 s) tới ~900 kB (bài cá voi lưng gù 93 s); file trên 1 MB trong cùng kết quả hầu hết là **bản ghi lời nói** (phát âm, sách nói) — vừa sai nội dung vừa nặng 2–6 MB. `sounds:report` in ra thứ bị cửa sổ này từ chối | ✅ |
+| Kiểm tra **sau** khi tải | `looksLikeAudio()` soi magic bytes (OggS · RIFF…WAVE · fLaC · ID3 · MPEG frame sync · `ftyp`). Lý do: provider lỗi hoặc redirect sang trang HTML vẫn cho ra file **đúng kích thước** — file đó mà lọt thì sẽ được upload, gắn vào trang loài và phát ra im lặng | ✅ |
+| `scripts/fetch-sounds.mjs` | Cùng khuôn với `fetch-models.mjs`. Hai provider: **freesound** (API v2, cần `FREESOUND_API_KEY`; thiếu thì **bỏ qua kèm hướng dẫn** chứ không scrape vòng), **wikimedia** (không cần key, chạy được trên clone mới). Cờ: `--report`, `--species=` (lặp được), `--all`, `--provider=auto\|freesound\|wikimedia`, `--min-bytes/--max-bytes/--max-seconds`, `--force`, và 3 cờ ghi: `--apply` (ghi `public/sounds/<slug>.<ext>` + `data/sound-attribution.json` → Demo Mode phát được **không cần key**), `--upload` (đẩy lên bucket `animal-sounds` + ghi `sound_assets`), `--wire` (trỏ `sound_url` trong `data/animals.ts`) | ✅ |
+| Tên file an toàn | `soundFileName()` lấy **slug**, không lấy tên file của provider: `../../etc/passwd` → `etc-passwd.wav` | ✅ |
+| Bảng `public.sound_assets` | Một bản ghi cho mỗi loài (`unique (animal_id)` — đúng thứ `animals.sound_url` biểu diễn được), `license` bị **CHECK** trong `('CC0','CC-BY')`, lưu `provider`, `license_label` (nhãn gốc, giữ nguyên để trích credit), `attribution` (credit render thẳng được), `file_size_bytes`, `duration_seconds`, `storage_path`, `public_url`; index theo `animal_id` và `created_at desc` | ✅ |
+| RLS của `sound_assets` | `enable row level security` + **chỉ một policy SELECT** cho `anon, authenticated` với `using (true)` — credit là metadata công khai. **Không có write policy nào**, nên browser không thể tự chế một credit; dòng chỉ được ghi bằng service role từ script | ✅ |
+| Bucket `animal-sounds` | Tách khỏi `animal-assets` vì khác ngân sách (6 MB so với 25 MB), khác câu chuyện licence và khác nguồn upload. Public read, whitelist MIME `audio/mpeg·ogg·wav·flac·mp4·webm` | ✅ |
+| `SoundButton` trên trang loài | Play/pause, `preload="none"` (không tải gì cho tới khi bấm), `aria-live`. Khi `sound_url` là `null` thì nút **disabled kèm lý do hiện rõ** ("Call not recorded yet") chứ không im lặng không làm gì | ✅ |
+| `check:sounds` | 11 bài: mọi nhánh licence, từ chối đứng trước cho phép, nhãn lẫn HTML, cửa sổ kích thước hai đầu, `NaN`/0, cửa sổ rộng tuỳ chỉnh, và tên file chống path traversal | ✅ |
+| **Mode quiz "đoán qua tiếng kêu"** | Kind `call` trong `lib/quiz.ts` (cùng dạng 4 lựa chọn, prompt "Which animal makes this call?"), `CallPlayer` trong `QuizGame` với `preload="none"` — **không tải file nào cho tới khi khách bấm play**. Nút mở khi có ≥ 4 loài có bản ghi ("Sound round · 6 recorded species"); vòng thi dài bằng đúng số loài có tiếng kêu, và điểm/badge báo lên server với `mode: "sound"` | ✅ |
+| **Tải asset thật** | `sounds:fetch -- --all --apply --wire --upload` đã chạy: **6 bản ghi**, 635 kB tổng (17 kB–249 kB), 5 CC0/public domain + 1 CC-BY | ✅ |
+| Credit trên trang loài | Dòng "Call: <tên> by <tác giả> — <giấy phép> via <nguồn>" ngay dưới credit model; `lib/attribution.ts#getSoundAttribution` đọc `data/sound-attribution.json` lúc build | ✅ |
+| Upload thật | 6/6 lên bucket `animal-sounds`; kiểm lại bằng HTTP: **200**, đúng `content-type` (`audio/ogg`/`audio/mpeg`) và đúng kích thước; 6 dòng trong `sound_assets`; `animals.sound_url` trỏ URL Storage | ✅ |
+
+**Bằng chứng Phase 9** — `npm run check:suites`: **152 bài / 16 suite, 0 fail** (`check-sounds` nay 19 bài: thêm xếp hạng, validate sau khi tải, token giả, và **ràng buộc catalogue** — loài nào có `sound_url` thì phải có credit + file tồn tại + CC BY phải có tác giả).
+Kết quả `npm run sounds:report` trên 24 loài (sau khi siết luật "file phải nêu tên loài"):
+
+```
+Licence policy: CC0 / public domain / CC BY. Size window: 12–900 kB, 1–180 s.
+
+  ✓ bald-eagle       24 candidates, 19 refused → Yellowstone sound library - Bald Eagle - 003 (243 kB, Public domain)
+  ✓ blue-whale       51 candidates, 25 refused → Blue whale atlantic2.ogg (17 kB, Public domain)
+  ✓ gray-wolf        40 candidates, 31 refused → Rallying.ogg (158 kB, Public domain)
+  ✓ lion             59 candidates, 57 refused → Lion raring-sound1TamilNadu178.ogg (76 kB, Public domain)
+  ✓ toco-toucan      23 candidates, 17 refused → Toco Toucan call (Ramphastos toco).ogg (94 kB, CC BY 4.0)
+  ✗ common-octopus    0 candidates,  0 refused
+  ✗ gooty-tarantula   0 candidates,  0 refused
+  ✗ green-anaconda    0 candidates,  0 refused
+
+8/24 species have a usable recording in the current window.
+Run 'npm run sounds:fetch -- --all --apply' to download them.
+```
+
+**6 loài đã có tiếng kêu** (635 kB tổng): bald-eagle, blue-whale, giant-panda, gray-wolf, lion, toco-toucan.
+18 loài còn lại bị từ chối và **lý do được in ra từng loài**: phần lớn là CC BY-SA / CC BY-NC (đa số bản ghi thực địa
+trên Commons dùng share-alike), số khác là file nói/phiên âm, file quá lớn (bản tin 4,9 MB, bài phát biểu 27 MB) hoặc
+chưa có bản ghi nào (bạch tuộc, tarantula, anaconda, hải cẩu Weddell). Đó là pipeline **từ chối đúng**, không phải lỗi.
+
+**Muốn tăng độ phủ**: dán `FREESOUND_API_KEY` **thật** vào `.env.local` rồi chạy `npm run sounds:fetch -- --all`.
+Hiện `.env.local` có `FREESOUND_API_KEY` nhưng giá trị chỉ **3 ký tự** (placeholder) nên API trả 401; pipeline phát
+hiện token < 20 ký tự, in một dòng *"looks like a placeholder"* rồi chuyển sang Wikimedia — nên không có 24 lần 401
+trong log. Token thật lấy ở <https://freesound.org/apiv2/apply>.
+
+**Hai quyết định lệch đặc tả ban đầu, đều đo được**:
+1. **Cửa sổ kích thước 12 kB–900 kB thay vì 2–6 MB.** Khảo sát Commons trước khi viết code: bản ghi *động vật* thật
+   nằm trong 12 kB–900 kB, còn file 2–6 MB trong cùng kết quả tìm kiếm hầu hết là **file nói/phiên âm/sách nói** dài
+   2–8 phút. Giữ 2–6 MB sẽ loại gần hết tiếng kêu thật, nhận đúng file không mong muốn, và đẩy tổng lên 50–150 MB.
+   (Bạn đã chọn hướng này ở câu hỏi trước khi tôi viết code.)
+2. **Luật "file phải nêu tên loài" siết lại sau khi thử nới.** Bản nới (khớp cả danh từ chính: "panda", "penguin")
+   đã chọn *Red panda* cho gấu trúc lớn, *Little Penguin* cho chim cánh cụt hoàng đế, và một bài hát tiếng Pháp
+   "Ah les crocodile" cho cá sấu nước mặn — nên nó bị bỏ. Đánh đổi: một bản ghi tên "Wolf howl.ogg" bị từ chối vì
+   không nêu "Gray Wolf"; thà thiếu tiếng kêu còn hơn sai loài.
+
+*Chưa làm ở phase này*: `scripts/check-sql.mjs` mới chỉ kiểm cột `sound_url` trong danh sách cột, **chưa** kiểm
+bảng `sound_assets` / bucket `animal-sounds`; và `data/sound-queries.json` mới có từ khoá cho 20 loài.
+
+---
+
+## 🧪 Phase 10 — Review toàn diện & Đề xuất cải tiến
+
+**Mục tiêu**: rà soát toàn bộ PLAN.md bằng ba con mắt — Kiến trúc, Hiệu năng 3D, và Bảo mật Supabase —
+rồi trả về một bản đề xuất thực chiến (production-ready), kèm SQL và code copy-paste được.
+
+**Prompt để chạy Phase 10** (dán nguyên khối dưới đây vào phiên làm việc mới):
+
+```markdown
+Bạn là Senior Full-stack Architect + 3D Web Performance Expert + Supabase Security Specialist.
+
+Hãy thực hiện **Review toàn diện + Đề xuất cải tiến** cho toàn bộ PLAN.md của dự án **Kami3D – 3D World Wildlife Encyclopedia**.
+
+### Phạm vi Review (bắt buộc cover hết các hạng mục sau):
+
+1. **Kiến trúc tổng thể (Architecture)**
+   - Đánh giá cấu trúc thư mục, separation of concerns
+   - Client vs Server Components strategy
+   - Data fetching pattern (Server Actions vs API Routes vs RSC)
+   - State management (có cần Zustand/Jotai không?)
+   - Error boundary & loading strategy
+   - Khả năng scale khi có hàng nghìn mô hình 3D + âm thanh
+
+2. **Bảo mật Supabase – RLS (Row Level Security) – Ưu tiên cao**
+   - Viết đầy đủ các policy RLS cần thiết cho 3 bảng chính:
+     - `animals`
+     - `user_favorites`
+     - `quiz_scores`
+     - `sound_assets` (nếu đã có từ Phase 9)
+   - Phân tích rủi ro hiện tại (nếu chưa có RLS)
+   - Đề xuất policy cho:
+     - Public read animals
+     - User chỉ được thao tác dữ liệu của chính mình
+     - Admin role (nếu có)
+   - Bảo vệ Supabase Storage (animal-sounds bucket)
+   - Cách xử lý Clerk user_id an toàn trong RLS
+
+3. **Tối ưu 3D Performance**
+   - DRACO / Meshopt compression strategy
+   - Texture compression (KTX2 / Basis)
+   - Progressive loading & LODs
+   - Memory management (dispose geometry/material)
+   - Adaptive quality theo device (mobile vs desktop)
+   - Preload strategy vs Lazy load
+   - Giảm draw call, tối ưu lights & shadows
+   - Cách tránh re-render không cần thiết trong R3F
+
+4. **SEO & Metadata**
+   - Dynamic metadata cho `/animal/[slug]`
+   - Open Graph + Twitter Card với ảnh 3D preview
+   - Structured Data (JSON-LD) cho loài động vật
+   - Sitemap động
+   - robots.txt + canonical
+   - Cách generate OG image từ model 3D (nếu khả thi)
+
+5. **Các vấn đề khác cần cải thiện**
+   - Accessibility (a11y) cho 3D controls
+   - Internationalization (i18n) sẵn sàng
+   - Caching strategy (Next.js cache, Supabase cache, CDN)
+   - Monitoring & Error tracking (Sentry…)
+   - CI/CD và environment management
+   - Cost optimization (Supabase Storage + Bandwidth)
+   - Mobile touch controls cho 3D
+   - Offline / PWA khả năng
+
+### Output Format bắt buộc:
+
+Hãy trả lời theo cấu trúc rõ ràng sau:
+
+### 1. Tổng quan đánh giá
+- Điểm mạnh hiện tại của PLAN
+- Điểm yếu / Rủi ro lớn nhất
+
+### 2. Đề xuất cải tiến Kiến trúc
+(Liệt kê cụ thể + lý do)
+
+### 3. RLS Policies hoàn chỉnh (SQL)
+Viết sẵn toàn bộ SQL policy có thể copy-paste
+
+### 4. Đề xuất tối ưu 3D chi tiết
+(Kèm ví dụ code nếu cần)
+
+### 5. Cải tiến SEO
+(Kèm ví dụ code metadata, JSON-LD…)
+
+### 6. Roadmap cải tiến theo thứ tự ưu tiên
+P0 (làm ngay) → P1 → P2
+
+### 7. Các thay đổi nên cập nhật vào PLAN.md
+Liệt kê rõ những section nào trong PLAN.md nên sửa/thêm
+
+Hãy review thật sâu, thẳng thắn và mang tính thực chiến (production-ready). Không viết chung chung.
+```
+
+**Đầu ra kỳ vọng**: báo cáo 7 phần theo đúng format trên, trong đó phần 3 phải là SQL chạy được ngay,
+và phần 7 phải chỉ ra chính xác section nào của PLAN.md cần sửa/thêm.
+
+---
+
+## ⚙️ Phase 11 — Hệ thống Settings hoàn chỉnh
+
+**Mục tiêu**: một trang `/settings` (Dark + Glassmorphism) cho người dùng đã đăng nhập tuỳ chỉnh 6 nhóm
+preference — Appearance, 3D Performance, Audio, Language & Region, Notifications, Account — và **lưu vào
+database** qua bảng mới `public.user_settings`.
+
+**Prompt để triển khai Phase 11**:
+
+````markdown
+Hãy triển khai Phase 11 cho dự án Kami3D – Tạo hệ thống Settings hoàn chỉnh.
+
+### 1. Mục tiêu
+Tạo trang `/settings` với giao diện đẹp (Dark + Glassmorphism), cho phép người dùng đã đăng nhập tùy chỉnh các preference sau và lưu vào database.
+
+### 2. Các nhóm Settings cần có
+
+**A. Appearance**
+- Theme: System / Dark / Light (mặc định Dark)
+- Accent Color (Cyan / Emerald / Violet / Amber…)
+- Glassmorphism intensity (Low / Medium / High)
+- Reduce motion (tắt animation Framer Motion)
+
+**B. 3D Performance**
+- Quality preset: Low / Medium / High / Ultra
+- Auto-detect device performance
+- Enable / Disable shadows
+- Enable / Disable environment reflections
+- Max DPR (1 / 1.5 / 2)
+- Auto-rotate models by default
+
+**C. Audio**
+- Master volume (0–100)
+- Animal sound volume
+- UI sound effects on/off
+- Auto-play animal sounds when opening detail page
+
+**D. Language & Region**
+- Interface language (Tiếng Việt / English) – chuẩn bị sẵn i18n
+- Measurement unit (Metric / Imperial) – dùng cho Size Comparison
+
+**E. Notifications**
+- Email notifications (new animals, quiz results…)
+- Browser push notifications (nếu có)
+
+**F. Account**
+- Hiển thị thông tin Clerk (avatar, email, name)
+- Nút quản lý tài khoản Clerk
+- Nút xóa dữ liệu cá nhân (favorites + quiz scores)
+
+### 3. Database
+Tạo bảng mới `user_settings`:
+
+```sql
+create table user_settings (
+  id uuid primary key default gen_random_uuid(),
+  user_id text not null unique,           -- Clerk user.id
+  theme text default 'dark',
+  accent_color text default 'cyan',
+  glass_intensity text default 'medium',
+  reduce_motion boolean default false,
+  quality_preset text default 'medium',
+  enable_shadows boolean default true,
+  enable_reflections boolean default true,
+  max_dpr numeric default 1.5,
+  auto_rotate boolean default true,
+  master_volume integer default 80,
+  animal_volume integer default 70,
+  ui_sounds boolean default true,
+  autoplay_sounds boolean default false,
+  language text default 'vi',
+  measurement_unit text default 'metric',
+  email_notifications boolean default true,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+```
+````
+
+**Ràng buộc kỹ thuật phải giữ khi làm** (rút từ chính schema đang chạy, không phải đề xuất mới):
+
+1. **RLS là bắt buộc, và theo đúng khuôn `user_favorites`.** SQL ở trên chưa có RLS. `user_id` ở đây là
+   **Clerk id dạng text**, nên policy phải là owner-only `to authenticated` với `using (user_id = ((select auth.uid())::text))`
+   cho `select / insert / update / delete` — copy nguyên cách [schema.sql](file:///Users/macbookpro2015/Kami/Kami3D/supabase/schema.sql#L189-L205) đang làm. Update **phải có cả `WITH CHECK`**, nếu không người dùng
+   có thể sửa `user_id` của dòng sang người khác.
+2. **`updated_at` không tự chạy.** Trigger `public.set_updated_at()` đã tồn tại ([schema.sql](file:///Users/macbookpro2015/Kami/Kami3D/supabase/schema.sql#L117)) — gắn trigger đó vào bảng mới, đừng viết lại.
+3. **CHECK constraint cho mọi cột enum/range** (đúng convention Phase 1 đã dùng): `theme in ('system','dark','light')`,
+   `accent_color in (…)`, `glass_intensity in ('low','medium','high')`, `quality_preset in ('low','medium','high','ultra')`,
+   `max_dpr in (1, 1.5, 2)`, `master_volume`/`animal_volume` trong `0–100`, `language in ('vi','en')`,
+   `measurement_unit in ('metric','imperial')`. Không có CHECK thì một client lỗi ghi `master_volume = 5000` là im lặng.
+4. **`check-sql.mjs` phải phủ bảng mới** — hiện nó chỉ kiểm `animals` / `user_favorites` / `quiz_scores`.
+5. **Nút xoá dữ liệu cá nhân** phải xoá favourites + quiz scores (+ chính settings) **bằng quyền của người dùng**
+   qua RLS, không được gọi service role từ browser.
+6. **Notifications mới chỉ lưu preference**: chưa có hạ tầng email/push, nên phase này chỉ ghi cờ vào DB và
+   nói rõ trong UI rằng chưa gửi gì — không được để công tắc trông như đang hoạt động.
+7. **Các setting phải có tác dụng thật**, không chỉ nằm trong DB: theme/accent/glass/reduce-motion nối vào
+   `next-themes` + token trong `app/globals.css`; quality/shadows/reflections/max-DPR/auto-rotate nối vào
+   `lib/quality.ts` + `components/3d/useQuality.ts`; measurement unit nối vào `lib/size-comparison.ts`;
+   volume nối vào `SoundButton`. Một cột không ai đọc là một cột gây hiểu nhầm.
+8. **"Reduce motion" không được kéo Framer Motion trở lại.** Dự án đã bỏ hẳn thư viện animation — mọi chuyển
+   động là CSS trong [globals.css](file:///Users/macbookpro2015/Kami/Kami3D/app/globals.css), và `check:bundle` **chặn** nếu
+   `framer-motion` quay lại first paint. Nên công tắc này phải tác động lên CSS (media query / class trên `<html>`),
+   song song với `prefers-reduced-motion` của hệ điều hành.
+
+---
+
+## 🦁 Phase 12 — Admin tự động tìm & tải model 3D thật
+
+> ⚠️ **Đọc trước khi làm: phần lớn phase này đã có sẵn.** [fetch-models.mjs](file:///Users/macbookpro2015/Kami/Kami3D/scripts/fetch-models.mjs) đã là
+> pipeline tải model thật (Sketchfab + Smithsonian + Poly Pizza + danh sách tự khai), có kiểm licence và ghi
+> credit. Phase 12 vì thế là **mở rộng**, không phải viết mới — bảng đối chiếu ở dưới nói rõ chỗ nào còn trống.
+
+**Mục tiêu**: cho Admin nhập **tên loài** (hoặc **số model muốn thêm cho loài đó**) và hệ thống tự tìm → lọc
+licence → chọn model chất lượng → tải `.glb` → (tuỳ chọn) nén DRACO → upload Storage → cập nhật
+`animals.model_url` và ghi metadata vào bảng mới `public.model_assets`. **Không dùng model demo/placeholder.**
+
+**Đối chiếu với những gì đang chạy** (`npm run models:report` / `models:fetch`):
+
+| Bước trong yêu cầu | Hiện trạng | Việc của Phase 12 |
+| --- | --- | --- |
+| 1. Tìm kiếm model | ✅ Đã có. Provider: **sketchfab** (API v3, `SKETCHFAB_API_TOKEN`, chỉ nhận model mà tác giả **đã bật download**), **smithsonian** (`SI_API_KEY`), **polypizza** (`POLY_PIZZA_API_KEY`), **direct** (`data/model-sources.json`, không cần key). Thiếu key thì bỏ qua kèm hướng dẫn, **không scrape vòng** | Thêm **MorphoSource** nếu muốn; thêm `--count=N` (số model mỗi loài) |
+| 2. Chỉ CC0 / CC-BY | ✅ Đã có, và mạnh hơn yêu cầu: allow-list CC0 / public domain / CC BY, từ chối **SA / ND / NC / all-rights-reserved**, mỗi model nhận được đều ghi tác giả + nguồn + licence vào `data/model-attribution.json`, và trang loài **render credit đó** | Giữ nguyên — đây là ràng buộc cứng của dự án |
+| 3. Lọc chất lượng (downloads, like, polygon, thumbnail) | ❌ **Chưa có**. Hiện chỉ lọc theo licence | **Việc chính của phase**: lấy `downloadCount` / `likeCount` / `faceCount` / thumbnail từ Sketchfab, tính `quality_score`, rồi xếp hạng thay vì lấy kết quả đầu tiên |
+| 4. Tải `.glb` | ✅ Đã có → `public/models/<slug>.glb` | Giữ |
+| 5. Nén DRACO (tuỳ chọn) | ❌ **Chưa tự động**. README để bước nén là *việc làm tay* (bước 1 của "Adding real 3D models"); repo không có `gltf-transform`. 24 model hiện tại đã nén 61 MB → 10 MB nhưng **ngoài** pipeline | Thêm bước nén (khuyến nghị `@gltf-transform/cli`, chạy như devDependency, không vào bundle) |
+| 6. Upload Supabase Storage | ❌ **Chưa có** trong `fetch-models.mjs` — nó không có cờ `--upload` (trong khi `fetch-sounds.mjs` đã có). Model hiện được **commit vào `public/models/`** | Thêm `--upload`, theo đúng khuôn `fetch-sounds.mjs` |
+| 7. `model_url` + bảng `model_assets` | 🟡 `--wire` đã sửa `data/animals.ts`; bảng `model_assets` **chưa tồn tại** | Tạo bảng + ghi metadata |
+
+**Prompt để triển khai Phase 12**:
+
+````markdown
+Hãy triển khai Phase 12 cho dự án Kami3D – Hệ thống Admin tự động tìm & tải model 3D thật của động vật.
+
+### 1. Yêu cầu cốt lõi
+Tạo một pipeline hoàn chỉnh để Admin có thể:
+
+- Nhập **tên loài** (ví dụ: "Bengal Tiger", "African Elephant", "Blue Whale")
+- Hoặc nhập **số lượng model** muốn thêm cho một loài
+- Hệ thống tự động:
+  1. Tìm kiếm model 3D thật trên Sketchfab (ưu tiên) + nguồn phụ
+  2. Chỉ lấy model có giấy phép **CC0** hoặc **CC-BY**
+  3. Lọc chất lượng: ưu tiên model có nhiều lượt tải, like cao, số polygon hợp lý, thumbnail rõ
+  4. Tải file .glb về
+  5. (Tùy chọn) Nén DRACO / tối ưu
+  6. Upload lên Supabase Storage (bucket `animal-models`)
+  7. Cập nhật `animals.model_url` + lưu metadata vào bảng `model_assets`
+
+Không dùng model demo / placeholder. Chỉ dùng model thật có sẵn công khai.
+
+### 2. Nguồn dữ liệu ưu tiên
+- **Chính:** Sketchfab API (`https://sketchfab.com/developers/oauth`)
+  - Có thể filter theo license (CC0, CC-BY)
+  - Có thông tin downloads, likeCount, faceCount, thumbnail
+- **Phụ (fallback):**
+  - Smithsonian 3D Open Access
+  - MorphoSource (nếu phù hợp)
+  - Các nguồn CC0 khác nếu cần
+
+### 3. Database cần bổ sung
+
+```sql
+create table model_assets (
+  id uuid primary key default gen_random_uuid(),
+  animal_id uuid references animals(id) on delete cascade,
+  sketchfab_uid text,
+  title text,
+  license text check (license in ('CC0', 'CC-BY')),
+  source_url text,
+  attribution text,
+  face_count integer,
+  download_count integer,
+  like_count integer,
+  file_size_bytes bigint,
+  storage_path text,
+  public_url text,
+  quality_score numeric,               -- điểm chất lượng tự tính
+  is_primary boolean default false,    -- model chính của loài
+  downloaded_at timestamptz default now(),
+  created_at timestamptz default now()
+);
+```
+````
+
+**Ràng buộc kỹ thuật phải giữ khi làm** (rút từ schema và các pipeline đang chạy):
+
+1. **Bucket: chốt một chỗ.** Dự án đang dùng **`animal-assets`** (public, 25 MB, whitelist MIME đã gồm
+   `model/gltf-binary`), [lib/supabase.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/supabase.ts#L39-L40) export `ASSET_BUCKET = "animal-assets"`, và
+   [docs/ASSETS.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/ASSETS.md) ghi model nằm ở đó. Yêu cầu nói bucket `animal-models` — hoặc **dùng lại
+   `animal-assets`** (khuyến nghị: một chỗ chứa, docs không lệch), hoặc tạo bucket mới thì phải sửa
+   `ASSET_BUCKET`, `docs/ASSETS.md`, `schema.sql` và policy storage cùng lúc. **Không làm cả hai.**
+2. **RLS bắt buộc, giống `sound_assets`.** `model_assets` là metadata công khai: `enable row level security` +
+   **một** policy `SELECT to anon, authenticated using (true)` + `grant select`. **Không có write policy** —
+   browser không được tự chế một credit; dòng chỉ ghi bằng service role từ script.
+3. **`is_primary` phải có partial unique index**: `create unique index … on model_assets (animal_id) where is_primary;`
+   Không có nó thì hai dòng cùng loài đều là primary, trong khi `animals.model_url` chỉ biểu diễn được **một**
+   (đúng lý do bảng `sound_assets` có `unique (animal_id)`).
+4. **CHECK cho mọi cột số**: `license in ('CC0','CC-BY')` khớp đúng hai giá trị pipeline chấp nhận;
+   `face_count`, `download_count`, `like_count`, `file_size_bytes` **không âm**. Chốt thang của `quality_score`
+   (0–100 hay 0–1) và ghi vào comment cột, nếu không mỗi người đọc hiểu một kiểu.
+5. **`check-sql.mjs` phải phủ bảng mới** — hiện chỉ kiểm `animals` / `user_favorites` / `quiz_scores`.
+6. **CLI trước, UI admin sau.** Mọi pipeline của dự án (model, âm thanh, seed) đều là CLI có test
+   (`--report` dry run, `--apply`, `--wire`). Nếu làm UI admin thì cần thêm khái niệm **admin role** mà schema
+   **chưa có** — đó là việc riêng, không nên trộn vào phase này.
+7. **Không có model demo/placeholder** — khớp luật "licence là ràng buộc cứng": thà loài đó dùng rig procedural
+   còn hơn gắn một model không rõ nguồn gốc.
+8. **Nén DRACO phải chạy ngoài bundle.** `@gltf-transform/cli` là **devDependency**, chỉ gọi từ script Node —
+   `check:bundle` sẽ chặn nếu three.js/gltf kéo vào first paint.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -338,7 +719,7 @@ hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/s
 | 1 | **Cập nhật `CLERK_SECRET_KEY`** | Key hiện tại trả **403 / code 1010** (đã bị xoay). Lấy key mới ở Clerk Dashboard → API Keys rồi dán vào `.env.local`. **Đây là việc duy nhất đang chặn đăng nhập.** |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm — mọi bước còn lại đã verify bằng session thật qua API. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | Âm thanh loài (**chặn Mục 5 của Phase 8**) | Chưa có file ghi âm → chế độ "đoán qua tiếng kêu" và nút âm thanh đang tắt. Cần bạn quyết: (a) tôi tự tìm & tải CC0/CC-BY qua pipeline có kiểm licence (~24 file, 2–6 MB, tải theo yêu cầu), hay (b) giữ tắt. Khuyến nghị (b) trước. |
+| 4 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
 | 5 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
 | 6 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
 
@@ -347,7 +728,7 @@ hai theme, `check-bundle` xanh trong CI, và mỗi mục có số đo trước/s
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 133 bài test trong 15 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu)
+npm run check        # typecheck + 144 bài test trong 16 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh)
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 37 route
 npm run db:status    # database đang có bao nhiêu loài
@@ -359,6 +740,8 @@ npm run check:bundle  # sau khi build: ngân sách JS mỗi route + luật "khô
 npm run audit:theme  # Chrome thật: chữ khó đọc và panel tối sót lại ở theme sáng
 npm run check:quiz   # bộ sinh câu hỏi + luật tính điểm của quiz
 npm run check:globe  # toán địa cầu: camera bay tới vùng, xếp hạng pin theo vùng
+npm run check:sounds # chính sách licence âm thanh, cửa sổ kích thước, tên file chống path traversal
+npm run sounds:report # Chrome không cần: dò bản ghi từng loài, KHÔNG tải gì (cần mạng)
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào

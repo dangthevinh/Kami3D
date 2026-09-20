@@ -197,6 +197,30 @@ switching:
 With neither configured, `/sign-in` explains what to add and the whole app still works in Demo Mode with a
 browser-local collection.
 
+### Animal calls
+
+Species can play their call — 6 of the 24 ship one today. The audio is fetched by `scripts/fetch-sounds.mjs`
+rather than curated by hand, and the rules live in `lib/sound-licenses.ts` so they are unit-tested rather than
+trusted:
+
+| Rule | Why |
+| --- | --- |
+| **CC0 / public domain / CC BY only** | Share-alike would impose obligations on the whole site and non-commercial is incompatible with ad-supported pages. The refusal is checked *before* the permissive pattern, so `CC BY-NC 4.0` cannot pass as `CC BY` |
+| **12 kB – 900 kB per file** | The range real recordings live in. A 2–6 MB window was measured first: animal calls are 12 kB–900 kB, while the multi-megabyte files in the same searches were spoken-word recordings and audiobooks |
+| **The file must name the species** | A licence and a size window do not make a recording the right animal. Loosening this to the head noun found a *red* panda for the giant panda and a *little* penguin for the emperor |
+| **Verified again after download** | Magic bytes (OggS, RIFF…WAVE, fLaC, ID3, `ftyp`) catch a provider error page that arrived with the right byte count and would otherwise be uploaded and played as silence |
+
+A recording is fetched **on demand**: the pipeline only runs when a species is named or `--all` is passed, and in
+the browser `<audio preload="none">` means nothing is downloaded until the visitor presses play. Accepted files land
+in `public/sounds/` (so Demo Mode plays them with no keys), are credited in `data/sound-attribution.json`, are
+mirrored into the `animal-sounds` storage bucket, and are recorded in the `sound_assets` table — whose `license`
+column is constrained to the two values the product ships.
+
+Freesound is the primary provider and needs `FREESOUND_API_KEY`; without a real token (the value in the repo's
+`.env.local` is a placeholder) the pipeline says so once and falls back to Wikimedia Commons, which needs no key.
+`npm run check:sounds` fails if a species plays a call it has no credit for — CC BY makes that a licence term, not
+a nicety.
+
 ### Light and dark
 
 The visitor picks a theme in the navbar's **Settings** menu (the gear, next to the account area) →
@@ -316,6 +340,9 @@ npm run check:quality   # device tier rules (saveData, weak hardware, unknown AP
 npm run check:camera    # viewer camera maths: presets, damped flights, orbit, dolly
 npm run check:quiz      # quiz round builder (variants, determinism) + scoring rules
 npm run check:globe     # globe camera maths (fly-to, facing region) + pin ranking
+npm run check:sounds    # call licences, size window, ranking, catalogue/credit agreement
+npm run sounds:report   # what recordings are available, downloads nothing
+npm run sounds:fetch    # download + credit every species that lacks a call (--upload for Storage)
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
                         #   (scripts/check-*.mjs are all node:test suites and all run in CI;
                         #    tools that need a build or a browser are named differently)

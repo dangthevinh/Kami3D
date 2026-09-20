@@ -1,0 +1,22 @@
+{
+  "african-bush-elephant": ["Loxodonta africana", "African elephant trumpet", "Elephant rumble", "Elephant sound library"],
+  "axolotl": ["Ambystoma mexicanum", "Axolotl", "Salamander sound"],
+  "bengal-tiger": ["Panthera tigris", "Tiger roar", "Tiger growl", "Bengal tiger"],
+  "emperor-penguin": ["Aptenodytes forsteri", "Penguin call", "Emperor penguin"],
+  "great-white-shark": ["Carcharodon carcharias"],
+  "green-anaconda": ["Eunectes murinus", "Anaconda hiss", "Snake hiss"],
+  "king-cobra": ["Ophiophagus hannah", "Cobra hiss", "Snake hiss"],
+  "monarch-butterfly": ["Danaus plexippus"],
+  "red-kangaroo": ["Osphranter rufus", "Macropus rufus", "Kangaroo"],
+  "saltwater-crocodile": ["Crocodylus porosus", "Crocodile", "Alligator bellow"],
+  "gooty-tarantula": ["Poecilotheria metallica"],
+  "common-octopus": ["Octopus vulgaris"],
+  "weddell-seal": ["Leptonychotes weddellii", "Weddell seal", "Seal call"],
+  "gray-wolf": ["Canis lupus howl", "Wolf howl", "Yellowstone sound library wolf"],
+  "bald-eagle": ["Haliaeetus leucocephalus", "Yellowstone sound library bald eagle"],
+  "blue-whale": ["Balaenoptera musculus", "Blue whale song", "Whale song"],
+  "giant-panda": ["Ailuropoda melanoleuca", "Giant panda bleat"],
+  "lion": ["Panthera leo roar", "Lion roar", "Yellowstone sound library lion"],
+  "toco-toucan": ["Ramphastos toco", "Toucan call"],
+  "giraffe": ["Giraffa camelopardalis", "Giraffe hum", "Giraffe snort"]
+}

@@ -1,4 +1,5 @@
 import rawManifest from "@/data/model-attribution.json";
+import rawSoundManifest from "@/data/sound-attribution.json";
 
 /**
  * 3D model credits.
@@ -49,4 +50,50 @@ export function getModelAttribution(slug: string): ModelAttribution | null {
 /** Every credited model, e.g. for an /about credits list. */
 export function getAllAttributions(): Array<{ slug: string; attribution: ModelAttribution }> {
   return Object.entries(manifest).map(([slug, attribution]) => ({ slug, attribution }));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Call recordings                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A recording's credit.
+ *
+ * CC BY obliges us to name the author, so the credit is part of the asset rather
+ * than a nicety: `scripts/fetch-sounds.mjs` refuses to download a file it cannot
+ * credit, and `npm run check:sounds` fails if a species with a `sound_url` has no
+ * entry here.
+ */
+export interface SoundAttribution {
+  title: string;
+  provider: string;
+  /** Normalised: CC0 or CC-BY. */
+  license: string;
+  /** The provider's own label, kept verbatim. */
+  licenseLabel: string;
+  licenseUrl: string | null;
+  author: string | null;
+  sourceUrl: string | null;
+  /** Ready-to-render one-liner. */
+  credit: string;
+  file: string;
+  bytes: number;
+  duration: number;
+  downloadedAt: string;
+}
+
+const soundManifest = rawSoundManifest as Record<string, SoundAttribution>;
+
+export function getSoundAttribution(slug: string): SoundAttribution | null {
+  return soundManifest[slug] ?? null;
+}
+
+export function getAllSoundAttributions(): Array<{ slug: string; attribution: SoundAttribution }> {
+  return Object.entries(soundManifest).map(([slug, attribution]) => ({ slug, attribution }));
+}
+
+/** "CC BY" reads better than the database's spelling in a credit line. */
+export function describeSoundLicense(licenseLabel: string, license: string): string {
+  if (licenseLabel && licenseLabel !== license) return licenseLabel;
+  return license === "CC0" ? "CC0 (public domain)" : "CC BY";
 }

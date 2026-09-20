@@ -8,10 +8,16 @@ import { Button } from "@/components/ui/button";
 /**
  * Plays the species' call recording.
  *
- * There is no audio in the repository (call recordings are licensed
- * individually), so when `sound_url` is null the control is rendered disabled
- * with an explicit reason rather than silently doing nothing. Upload an
- * `.mp3`/`.ogg` to the `animal-assets` bucket and set `sound_url` to enable it.
+ * The recording is fetched **on demand**: `preload="none"` means the browser does
+ * not touch the file until the visitor presses play, which is what keeps a species
+ * page free of a megabyte of audio nobody asked for. When `sound_url` is null the
+ * control renders disabled with an explicit reason rather than silently doing
+ * nothing.
+ *
+ * Files come from `scripts/fetch-sounds.mjs`, which refuses any recording whose
+ * licence is not CC0 or CC BY and credits the rest on the page (see
+ * `lib/attribution.ts`); they live in `public/sounds/` and are mirrored in the
+ * `animal-sounds` storage bucket.
  */
 export function SoundButton({ soundUrl, animalName }: { soundUrl: string | null; animalName: string }) {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);

@@ -165,3 +165,54 @@ test("every question in a hundred seeded rounds is well formed", () => {
   }
   assert.deepEqual(failures.slice(0, 5), []);
 });
+
+/* -------------------------------------------------------------------------- */
+/* The sound round                                                            */
+/* -------------------------------------------------------------------------- */
+
+test("a call round only asks about species that have a recording", async () => {
+  const { CALL_ROUND_KINDS, buildRound } = await import("../lib/quiz.ts");
+  // The caller passes the recorded species as the pool; the builder must not
+  // invent a subject outside it, because the question would have no evidence.
+  const recorded = ANIMALS.slice(0, 5).map((animal) => ({ ...animal, sound_url: "/sounds/x.ogg" }));
+  const round = buildRound(recorded, { seed: "calls", kinds: CALL_ROUND_KINDS, count: recorded.length });
+
+  assert.equal(round.length, recorded.length, "a sound round is as long as the catalogue of calls");
+  for (const question of round) {
+    assert.equal(question.kind, "call");
+    assert.equal(question.options.length, 4, "a call question still offers four species");
+    assert.ok(question.options.some((option) => option.id === question.answerId));
+    assert.ok(recorded.some((animal) => animal.id === question.subject.id), "the subject must be a recorded species");
+    assert.match(question.prompt, /call/i);
+  }
+});
+
+test("a call round is well formed for any seed", async () => {
+  const { CALL_ROUND_KINDS, buildRound } = await import("../lib/quiz.ts");
+  const recorded = ANIMALS.slice(0, 6);
+  const failures = [];
+
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const round = buildRound(recorded, { seed: `call-${attempt}`, kinds: CALL_ROUND_KINDS, count: recorded.length });
+    for (const question of round) {
+      const ids = question.options.map((option) => option.id);
+      if (!ids.includes(question.answerId)) failures.push(`${question.id}: answer missing`);
+      if (new Set(ids).size !== ids.length) failures.push(`${question.id}: duplicate option`);
+    }
+  }
+
+  assert.deepEqual(failures.slice(0, 5), []);
+});
+
+test("the sound round needs a catalogue that can support it", async () => {
+  const source = await import("node:fs").then((module) =>
+    module.readFileSync(new URL("../components/quiz/QuizGame.tsx", import.meta.url), "utf8"),
+  );
+  // The threshold lives in the component; the test pins the *rule* around it so a
+  // future edit cannot quietly ask about a silent animal.
+  assert.match(source, /MIN_CALL_SPECIES = \d+/);
+  const threshold = Number(/MIN_CALL_SPECIES = (\d+)/.exec(source)[1]);
+  assert.ok(threshold >= 2, "a round of one species is not a quiz");
+  assert.match(source, /recorded\.length >= MIN_CALL_SPECIES/, "the button must be gated on the catalogue");
+});
+

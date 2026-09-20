@@ -14,7 +14,7 @@ import { LazyModelViewer, LazySizeComparison } from "@/components/3d/LazyViewers
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals, getAnimalBySlug, getRelatedAnimals } from "@/lib/animals";
-import { describeLicense, getModelAttribution } from "@/lib/attribution";
+import { describeLicense, describeSoundLicense, getModelAttribution, getSoundAttribution } from "@/lib/attribution";
 import { siteUrl } from "@/lib/env.server";
 import { breadcrumbJsonLd, graph, speciesJsonLd } from "@/lib/seo";
 import { cn, formatLength, formatWeight } from "@/lib/utils";
@@ -66,6 +66,9 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   const anchor = REGION_ANCHORS[animal.region];
   // Credited whenever a real model is in use — the licence may require it.
   const attribution = animal.model_url ? getModelAttribution(animal.slug) : null;
+  // Only credited when a recording is actually wired up: a credit for a sound the
+  // visitor cannot play would be noise.
+  const soundCredit = animal.sound_url ? getSoundAttribution(animal.slug) : null;
 
   // Structured data: one graph per species page — the taxon, where it sits in the
   // site, and how a searcher got here. See lib/seo.ts.
@@ -188,6 +191,42 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
                 )}
                 {" via "}
                 {attribution.provider}
+              </p>
+            ) : null}
+
+            {/* CC BY obliges us to name the recordist, so this line is part of the
+                licence, not decoration — and `check:sounds` fails without it. */}
+            {soundCredit ? (
+              <p className="mt-1 px-1 text-[11px] leading-relaxed text-white/40">
+                Call:{" "}
+                {soundCredit.sourceUrl ? (
+                  <a
+                    href={soundCredit.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-white/60 underline decoration-white/20 underline-offset-2 transition-colors hover:text-neon"
+                  >
+                    {soundCredit.title}
+                  </a>
+                ) : (
+                  soundCredit.title
+                )}
+                {soundCredit.author ? <> by {soundCredit.author}</> : null}
+                {" — "}
+                {soundCredit.licenseUrl ? (
+                  <a
+                    href={soundCredit.licenseUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-white/60 underline decoration-white/20 underline-offset-2 transition-colors hover:text-neon"
+                  >
+                    {describeSoundLicense(soundCredit.licenseLabel, soundCredit.license)}
+                  </a>
+                ) : (
+                  describeSoundLicense(soundCredit.licenseLabel, soundCredit.license)
+                )}
+                {" via "}
+                {soundCredit.provider}
               </p>
             ) : null}
           </div>

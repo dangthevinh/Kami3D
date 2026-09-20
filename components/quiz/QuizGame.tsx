@@ -8,7 +8,14 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ANSWER_SECONDS, QUESTIONS_PER_ROUND, buildRound, isCorrect, type QuizQuestion } from "@/lib/quiz";
+import {
+  ANSWER_SECONDS,
+  CALL_ROUND_KINDS,
+  QUESTIONS_PER_ROUND,
+  buildRound,
+  isCorrect,
+  type QuizQuestion,
+} from "@/lib/quiz";
 import { accuracyPercent, badgesForScore, bestStreakOf, scoreAnswer } from "@/lib/quiz-scoring";
 import { cn } from "@/lib/utils";
 import { BADGES, type Animal, type QuizMode } from "@/types/animal";
@@ -30,8 +37,87 @@ const SilhouetteStage = dynamic(
 /** How long the feedback stays up before the round moves on by itself. */
 const FEEDBACK_MS = 1400;
 
+/** A sound round needs at least this many recorded species to be worth playing. */
+export const MIN_CALL_SPECIES = 4;
+
+/**
+ * The question for the sound round: a call, played on demand.
+ *
+ * `preload="none"` and no `autoPlay`: the browser fetches nothing until the
+ * visitor presses play, which is what stops a ten-question round from pulling ten
+ * recordings the moment it starts. The playback is also the question, so the button
+ * is the largest thing on the card.
+ */
+function CallPlayer({ url, animalName }: { url: string; animalName: string }) {
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [failed, setFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    return () => audioRef.current?.pause();
+  }, []);
+
+  async function toggle() {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (playing) {
+      audio.pause();
+      setPlaying(false);
+      return;
+    }
+
+    try {
+      await audio.play();
+      setPlaying(true);
+    } catch {
+      setFailed(true);
+    }
+  }
+
+  return (
+    <div className="grid h-[240px] w-full place-items-center rounded-[var(--radius-card)] bg-gradient-to-b from-[#0a1120] to-[#04060f] ring-1 ring-white/10 sm:h-[320px]">
+      <audio
+        ref={audioRef}
+        src={url}
+        preload="none"
+        onTimeUpdate={(event) => {
+          const audio = event.currentTarget;
+          setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
+        }}
+        onEnded={() => {
+          setPlaying(false);
+          setProgress(0);
+        }}
+      />
+
+      <div className="flex flex-col items-center gap-4">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={playing ? `Pause the ${animalName} call` : "Play the call"}
+          className="grid size-20 place-items-center rounded-full bg-neon text-[#04121a] shadow-[0_0_50px_-8px_rgba(53,240,192,0.9)] transition-transform hover:scale-105"
+        >
+          {playing ? <Pause className="size-8" /> : <Play className="size-8 translate-x-0.5 fill-current" />}
+        </button>
+
+        <div className="h-1.5 w-48 overflow-hidden rounded-full bg-white/12">
+          <div className="h-full rounded-full bg-gradient-to-r from-neon to-glow transition-[width] duration-200" style={{ width: `${progress}%` }} />
+        </div>
+
+        <p className="text-[11px] text-white/45">
+          {failed ? "The browser blocked playback — press play again" : "Press play, then name the animal"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /** An unfinished round, kept in the browser so a refresh does not eat it. */
 const STORAGE_KEY = "kami-quiz-round";
+
+type RoundMode = "silhouette" | "sound";
 
 interface SavedRound {
   seed: string;
@@ -39,6 +125,8 @@ interface SavedRound {
   correct: number;
   points: number;
   answers: boolean[];
+  /** Kept so a resumed round stays the round it was. */
+  mode: RoundMode;
 }
 
 interface Feedback {
@@ -63,6 +151,7 @@ function readSavedRound(): SavedRound | null {
       correct: typeof parsed.correct === "number" ? parsed.correct : 0,
       points: typeof parsed.points === "number" ? parsed.points : 0,
       answers: parsed.answers.map(Boolean),
+      mode: parsed.mode === "sound" ? "sound" : "silhouette",
     };
   } catch {
     return null;
@@ -79,6 +168,7 @@ function readSavedRound(): SavedRound | null {
  */
 export function QuizGame({ animals }: { animals: Animal[] }) {
   const [phase, setPhase] = React.useState<"ready" | "playing" | "finished">("ready");
+  const [mode, setMode] = React.useState<RoundMode>("silhouette");
   const [seed, setSeed] = React.useState("");
   const [index, setIndex] = React.useState(0);
   const [selected, setSelected] = React.useState<string | null>(null);
@@ -99,8 +189,20 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
   const playable = React.useMemo(() => animals.filter((animal) => !animal.premium), [animals]);
   const pool = playable.length >= QUESTIONS_PER_ROUND ? playable : animals;
 
+  /**
+   * The species a sound round can ask about: the ones with a recording. A sound
+   * question about a silent animal would be a question with no evidence.
+   */
+  const recorded = React.useMemo(() => animals.filter((animal) => animal.sound_url), [animals]);
+
   // Rebuilt from the seed, so a resumed round is the same round.
-  const round = React.useMemo(() => (seed ? buildRound(pool, { seed }) : []), [pool, seed]);
+  const round = React.useMemo(() => {
+    if (!seed) return [];
+    if (mode === "sound") return buildRound(recorded, { seed, kinds: CALL_ROUND_KINDS, count: recorded.length });
+    return buildRound(pool, { seed });
+  }, [mode, pool, recorded, seed]);
+
+  const total = round.length || QUESTIONS_PER_ROUND;
   const current = round[index];
 
   React.useEffect(() => {
@@ -123,12 +225,12 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
   React.useEffect(() => {
     if (phase !== "playing" || !seed) return;
     try {
-      const snapshot: SavedRound = { seed, index, correct, points, answers };
+      const snapshot: SavedRound = { seed, index, correct, points, answers, mode };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       // Private mode: the round simply is not resumable.
     }
-  }, [answers, correct, index, phase, points, seed]);
+  }, [answers, correct, index, mode, phase, points, seed]);
 
   const clearSaved = React.useCallback(() => {
     try {
@@ -140,10 +242,11 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
   }, []);
 
   const start = React.useCallback(
-    (resume: SavedRound | null) => {
+    (resume: SavedRound | null, nextMode: RoundMode = "silhouette") => {
       if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
 
       const nextSeed = resume?.seed ?? String(Date.now());
+      setMode(resume?.mode ?? nextMode);
       setSeed(nextSeed);
       setIndex(resume?.index ?? 0);
       setCorrect(resume?.correct ?? 0);
@@ -173,23 +276,23 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           score: finalScore,
-          totalQuestions: QUESTIONS_PER_ROUND,
-          mode: "silhouette" satisfies QuizMode,
-          badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND),
+          totalQuestions: total,
+          mode: mode satisfies QuizMode,
+          badges: badgesForScore(finalScore, total),
         }),
       });
       const data = (await response.json()) as { badges?: string[]; best?: number; source?: string };
       setSaved({
-        badges: data.badges ?? badgesForScore(finalScore, QUESTIONS_PER_ROUND),
+        badges: data.badges ?? badgesForScore(finalScore, total),
         best: data.best ?? finalScore,
         source: data.source ?? "demo",
       });
     } catch {
-      setSaved({ badges: badgesForScore(finalScore, QUESTIONS_PER_ROUND), best: finalScore, source: "offline" });
+      setSaved({ badges: badgesForScore(finalScore, total), best: finalScore, source: "offline" });
     } finally {
       setSaving(false);
     }
-  }, [clearSaved]);
+  }, [clearSaved, mode, total]);
 
   /** Moves to the next question, or ends the round. */
   const advance = React.useCallback(() => {
@@ -202,12 +305,12 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
     setFeedback(null);
     setTimeLeft(ANSWER_SECONDS.default);
 
-    if (index + 1 >= QUESTIONS_PER_ROUND) {
+    if (index + 1 >= total) {
       void finish(correct);
       return;
     }
     setIndex((value) => value + 1);
-  }, [correct, finish, index]);
+  }, [correct, finish, index, total]);
 
   const answer = React.useCallback(
     (optionId: string | null) => {
@@ -314,21 +417,36 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
                 <Play />
                 Continue round ({resumable.index}/{QUESTIONS_PER_ROUND})
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => start(null)}>
+              <Button size="lg" variant="secondary" onClick={() => start(null, "silhouette")}>
                 <RotateCcw />
                 Start a new round
               </Button>
             </>
           ) : (
-            <Button size="lg" onClick={() => start(null)}>
+            <Button size="lg" onClick={() => start(null, "silhouette")}>
               <Gamepad2 />
               Start round
             </Button>
           )}
-          <Button size="lg" variant="ghost" disabled title="Needs call recordings uploaded for each species">
-            <Volume2 />
-            Sound mode (needs recordings)
-          </Button>
+
+          {/* The sound round appears when the catalogue can actually support it —
+              a mode that asks about silent animals would be a broken question. */}
+          {recorded.length >= MIN_CALL_SPECIES ? (
+            <Button size="lg" variant="secondary" onClick={() => start(null, "sound")}>
+              <Volume2 />
+              Sound round · {recorded.length} recorded species
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              variant="ghost"
+              disabled
+              title={`Needs recordings for at least ${MIN_CALL_SPECIES} species (currently ${recorded.length})`}
+            >
+              <Volume2 />
+              Sound mode (needs recordings)
+            </Button>
+          )}
         </div>
 
         <p className="mt-4 text-[11px] text-white/40">
@@ -354,8 +472,8 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
   /* ------------------------------------------------------------- finished --- */
 
   if (phase === "finished") {
-    const accuracy = accuracyPercent({ correct, total: QUESTIONS_PER_ROUND });
-    const earned = saved?.badges ?? badgesForScore(correct, QUESTIONS_PER_ROUND);
+    const accuracy = accuracyPercent({ correct, total });
+    const earned = saved?.badges ?? badgesForScore(correct, total);
 
     return (
       <div className="glass rounded-[var(--radius-card)] p-6 text-center sm:p-10">
@@ -363,7 +481,7 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
           <Trophy className="size-10 text-solar" />
         </div>
         <h2 className="mt-4 font-display text-3xl font-bold text-white">
-          {correct} / {QUESTIONS_PER_ROUND}
+          {correct} / {total}
         </h2>
         <p className="mt-1 text-sm text-white/60">
           {accuracy}% accuracy · {points.toLocaleString()} points · best streak {bestStreakOf(answers)}
@@ -422,7 +540,7 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
     >
       <div className="flex flex-wrap items-center gap-3">
         <Badge variant="outline">
-          Question {index + 1} / {QUESTIONS_PER_ROUND}
+          {mode === "sound" ? "Sound" : "Silhouette"} · question {index + 1} / {total}
         </Badge>
         <Badge variant="neon">Score {correct}</Badge>
         <Badge variant="iris">{points.toLocaleString()} pts</Badge>
@@ -447,13 +565,18 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
       <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
         <div
           className="h-full rounded-full bg-gradient-to-r from-neon to-glow transition-[width] duration-300"
-          style={{ width: `${((index + (answered ? 1 : 0)) / QUESTIONS_PER_ROUND) * 100}%` }}
+          style={{ width: `${((index + (answered ? 1 : 0)) / total) * 100}%` }}
         />
       </div>
 
       <p className="font-display text-lg font-semibold text-white">{current.prompt}</p>
 
-      <SilhouetteStage animal={current.subject} reveal={answered} />
+      {/* A call question plays the recording; the model is the reward for answering. */}
+      {current.kind === "call" && !answered ? (
+        <CallPlayer url={current.subject.sound_url ?? ""} animalName={current.subject.name} />
+      ) : (
+        <SilhouetteStage animal={current.subject} reveal={answered || current.kind === "call"} />
+      )}
 
       <React.Fragment key={answered ? "feedback" : `options-${current.id}`}>
         {answered ? (
