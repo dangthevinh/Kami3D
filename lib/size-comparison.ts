@@ -163,7 +163,122 @@ export const REFERENCE_FIGURES: FigureSpec[] = [
     accent: ["#6b8f3a", "#2f4418"],
     emoji: "🦖",
   },
+  {
+    id: "giraffe",
+    label: "Giraffe",
+    sublabel: "5.5 m tall",
+    kind: "quadruped",
+    lengthM: 2.4,
+    heightM: 5.5,
+    accent: ["#d9a441", "#6b4a1c"],
+    emoji: "🦒",
+  },
+  {
+    id: "elephant",
+    label: "African elephant",
+    sublabel: "3.2 m tall",
+    kind: "quadruped",
+    lengthM: 6.5,
+    heightM: 3.2,
+    accent: ["#8a8f98", "#3b4048"],
+    emoji: "🐘",
+  },
+  {
+    id: "cat",
+    label: "House cat",
+    sublabel: "0.25 m tall",
+    kind: "quadruped",
+    lengthM: 0.75,
+    heightM: 0.25,
+    accent: ["#e0a45c", "#5a3a1c"],
+    emoji: "🐈",
+  },
 ];
+
+/* -------------------------------------------------------------------------- */
+/* The visitor's own size                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** Limits of the "how tall are you?" control, in centimetres. */
+export const VIEWER_HEIGHT_CM = { min: 100, max: 220, default: 175, step: 1 } as const;
+
+/** Human depth relative to height, so the yardstick is not a flat cardboard cut-out. */
+const HUMAN_DEPTH_RATIO = 0.6 / 1.75;
+
+/**
+ * The human yardstick, built from the visitor's own height.
+ *
+ * It replaces the fixed 1.75 m figure rather than sitting next to it: one human in
+ * the row is the point, and a child comparing themselves against a default adult
+ * learns the wrong number.
+ */
+export function viewerFigure(heightM: number): FigureSpec {
+  const height = clamp(heightM, VIEWER_HEIGHT_CM.min / 100, VIEWER_HEIGHT_CM.max / 100);
+  return {
+    id: "human",
+    label: "You",
+    sublabel: `${height.toFixed(2)} m tall`,
+    kind: "human",
+    lengthM: height * HUMAN_DEPTH_RATIO,
+    heightM: height,
+    accent: ["#2f6fd0", "#e8b48c"],
+    emoji: "🧍",
+  };
+}
+
+export interface ViewerComparison {
+  /** The species dimension being compared: its dominant one. */
+  dimension: "length" | "height";
+  /** How tall/long the animal is, in metres. */
+  animalM: number;
+  /** animalM / viewerHeight. 1 means "the same as you". */
+  ratio: number;
+  direction: "taller" | "shorter" | "same";
+}
+
+/**
+ * How a species measures up against the visitor.
+ *
+ * The dominant dimension is the one `computeFigureScale` renders exactly, so the
+ * sentence and the picture can never disagree: a whale is compared on its length,
+ * a giraffe on its height.
+ *
+ * "Same" is a band, not an equality: 1.75 m against 1.76 m is the same size to
+ * anyone reading it, and reporting "1.01x" would be noise dressed as precision.
+ */
+export function compareToViewer(
+  animal: { lengthM: number; heightM: number },
+  viewerHeightM: number,
+): ViewerComparison {
+  const viewer = Math.max(viewerHeightM, 0.01);
+  const useLength = animal.lengthM >= animal.heightM;
+  const animalM = Math.max(useLength ? animal.lengthM : animal.heightM, 0.01);
+  const ratio = animalM / viewer;
+
+  return {
+    dimension: useLength ? "length" : "height",
+    animalM,
+    ratio,
+    direction: ratio > 1.05 ? "taller" : ratio < 0.95 ? "shorter" : "same",
+  };
+}
+
+/** The one-line answer, e.g. "2.5 m long — 1.4x your height". */
+export function describeComparison(
+  comparison: ViewerComparison,
+  format: (metres: number) => string,
+): string {
+  const size = comparison.dimension === "length" ? `${format(comparison.animalM)} long` : `${format(comparison.animalM)} tall`;
+
+  if (comparison.direction === "same") return `${size} — about your height`;
+
+  const factor = comparison.direction === "taller" ? comparison.ratio : 1 / comparison.ratio;
+  const rounded = factor >= 10 ? String(Math.round(factor)) : factor.toFixed(1);
+
+  return comparison.direction === "taller"
+    ? `${size} — ${rounded}x your height`
+    : `${size} — ${rounded}x smaller than you`;
+}
 
 /** Turn a species into a chart figure. */
 export function figureFromAnimal(animal: {

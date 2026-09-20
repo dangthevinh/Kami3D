@@ -16,12 +16,42 @@ export function formatWeight(kg: number) {
   return `${formatNumber(kg)} kg`;
 }
 
-export function formatLength(m: number) {
-  return `${formatNumber(m)} m`;
+/**
+ * Metric or imperial, for every measurement the UI prints.
+ *
+ * The encyclopedia is metric by nature — IUCN records and every model in the
+ * catalogue use metres — but "2.5 m" is not a size until the reader can picture
+ * it, and a visitor who thinks in feet gets nothing from the number. Imperial
+ * output is an exact conversion (/ 0.3048) rounded to the nearest inch: "8 ft 2 in"
+ * is honest, "8.2 ft" is not, because the reader divides by 12 and gets a
+ * different answer.
+ */
+export type MeasurementUnit = "metric" | "imperial";
+
+/** Feet and inches from metres, e.g. 2.5 -> { feet: 8, inches: 2 }. */
+export function toFeetInches(m: number): { feet: number; inches: number } {
+  const totalInches = Math.round((Math.abs(m) / 0.3048) * 12);
+  return { feet: Math.floor(totalInches / 12), inches: totalInches % 12 };
 }
 
-export function formatHeight(m: number) {
-  return `${formatNumber(m)} m`;
+function imperial(m: number): string {
+  const { feet, inches } = toFeetInches(m);
+  const sign = m < 0 ? "-" : "";
+  if (feet === 0) return `${sign}${inches} in`;
+  return `${sign}${feet} ft ${inches} in`;
+}
+
+export function formatLength(m: number, unit: MeasurementUnit = "metric") {
+  return unit === "imperial" ? imperial(m) : `${formatNumber(m)} m`;
+}
+
+export function formatHeight(m: number, unit: MeasurementUnit = "metric") {
+  return unit === "imperial" ? imperial(m) : `${formatNumber(m)} m`;
+}
+
+/** A person's height in the unit the visitor chose: "1.75 m" or "5 ft 9 in". */
+export function formatBodyHeight(cm: number, unit: MeasurementUnit = "metric") {
+  return unit === "imperial" ? imperial(cm / 100) : `${formatNumber(cm / 100)} m`;
 }
 
 export function slugify(input: string) {

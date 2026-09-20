@@ -217,7 +217,7 @@ Performance/Loading states.
 | --- | --- | --- |
 | 0 | Nền tảng: chất lượng thiết bị + cổng chặn bundle trong CI | ✅ Hoàn thành |
 | 1 | Production ModelViewer | ✅ Hoàn thành |
-| 2 | SizeComparison với scale real-time | ⏳ Chưa bắt đầu |
+| 2 | SizeComparison với scale real-time | ✅ Hoàn thành |
 | 3 | Quiz 3D hoàn chỉnh | ⏳ Chưa bắt đầu |
 | 4 | Enhanced InteractiveGlobe | ⏳ Chưa bắt đầu |
 | 5 | Âm thanh cho quiz "đoán qua tiếng kêu" | ⏸️ Chờ asset + quyết định |
@@ -270,11 +270,14 @@ Kiểm chứng trong Chrome thật: viewer mount, 4 nút góc máy đổi `aria-
 
 | Việc | Chi tiết | Trạng thái |
 | --- | --- | --- |
-| "Chiều cao của bạn" | Slider 100–220 cm, hình người co giãn theo thời gian thực, lưu `localStorage` | ⏳ |
-| Câu so sánh sống | "bằng 1.4× chiều cao của bạn", toán ở `lib/size-comparison.ts`, có test biên | ⏳ |
-| Đơn vị mét / feet-inch | Mở rộng `formatLength`/`formatHeight` + test | ⏳ |
-| Thêm mốc tham chiếu | Hươu cao cổ 5.5 m, voi châu Phi 3.2 m, mèo nhà 0.25 m | ⏳ |
-| Chuyển cảnh | Lerp khi bật/tắt hình tham chiếu | ⏳ |
+| "Chiều cao của bạn" | Slider 100–220 cm; hình người trong biểu đồ **là chính người xem** (bỏ hình 1.75 m cố định), lưu `localStorage` khoá `kami-height` | ✅ |
+| Câu so sánh sống | `compareToViewer()` + `describeComparison()`: so theo **đúng chiều** mà biểu đồ render chính xác (cá voi theo dài, hươu theo cao), và "same" là một **khoảng** (0.95–1.05) chứ không phải bằng nhau tuyệt đối | ✅ |
+| Đơn vị mét / feet-inch | `formatLength`/`formatHeight`/`formatBodyHeight` nhận `"metric" | "imperial"`; quy đổi chính xác rồi **làm tròn tới inch** ("8 ft 2 in", không phải "8.2 ft") | ✅ |
+| Thêm mốc tham chiếu | Hươu cao cổ 5.5 m · voi châu Phi 3.2 m · mèo nhà 0.25 m (tổng 6 mốc), mọi mốc đều được test không chồng lên nhau | ✅ |
+| Chuyển cảnh | Vị trí **và** tỉ lệ của từng hình được lerp theo hàm mũ trong `useFrame` — kéo slider không còn "giật" giữa hai layout | ✅ |
+
+**Bằng chứng Mục 2** (`check-size` 11 bài + 4 bài đơn vị imperial): hình người đúng chiều cao người dùng, giá trị ngoài khoảng bị kẹp, chọn đúng chiều so sánh, ba khoảng taller/shorter/same, câu tiếng Anh đúng ở cả hai hướng ("1.4x your height" / "2.3x smaller than you"), và mọi mốc xếp không chồng.
+Kiểm chứng trong Chrome thật: kéo slider 175 → 120 cm thì nhãn đổi "1.8 m" → "1.2 m" và câu đổi "1.4x" → "2.1x"; bật Imperial thì thành "3 ft 11 in" và "8 ft 2 in long — 2.1x"; **reload vẫn giữ** cả chiều cao lẫn đơn vị.
 
 ### Mục 3 — Quiz 3D hoàn chỉnh
 
