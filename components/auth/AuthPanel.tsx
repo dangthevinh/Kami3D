@@ -1,13 +1,15 @@
 "use client";
 
-import { SignIn, SignUp } from "@clerk/nextjs";
+import { ClerkProvider, SignIn, SignUp } from "@clerk/nextjs";
 
 /**
  * Clerk's hosted components, styled to match the Kami3D dark theme.
  *
- * Only rendered when Clerk is configured — `<SignIn />` requires a
- * `<ClerkProvider />` ancestor, and the root layout only mounts that provider
- * when the publishable key exists.
+ * Only rendered when Clerk is configured. `<SignIn />` requires a
+ * `<ClerkProvider />` ancestor, and it carries its own here rather than relying
+ * on the root layout: these two routes are the only ones that need Clerk's
+ * sign-in bundle, and this is an `import` boundary, so the rest of the site
+ * never pays for it. Neither page is indexed (see `app/robots.ts`).
  */
 export function AuthPanel({ mode }: { mode: "sign-in" | "sign-up" }) {
   const appearance = {
@@ -28,12 +30,14 @@ export function AuthPanel({ mode }: { mode: "sign-in" | "sign-up" }) {
   } as const;
 
   return (
-    <div className="flex justify-center">
-      {mode === "sign-in" ? (
-        <SignIn appearance={appearance} signUpUrl="/sign-up" />
-      ) : (
-        <SignUp appearance={appearance} signInUrl="/sign-in" />
-      )}
-    </div>
+    <ClerkProvider appearance={{ variables: appearance.variables }}>
+      <div className="flex justify-center">
+        {mode === "sign-in" ? (
+          <SignIn appearance={appearance} signUpUrl="/sign-up" />
+        ) : (
+          <SignUp appearance={appearance} signInUrl="/sign-in" />
+        )}
+      </div>
+    </ClerkProvider>
   );
 }

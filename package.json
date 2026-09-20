@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "check:rigs": "node --test scripts/check-rigs.mjs",
     "check:size": "node --test scripts/check-size.mjs",
-    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs scripts/check-format.mjs scripts/check-trend.mjs",
+    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs scripts/check-format.mjs scripts/check-trend.mjs scripts/check-seo.mjs scripts/check-auth-hint.mjs",
     "seed:generate": "node scripts/generate-seed.mjs",
     "check:sql": "node --test scripts/check-sql.mjs",
     "models:report": "node scripts/fetch-models.mjs --report",
@@ -24,7 +24,10 @@
     "db:schema": "node scripts/seed-database.mjs --schema",
     "check:geo": "node --test scripts/check-geo.mjs",
     "check:format": "node --test scripts/check-format.mjs",
-    "check:trend": "node --test scripts/check-trend.mjs"
+    "check:trend": "node --test scripts/check-trend.mjs",
+    "check:seo": "node --test scripts/check-seo.mjs",
+    "check:auth": "node --test scripts/check-auth-hint.mjs",
+    "audit:perf": "node scripts/audit-browser.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
@@ -35,7 +38,6 @@
     "@supabase/supabase-js": "^2.116.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^13.4.0",
     "lucide-react": "^1.47.0",
     "next": "15.5.25",
     "next-themes": "^0.4.6",

@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Lock, Play, Sparkles, X } from "lucide-react";
 import * as React from "react";
 
@@ -83,13 +82,10 @@ export function UnlockModal({ premiumAnimals }: { premiumAnimals: Animal[] }) {
   const progress = playing ? ((AD_SECONDS - remaining) / AD_SECONDS) * 100 : 0;
 
   return (
-    <AnimatePresence>
+    <>
       {open ? (
-        <motion.div
-          className="fixed inset-0 z-[100] grid place-items-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
+          className="animate-fade-in fixed inset-0 z-[100] grid place-items-center p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="unlock-title"
@@ -101,13 +97,7 @@ export function UnlockModal({ premiumAnimals }: { premiumAnimals: Animal[] }) {
             onClick={closeReward}
           />
 
-          <motion.div
-            initial={{ y: 24, scale: 0.96, opacity: 0 }}
-            animate={{ y: 0, scale: 1, opacity: 1 }}
-            exit={{ y: 16, scale: 0.97, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="glass-strong relative z-10 w-full max-w-2xl overflow-hidden rounded-[var(--radius-card)] p-5 sm:p-6"
-          >
+          <div className="glass-strong animate-pop-in relative z-10 w-full max-w-2xl overflow-hidden rounded-[var(--radius-card)] p-5 sm:p-6">
             <button
               ref={closeButton}
               type="button"
@@ -144,14 +134,10 @@ export function UnlockModal({ premiumAnimals }: { premiumAnimals: Animal[] }) {
 
               <div className="absolute inset-0 grid place-items-center">
                 {justUnlocked ? (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="flex flex-col items-center gap-2 text-neon"
-                  >
+                  <div className="animate-pop-in flex flex-col items-center gap-2 text-neon">
                     <BadgeCheck className="size-12" />
                     <span className="font-display text-lg font-semibold">Unlocked!</span>
-                  </motion.div>
+                  </div>
                 ) : playing ? (
                   <div className="w-full max-w-sm px-6 text-center">
                     <p className="font-display text-3xl font-bold tabular-nums text-white">{remaining}s</p>
@@ -236,9 +222,9 @@ export function UnlockModal({ premiumAnimals }: { premiumAnimals: Animal[] }) {
                 </Button>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       ) : null}
-    </AnimatePresence>
+    </>
   );
 }

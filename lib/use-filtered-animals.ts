@@ -17,12 +17,14 @@ export function useFilteredAnimals(animals: Animal[]): Animal[] {
   const query = useExploreStore((state) => state.query);
   const sort = useExploreStore((state) => state.sort);
   const showPrehistoric = useExploreStore((state) => state.showPrehistoric);
+  const prehistoricOnly = useExploreStore((state) => state.prehistoricOnly);
 
   return React.useMemo(() => {
     const needle = query.trim().toLowerCase();
 
     const filtered = animals.filter((animal) => {
       if (!showPrehistoric && animal.is_prehistoric) return false;
+      if (prehistoricOnly && !animal.is_prehistoric) return false;
       if (region !== "All" && animal.region !== region) return false;
       if (category !== "All" && animal.category !== category) return false;
       if (status !== "All" && animal.conservation_status !== status) return false;
@@ -42,5 +44,5 @@ export function useFilteredAnimals(animals: Animal[]): Animal[] {
       default:
         return filtered.sort((a, b) => b.popularity - a.popularity);
     }
-  }, [animals, category, query, region, showPrehistoric, sort, status]);
+  }, [animals, category, prehistoricOnly, query, region, showPrehistoric, sort, status]);
 }

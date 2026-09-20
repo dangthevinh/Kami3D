@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useMemo } from "react";
 
 import { seededRandom } from "@/lib/utils";
@@ -9,9 +8,11 @@ import { seededRandom } from "@/lib/utils";
  * Ambient background: drifting bioluminescent motes over a slowly panning grid.
  *
  * Particle positions come from a deterministic seeded PRNG so the server and the
- * client produce byte-identical markup (no hydration mismatch), and the whole
- * layer is pointer-events-none + aria-hidden so it never interferes with the 3D
- * canvases layered above it.
+ * client produce byte-identical markup (no hydration mismatch), and the animation
+ * itself is a single CSS keyframe — this layer sits in the root layout, so it must
+ * not pull a motion library into every page's JavaScript. The whole layer is
+ * pointer-events-none + aria-hidden so it never interferes with the 3D canvases
+ * layered above it.
  */
 
 const PARTICLE_COUNT = 26;
@@ -31,7 +32,7 @@ export function BackgroundParticles() {
           top: `${(seededRandom("kami-top", index) * 100).toFixed(3)}%`,
           size: 1.5 + b * 4.5,
           duration: 12 + c * 16,
-          delay: -(a * 12).toFixed(2),
+          delay: -Number((a * 12).toFixed(2)),
           drift: -30 + b * 60,
           color: d > 0.66 ? "#38e0ff" : d > 0.33 ? "#35f0c0" : "#a97bff",
           opacity: 0.18 + d * 0.36,
@@ -61,29 +62,25 @@ export function BackgroundParticles() {
 
       {/* Motes */}
       {particles.map((particle) => (
-        <motion.span
+        <span
           key={particle.id}
-          className="absolute rounded-full"
-          style={{
-            left: particle.left,
-            top: particle.top,
-            width: particle.size,
-            height: particle.size,
-            backgroundColor: particle.color,
-            boxShadow: `0 0 ${particle.size * 3}px ${particle.color}`,
-          }}
-          initial={{ opacity: particle.opacity * 0.5 }}
-          animate={{
-            y: [0, particle.drift, 0],
-            x: [0, particle.drift / 2, 0],
-            opacity: [particle.opacity * 0.35, particle.opacity, particle.opacity * 0.35],
-          }}
-          transition={{
-            duration: particle.duration,
-            delay: Number(particle.delay),
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          className="mote absolute rounded-full"
+          style={
+            {
+              left: particle.left,
+              top: particle.top,
+              width: particle.size,
+              height: particle.size,
+              backgroundColor: particle.color,
+              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}`,
+              "--mote-x": `${particle.drift / 2}px`,
+              "--mote-y": `${particle.drift}px`,
+              "--mote-opacity": particle.opacity,
+              "--mote-opacity-min": particle.opacity * 0.35,
+              "--mote-duration": `${particle.duration.toFixed(2)}s`,
+              "--mote-delay": `${particle.delay}s`,
+            } as React.CSSProperties
+          }
         />
       ))}
 

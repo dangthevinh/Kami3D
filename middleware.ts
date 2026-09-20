@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 
 import { activeAuthProvider } from "@/lib/auth-provider";
+import { AUTH_HINT_COOKIE } from "@/lib/auth-hint";
 
 /**
  * Session middleware.
@@ -70,15 +71,51 @@ async function refreshSupabaseSession(request: NextRequest) {
 /** Set by the build so the middleware knows whether it can refresh at all. */
 void supabaseConfigured;
 
+/**
+ * Tells the client whether the account UI is worth downloading.
+ *
+ * The root layout is statically rendered and cannot read cookies, so without this
+ * the browser has to load a whole auth SDK just to find out whether the visitor
+ * is signed in. The middleware, by contrast, has already resolved the session —
+ * for Clerk as its own `x-clerk-auth-status` response header, for Supabase as the
+ * presence of `sb-<ref>-auth-token`. Publishing that answer in a short-lived,
+ * JS-readable cookie lets `components/auth/AuthSlot.tsx` skip the download for
+ * guests entirely. It is a hint, not a credential: nothing is authorized from it,
+ * and the five-minute lifetime means a sign-in or sign-out corrects it quickly.
+ */
+function withAuthHint(response: NextResponse, signedIn: boolean) {
+  response.cookies.set(AUTH_HINT_COOKIE, signedIn ? "in" : "out", {
+    path: "/",
+    sameSite: "lax",
+    httpOnly: false,
+    maxAge: 300,
+  });
+  return response;
+}
+
 export default async function middleware(request: NextRequest, event: NextFetchEvent) {
   switch (activeAuthProvider()) {
-    case "supabase":
+    case "supabase": {
       // Skip the round trip entirely when there is no session to refresh.
-      return supabaseConfigured && hasSupabaseSessionCookie(request)
-        ? refreshSupabaseSession(request)
-        : NextResponse.next({ request });
-    case "clerk":
-      return clerkHandler ? clerkHandler(request, event) : NextResponse.next({ request });
+      const signedIn = hasSupabaseSessionCookie(request);
+      const response =
+        supabaseConfigured && signedIn ? await refreshSupabaseSession(request) : NextResponse.next({ request });
+      return withAuthHint(response, signedIn);
+    }
+    case "clerk": {
+      if (!clerkHandler) return withAuthHint(NextResponse.next({ request }), false);
+      const result = await clerkHandler(request, event);
+      // Clerk's own response carries the verdict; adding a cookie to it leaves its
+      // session handling — handshake and token refresh included — untouched.
+      if (!(result instanceof NextResponse)) {
+        return result ?? withAuthHint(NextResponse.next({ request }), false);
+      }
+      const status = result.headers.get("x-clerk-auth-status");
+      if (status === "signed-in" || status === "signed-out") {
+        withAuthHint(result, status === "signed-in");
+      }
+      return result;
+    }
     default:
       return NextResponse.next({ request });
   }

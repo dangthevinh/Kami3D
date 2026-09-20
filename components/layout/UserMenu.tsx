@@ -1,12 +1,17 @@
 "use client";
 
-import { Show, SignInButton, UserButton } from "@clerk/nextjs";
-import { LogIn } from "lucide-react";
+import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
 
-import { Button } from "@/components/ui/button";
+import { GuestMenu } from "@/components/layout/GuestMenu";
 
 /**
- * Clerk's controls for the navbar.
+ * Clerk's account control for the navbar — and its own `<ClerkProvider>`.
+ *
+ * The provider used to sit in the root layout, which put Clerk's client runtime
+ * (and the UI chunks its components pull from Clerk's CDN) into every page's
+ * initial payload, signed in or not. Mounting it here instead keeps that cost
+ * inside a module the browser only asks for when `lib/auth-hint.ts` reports a
+ * session: a signed-out visitor — and every crawler — never downloads it.
  *
  * Two things here are easy to get wrong, and both produced the same visible bug —
  * a "Sign in" button sitting next to the avatar of a visitor who was already
@@ -17,24 +22,22 @@ import { Button } from "@/components/ui/button";
  *      it has to be wrapped in a condition.
  *   2. In Clerk Core 3 (`@clerk/nextjs@7`) the wrapper is `<Show when="signed-out">`.
  *      `<SignedIn>` and `<SignedOut>` still exist as exports but **throw when
- *      rendered**; they were removed in that release.
+ *      rendered`; they were removed in that release.
  *
  * Both wrappers resolve on the client from the Clerk context, so the navbar can
  * live inside a statically rendered layout without reading cookies on the server.
  */
 export function UserMenu() {
   return (
-    <div className="flex items-center gap-2">
-      <Show when="signed-out">
-        <SignInButton mode="modal">
-          <Button variant="ghost" size="sm" className="hidden xl:inline-flex">
-            <LogIn />
-            Sign in
-          </Button>
-        </SignInButton>
-      </Show>
-
-      <Show when="signed-in">
+    <ClerkProvider
+      appearance={{
+        variables: { colorPrimary: "#35f0c0", colorBackground: "#070c1a", borderRadius: "0.9rem" },
+      }}
+    >
+      {/* Until Clerk has loaded there is no state to show, and a visitor who
+          reaches this module is one the hint could not prove is a guest, so the
+          guest menu is the safe placeholder either way. */}
+      <Show when="signed-in" fallback={<GuestMenu />}>
         <UserButton
           appearance={{
             elements: {
@@ -44,6 +47,6 @@ export function UserMenu() {
           }}
         />
       </Show>
-    </div>
+    </ClerkProvider>
   );
 }

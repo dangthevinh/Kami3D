@@ -36,6 +36,14 @@
   --animate-pulse-ring: pulse-ring 2.6s ease-out infinite;
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-rise: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  /* Enter/exit primitives that replace the framer-motion wrappers we used to
+     ship on every page. Pure CSS keeps the whole motion vocabulary out of the
+     JS bundle. */
+  --animate-fade-in: fade-in 0.18s ease-out both;
+  --animate-rise-in: rise-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pop-in: pop-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-drop-in: drop-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes float {
@@ -58,6 +66,34 @@
 @keyframes rise {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.965); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Bioluminescent mote: the travel vector and both opacity stops arrive as
+   custom properties from the component, so the markup stays static. */
+@keyframes mote {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+    opacity: var(--mote-opacity-min, 0.2);
+  }
+  50% {
+    transform: translate3d(var(--mote-x, 0px), var(--mote-y, -20px), 0);
+    opacity: var(--mote-opacity, 0.4);
+  }
 }
 
 @layer base {
@@ -193,6 +229,32 @@
     );
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
+  }
+
+  /* --- Motion (no JS) ----------------------------------------------------- */
+  .mote {
+    animation: mote var(--mote-duration, 18s) ease-in-out infinite;
+    animation-delay: var(--mote-delay, 0s);
+    will-change: transform, opacity;
+  }
+
+  /* Height-animated disclosure used by the mobile navbar: animating
+     grid-template-rows avoids measuring the panel in JavaScript. */
+  .disclosure {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s ease;
+  }
+  .disclosure[data-open="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .disclosure > * {
+    min-height: 0;
+    overflow: hidden;
   }
 
   .section-shell {

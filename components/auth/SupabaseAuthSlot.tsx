@@ -1,7 +1,6 @@
 "use client";
 
 import type { Session } from "@supabase/supabase-js";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Heart, LogOut, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -80,15 +79,10 @@ function ViewerMenu({ viewer }: { viewer: Viewer }) {
         <ChevronDown className={cn("size-3.5 text-white/50 transition-transform", open && "rotate-180")} />
       </button>
 
-      <AnimatePresence>
-        {open ? (
-          <motion.div
+      {open ? (
+          <div
             role="menu"
-            initial={{ opacity: 0, y: -6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.97 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="glass-strong absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 overflow-hidden rounded-2xl p-1.5"
+            className="glass-strong animate-drop-in absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 overflow-hidden rounded-2xl p-1.5"
           >
             <div className="px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-wide text-white/40">Signed in as</p>
@@ -124,9 +118,8 @@ function ViewerMenu({ viewer }: { viewer: Viewer }) {
               <LogOut className="size-4" />
               {signingOut ? "Signing out…" : "Sign out"}
             </button>
-          </motion.div>
+          </div>
         ) : null}
-      </AnimatePresence>
     </div>
   );
 }

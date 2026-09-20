@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "@react-three/drei"],
+    optimizePackageImports: ["lucide-react", "@react-three/drei"],
   },
   eslint: { ignoreDuringBuilds: true },
   async headers() {
@@ -48,6 +48,14 @@ const nextConfig: NextConfig = {
       {
         source: "/draco/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        // The Natural Earth coastline the globe draws its texture from. 76 KB,
+        // unchanged between deploys, and asked for on the landing page: a day of
+        // caching plus a week of background revalidation keeps it off the network
+        // without pinning a stale copy for a year (the filename is not hashed).
+        source: "/geo/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
     ];
   },

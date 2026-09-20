@@ -34,17 +34,24 @@ export function FilterBar({ resultCount, totalCount, className }: FilterBarProps
     query,
     sort,
     showPrehistoric,
+    prehistoricOnly,
     setRegion,
     setCategory,
     setStatus,
     setQuery,
     setSort,
     setShowPrehistoric,
+    setPrehistoricOnly,
     reset,
   } = useExploreStore();
 
   const filtersActive =
-    region !== "All" || category !== "All" || status !== "All" || query.trim() !== "" || !showPrehistoric;
+    region !== "All" ||
+    category !== "All" ||
+    status !== "All" ||
+    query.trim() !== "" ||
+    !showPrehistoric ||
+    prehistoricOnly;
 
   return (
     <section
@@ -150,6 +157,20 @@ export function FilterBar({ resultCount, totalCount, className }: FilterBarProps
           )}
         >
           {showPrehistoric ? "Including prehistoric" : "Prehistoric hidden"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setPrehistoricOnly(!prehistoricOnly)}
+          aria-pressed={prehistoricOnly}
+          className={cn(
+            "rounded-full px-3 py-1.5 ring-1 transition-colors",
+            prehistoricOnly
+              ? "bg-solar/15 text-solar ring-solar/35"
+              : "bg-white/6 text-white/70 ring-white/12 hover:text-white",
+          )}
+        >
+          Prehistoric only
         </button>
 
         {filtersActive ? (

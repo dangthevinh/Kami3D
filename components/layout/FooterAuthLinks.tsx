@@ -1,7 +1,9 @@
 "use client";
 
-import { Show } from "@clerk/nextjs";
 import Link from "next/link";
+import * as React from "react";
+
+import { readSessionHint } from "@/lib/auth-hint";
 
 /**
  * The footer's account links, hidden once a visitor is signed in.
@@ -10,16 +12,20 @@ import Link from "next/link";
  * that makes an app feel broken, and the footer is easy to miss because it lives
  * outside the auth-aware navbar.
  *
- * A client component on purpose: the footer sits in the root layout, and asking
- * Clerk for the auth state on the server would read cookies and opt all 34 routes
- * — including the statically generated species pages — into dynamic rendering.
- * `<Show>` resolves from the client context instead.
- *
- * `<Show>` is the Core 3 replacement for `<SignedOut>`, which was removed in
- * `@clerk/nextjs@7` and throws if it is rendered.
+ * The links are server-rendered (a crawler should see them) and removed on the
+ * client from the same cookie hint the navbar uses — no Clerk context, so this
+ * piece costs no auth JavaScript at all.
  */
-export function FooterAuthLinks({ clerk }: { clerk: boolean }) {
-  const links = (
+export function FooterAuthLinks() {
+  const [signedIn, setSignedIn] = React.useState(false);
+
+  React.useEffect(() => {
+    if (readSessionHint(document.cookie) === "in") setSignedIn(true);
+  }, []);
+
+  if (signedIn) return null;
+
+  return (
     <>
       <li>
         <Link href="/sign-in" className="text-sm text-white/65 transition-colors hover:text-neon">
@@ -33,8 +39,4 @@ export function FooterAuthLinks({ clerk }: { clerk: boolean }) {
       </li>
     </>
   );
-
-  // Without a ClerkProvider ancestor <Show> has no context, so the non-Clerk
-  // providers keep the links unconditionally.
-  return clerk ? <Show when="signed-out">{links}</Show> : links;
 }

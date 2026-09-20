@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { KamiLogo } from "@/components/brand/KamiLogo";
 import { FooterAuthLinks } from "@/components/layout/FooterAuthLinks";
-import { activeAuthProvider } from "@/lib/auth-provider";
 import { isDemoMode } from "@/lib/env";
 
 const GROUPS = [
@@ -73,9 +72,7 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              {group.title === "Collection" ? (
-                <FooterAuthLinks clerk={activeAuthProvider() === "clerk"} />
-              ) : null}
+              {group.title === "Collection" ? <FooterAuthLinks /> : null}
             </ul>
           </nav>
         ))}

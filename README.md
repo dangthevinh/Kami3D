@@ -276,6 +276,10 @@ npm run check           # typecheck + all node check suites
 npm run check:rigs      # procedural rig geometry assertions
 npm run check:size      # size-comparison scale assertions for all 24 species
 npm run check:sql       # schema.sql / seed.sql / dataset agreement
+npm run check:seo       # JSON-LD graph shape, absolute URLs, script-tag escaping
+npm run check:auth      # the session hint that keeps auth SDKs off anonymous pages
+npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
+                        #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
 npm run seed:generate   # regenerate supabase/seed.sql from the dataset
 npm run db:status       # what the database currently holds
 npm run db:seed         # push the catalogue into Supabase (idempotent)
@@ -320,13 +324,17 @@ supabase/            schema.sql + generated seed.sql
 scripts/             node check suites and the seed generator
 ```
 
-Three rules keep the app honest:
+Four rules keep the app honest:
 
 1. **Every external dependency is optional and fails soft.** No Clerk keys, no Supabase keys, no models, no
    audio — each degrades to something that still works rather than an error page.
 2. **Heavy 3D code never blocks content.** `three` and R3F are loaded through `next/dynamic` with
-   `ssr: false`; species text and metadata are static HTML.
-3. **Maths that can be checked, is checked.** Geometry, scaling and database agreement live in pure modules
+   `ssr: false`, and `MountWhenVisible` holds the download until the canvas is near the viewport and the browser
+   is idle; species text and metadata are static HTML.
+3. **Auth code is not part of a page nobody signed in to.** The root layout imports no auth SDK: the account
+   menu is fetched with `import()` only when `middleware.ts` reports a session. See
+   [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+4. **Maths that can be checked, is checked.** Geometry, scaling and database agreement live in pure modules
    with node assertions attached.
 
 ---

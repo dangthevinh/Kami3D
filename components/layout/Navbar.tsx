@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Compass, Gamepad2, Heart, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,12 +23,25 @@ export interface NavbarProps {
   authSlot: React.ReactNode;
 }
 
+function isActive(href: string, pathname: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
+
+/**
+ * Sticky top navigation.
+ *
+ * The active-link pill and the mobile disclosure are animated with CSS only:
+ * this component sits in the root layout, so anything it imports is downloaded
+ * by every visitor before the page becomes interactive.
+ */
 export function Navbar({ authSlot }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+  const listRef = React.useRef<HTMLUListElement>(null);
+  const [pill, setPill] = React.useState<{ left: number; width: number } | null>(null);
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -37,6 +49,25 @@ export function Navbar({ authSlot }: NavbarProps) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // The pill measures the active item instead of sampling positions in JS on
+  // every render; a ResizeObserver keeps it honest when the webfont swaps in.
+  React.useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const measure = () => {
+      const active = list.querySelector<HTMLElement>('[data-active="true"]');
+      setPill(active ? { left: active.offsetLeft, width: active.offsetWidth } : null);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    void document.fonts?.ready.then(measure).catch(() => undefined);
+
+    return () => observer.disconnect();
+  }, [pathname]);
 
   React.useEffect(() => {
     setMobileOpen(false);
@@ -58,13 +89,22 @@ export function Navbar({ authSlot }: NavbarProps) {
       <nav className="section-shell flex h-16 items-center gap-3">
         <KamiLogo idPrefix="nav" />
 
-        <ul className="ml-4 hidden items-center gap-1 lg:flex">
+        <ul ref={listRef} className="relative ml-4 hidden items-center gap-1 lg:flex">
+          {pill ? (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-0 h-full rounded-full bg-white/8 ring-1 ring-white/12 transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{ transform: `translateX(${pill.left}px)`, width: pill.width }}
+            />
+          ) : null}
           {NAV_LINKS.map((link) => {
-            const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+            const active = isActive(link.href, pathname);
             return (
               <li key={link.href}>
                 <Link
                   href={link.href}
+                  data-active={active}
+                  aria-current={active ? "page" : undefined}
                   className={cn(
                     "relative flex items-center gap-2 rounded-full px-3.5 py-2 text-sm transition-colors",
                     active ? "text-white" : "text-white/60 hover:text-white",
@@ -72,13 +112,6 @@ export function Navbar({ authSlot }: NavbarProps) {
                 >
                   <link.icon className="size-4" />
                   {link.label}
-                  {active ? (
-                    <motion.span
-                      layoutId="nav-active"
-                      className="absolute inset-0 -z-10 rounded-full bg-white/8 ring-1 ring-white/12"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  ) : null}
                 </Link>
               </li>
             );
@@ -107,6 +140,7 @@ export function Navbar({ authSlot }: NavbarProps) {
             className="lg:hidden"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
+            aria-controls="nav-mobile-panel"
             onClick={() => setMobileOpen((open) => !open)}
           >
             {mobileOpen ? <X /> : <Menu />}
@@ -114,44 +148,43 @@ export function Navbar({ authSlot }: NavbarProps) {
         </div>
       </nav>
 
-      <AnimatePresence initial={false}>
-        {mobileOpen ? (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-white/8 bg-void/92 backdrop-blur-xl lg:hidden"
-          >
-            <div className="section-shell space-y-3 py-4">
-              <form onSubmit={onSubmit} className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/40" />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search species…"
-                  aria-label="Search species"
-                  className="pl-10"
-                />
-              </form>
-              <ul className="grid gap-1">
-                {NAV_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 transition-colors hover:bg-white/8 hover:text-white"
-                    >
-                      <link.icon className="size-4 text-neon" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex items-center gap-3 border-t border-white/8 pt-3 sm:hidden">{authSlot}</div>
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {/* Always mounted so the open/close transition is CSS-driven; inert keeps
+          the closed panel out of the tab order and the accessibility tree. */}
+      <div
+        id="nav-mobile-panel"
+        data-open={mobileOpen}
+        inert={!mobileOpen}
+        className="disclosure border-t border-white/8 bg-void/92 backdrop-blur-xl lg:hidden"
+      >
+        <div className={cn("border-white/8", mobileOpen ? "border-t" : "border-t-0")}>
+          <div className="section-shell space-y-3 py-4">
+            <form onSubmit={onSubmit} className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search species…"
+                aria-label="Search species"
+                className="pl-10"
+              />
+            </form>
+            <ul className="grid gap-1">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/80 transition-colors hover:bg-white/8 hover:text-white"
+                  >
+                    <link.icon className="size-4 text-neon" />
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-3 border-t border-white/8 pt-3 sm:hidden">{authSlot}</div>
+          </div>
+        </div>
+      </div>
     </header>
   );
 }

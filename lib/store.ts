@@ -12,7 +12,10 @@ export interface ExploreFilters {
   status: ConservationStatus | "All";
   query: string;
   sort: SortKey;
+  /** Include prehistoric species at all (they are also gated behind the vault). */
   showPrehistoric: boolean;
+  /** *Only* prehistoric species — the `/explore?prehistoric=true` deep link. */
+  prehistoricOnly: boolean;
   /** Species unlocked by watching the Phase-4 rewarded video. */
   unlockedPremium: string[];
 }
@@ -24,6 +27,7 @@ interface ExploreStore extends ExploreFilters {
   setQuery: (query: string) => void;
   setSort: (sort: SortKey) => void;
   setShowPrehistoric: (show: boolean) => void;
+  setPrehistoricOnly: (only: boolean) => void;
   unlockPremium: (slugs: string[]) => void;
   reset: () => void;
   activeFilterCount: () => number;
@@ -36,6 +40,7 @@ const INITIAL: ExploreFilters = {
   query: "",
   sort: "popularity",
   showPrehistoric: true,
+  prehistoricOnly: false,
   unlockedPremium: [],
 };
 
@@ -51,18 +56,20 @@ export const useExploreStore = create<ExploreStore>((set, get) => ({
   setStatus: (status) => set({ status }),
   setQuery: (query) => set({ query }),
   setSort: (sort) => set({ sort }),
-  setShowPrehistoric: (showPrehistoric) => set({ showPrehistoric }),
+  setShowPrehistoric: (showPrehistoric) => set({ showPrehistoric, ...(showPrehistoric ? {} : { prehistoricOnly: false }) }),
+  setPrehistoricOnly: (prehistoricOnly) => set({ prehistoricOnly, ...(prehistoricOnly ? { showPrehistoric: true } : {}) }),
   unlockPremium: (slugs) =>
     set((state) => ({ unlockedPremium: [...new Set([...state.unlockedPremium, ...slugs])] })),
   reset: () => set({ ...INITIAL, unlockedPremium: get().unlockedPremium }),
   activeFilterCount: () => {
-    const { region, category, status, query, showPrehistoric } = get();
+    const { region, category, status, query, showPrehistoric, prehistoricOnly } = get();
     return (
       (region !== "All" ? 1 : 0) +
       (category !== "All" ? 1 : 0) +
       (status !== "All" ? 1 : 0) +
       (query.trim() ? 1 : 0) +
-      (showPrehistoric ? 0 : 1)
+      (showPrehistoric ? 0 : 1) +
+      (prehistoricOnly ? 1 : 0)
     );
   },
 }));

@@ -10,6 +10,16 @@ export const metadata: Metadata = {
   title: "About & data sources",
   description:
     "How Kami3D is built: the 3D pipeline, where conservation data comes from, how advertising is placed, and our accessibility commitments.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    type: "article",
+    title: "About Kami3D & its data sources",
+    description:
+      "The 3D pipeline, the conservation data behind every status badge, how advertising is placed, and our accessibility commitments.",
+    url: "/about",
+    siteName: "Kami3D",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 /** Commands shown in the "run it yourself" panel. */

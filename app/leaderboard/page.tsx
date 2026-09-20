@@ -5,9 +5,11 @@ import Link from "next/link";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { DailyBars } from "@/components/stats/DailyBars";
 import { LeaderboardList } from "@/components/stats/LeaderboardList";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { Button } from "@/components/ui/button";
 import { getMostViewed, getDailyTrend, getOverallTrend } from "@/lib/stats";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isSupabaseConfigured, publicEnv } from "@/lib/env";
+import { breadcrumbJsonLd, graph, speciesItemListJsonLd } from "@/lib/seo";
 import { summarise } from "@/lib/trend";
 import { formatCount } from "@/lib/utils";
 
@@ -15,6 +17,15 @@ export const metadata: Metadata = {
   title: "Most viewed species",
   description:
     "Which Kami3D species get opened the most, with a thirty-day view trend for each. Counted in the database, one row per species per day.",
+  alternates: { canonical: "/leaderboard" },
+  openGraph: {
+    type: "website",
+    title: "Most viewed species",
+    description: "Live view counts and a thirty-day trend for every species in the Kami3D encyclopedia.",
+    url: "/leaderboard",
+    siteName: "Kami3D",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 /** Counts move slowly and the query is the same for every visitor. */
@@ -58,6 +69,16 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="section-shell space-y-6 pt-10">
+      <JsonLd
+        data={graph([
+          speciesItemListJsonLd(publicEnv.siteUrl, "Most viewed Kami3D species", ranked),
+          breadcrumbJsonLd(publicEnv.siteUrl, [
+            { name: "Home", path: "/" },
+            { name: "Most viewed", path: "/leaderboard" },
+          ]),
+        ])}
+      />
+
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/6 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-white/55 ring-1 ring-white/12">

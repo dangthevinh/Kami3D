@@ -9,12 +9,14 @@ import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { InfoPanel } from "@/components/animal/InfoPanel";
 import { SoundButton } from "@/components/animal/SoundButton";
 import { ViewTracker } from "@/components/animal/ViewTracker";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { LazyModelViewer, LazySizeComparison } from "@/components/3d/LazyViewers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals, getAnimalBySlug, getRelatedAnimals } from "@/lib/animals";
 import { describeLicense, getModelAttribution } from "@/lib/attribution";
 import { publicEnv } from "@/lib/env";
+import { breadcrumbJsonLd, graph, speciesJsonLd } from "@/lib/seo";
 import { cn, formatLength, formatWeight } from "@/lib/utils";
 import { REGION_ANCHORS, statusToTailwind } from "@/types/animal";
 
@@ -65,22 +67,20 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   // Credited whenever a real model is in use — the licence may require it.
   const attribution = animal.model_url ? getModelAttribution(animal.slug) : null;
 
-  // Structured data: helps search engines render a rich result for the species.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Taxon",
-    name: animal.name,
-    alternateName: animal.latin_name,
-    description: animal.description,
-    url: `${publicEnv.siteUrl}/animal/${animal.slug}`,
-    isPartOf: { "@type": "Collection", name: "Kami3D 3D World Wildlife Encyclopedia" },
-    conservationStatus: animal.conservation_status,
-    taxonRank: "species",
-  };
+  // Structured data: one graph per species page — the taxon, where it sits in the
+  // site, and how a searcher got here. See lib/seo.ts.
+  const jsonLd = graph([
+    speciesJsonLd(publicEnv.siteUrl, animal),
+    breadcrumbJsonLd(publicEnv.siteUrl, [
+      { name: "Home", path: "/" },
+      { name: "Explore", path: "/explore" },
+      { name: animal.name, path: `/animal/${animal.slug}` },
+    ]),
+  ]);
 
   return (
     <article className="section-shell space-y-8 pt-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={jsonLd} />
 
       {/* Counts one view of this species. Client-side on purpose: the page is
           statically generated, so counting at build time would count deployments. */}

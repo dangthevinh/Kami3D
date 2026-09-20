@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Check, Gamepad2, RotateCcw, Timer, Trophy, Volume2, X } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
@@ -206,9 +205,9 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
 
     return (
       <div className="glass rounded-[var(--radius-card)] p-6 text-center sm:p-10">
-        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-flex">
+        <div className="animate-pop-in inline-flex">
           <Trophy className="size-10 text-solar" />
-        </motion.div>
+        </div>
         <h2 className="mt-4 font-display text-3xl font-bold text-white">
           {score} / {QUESTIONS_PER_ROUND}
         </h2>
@@ -285,14 +284,13 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
 
       <SilhouetteStage animal={current.animal} reveal={answered} />
 
-      <AnimatePresence mode="wait">
+      {/* Remounting on `answered` restarts the CSS entrance animation, which
+          replaces the AnimatePresence swap that used to live here. */}
+      <React.Fragment key={answered ? "feedback" : `options-${current.animal.id}`}>
         {answered ? (
-          <motion.div
-            key="feedback"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+          <div
             className={cn(
+              "animate-rise-in",
               "rounded-2xl p-4 ring-1",
               wasCorrect ? "bg-neon/12 ring-neon/30" : "bg-coral/12 ring-coral/30",
             )}
@@ -306,9 +304,9 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
               <em className="italic text-white/50">{current.animal.latin_name}</em> — {current.animal.region},{" "}
               {current.animal.habitat}
             </p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.ul key="options" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-2 sm:grid-cols-2">
+          <ul className="animate-fade-in grid gap-2 sm:grid-cols-2">
             {current.options.map((option) => (
               <li key={option.id}>
                 <button
@@ -323,9 +321,9 @@ export function QuizGame({ animals }: { animals: Animal[] }) {
                 </button>
               </li>
             ))}
-          </motion.ul>
+          </ul>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {!answered ? (
         <div className="flex justify-end">

@@ -17,6 +17,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **3** | Trang chi tiết loài, ModelViewer, so sánh kích thước | ✅ Hoàn thành |
 | **4** | Quiz 3D, quảng cáo, tối ưu hiệu năng/SEO/mobile | ✅ Hoàn thành |
 | **5** | Phát sinh: CI/CD, model 3D thật, brand, auth, MCP | ✅ Hoàn thành (còn 1 việc chờ bạn) |
+| **6** | Tăng tốc tải trang & SEO | ✅ Hoàn thành |
 
 **Số liệu hiện tại**
 
@@ -24,15 +25,16 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **34** (24 trang loài là SSG) |
-| Test tự động | **26** bài trong **4** suite (`npm run check`) |
-| First Load JS | `/` 173 kB · `/explore` 174 kB · `/quiz` 168 kB · `/animal/[slug]` 127 kB |
+| Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
+| Test tự động | **69** bài trong **9** suite (`npm run check`) |
+| First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
+| JS thật trước `load` (đo bằng Chrome) | **~140 kB** mọi trang; bundle 3D tải **sau** khi trang đã dùng được |
 | CI | GitHub Actions xanh — typecheck → checks → build mỗi lần push |
 | Bảo mật database | Supabase advisors: **0 phát hiện security** |
 
 **Tech stack đang chạy**: Next.js `15.5.25` (App Router) · React `19.2.8` · Tailwind CSS `4` ·
 React Three Fiber `9` + drei `10` + three `0.186` · Clerk `7` · Supabase `2.116` + `@supabase/ssr` ·
-Framer Motion `13` · Lucide `1`.
+Lucide `1`. **Không còn thư viện animation nào** — mọi chuyển động là CSS (`app/globals.css`).
 
 ---
 
@@ -142,6 +144,35 @@ responsive mobile với chạm xoay 3D mượt.
 
 ---
 
+## ✅ Phase 6 — Tăng tốc tải trang & SEO
+
+**Yêu cầu**: "tăng tốc độ tải trang và SEO google tốt nhất".
+
+| Việc | Chi tiết | Trạng thái |
+| --- | --- | --- |
+| Bỏ `framer-motion` | 5 chỗ dùng chuyển sang CSS keyframes/transition trong `app/globals.css`; xoá hẳn dependency | ✅ **−42 kB mỗi route** |
+| Không tải SDK auth cho khách | Layout gốc không import Clerk/Supabase nữa; `components/auth/AuthSlot.tsx` `import()` menu tài khoản khi có phiên | ✅ Supabase **−112 kB**, Clerk CDN **−239 kB** mỗi trang |
+| Cookie gợi ý phiên | `middleware.ts` ghi `kami-auth=in/out` (5 phút) từ `x-clerk-auth-status` của Clerk hoặc cookie `sb-*-auth-token`; `lib/auth-hint.ts` đọc đồng bộ, "unknown" thì tải lúc rảnh | ✅ 8 bài test |
+| `<ClerkProvider>` rời khỏi layout | Chỉ mount trong module menu tài khoản và ở `/sign-in` `/sign-up` | ✅ |
+| 3D chờ tới lúc cần | `components/3d/MountWhenVisible.tsx`: canvas chỉ mount khi vào gần viewport **và** browser rảnh | ✅ bundle 3D tải sau `load` ~1.8 s |
+| Font Sora biến thiên | Bỏ danh sách `weight`, chỉ còn 1 file thay vì 4 | ✅ |
+| `/explore` thành trang tĩnh | Bộ lọc đọc từ URL bằng `ExploreUrlFilters` trong `<Suspense>` riêng → HTML có đủ 24 link loài | ✅ `ƒ` → `○` |
+| Dữ liệu có cấu trúc | `lib/seo.ts` + `components/seo/JsonLd.tsx`: `WebSite`+`SearchAction`, `Organization`, `BreadcrumbList`, `Taxon`+`PropertyValue`, `CollectionPage`+`ItemList`, `Quiz` | ✅ 10 bài test |
+| Canonical & OG | Canonical tuyệt đối cho mọi trang; OG image 1200×630 dùng chung cho toàn site (đã có bản riêng cho từng loài) | ✅ |
+| Manifest & cache | `app/manifest.ts`; `Cache-Control` cho `/geo/*` (76 KB bản đồ Natural Earth) | ✅ |
+| Đo lường thật | `scripts/audit-browser.mjs` (`npm run audit:perf`) điều khiển Chrome headless qua DevTools protocol | ✅ |
+
+**Trước → sau** (đo bằng `npm run audit:perf`, cache lạnh):
+
+| Trang | JS tổng trước | JS tổng sau | Ghi chú |
+| --- | --- | --- | --- |
+| `/` | 777 kB | **405 kB** | trong đó chỉ **142 kB** là trước `load` |
+| `/about` | 596 kB | **153 kB** | Clerk CDN 239 kB → **0** |
+
+Chi tiết đầy đủ và cách tự đo lại: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -158,10 +189,11 @@ responsive mobile với chạm xoay 3D mượt.
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 26 bài test (hình học rig, tỉ lệ, SQL, bo góc squircle)
-npm run build        # build production 34 route
+npm run check        # typecheck + 69 bài test trong 9 suite (hình học rig, tỉ lệ, SQL, squircle, JSON-LD, session hint)
+npm run build        # build production 37 route
 npm run db:status    # database đang có bao nhiêu loài
 npm run models:report # model nào tải được, kèm license
+npm run audit:perf   # Chrome thật: TTFB/FCP/LCP/CLS + byte tải trước và sau `load`
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào
@@ -175,14 +207,20 @@ npm run models:report # model nào tải được, kèm license
    không âm thanh — mỗi thứ đều lùi về một trạng thái vẫn dùng được, không bao giờ trắng trang.
    Ứng dụng chạy được **không cần cấu hình gì** (Demo Mode).
 2. **Code 3D nặng không bao giờ chặn nội dung.** `three` + R3F + drei (~750 KB) luôn nằm sau
-   `next/dynamic ssr:false`; chữ và metadata của loài là HTML tĩnh.
-3. **Toán kiểm chứng được thì phải kiểm chứng.** Hình học rig, tỉ lệ kích thước, bo góc squircle và
-   sự khớp giữa SQL ↔ dataset đều là module thuần có test — vì đó là những chỗ sai mà mắt thường
-   không thấy.
-4. **License model là ràng buộc cứng.** Pipeline chỉ tải CC0 / public domain / CC BY, từ chối
+   `next/dynamic ssr:false`, và `MountWhenVisible` giữ cả việc **tải** cho tới khi canvas gần
+   viewport và browser rảnh; chữ và metadata của loài là HTML tĩnh.
+3. **Layout gốc không được biết gì về auth.** Đọc cookie trong layout sẽ biến cả 24 trang loài
+   thành render động, còn import SDK auth vào layout thì mọi khách vãng lai phải tải Clerk/Supabase.
+   Nên: server dựng sẵn trạng thái khách, `middleware.ts` ghi một cookie gợi ý ngắn hạn, client đọc
+   cookie đó rồi mới `import()` menu tài khoản — và câu trả lời "không chắc" luôn được xử lý an toàn
+   (tải lúc rảnh) chứ không bao giờ ẩn menu của người đã đăng nhập.
+4. **Toán kiểm chứng được thì phải kiểm chứng.** Hình học rig, tỉ lệ kích thước, bo góc squircle,
+   sự khớp giữa SQL ↔ dataset, graph JSON-LD và logic cookie phiên đều là module thuần có test —
+   vì đó là những chỗ sai mà mắt thường không thấy.
+5. **License model là ràng buộc cứng.** Pipeline chỉ tải CC0 / public domain / CC BY, từ chối
    share-alike / no-derivatives / non-commercial / all-rights-reserved, và luôn ghi credit — nên
    không thể vô tình đưa model có bản quyền lên site.
-5. **Một nguồn sự thật cho mỗi thứ.** Logo (SVG sinh ra favicon + OG), nhà cung cấp auth
+6. **Một nguồn sự thật cho mỗi thứ.** Logo (SVG sinh ra favicon + OG), nhà cung cấp auth
    (`lib/auth-provider.ts`), seed SQL (sinh từ `data/animals.ts`), và cả cách ghi dữ liệu cá nhân
    (`lib/personal-data.ts`).
 
@@ -194,7 +232,8 @@ npm run models:report # model nào tải được, kèm license
 app/                 route (mặc định là Server Component)
 components/3d/       canvas, địa cầu, model viewer, size chart, rig procedural
 components/animal/   grid, card, filter, info panel, nút yêu thích
-components/auth/     form Supabase, panel Clerk, nút Google, slot navbar
+components/auth/     form Supabase, panel Clerk, nút Google, slot navbar + island tài khoản tải trễ
+components/seo/      thẻ JSON-LD (nội dung do lib/seo.ts sinh)
 components/brand/    logo
 lib/rigs.ts          hình học sinh vật + toán bounding box (thuần, có test)
 lib/size-comparison.ts  toán tỉ lệ thật (thuần, có test)
