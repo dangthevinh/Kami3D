@@ -82,6 +82,9 @@ create table if not exists public.animals (
   silhouette          text    not null default 'quadruped'
                         check (silhouette in ('quadruped','biped','theropod','bird','marine','whale','serpent','insect')),
   popularity          integer not null default 50 check (popularity between 1 and 100),
+  -- Real view count, incremented through increment_animal_view() below. Runtime
+  -- data, not seed data: db:seed deliberately never touches it.
+  view_count          integer not null default 0 check (view_count >= 0),
 
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now(),
@@ -227,6 +230,55 @@ revoke all on public.quiz_scores from anon;
 
 grant select, insert, delete on public.user_favorites to authenticated;
 grant select, insert on public.quiz_scores to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- View counter
+-- ---------------------------------------------------------------------------
+
+-- The column arrived after the first release, so installs that already have the
+-- table pick it up here rather than by recreating it.
+alter table public.animals add column if not exists view_count integer not null default 0;
+
+alter table public.animals drop constraint if exists animals_view_count_non_negative;
+alter table public.animals
+  add constraint animals_view_count_non_negative check (view_count >= 0);
+
+create index if not exists animals_view_count_idx on public.animals (view_count desc);
+
+comment on column public.animals.view_count is
+  'Total views of the species page. Incremented by increment_animal_view(); never written by the seed.';
+
+-- The catalogue is public, so an anonymous visitor must be able to count a view —
+-- while still not being able to update the table. RLS grants `anon` no UPDATE on
+-- `animals`, so this SECURITY DEFINER function is the only door, and it is a
+-- deliberately narrow one: give it a slug and it increments one integer in one
+-- column of one row. It cannot read anything back, cannot touch another column,
+-- cannot create rows, and its search_path is pinned empty so it cannot be tricked
+-- into resolving `animals` to somebody else's table.
+create or replace function public.increment_animal_view(animal_slug text)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  new_count integer;
+begin
+  if animal_slug is null or length(animal_slug) = 0 or length(animal_slug) > 120 then
+    return 0;
+  end if;
+
+  update public.animals
+     set view_count = view_count + 1
+   where slug = animal_slug
+  returning view_count into new_count;
+
+  return coalesce(new_count, 0);
+end;
+$$;
+
+revoke all on function public.increment_animal_view(text) from public;
+grant execute on function public.increment_animal_view(text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images, call recordings)

@@ -1,13 +1,13 @@
 "use client";
 
-import { Lock, Ruler, Sparkles } from "lucide-react";
+import { Eye, Lock, Ruler, Sparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import * as React from "react";
 
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
-import { cn, formatWeight } from "@/lib/utils";
+import { cn, formatCount, formatWeight } from "@/lib/utils";
 import { statusToTailwind, type Animal } from "@/types/animal";
 
 // The 3D preview is only pulled in when a card is actually hovered.
@@ -189,6 +189,20 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
           </span>
           <span className="size-1 rounded-full bg-white/20" />
           <span>{formatWeight(animal.weight_kg)}</span>
+          {/* Real page views from the database. Absent in Demo Mode, where there is
+              no counter to read — an invented number would be worse than none. */}
+          {typeof animal.view_count === "number" ? (
+            <>
+              <span className="size-1 rounded-full bg-white/20" />
+              <span
+                className="inline-flex items-center gap-1"
+                title={`${animal.view_count.toLocaleString()} views`}
+              >
+                <Eye className="size-3.5 text-glow/70" />
+                {formatCount(animal.view_count)}
+              </span>
+            </>
+          ) : null}
           <span className="ml-auto truncate text-white/40">{animal.region}</span>
         </div>
       </div>

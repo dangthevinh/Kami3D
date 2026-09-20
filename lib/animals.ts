@@ -62,6 +62,9 @@ function normaliseRow(row: Record<string, unknown>): Animal {
     emoji: String(row.emoji ?? "🐾"),
     silhouette: pick(SILHOUETTE_KINDS, row.silhouette, "quadruped") as SilhouetteKind,
     popularity: Number(row.popularity ?? 50),
+    // Only present when the row came from the database; the bundled dataset has no
+    // view counts at all.
+    view_count: row.view_count === null || row.view_count === undefined ? undefined : Number(row.view_count),
     created_at: row.created_at ? String(row.created_at) : undefined,
   };
 }

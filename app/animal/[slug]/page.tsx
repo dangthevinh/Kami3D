@@ -8,6 +8,7 @@ import { AnimalCard } from "@/components/animal/AnimalCard";
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { InfoPanel } from "@/components/animal/InfoPanel";
 import { SoundButton } from "@/components/animal/SoundButton";
+import { ViewTracker } from "@/components/animal/ViewTracker";
 import { LazyModelViewer, LazySizeComparison } from "@/components/3d/LazyViewers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,10 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   return (
     <article className="section-shell space-y-8 pt-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      {/* Counts one view of this species. Client-side on purpose: the page is
+          statically generated, so counting at build time would count deployments. */}
+      <ViewTracker slug={animal.slug} />
 
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-white/45">
         <Link href="/" className="transition-colors hover:text-neon">

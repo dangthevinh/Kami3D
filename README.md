@@ -126,6 +126,22 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 `auth.uid()::text`, so a signed-in visitor can only ever read and write their own rows, and the anon role has no
 access at all. Nothing in the application holds a key that could bypass that.
 
+### View counts
+
+Each species card shows how many times its page has been opened, counted in the database.
+
+- `animals.view_count` holds the total. It is runtime data, so `db:seed` **never writes it** — re-seeding the
+  catalogue leaves real counts alone.
+- The increment goes through `increment_animal_view(slug)`, a deliberately narrow `SECURITY DEFINER` function.
+  RLS grants `anon` no UPDATE on `animals`, so this is the only way a visitor can count a view; the function takes
+  a slug, increments one integer in one column of one row and returns it. It cannot read anything back, touch another
+  column or create rows, and its `search_path` is pinned empty.
+- `POST /api/views` is called from the species page after hydration, because the page is statically generated and
+  counting at build time would count deployments rather than visitors.
+- Repeat views from the same browser within six hours are not counted again (a first-party cookie). That is a coarse
+  guard against a refresh inflating the number, not an analytics identity.
+- With no database configured there is no counter to read, so the figure is omitted rather than invented.
+
 ### Accounts and sign-in
 
 **Supabase Auth is the default provider** and needs nothing beyond the project above. Set `NEXT_PUBLIC_SUPABASE_URL`

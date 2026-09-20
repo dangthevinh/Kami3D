@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "check:rigs": "node --test scripts/check-rigs.mjs",
     "check:size": "node --test scripts/check-size.mjs",
-    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs",
+    "check": "npm run typecheck && node --test scripts/check-rigs.mjs scripts/check-size.mjs scripts/check-sql.mjs scripts/check-shapes.mjs scripts/check-geo.mjs scripts/check-format.mjs",
     "seed:generate": "node scripts/generate-seed.mjs",
     "check:sql": "node --test scripts/check-sql.mjs",
     "models:report": "node scripts/fetch-models.mjs --report",
@@ -22,7 +22,8 @@
     "db:status": "node scripts/seed-database.mjs --status",
     "db:seed": "node scripts/seed-database.mjs",
     "db:schema": "node scripts/seed-database.mjs --schema",
-    "check:geo": "node --test scripts/check-geo.mjs"
+    "check:geo": "node --test scripts/check-geo.mjs",
+    "check:format": "node --test scripts/check-format.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

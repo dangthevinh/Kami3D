@@ -18,7 +18,7 @@ export const TABLES = {
 } as const;
 
 export const ANIMAL_COLUMNS =
-  "id, slug, name, latin_name, category, habitat, region, conservation_status, diet, description, fun_facts, model_url, image_url, sound_url, scale_ratio, weight_kg, length_m, height_m, lifespan_years, is_prehistoric, premium, accent, emoji, silhouette, popularity, created_at";
+  "id, slug, name, latin_name, category, habitat, region, conservation_status, diet, description, fun_facts, model_url, image_url, sound_url, scale_ratio, weight_kg, length_m, height_m, lifespan_years, is_prehistoric, premium, accent, emoji, silhouette, popularity, view_count, created_at";
 
 let cached: SupabaseClient | null = null;
 

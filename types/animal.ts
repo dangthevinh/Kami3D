@@ -130,6 +130,14 @@ export interface Animal {
   silhouette: SilhouetteKind;
   /** 0-100, drives the "popularity" sort on the home page. */
   popularity: number;
+  /**
+   * Real page views, counted in the database.
+   *
+   * Optional because it is runtime data, not catalogue data: the bundled dataset
+   * and the SQL seed deliberately do not carry it, so it is `undefined` in Demo
+   * Mode and the UI omits the figure rather than showing a fabricated zero.
+   */
+  view_count?: number;
   created_at?: string;
 }
 

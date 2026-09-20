@@ -47,6 +47,37 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+/**
+ * Compact counter for the card stat line.
+ *
+ *   942      -> "942"
+ *   1_240    -> "1.2k"
+ *   18_400   -> "18k"
+ *   999_999  -> "1M"     (not "1000k")
+ *   2_500_000 -> "2.5M"
+ *
+ * The rounding has to happen before the unit is chosen, which is why the boundary
+ * cases are handled explicitly rather than by a chain of thresholds.
+ */
+export function formatCount(value: number) {
+  if (!Number.isFinite(value)) return "0";
+
+  const scaled = (amount: number, unit: string) =>
+    amount < 10
+      ? `${amount.toFixed(1).replace(/\.0$/, "")}${unit}`
+      : `${Math.round(amount)}${unit}`;
+
+  if (value < 1000) return String(Math.round(value));
+
+  const thousands = value / 1000;
+  if (thousands < 999.5) return scaled(thousands, "k");
+
+  const millions = value / 1_000_000;
+  if (millions < 999.5) return scaled(millions, "M");
+
+  return scaled(value / 1_000_000_000, "B");
+}
+
 export function shuffle<T>(items: readonly T[], seed: string): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i -= 1) {
