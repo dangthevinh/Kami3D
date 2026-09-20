@@ -2,6 +2,8 @@ import { Code2, Globe2, Leaf } from "lucide-react";
 import Link from "next/link";
 
 import { KamiLogo } from "@/components/brand/KamiLogo";
+import { FooterAuthLinks } from "@/components/layout/FooterAuthLinks";
+import { activeAuthProvider } from "@/lib/auth-provider";
 import { isDemoMode } from "@/lib/env";
 
 const GROUPS = [
@@ -19,8 +21,6 @@ const GROUPS = [
     links: [
       { href: "/profile", label: "My favourites" },
       { href: "/profile#badges", label: "Badges" },
-      { href: "/sign-in", label: "Sign in" },
-      { href: "/sign-up", label: "Create account" },
     ],
   },
   {
@@ -72,6 +72,9 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              {group.title === "Collection" ? (
+                <FooterAuthLinks clerk={activeAuthProvider() === "clerk"} />
+              ) : null}
             </ul>
           </nav>
         ))}
