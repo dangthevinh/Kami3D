@@ -34,6 +34,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.5,
     })),
+    // The twin (D7) is a page of the module rather than one of its five products, so it is listed
+    // here by hand. `check:data2map` keeps the products honest; this line keeps the twin findable.
+    { url: `${siteUrl}${DATA2MAP_BASE}/twin`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
   ];
 
   const speciesRoutes: MetadataRoute.Sitemap = animals.map((animal) => ({

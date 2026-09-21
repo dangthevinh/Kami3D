@@ -35,7 +35,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D4** | Logistics & Fleet Visualizer | ✅ Hoàn thành — isochrone Turf (nhãn "không phải thời gian lái xe"), cluster MapLibre, planner NN + 2-opt có test |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | ✅ Hoàn thành — NDVI + mưa **thật** từ NASA GIBS (public domain, không cần tile pipeline), mẫu thửa mô phỏng có nhãn |
-| **D7** | Digital Twin 3D & Realtime (GIS 3D + hạ tầng đẩy dữ liệu) | 📝 Đã phân tích công nghệ video HighTopo + ghi prompt, chưa triển khai |
+| **D7** | Digital Twin 3D & Realtime (GIS 3D + hạ tầng đẩy dữ liệu) | ✅ Hoàn thành — thành phố 3D **thật** (OSM + terrain), fleet stream qua Supabase Realtime; HT for Web bị từ chối, thay bằng bộ OSS |
 
 **Số liệu hiện tại**
 
@@ -43,8 +43,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **40** (24 trang loài là SSG, `/explore` nay **tĩnh**, **6** trang Data2Map tĩnh) |
-| Test tự động | **357** bài trong **31** suite (`npm run check:suites`) — thêm 17 footfall · 9 trends · 7 overpass · 13 logistics · 7 ndvi · 6 agriculture |
+| Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
+| Test tự động | **374** bài trong **32** suite (`npm run check:suites`) — thêm 17 footfall · 9 trends · 7 overpass · 13 logistics · 7 ndvi · 6 agriculture · 17 twin |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2562,6 +2562,87 @@ Dùng lại `components/stats/DailyBars` và `Sparkline` của Phase 4. `Sparkli
 
 D1 (nền tảng) · D2 (bất động sản) · D3 (footfall) · D4 (logistics) · D5 (story maps) · **D6 (nông nghiệp)** — tất
 cả `live`, tất cả có registry ghi nguồn + licence + cờ mô phỏng, và mọi con số không đo được đều tự khai.
+
+---
+
+## ✅ Phase D7 — Kết quả: Digital Twin 3D & Realtime
+
+**Trạng thái: đã giao.** `/data2map/twin`: thành phố 3D **thật** (khối nhà OSM đùn theo chiều cao ghi trong dữ
+liệu + địa hình thật), mẫu logistics D4 nằm trên đó, và **hạ tầng đẩy dữ liệu thật** — thứ duy nhất module còn
+thiếu so với video tham chiếu.
+
+### 1. Học cách ghép, không mua engine
+
+Video của 图扑 (HighTopo) dùng **HT for Web**: engine WebGL **đóng, bán licence** (lõi là một file `ht.js` ~1 MB
+nhúng bằng `<script>`; tài liệu công khai ghi thẳng *"not open source and requires a commercial license to
+use"*). Nó vi phạm hai luật của dự án cùng lúc: clone mới phải chạy không cần key, và 1 MB một file thì không
+cắt được theo ngân sách route. Vì vậy D7 lấy **cách ghép** và từ chối engine — chi tiết + bảng thay thế mã
+nguồn mở ở [docs/TWIN.md](docs/TWIN.md) và ở mục phân tích phía trên.
+
+Điểm đáng nói: **mặc định của D7 không thêm dependency nào**. MapLibre (BSD-3), three.js/R3F (MIT) và Supabase
+Realtime đều đã có trong stack; các thứ còn lại (CesiumJS, web-ifc/@thatopen, ECharts, Eclipse Ditto, ThingsBoard)
+được ghi lại kèm licence đã kiểm để mở khi cần, không nhồi trước.
+
+### 2. Thành phố 3D thật, không model bịa
+
+- **Khối nhà**: layer `fill-extrusion` đọc chính source-layer `building` mà OpenFreeMap phục vụ (field
+  `render_height`/`render_min_height`) — không key, ODbL, không upload model nào. Nhà **không có chiều cao**
+  được vẽ ở lớp thấp nhất chứ không ẩn đi hay hoá thành toà tháp: `buildingClassFor()` trả `null` và có test.
+- **Địa hình**: raster-dem source từ terrain tiles công khai của AWS (`elevation-tiles-prod/terrarium`, nguồn
+  public domain), bật/tắt được, mặc định tắt trên màn nhỏ vì đồng bằng Cửu Long thì phẳng mà băng thông thì không.
+- **Một WebGL context**: 3D là của chính MapLibre trên route này, không mount thêm canvas three.js nào.
+
+### 3. Hạ tầng đẩy dữ liệu — mảnh còn thiếu, nay đã có và **đã kiểm chứng**
+
+```
+scripts/simulate-fleet.mjs ──▶ public.vehicle_positions ──▶ Supabase Realtime ──▶ /data2map/twin
+        │                              │
+        │                              └── prune_vehicle_positions(168)      ← retention 7 ngày
+        └── rollup_vehicle_kpi_hours(24) ──▶ public.logistics_kpi_hourly ──▶ biểu đồ trong cockpit
+```
+
+Ba tính chất được **kiểm trên project thật**, không phải trên giấy:
+
+| Kiểm | Kết quả |
+| --- | --- |
+| anon đọc được stream | `200` |
+| anon **ghi** vào bảng | `401 permission denied` — không có policy insert/update/delete nào |
+| anon gọi `prune_vehicle_positions` | `401` (chỉ `service_role`) |
+| `prune_vehicle_positions(0)` | lỗi `keep_hours must be positive` |
+| đăng ký Realtime bằng key anon rồi chạy simulator | **nhận đủ 6 sự kiện INSERT** (`npm run fleet:verify`) |
+
+Ngoài ra: bảng chặn dữ liệu giả danh dữ liệu thật bằng CHECK (`source` phải là `'Kami3D synthetic'`, `synthetic`
+phải `true`), và hàm `haversine_km()` trong SQL dùng **đúng công thức** của `lib/geo.ts` (cùng hằng số
+6371.0088) nên rollup trong Postgres và con số trên panel không thể lệch nhau — có test khoá cả hai đầu.
+
+### 4. Cockpit in công thức, không in con số trần
+
+km = haversine giữa hai mẫu liên tiếp của cùng một xe; tốc độ trung bình = trung bình tốc độ của chính các mẫu;
+"đúng hạn" = có mẫu đến trong bán kính 250 m quanh điểm giao **và** nằm trong cửa sổ giờ khách hẹn. Cả ba công
+thức in ngay dưới các ô số, kèm chính sách retention và câu nói thẳng: vị trí là **mô phỏng**, dự án không thu
+vị trí thật của bất kỳ ai.
+
+Dashboard dùng lại `components/stats/*` (Sparkline cho nhịp mẫu, DailyBars cho km/giờ lấy từ rollup SQL) và
+`RangeTimeline` cho đồng hồ 24 giờ — chế độ "một giờ lịch sử" lọc đúng các mẫu trong giờ đó.
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **374 test / 32 suite** (thêm 17 của `check:twin`, trong đó 5 test khoá chính sách SQL:
+  RLS, không có policy ghi, retention có sàn, hằng số haversine khớp `lib/geo.ts`, publication có bảng).
+- `npm run check:bundle`: `/data2map/twin` **152,1 kB** (ngân sách 160) — MapLibre và client Realtime đều nằm sau
+  `next/dynamic`, nên route có bản đồ + stream + cockpit vẫn ngang các route bản đồ khác.
+- `npm run fleet:verify`: PASS — subscribe bằng key anon, simulator ghi 6 dòng, client nhận đủ 6 sự kiện, và
+  attempt ghi bằng anon bị từ chối.
+- `npm run db:schema`: đã áp lên project thật; `/data2map/twin` trả 200 với 239 kB HTML, sitemap có 7 mục Data2Map.
+- Thực nghiệm: `--backfill 120` sinh 726 mẫu + 18 dòng KPI theo giờ; `--status` đọc lại đúng.
+
+### 6. Điều không làm được, và nói thẳng
+
+- **Không có model cảng/kho đẹp như video**: đó là *tài sản model*, không phải công nghệ. Dự án chỉ nhận model thật
+  qua pipeline admin (Phase 12/17); khi có file IFC thì web-ifc + @thatopen (MPL-2.0/MIT) đọc được ngay trong trình duyệt.
+- **Không có 3D Tiles**: Cesium ion và Google đều cần token → bị từ chối; xem "đường mở" trong docs/TWIN.md.
+- **Không kiểm được pixel tại chỗ**: Chrome headless ở đây không có WebGL, nên phần kiểm là server render + stream +
+  SQL + hàm thuần (đúng như ghi chú ở `docs/MAP.md`).
 
 ---
 

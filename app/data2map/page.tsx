@@ -114,6 +114,25 @@ export default async function Data2MapHome() {
         </ul>
       </section>
 
+      <section aria-labelledby="twin" className="mt-12">
+        <h2 id="twin" className="font-display text-lg font-semibold tracking-tight text-white">
+          Digital twin
+        </h2>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/45">
+          Not a product but a view of everything above, in three dimensions: the city as OpenStreetMap records
+          it, extruded from its own building heights over real elevation, with the D4 fleet moving through it on
+          a stream from Postgres. Built in D7, and built on open-source parts, because the engine those demos
+          use is a commercial one this project will not ship.
+        </p>
+        <Link
+          href="/data2map/twin"
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/8 px-4 py-2 text-xs text-white/85 ring-1 ring-white/15 transition-colors hover:bg-white/12 hover:text-white"
+        >
+          Open the twin
+          <span aria-hidden>&rarr;</span>
+        </Link>
+      </section>
+
       <section aria-labelledby="registry" className="mt-12">
         <h2 id="registry" className="font-display text-lg font-semibold tracking-tight text-white">
           Dataset registry

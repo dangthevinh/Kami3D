@@ -84,6 +84,10 @@ const ROUTES = [
   // The last Data2Map route: raster layers over a parcel sample, with the shared stats components
   // rather than a chart library. Measured after the first build; the budget is that plus a margin.
   { route: "/data2map/agriculture", html: "server/app/data2map/agriculture.html", budget: 160 },
+  // The twin (D7): MapLibre in three dimensions plus the Supabase Realtime client, both behind
+  // next/dynamic - which is why a route with a map, a stream and a cockpit still measures close to
+  // its neighbours. 152.1 kB measured; the budget is that plus a small margin.
+  { route: "/data2map/twin", html: "server/app/data2map/twin.html", budget: 160 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

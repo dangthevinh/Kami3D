@@ -36,6 +36,14 @@ export interface BaseMapView {
   longitude: number;
   latitude: number;
   zoom: number;
+  /**
+   * Camera tilt and rotation, for the pages that draw in three dimensions.
+   *
+   * Optional, and left out everywhere else on purpose: a tilted map is harder to read when the
+   * layers are flat shapes, and only the twin page (`/data2map/twin`) puts a camera in the sky.
+   */
+  pitch?: number;
+  bearing?: number;
 }
 
 export interface BaseMapProps {

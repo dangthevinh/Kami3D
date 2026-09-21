@@ -1212,6 +1212,240 @@ grant select on public.data2map_layers to anon, authenticated;
 grant select, insert, update, delete on public.data2map_user_prefs to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Phase D7 — the 3D twin's realtime pipeline
+-- ---------------------------------------------------------------------------
+-- Two tables and two functions, and their shape is the point: a simulator writes,
+-- everybody reads, and nothing here can be used to follow a person. Positions in a
+-- real fleet are personal data, so this table only ever accepts rows that say they
+-- are simulated - the CHECK constraints make a real feed fail loudly rather than
+-- quietly accumulate somebody's movements. See docs/TWIN.md.
+
+create table if not exists public.vehicle_positions (
+  id         bigserial primary key,
+  vehicle_id text not null check (char_length(vehicle_id) between 1 and 64),
+  at         timestamptz not null default now(),
+  lng        double precision not null check (lng between -180 and 180),
+  lat        double precision not null check (lat between -90 and 90),
+  speed_kmh  numeric(6, 2) check (speed_kmh is null or (speed_kmh >= 0 and speed_kmh <= 200)),
+  heading    numeric(5, 1) check (heading is null or (heading >= 0 and heading < 360)),
+  -- The two columns that keep this honest. A real telemetry feed cannot be written
+  -- here by accident: the source must be this string and synthetic must be true.
+  source     text not null default 'Kami3D synthetic' check (source = 'Kami3D synthetic'),
+  synthetic  boolean not null default true check (synthetic),
+  created_at timestamptz not null default now()
+);
+
+comment on table public.vehicle_positions is
+  'One row per simulated fleet position. Personal data by nature in a real system, which is exactly why this table refuses anything but generated rows.';
+
+create index if not exists vehicle_positions_vehicle_at_idx on public.vehicle_positions (vehicle_id, at desc);
+create index if not exists vehicle_positions_at_idx on public.vehicle_positions (at desc);
+
+alter table public.vehicle_positions enable row level security;
+
+drop policy if exists "vehicle positions are publicly readable" on public.vehicle_positions;
+create policy "vehicle positions are publicly readable"
+  on public.vehicle_positions for select
+  to anon, authenticated
+  using (true);
+
+-- There is deliberately no insert policy: the only writer is the simulator with the
+-- service role, and the anonymous key can read the stream but never add to it.
+revoke all on public.vehicle_positions from anon, authenticated;
+grant select on public.vehicle_positions to anon, authenticated;
+
+create table if not exists public.logistics_kpi_hourly (
+  hour          timestamptz not null,
+  vehicle_id    text not null,
+  samples       integer not null default 0 check (samples >= 0),
+  distance_km   numeric(10, 3) not null default 0 check (distance_km >= 0),
+  avg_speed_kmh numeric(6, 2),
+  max_speed_kmh numeric(6, 2),
+  first_at      timestamptz,
+  last_at       timestamptz,
+  updated_at    timestamptz not null default now(),
+  primary key (hour, vehicle_id)
+);
+
+comment on table public.logistics_kpi_hourly is
+  'Hourly rollup of the same numbers the page computes client-side: samples, distance from consecutive positions, average and maximum speed. Written only by rollup_vehicle_kpi_hours().';
+
+create index if not exists logistics_kpi_hourly_hour_idx on public.logistics_kpi_hourly (hour desc);
+
+alter table public.logistics_kpi_hourly enable row level security;
+
+drop policy if exists "logistics kpi is publicly readable" on public.logistics_kpi_hourly;
+create policy "logistics kpi is publicly readable"
+  on public.logistics_kpi_hourly for select
+  to anon, authenticated
+  using (true);
+
+revoke all on public.logistics_kpi_hourly from anon, authenticated;
+grant select on public.logistics_kpi_hourly to anon, authenticated;
+
+-- Retention. A demo that keeps every position for ever is a demo that quietly
+-- builds a movement history, so pruning is a function with a floor on its argument
+-- rather than a cron line somebody edits at 2am.
+create or replace function public.prune_vehicle_positions(keep_hours integer default 168)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  removed integer;
+begin
+  if keep_hours is null or keep_hours <= 0 then
+    raise exception 'keep_hours must be positive';
+  end if;
+
+  delete from public.vehicle_positions where at < now() - make_interval(hours => keep_hours);
+  get diagnostics removed = row_count;
+  return removed;
+end;
+$$;
+
+comment on function public.prune_vehicle_positions(integer) is
+  'Deletes positions older than keep_hours (default 168 = seven days) and returns how many went. service_role only.';
+
+-- The distance formula, in SQL, as the *same* formula the page uses.
+--
+-- PostGIS is installed here (in the extensions schema) and st_distance would answer
+-- with a spheroid, which is a slightly different number from the haversine in
+-- lib/geo.ts. Two numbers for one journey is how a dashboard loses its reader, so the
+-- rollup uses this function and the panel uses the TypeScript one: same constant, same
+-- rounding, same answer.
+create or replace function public.haversine_km(
+  lng1 double precision,
+  lat1 double precision,
+  lng2 double precision,
+  lat2 double precision
+)
+returns double precision
+language sql
+immutable
+parallel safe
+as $$
+  select 2 * 6371.0088 * asin(
+    least(1, sqrt(
+      power(sin(radians(lat2 - lat1) / 2), 2) +
+      cos(radians(lat1)) * cos(radians(lat2)) * power(sin(radians(lng2 - lng1) / 2), 2)
+    ))
+  );
+$$;
+
+comment on function public.haversine_km(double precision, double precision, double precision, double precision) is
+  'Great-circle kilometres between two points - the same formula lib/geo.ts computes, so SQL and the page agree.';
+
+-- The rollup: the same arithmetic the cockpit does, over a longer window and in SQL.
+create or replace function public.rollup_vehicle_kpi_hours(since_hours integer default 24)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  written integer;
+begin
+  if since_hours is null or since_hours <= 0 then
+    raise exception 'since_hours must be positive';
+  end if;
+
+  with ordered as (
+    select
+      vehicle_id,
+      at,
+      lng,
+      lat,
+      speed_kmh,
+      date_trunc('hour', at) as hour,
+      lag(at) over (partition by vehicle_id order by at) as prev_at,
+      lag(lng) over (partition by vehicle_id order by at) as prev_lng,
+      lag(lat) over (partition by vehicle_id order by at) as prev_lat
+    from public.vehicle_positions
+    where at >= now() - make_interval(hours => since_hours)
+  ),
+  legs as (
+    select
+      vehicle_id,
+      hour,
+      at,
+      speed_kmh,
+      case
+        when prev_at is null then 0
+        else public.haversine_km(prev_lng, prev_lat, lng, lat)
+      end as leg_km
+    from ordered
+  ),
+  aggregated as (
+    select
+      vehicle_id,
+      hour,
+      count(*)::integer as samples,
+      sum(leg_km) as distance_km,
+      avg(speed_kmh) as avg_speed_kmh,
+      max(speed_kmh) as max_speed_kmh,
+      min(at) as first_at,
+      max(at) as last_at
+    from legs
+    group by vehicle_id, hour
+  )
+  insert into public.logistics_kpi_hourly (
+    hour, vehicle_id, samples, distance_km, avg_speed_kmh, max_speed_kmh, first_at, last_at, updated_at
+  )
+  select
+    hour, vehicle_id, samples,
+    round(distance_km::numeric, 3),
+    round(avg_speed_kmh::numeric, 2),
+    round(max_speed_kmh::numeric, 2),
+    first_at, last_at, now()
+  from aggregated
+  on conflict (hour, vehicle_id) do update set
+    samples = excluded.samples,
+    distance_km = excluded.distance_km,
+    avg_speed_kmh = excluded.avg_speed_kmh,
+    max_speed_kmh = excluded.max_speed_kmh,
+    first_at = excluded.first_at,
+    last_at = excluded.last_at,
+    updated_at = excluded.updated_at;
+
+  get diagnostics written = row_count;
+  return written;
+end;
+$$;
+
+comment on function public.rollup_vehicle_kpi_hours(integer) is
+  'Upserts one row per vehicle per hour from the raw positions. service_role only.';
+
+-- Only the service role may write, prune or roll up. The anonymous key reads.
+revoke all on function public.prune_vehicle_positions(integer) from public, anon, authenticated;
+revoke all on function public.rollup_vehicle_kpi_hours(integer) from public, anon, authenticated;
+grant execute on function public.prune_vehicle_positions(integer) to service_role;
+grant execute on function public.rollup_vehicle_kpi_hours(integer) to service_role;
+
+-- The stream the page subscribes to.
+do $$
+begin
+  alter publication supabase_realtime add table public.vehicle_positions;
+exception
+  when duplicate_object then null;
+  when undefined_object then raise notice 'supabase_realtime publication is not present; the page falls back to polling';
+end;
+$$;
+
+-- Housekeeping, when the project has pg_cron (Supabase does; a plain Postgres may not).
+do $$
+begin
+  perform cron.schedule('kami3d-position-retention', '17 * * * *', 'select public.prune_vehicle_positions(168)');
+  perform cron.schedule('kami3d-kpi-rollup', '*/15 * * * *', 'select public.rollup_vehicle_kpi_hours(24)');
+exception
+  when undefined_object then raise notice 'pg_cron is not installed; run npm run fleet:simulate -- --prune instead';
+  when invalid_schema_name then raise notice 'pg_cron is not installed; run npm run fleet:simulate -- --prune instead';
+  when insufficient_privilege then raise notice 'no privilege to schedule cron jobs; run the retention sweep manually';
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 
