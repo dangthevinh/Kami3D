@@ -16,15 +16,38 @@ import { REGIONS, type Region } from "../types/animal.ts";
  */
 
 /** Every layer the product can draw. The ids are the API: they appear in the URL. */
-export const MAP_LAYERS = [
-  { id: "habitat", label: "Habitat range", hint: "The area each species is recorded in." },
-  { id: "historic", label: "Historic range", hint: "A range as it was in the past, where data exists." },
-  { id: "occurrence", label: "Observation density", hint: "Where the species has actually been recorded." },
-  { id: "protected", label: "Protected areas", hint: "Parks, reserves and other designations." },
-  { id: "pressure", label: "Human pressure", hint: "Deforestation and the human footprint." },
-] as const;
+export interface MapLayerDefinition {
+  id: MapLayerId;
+  label: string;
+  hint: string;
+  /** Where the data comes from, printed next to the switch. */
+  source: string;
+  license: string;
+  /** Set when the layer exists in the panel but has no data behind it yet. */
+  unavailable?: string;
+}
 
-export type MapLayerId = (typeof MAP_LAYERS)[number]["id"];
+const LAYER_IDS = ["habitat", "historic", "occurrence", "protected", "pressure"] as const;
+export type MapLayerId = (typeof LAYER_IDS)[number];
+
+/**
+ * Every layer the product can draw. The ids are the API: they appear in the URL.
+ *
+ * Each one carries its source and licence because a map layer without provenance is a
+ * claim without a citation - and the two layers with no usable source say so in the panel
+ * (`unavailable`) rather than being quietly missing.
+ */
+export const MAP_LAYERS: readonly MapLayerDefinition[] = [
+  { id: "habitat", label: "Habitat range", source: "Kami3D demo envelopes", license: "CC0", hint: "The area each species is recorded in. Currently generated envelopes, not published ranges." },
+  { id: "historic", label: "Historic range", source: "Kami3D demo envelopes", license: "CC0", hint: "A range as it was in the past, for the species where we have one." },
+  { id: "occurrence", label: "Observation density", source: "GBIF occurrence search", license: "CC0 / CC BY 4.0", hint: "Where the species has actually been recorded. Not how many there are." },
+  { id: "protected", label: "Protected areas", source: "WDPA (refused)", license: "Non-commercial", unavailable: "WDPA is non-commercial and this site carries advertising, so the layer is not drawn.", hint: "Parks and reserves." },
+  { id: "pressure", label: "Urban expansion", source: "Natural Earth urban areas", license: "Public domain", hint: "Severity-1 to 5 urban extent, used as a coarse stand-in for human pressure on a range." },
+];
+
+// Compile-time guard: a layer id that has no definition, or a definition with no id,
+// stops the build rather than reaching the panel as an unlabelled switch.
+export type MapLayerIdsAreComplete = MapLayerId extends (typeof MAP_LAYERS)[number]["id"] ? true : never;
 
 export const MAP_LAYER_IDS: readonly MapLayerId[] = MAP_LAYERS.map((layer) => layer.id);
 

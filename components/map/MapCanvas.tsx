@@ -68,6 +68,8 @@ const HEATMAP_COLOR = [
 
 export interface MapCanvasProps {
   features: GeodataFeature[];
+  /** Threat centroids with severity: a city is a dot at world zoom. */
+  threats?: FeatureCollection<Geometry> | null;
   visible: Record<MapLayerId, boolean>;
   opacity: Record<MapLayerId, number>;
   /** The species to highlight, or null. */
@@ -95,6 +97,7 @@ function collectionOf(features: GeodataFeature[], kind: string): FeatureCollecti
 
 export function MapCanvas({
   features,
+  threats = null,
   visible,
   opacity,
   selectedSlug,
@@ -147,6 +150,72 @@ export function MapCanvas({
           </Source>
         );
       })}
+
+      {/* Threats are drawn as points sized by severity: 1 662 city outlines would be a
+          megabyte of coordinates to show what a dot already shows at this zoom. The
+          impact numbers behind the risk index come from the real polygons, in SQL. */}
+      {visible.pressure && threats ? (
+        <Source id="threat-source" type="geojson" data={threats}>
+          <Layer
+            id="threat-points"
+            type="circle"
+            paint={{
+              "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0,
+                ["*", 2.5, ["get", "severity"]],
+                6,
+                ["*", 5, ["get", "severity"]],
+              ],
+              "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "severity"],
+                1,
+                "#35f0c0",
+                3,
+                "#ffb738",
+                5,
+                "#ff5d8f",
+              ],
+              "circle-opacity": opacity.pressure,
+              "circle-stroke-width": 0.4,
+              "circle-stroke-color": "rgba(255,255,255,0.4)",
+            }}
+          />
+        </Source>
+      ) : null}
+
+      {/* Threats are drawn as points sized by severity: 1 662 city outlines would be about
+          a megabyte of coordinates to show what a dot already shows at this zoom. The impact
+          numbers behind the risk index come from the real polygons, in SQL. */}
+      {visible.pressure && threats ? (
+        <Source id="threat-source" type="geojson" data={threats}>
+          <Layer
+            id="threat-points"
+            type="circle"
+            paint={{
+              "circle-radius": ["*", 2.5, ["get", "severity"]],
+              "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "severity"],
+                1,
+                "#35f0c0",
+                3,
+                "#ffb738",
+                5,
+                "#ff5d8f",
+              ],
+              "circle-opacity": opacity.pressure,
+              "circle-stroke-width": 0.4,
+              "circle-stroke-color": "rgba(255,255,255,0.4)",
+            }}
+          />
+        </Source>
+      ) : null}
 
       {visible.occurrence ? (
         <Source id="occurrence-source" type="geojson" data={collectionOf(features, "occurrence")}>

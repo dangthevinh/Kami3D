@@ -4,6 +4,7 @@ import { MapExperience, type MapSpecies } from "@/components/map/MapExperience";
 import { getAllAnimals } from "@/lib/animals";
 import { getGeodata } from "@/lib/geodata";
 import { parseMapQuery } from "@/lib/map-query";
+import { getThreatImpact } from "@/lib/threats";
 
 /**
  * `/map` - habitat ranges, drawn from PostGIS or from the bundled sample.
@@ -41,7 +42,11 @@ export default async function MapPage({
     ).toString(),
   );
 
-  const [{ collection, credits, source }, animals] = await Promise.all([getGeodata(), getAllAnimals()]);
+  const [{ collection, credits, source }, animals, impact] = await Promise.all([
+    getGeodata(),
+    getAllAnimals(),
+    getThreatImpact(),
+  ]);
 
   const species: MapSpecies[] = animals.map((animal) => ({
     slug: animal.slug,
@@ -59,6 +64,7 @@ export default async function MapPage({
       species={species}
       initialQuery={query}
       source={source}
+      impact={impact}
     />
   );
 }

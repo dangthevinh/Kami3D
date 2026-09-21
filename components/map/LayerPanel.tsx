@@ -67,6 +67,16 @@ export function LayerPanel({ visible, opacity, available, onToggle, onOpacity }:
                   </p>
                   <p className="mt-0.5 text-[11px] leading-relaxed text-white/45">{layer.hint}</p>
 
+                  {/* Source, licence and year on every layer: a map layer without
+                      provenance is a claim without a citation. */}
+                  <p className="mt-1 text-[10px] text-white/35">
+                    {layer.source} · {layer.license}
+                  </p>
+
+                  {layer.unavailable ? (
+                    <p className="mt-1 text-[10px] leading-relaxed text-solar/80">{layer.unavailable}</p>
+                  ) : null}
+
                   {checked ? (
                     <label className="mt-2 flex items-center gap-2">
                       <span className="sr-only">Opacity for {layer.label}</span>

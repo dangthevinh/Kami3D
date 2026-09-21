@@ -128,6 +128,8 @@ export async function collectOccurrences(usageKey, { limit, years, buckets = 4 }
 
   const windows = yearBuckets(years, buckets);
   const perWindow = Math.max(20, Math.ceil(limit / windows.length));
+  /** Records kept per year window - the only honest source of a trend from a sample. */
+  const perBucket = [];
 
   for (const window of windows) {
     for (let offset = 0; offset < perWindow; offset += PAGE_SIZE) {
@@ -136,6 +138,7 @@ export async function collectOccurrences(usageKey, { limit, years, buckets = 4 }
       );
       const results = page.results ?? [];
       if (results.length === 0) break;
+      const before = points.length;
 
       for (const record of results) {
       examined += 1;
@@ -166,6 +169,12 @@ export async function collectOccurrences(usageKey, { limit, years, buckets = 4 }
         }
       }
 
+      perBucket.push({
+        from: Number(window.split(",")[0]),
+        to: Number(window.split(",")[1]),
+        records: points.length - before,
+      });
+
       if (page.endOfRecords) break;
       await sleep(REQUEST_DELAY_MS);
     }
@@ -177,6 +186,7 @@ export async function collectOccurrences(usageKey, { limit, years, buckets = 4 }
 
   return {
     points,
+    perBucket,
     examined,
     refused,
     license,
@@ -322,6 +332,8 @@ async function main() {
               year_min: collected.yearMin,
               year_max: collected.yearMax,
               licence_counts: collected.licenceCounts,
+              // The risk index reads this: how many records each year window contributed.
+              buckets: collected.perBucket,
               note:
                 "Individual observation records, filtered to CC0 / CC BY and thinned to one point per ~11 m, " +
                 "sampled evenly across the year range rather than from the most recent records only. " +

@@ -745,6 +745,180 @@ revoke all on function public.map_geodata(text, double precision) from public;
 grant execute on function public.map_geodata(text, double precision) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Threat layers (Phase 15)
+-- ---------------------------------------------------------------------------
+--
+-- Threats do not belong to a species: a city, a deforested frontier or a poaching
+-- hotspot exists on its own and *overlaps* several ranges. So they live in their own
+-- table and the link is a spatial join (`ST_Intersects`), never an `animal_id` column -
+-- which would duplicate a polygon per species and drift the moment a range changes.
+--
+-- `severity` is 1-5 and is computed by the pipeline from the source's own numbers; the
+-- legend renders those five bands. `year` is what makes "before vs now" possible in
+-- Phase 16 without a second table.
+--
+-- Rows are written by `scripts/fetch-threats.mjs` with the service role, and the licence
+-- check is the same as everywhere else: CC0 or CC BY, recorded per row, or the row is not
+-- written. WDPA (non-commercial) and the IUCN Red List (restricted) are refused for that
+-- reason, and the panel says so instead of drawing an inferred layer.
+create table if not exists public.threat_layers (
+  id          uuid primary key default gen_random_uuid(),
+  kind        text not null check (kind in ('urban_expansion', 'forest_loss', 'climate_risk', 'poaching')),
+  name        text not null,
+  severity    integer not null check (severity between 1 and 5),
+  year        integer check (year is null or (year between -10000 and 2100)),
+  geometry    extensions.geometry(Geometry, 4326) not null,
+  source      text not null,
+  source_url  text,
+  license     text not null check (license in ('CC0', 'CC-BY')),
+  attribution text not null,
+  properties  jsonb not null default '{}'::jsonb,
+  dedupe_key  text generated always as (
+    kind || ':' || coalesce(year::text, 'current') || ':' || coalesce(properties ->> 'feature_id', '') || ':' || source
+  ) stored,
+  created_at  timestamptz not null default now(),
+  constraint threat_layers_unique_row unique (dedupe_key),
+  constraint threat_layers_geometry_type check (
+    extensions.geometrytype(geometry) in ('POINT', 'MULTIPOINT', 'POLYGON', 'MULTIPOLYGON')
+  ),
+  constraint threat_layers_valid_geometry check (extensions.st_isvalid(geometry))
+);
+
+comment on table public.threat_layers is
+  'Threats as geometry, joined to species by ST_Intersects. Written by scripts/fetch-threats.mjs with the service role; read-only for everyone else.';
+comment on column public.threat_layers.severity is '1-5, computed by the pipeline from the source dataset (see lib/risk.ts: severityForUrbanArea).';
+comment on column public.threat_layers.license is 'Only CC0 and CC BY are stored. WDPA is non-commercial and the IUCN Red List is restricted, so neither is imported.';
+
+create index if not exists threat_layers_geometry_idx on public.threat_layers using gist (geometry);
+create index if not exists threat_layers_kind_idx on public.threat_layers (kind, severity);
+
+alter table public.threat_layers enable row level security;
+
+drop policy if exists "threat layers are publicly readable" on public.threat_layers;
+create policy "threat layers are publicly readable"
+  on public.threat_layers for select
+  to anon, authenticated
+  using (true);
+
+revoke all on public.threat_layers from anon, authenticated;
+grant select on public.threat_layers to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- The species-by-threat join (Phase 15)
+-- ---------------------------------------------------------------------------
+--
+-- How much of each species' range a threat overlaps, computed where the geometry is:
+-- `ST_Intersects` narrows with the GiST index, `ST_Intersection` gives the overlapping
+-- area, and `geography` turns degrees into square kilometres so the number means
+-- something. Doing this in JavaScript would mean shipping every polygon to the browser.
+--
+-- `p_kind` filters to one threat kind; the default is every kind. Public on purpose: it
+-- returns a share of ranges that are already public, and it is the only read path the map
+-- uses for threat impact.
+create or replace function public.species_threat_impact(p_kind text default null)
+returns table (
+  slug text,
+  name text,
+  conservation_status text,
+  habitat_km2 double precision,
+  threatened_km2 double precision,
+  threatened_fraction double precision,
+  worst_severity integer,
+  mean_severity double precision,
+  threats integer
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with habitat as (
+    select a.id, a.slug, a.name, a.conservation_status, g.geometry
+    from public.animal_geodata g
+    join public.animals a on a.id = g.animal_id
+    where g.kind = 'habitat_current'
+  ),
+  hit as (
+    select
+      h.slug,
+      t.severity,
+      extensions.st_area(extensions.st_intersection(h.geometry, t.geometry)::extensions.geography) as overlap_m2
+    from habitat h
+    join public.threat_layers t
+      on (p_kind is null or t.kind = p_kind)
+     and extensions.st_intersects(h.geometry, t.geometry)
+  )
+  select
+    h.slug,
+    h.name,
+    h.conservation_status,
+    extensions.st_area(h.geometry::extensions.geography) / 1e6 as habitat_km2,
+    coalesce(sum(x.overlap_m2), 0) / 1e6 as threatened_km2,
+    least(1, coalesce(sum(x.overlap_m2), 0) / greatest(extensions.st_area(h.geometry::extensions.geography), 1)) as threatened_fraction,
+    coalesce(max(x.severity), 0) as worst_severity,
+    coalesce(avg(x.severity), 0) as mean_severity,
+    count(x.severity)::int as threats
+  from habitat h
+  left join hit x on x.slug = h.slug
+  group by h.slug, h.name, h.conservation_status, h.geometry
+$$;
+
+comment on function public.species_threat_impact(text) is
+  'Per species: how many km2 of its current range each threat kind overlaps, and the worst/mean severity. The join is spatial - threats carry no animal_id.';
+
+revoke all on function public.species_threat_impact(text) from public;
+grant execute on function public.species_threat_impact(text) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Threat layer for the map (Phase 15)
+-- ---------------------------------------------------------------------------
+--
+-- Threat polygons are heavy - 1 662 urban areas is around a megabyte of coordinates - and at
+-- world zoom a city is a dot. So the map draws each threat as its centroid with its severity,
+-- while the *impact* numbers come from the real polygon overlay in
+-- `species_threat_impact()`. Two different questions, two different resolutions.
+create or replace function public.map_threats(
+  p_kind text default 'urban_expansion',
+  p_min_severity integer default 1
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'type', 'FeatureCollection',
+    'features', coalesce(jsonb_agg(feature order by severity desc), '[]'::jsonb)
+  )
+  from (
+    select
+      t.severity,
+      jsonb_build_object(
+        'type', 'Feature',
+        -- Only what the map draws. The attribution, licence and note are the same string
+        -- for all 1 662 rows; repeating them per feature tripled the payload for nothing,
+        -- and the layer panel already prints them once.
+        'properties', jsonb_build_object(
+          'kind', t.kind,
+          'severity', t.severity,
+          'area_sqkm', t.properties ->> 'area_sqkm'
+        ),
+        'geometry', extensions.st_asgeojson(extensions.st_pointonsurface(t.geometry))::jsonb
+      ) as feature
+    from public.threat_layers t
+    where (p_kind is null or t.kind = p_kind)
+      and t.severity >= p_min_severity
+  ) rows
+$$;
+
+comment on function public.map_threats(text, integer) is
+  'Threats as centroids with severity, for drawing. The impact numbers come from species_threat_impact(), which uses the real polygons.';
+
+revoke all on function public.map_threats(text, integer) from public;
+grant execute on function public.map_threats(text, integer) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

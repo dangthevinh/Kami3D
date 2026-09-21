@@ -41,8 +41,8 @@ the map keeps the product's dark studio palette whatever accent is chosen - exac
 | Habitat range | `habitat_current` | Demo envelopes (synthetic, see below) |
 | Historic range | `habitat_historic` | Demo envelopes for the four prehistoric species |
 | Observation density | `occurrence` | **GBIF** - 4 323 real records across 23 species, 1980-2026 |
-| Protected areas | `protected_area` | Not shipped yet - Phase 15 |
-| Human pressure | `pressure` | Not shipped yet - Phase 15 |
+| Urban expansion | `threat_layers.urban_expansion` | **Natural Earth** urban areas, 1 662 polygons, public domain |
+| Protected areas | - | **Refused**: WDPA is non-commercial and this site carries advertising |
 
 The bundled shapes are **generated envelopes around each species' regional anchor**, and every one of them says
 so: `"synthetic": true` and a `note` that the panel renders verbatim ("Demo envelope: a synthetic area around
@@ -95,6 +95,52 @@ The map draws it with **MapLibre's own heatmap layer**, not `Deck.gl HeatmapLaye
 deck.gl is several hundred kilobytes for a layer the renderer already has, on a route whose whole budget is
 140 kB. The plan's own constraint says a heavy library has to earn its place. If Phase 16 needs arc or trip
 layers - which MapLibre genuinely cannot draw - that trade is worth revisiting.
+
+## Threats and the risk index
+
+```bash
+npm run threats:report   # what each source offers, nothing written
+npm run threats:fetch    # download, score and store (Natural Earth urban areas)
+npm run check:risk       # the index: weights, monotonicity, missing inputs, band colours
+```
+
+### What is drawn, and what was refused
+
+| Source | Licence | Decision |
+| --- | --- | --- |
+| Natural Earth urban areas | Public domain | imported - 1 662 polygons, severity 2-5 |
+| WDPA / Protected Planet | Non-commercial | **refused** - this site carries advertising |
+| IUCN Red List range and threats | Restricted | **refused** |
+| Hansen Global Forest Change | CC BY 4.0 | **not yet** - a 30 m raster needs an aggregation pipeline |
+| Poaching / illegal trade hotspots | None open | **refused** - no dataset at species resolution |
+
+The refused sources are printed by `npm run threats:report` and shown in the layer panel, which is why the
+"Protected areas" switch is present, disabled, and says *why* rather than being quietly absent. Drawing an
+inferred threat layer would be the one thing this project does not do.
+
+Threats live in their own table (`threat_layers`) because they do not belong to a species: a city overlaps
+several ranges. The link is a **spatial join** - `public.species_threat_impact()` runs `ST_Intersects` against
+each range and returns the overlapping square kilometres from `ST_Intersection` - never an `animal_id` column,
+which would duplicate a polygon per species and drift the moment a range changed.
+
+### The risk index
+
+`lib/risk.ts`, pinned by 14 checks. Four inputs, weighted:
+
+| Input | Weight | Where it comes from |
+| --- | --- | --- |
+| IUCN status | 40 | the catalogue (real) |
+| Range size | 20 | the habitat polygon - today a demo envelope |
+| Threat overlap | 25 | `ST_Intersects` against urban areas, scaled by severity |
+| Observation trend | 15 | GBIF year buckets, recent against earlier (effort-dependent) |
+
+Two rules make it honest: **a missing input is missing, not zero** (it is dropped from the weighted mean and
+listed, and the panel shows the coverage percentage), and **the index says what it is** - a Kami3D index,
+printed next to the words "not an IUCN assessment", with the weights visible.
+
+Contrast is audited, not eyeballed: the band colours are hex for fills and Tailwind tokens for text, because
+amber `#ffb738` on the light palette is 1.6:1. `npm run audit:theme` caught exactly that, and now passes on
+`/map` in both themes.
 
 ## The database
 

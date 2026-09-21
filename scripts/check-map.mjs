@@ -34,7 +34,18 @@ test("every layer has a unique id, a label and a hint", () => {
     assert.match(layer.id, /^[a-z]+$/, `${layer.id} is not URL-safe`);
     assert.ok(layer.label.length > 2, `${layer.id} has no label`);
     assert.ok(layer.hint.length > 10, `${layer.id} has no hint - a toggle nobody can interpret is a guess`);
+    // Provenance is not decoration: a layer drawn without a source and a licence is a claim
+    // without a citation, and the panel prints both.
+    assert.ok(layer.source.length > 3, `${layer.id} does not say where its data comes from`);
+    assert.ok(layer.license.length > 2, `${layer.id} does not state a licence`);
+    if (layer.unavailable) {
+      assert.ok(layer.unavailable.length > 20, `${layer.id} is unavailable without saying why`);
+    }
   }
+
+  // The two layers with no usable source are present and explained, not hidden.
+  const unavailable = MAP_LAYERS.filter((layer) => layer.unavailable).map((layer) => layer.id);
+  assert.deepEqual(unavailable, ["protected"]);
 });
 
 test("defaults exist for every layer, and only habitat starts on", () => {

@@ -194,9 +194,13 @@ async function inspect(theme, route) {
     await send("Page.enable");
     await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
     await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: theme }] });
-    // The choice is stored under the same key the Settings menu writes.
+    // Both theme stores, because the visitor-facing setting (phase 11) wins over the
+    // next-themes key: leaving a previous run's settings blob in place would make the
+    // audit report "asked for light, <html> says dark" about its own leftovers.
     await send("Page.addScriptToEvaluateOnNewDocument", {
-      source: `try { localStorage.setItem("kami-theme", "${theme}"); } catch {}`,
+      source:
+        `try { localStorage.setItem("kami-theme", "${theme}");` +
+        ` localStorage.removeItem("kami-settings"); } catch {}`,
     });
     await send("Page.navigate", { url: baseUrl + route });
     await sleep(Number(process.env.SETTLE_MS || 2500));
@@ -208,6 +212,15 @@ async function inspect(theme, route) {
 
     return { route, theme, applied: applied.result.value, problems, dark };
   } finally {
+    // Close the tab, not just the socket. A tab left open keeps running the app, whose
+    // settings provider writes `localStorage` - shared with every later tab in this
+    // profile - so the next theme's run would inherit the previous one's choice and the
+    // audit would report a defect it caused itself.
+    try {
+      await fetch(`http://127.0.0.1:${PORT}/json/close/${target.id}`);
+    } catch {
+      // Chrome already gone: nothing to close.
+    }
     socket.close();
   }
 }

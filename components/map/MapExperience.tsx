@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { LayerPanel } from "@/components/map/LayerPanel";
 import { LazyMap } from "@/components/map/LazyMap";
+import { RiskBreakdownList, RiskLegend, RiskPanel, type RiskRow } from "@/components/map/RiskPanel";
 import { Badge } from "@/components/ui/badge";
 import { boundsOf, expandBounds, type Bounds } from "@/lib/geo";
 import { creditFor } from "@/lib/geodata-credits";
@@ -17,8 +18,10 @@ import {
   type MapQuery,
 } from "@/lib/map-layers";
 import { cn } from "@/lib/utils";
+import { assessRisk, type ObservationBucket } from "@/lib/risk";
 import { REGIONS } from "@/types/animal";
 import type { GeodataCollection, GeodataCredits, GeodataFeature } from "@/types/geodata";
+import type { ThreatImpactRow, ThreatPoint } from "@/lib/threats";
 
 /**
  * `/map`: the habitat view.
@@ -50,6 +53,8 @@ export interface MapExperienceProps {
   initialQuery: MapQuery;
   /** "database" when the shapes came from PostGIS, "bundled" in Demo Mode. */
   source: "database" | "bundled";
+  /** The spatial join: how much of each species range a threat overlaps. */
+  impact: ThreatImpactRow[];
 }
 
 /** Which bundled `kind` a layer draws; the count behind each switch comes from it. */
@@ -78,7 +83,14 @@ function asTuple(bounds: Bounds | null): [number, number, number, number] | null
   return [padded.west, padded.south, padded.east, padded.north];
 }
 
-export function MapExperience({ collection, credits, species, initialQuery, source }: MapExperienceProps) {
+export function MapExperience({
+  collection,
+  credits,
+  species,
+  initialQuery,
+  source,
+  impact,
+}: MapExperienceProps) {
   const visible = useMapLayers((state) => state.visible);
   const opacity = useMapLayers((state) => state.opacity);
   const layers = useMapLayers((state) => state.layers);
@@ -197,7 +209,88 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
     return null;
   }, [features, region, selectedSlug]);
 
+  /**
+   * The risk index for every species, from the inputs this page actually holds.
+   *
+   * `assessRisk` is pure and tested (`npm run check:risk`); this only gathers what it
+   * needs: the IUCN category from the catalogue, the range area from the habitat shape, the
+   * overlapping share from the PostGIS join, and the observation trend from the year
+   * buckets GBIF left in the occurrence properties. Anything missing stays missing.
+   */
+  const riskRows = React.useMemo<RiskRow[]>(() => {
+    const impactBySlug = new Map(impact.map((row) => [row.slug, row]));
+    const areaBySlug = new Map<string, number>();
+    const bucketsBySlug = new Map<string, ObservationBucket[]>();
+
+    for (const feature of collection.features) {
+      const props = feature.properties;
+      if (props.kind === "habitat_current" && typeof props.area_km2 === "number") {
+        areaBySlug.set(props.slug, props.area_km2);
+      }
+      if (props.kind === "occurrence" && Array.isArray(props.buckets)) {
+        bucketsBySlug.set(props.slug, props.buckets as ObservationBucket[]);
+      }
+    }
+
+    return species
+      .map((entry) => {
+        const hit = impactBySlug.get(entry.slug);
+        return {
+          slug: entry.slug,
+          name: entry.name,
+          breakdown: assessRisk({
+            conservationStatus: entry.conservation_status,
+            rangeAreaKm2: areaBySlug.get(entry.slug) ?? null,
+            threatenedFraction: hit ? Number(hit.threatened_fraction) : null,
+            worstSeverity: hit ? Number(hit.worst_severity) : null,
+            observationBuckets: bucketsBySlug.get(entry.slug) ?? null,
+          }),
+        };
+      })
+      .filter((row) => row.breakdown.score !== null)
+      .sort((a, b) => (b.breakdown.score ?? 0) - (a.breakdown.score ?? 0));
+  }, [collection.features, impact, species]);
+
+  /**
+   * The threat layer arrives on demand, the first time the switch is flipped.
+   *
+   * It is a few hundred kilobytes of centroids, and most visits never show it: fetching it
+   * with the page would make everyone pay for a layer they did not ask for. `loadingThreats`
+   * exists so the switch can say it is working rather than appear broken.
+   */
+  const [threatPoints, setThreatPoints] = React.useState<ThreatPoint[] | null>(null);
+  const [loadingThreats, setLoadingThreats] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!visible.pressure || threatPoints !== null || loadingThreats) return;
+
+    setLoadingThreats(true);
+    let cancelled = false;
+
+    fetch("/api/threats", { cache: "force-cache" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { features?: ThreatPoint[] } | null) => {
+        if (!cancelled) setThreatPoints(data?.features ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setThreatPoints([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingThreats(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visible.pressure, threatPoints, loadingThreats]);
+
+  const threatCollection = React.useMemo(
+    () => ({ type: "FeatureCollection" as const, features: threatPoints ?? [] }),
+    [threatPoints],
+  );
+
   const selected = selectedSlug ? species.find((entry) => entry.slug === selectedSlug) ?? null : null;
+  const selectedRisk = selectedSlug ? riskRows.find((row) => row.slug === selectedSlug) ?? null : null;
   const selectedFeature = selectedSlug
     ? features.find((feature) => feature.properties.slug === selectedSlug) ?? null
     : null;
@@ -243,6 +336,7 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
           <LazyMap
             className="h-full w-full"
             features={features}
+            threats={threatPoints && threatPoints.length > 0 ? threatCollection : null}
             visible={visible}
             opacity={opacity}
             selectedSlug={selectedSlug}
@@ -414,6 +508,8 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
             </div>
           </div>
 
+          <RiskLegend />
+
           <LayerPanel
             visible={visible}
             opacity={opacity}
@@ -421,6 +517,8 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
             onToggle={setVisible}
             onOpacity={setOpacity}
           />
+
+          <RiskPanel rows={riskRows} selectedSlug={selectedSlug} onSelect={setSpecies} />
 
           {selected ? (
             <div className="glass rounded-[var(--radius-card)] p-4">
@@ -450,6 +548,21 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
                   <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                   {String(selectedFeature.properties.note)}
                 </p>
+              ) : null}
+
+              {selectedRisk ? (
+                <div className="mt-3 border-t border-white/10 pt-3">
+                  <p className="flex items-baseline justify-between text-[11px]">
+                    <span className="font-medium text-white/75">Risk index</span>
+                    <span className={cn("tabular-nums", selectedRisk.breakdown.band.textClass)}>
+                      {selectedRisk.breakdown.score ?? "-"} · {selectedRisk.breakdown.band.label}
+                    </span>
+                  </p>
+                  <RiskBreakdownList breakdown={selectedRisk.breakdown} />
+                  <p className="mt-2 text-[10px] text-white/30">
+                    Built from {Math.round(selectedRisk.breakdown.coverage * 100)}% of the index weight.
+                  </p>
+                </div>
               ) : null}
 
               <p className="mt-3 text-[10px] leading-relaxed text-white/35">

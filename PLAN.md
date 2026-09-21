@@ -26,7 +26,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **12** | Admin tự động tìm & tải model 3D | ✅ Hoàn thành (CLI) — xếp hạng chất lượng, DRACO, upload, `model_assets`; UI admin để phase riêng |
 | **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | ✅ Hoàn thành — `/map` + PostGIS + URL-as-state |
 | **14** | Habitat & Species Distribution Maps (`/map`) | ✅ Hoàn thành — heatmap GBIF + bộ lọc + legend |
-| **15** | Conservation Threat & Risk Maps | 📝 Đã ghi prompt, chưa triển khai |
+| **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | 📝 Đã ghi prompt, chưa triển khai |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 📝 Đã ghi prompt, chưa triển khai |
 
@@ -37,7 +37,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **230** bài trong **19** suite (`npm run check:suites`) |
+| Test tự động | **245** bài trong **21** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -1283,6 +1283,80 @@ Output cần có:
 5. **Nguồn dữ liệu phải nói thẳng là có hay không.** "Poaching hotspots" và "human pressure" không có nguồn mở
    đáng tin ở độ phân giải loài; nếu không có thì **bỏ layer đó**, không vẽ bằng dữ liệu suy diễn. Mỗi layer
    trong panel phải kèm nguồn + năm + licence.
+
+---
+
+## ✅ Phase 15 — Kết quả: Conservation Threat & Risk Maps
+
+**Trạng thái: đã giao.** Bảng `threat_layers` + join không gian, lớp urban expansion thật từ Natural Earth,
+risk index thuần có test, legend đạt contrast ở cả hai theme.
+
+### 1. Nguồn dữ liệu: cái gì vẽ, cái gì bị từ chối
+
+| Nguồn | Licence | Quyết định |
+| --- | --- | --- |
+| Natural Earth urban areas | Public domain | **nhập** — 1 662 polygon, severity 2–5 |
+| WDPA / Protected Planet | Non-commercial | **từ chối** — site có quảng cáo |
+| IUCN Red List | Restricted | **từ chối** |
+| Hansen Global Forest Change | CC BY 4.0 | **chưa** — raster 30 m, cần pipeline tổng hợp |
+| Poaching hotspots | Không có nguồn mở | **từ chối** — không vẽ bằng dữ liệu suy diễn |
+
+Ràng buộc #5 nói thẳng: nguồn không có thì bỏ layer, và panel phải nói ra. Nên công tắc "Protected areas"
+**vẫn hiện**, bị vô hiệu hoá, kèm lý do — thay vì biến mất im lặng. `npm run threats:report` in cả bảng từ chối.
+
+### 2. Threat không thuộc về loài
+
+Bảng riêng `threat_layers` (kind, severity 1–5, year, geometry, source, license, attribution, `dedupe_key`),
+và quan hệ loài ↔ threat là **join không gian**: `species_threat_impact()` chạy `ST_Intersects` rồi
+`ST_Intersection` để ra km² bị giao. Gán `animal_id` cho từng polygon sẽ nhân bản dữ liệu và lệch mỗi lần
+habitat đổi — đúng như ràng buộc #1 cảnh báo. GiST index được dùng (`Index Scan using threat_layers_geometry_idx`).
+
+Trên bản đồ, threat được vẽ bằng **centroid** (RPC `map_threats`): 1 662 đường viền thành phố là ~860 KB toạ độ
+để cho thấy đúng thứ một điểm đã cho thấy. Lớp này chỉ được tải khi người dùng bật công tắc (`/api/threats`,
+256 KB thô / **28 KB gzip**, cache `s-maxage`), nên trang `/map` không phải trả giá cho một lớp đa số khách không xem.
+
+### 3. Risk index — hàm thuần, có test
+
+`lib/risk.ts` + `npm run check:risk` (**14 test**): IUCN status 40 · kích thước vùng 20 · mức giao với threat 25
+(nhân bởi severity) · xu hướng ghi nhận 15.
+
+Hai luật khiến nó trung thực:
+
+1. **Input thiếu là thiếu, không phải 0** — bị loại khỏi trung bình có trọng số và được liệt kê; panel hiện
+   "built from 60% of the index weight". Có test khẳng định bỏ input không giống như chấm nó bằng 0.
+2. **Nó nói rõ nó là gì** — "A Kami3D index, not an IUCN assessment", kèm trọng số hiển thị.
+
+Test khoá cả chiều tác động: status xấu hơn / vùng nhỏ hơn / giao nhiều hơn / ghi nhận thưa đi đều làm điểm tăng,
+và không gì khác; biên band; input vô lý vẫn cho điểm trong 0–100; `severityForUrbanArea` đơn điệu theo diện tích.
+
+### 4. Contrast: đo chứ không nhìn
+
+`audit:theme` **bắt được lỗi thật**: màu band dùng làm *chữ* (amber `#ffb738`, cyan `#38e0ff`) chỉ đạt **1.46–1.61:1**
+trên nền sáng — dưới ngưỡng 4.5 rất xa. Sửa bằng cách tách vai trò: hex cho **fill** (swatch, thanh bar, paint của
+MapLibre) và **Tailwind token** (`text-solar`/`text-glow`/`text-neon`/`text-coral`) cho **chữ**, vì `.light`
+đã re-point các token đó. `audit:theme` nay đạt ở cả hai theme cho `/map`, và `check:risk` bắt buộc mỗi band phải
+có `textClass` (không được dùng hex làm class).
+
+Audit còn có một lỗi của chính nó được sửa trong phase này: tab của lượt chạy trước không được đóng nên app trong tab
+cũ tiếp tục ghi `localStorage`, khiến lượt "light" thừa hưởng lựa chọn của lượt "dark" và audit báo lỗi do chính nó
+gây ra. Nay mỗi lượt đóng tab (`/json/close/...`) và xoá cả hai khoá theme.
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **245 test** (thêm 14 của `check:risk`); `tsc` sạch; build xanh; `/map` **131.4 kB**
+  (ngân sách 140), `three`/Clerk/MapLibre vẫn deferred.
+- Dữ liệu: **3 262 → 1 662** dòng threat sau khi phát hiện và dọn dẹp bản trùng do lần chạy lỗi đầu tiên để lại
+  (id feature trùng nhau trong cùng một batch — PostgREST từ chối, và tôi xoá sạch rồi chạy lại); 100% licence CC0.
+- Join không gian: top impact hiện tại là woolly-mammoth 3.2%, gray-wolf 3.1% — tính trên **envelope demo**, nên
+  đây là minh hoạ cơ chế, không phải kết luận bảo tồn (đã ghi rõ trong docs).
+- Chrome thật ở `/map?region=Africa&layers=habitat,occurrence,pressure`: panel risk 8 loài, legend risk, nguồn
+  "Natural Earth", lý do từ chối WDPA, lớp threat gọi `/api/threats` → **200**, không lỗi console.
+
+### 6. Còn lại (chuyển sang Phase 16)
+
+1. "Trước đây vs hiện tại" dùng cột `year` — Phase 16 làm slider, không tạo bảng lịch sử riêng.
+2. `protected_area` vẫn chờ một nguồn dùng được (hoặc tự host WDPA với giấy phép phù hợp).
+3. Risk index hiện tính ở client từ dữ liệu trang đã có; nếu số loài tăng lên hàng nghìn thì chuyển vào SQL.
 
 ---
 
