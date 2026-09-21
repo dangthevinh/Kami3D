@@ -401,6 +401,8 @@ npm run db:status       # what the database currently holds
 npm run db:seed         # push the catalogue into Supabase (idempotent)
 npm run models:report   # what 3D models are available, with licences
 npm run models:fetch    # download the redistributable ones (--compress, --upload, --count=N)
+                        #   --refresh-quality re-reads download/like/face counts for models
+                        #   already in the manifest and rescores them
 npm run publish -- "message"   # verify, build, commit, push — one step per phase
 ```
 

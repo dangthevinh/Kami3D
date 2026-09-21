@@ -149,7 +149,8 @@ leaves the bytes alone rather than committing a regression.
 ## Storage and the database
 
 `--upload` is the Phase 12 path: upload to Supabase Storage, write a `model_assets` row, and (for the primary
-model) point `animals.model_url` at the public URL.
+model) point `animals.model_url` at the public URL. All 24 models of the shipped catalogue are stored this way
+(10.0 MB), each verified byte-for-byte after upload.
 
 ```bash
 npm run models:fetch -- --all --upload        # the models already in public/models
@@ -170,6 +171,26 @@ gets the storage URL.
 Order matters once: `npm run db:seed` rewrites `animals.model_url` from the dataset, so seed first, then
 `--upload`. Re-running the upload is safe — `(animal_id, source_url)` is unique, so a row is updated rather
 than duplicated, and the previous primary is demoted before a new one is promoted.
+
+### Filling in the quality signals of models fetched earlier
+
+A model fetched before this phase has a title and a licence in the manifest and nothing else, so its score is a
+floor rather than a measurement. `--refresh-quality` looks each one up by its Sketchfab uid and fills in the
+missing numbers — no download, and with `--upload` it corrects the row that is already in `model_assets`
+rather than storing the file again:
+
+```bash
+npm run models:fetch -- --refresh-quality --upload
+```
+
+```
+↻ african-bush-elephant: 50.3 → 90.4 (downloads 1531, likes 71, faces 4,806)
+↻ blue-whale: 50.3 → 91.2 (downloads 1717, likes 104, faces 21,868)
+```
+
+Run without `--upload` it stops at the manifest, which is the honest boundary: the manifest is committed, the
+table is a copy of it. After the refresh the shipped catalogue scores **60.1–93.3 (average 82.4)**, which is
+the ranking working on real numbers rather than on a placeholder.
 
 ## Scale and orientation
 

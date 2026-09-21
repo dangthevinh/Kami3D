@@ -420,5 +420,12 @@ test("model credits are public to read and impossible to write from a browser", 
 
   assert.ok(/grant select on public\.model_assets to anon, authenticated/.test(schema), "anon must be able to read credits");
   assert.ok(!/grant[^;]*insert[^;]*on public\.model_assets/.test(schema), "no write grant on model_assets");
+  // Supabase hands every new table in `public` to anon and authenticated by default, so
+  // the read grant has to be paired with a revoke or the browser keeps DELETE and UPDATE
+  // (RLS still refuses them, but a privilege nobody needs is a privilege nobody audits).
+  assert.ok(
+    /revoke all on public\.model_assets from anon, authenticated/.test(schema),
+    "the platform default grants must be revoked before granting SELECT",
+  );
 });
 

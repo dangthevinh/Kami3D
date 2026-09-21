@@ -222,6 +222,32 @@ const sketchfab = {
     }));
   },
 
+  /**
+   * One model, by uid: the numbers a search result does not carry.
+   *
+   * `faceCount`, `downloadCount`, `likeCount` and the thumbnails are what the quality
+   * score is made of, and a model fetched in an earlier phase has none of them in the
+   * manifest. This endpoint is public — metadata needs no token.
+   */
+  async describe(uid) {
+    const model = await fetchJson(`https://api.sketchfab.com/v3/models/${uid}`);
+    return {
+      uid,
+      title: model.name ?? "Untitled",
+      author: model.user?.displayName ?? model.user?.username ?? "Unknown",
+      authorUrl: model.user?.profileUrl ?? null,
+      licenseLabel: model.license?.label ?? null,
+      licenseUrl: model.license?.url ?? null,
+      sourceUrl: `https://sketchfab.com/models/${uid}`,
+      faceCount: model.faceCount ?? null,
+      downloadCount: model.downloadCount ?? null,
+      likeCount: model.likeCount ?? null,
+      thumbnail: model.thumbnails?.images?.find((image) => image.width >= 512)?.url
+        ?? model.thumbnails?.images?.[0]?.url
+        ?? null,
+    };
+  },
+
   async download(candidate, destination) {
     if (!this.token) {
       throw new Error(
@@ -678,6 +704,7 @@ function parseArgs(argv) {
     wire: false,
     strictMatch: false,
     rehash: false,
+    refreshQuality: false,
     /** Compress every downloaded model with DRACO before it is stored. */
     compress: false,
     /** Push the files to Supabase Storage and record them in `model_assets`. */
@@ -698,6 +725,7 @@ function parseArgs(argv) {
     else if (arg === "--wire") flags.wire = true;
     else if (arg === "--strict-match") flags.strictMatch = true;
     else if (arg === "--rehash") flags.rehash = true;
+    else if (arg === "--refresh-quality") flags.refreshQuality = true;
     else if (arg.startsWith("--max-mb=")) CONFIG.maxBytes = Number(arg.split("=")[1]) * 1024 * 1024;
     else if (arg === "--report") flags.report = true;
     else if (arg.startsWith("--species=")) flags.species.push(arg.split("=")[1]);
@@ -1135,6 +1163,101 @@ async function rehash() {
   console.log(`Rehashed ${updated} model(s) in data/model-attribution.json.`);
 }
 
+/**
+ * Fills in the quality signals for models that were fetched before this phase.
+ *
+ * Their manifest entries carry a title and a licence and not much else, so the score
+ * recorded for them is a floor rather than a measurement. This looks each one up by
+ * its Sketchfab uid, updates the manifest, and — with `--upload` — corrects the row
+ * that is already in `model_assets` instead of storing the file a second time.
+ *
+ * A model whose provider is not Sketchfab, or whose entry has no uid, is reported and
+ * left alone: inventing a popularity number for it would be worse than admitting we
+ * do not have one.
+ */
+async function refreshQuality(flags) {
+  const manifest = await readAttribution();
+  const supabase = flags.upload ? supabaseConfig() : null;
+  if (flags.upload && !supabase.ready) {
+    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see README).");
+    process.exitCode = 2;
+    return;
+  }
+
+  let updated = 0;
+  let skipped = 0;
+
+  for (const [slug, entry] of Object.entries(manifest)) {
+    // `--species` narrows the run, the same way it does everywhere else.
+    if (flags.species.length > 0 && !flags.species.includes(slug)) continue;
+
+    const uid = entry.uid ?? entry.sourceUrl?.match(/sketchfab\.com\/models\/([0-9a-f]{32})/)?.[1] ?? null;
+    if (entry.provider !== "sketchfab" || !uid) {
+      console.log(`? ${slug}: not a Sketchfab model — leaving its score as it is`);
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      const described = await sketchfab.describe(uid);
+      const animal = ANIMALS.find((candidate) => candidate.slug === slug);
+      const quality = scoreModelQuality({
+        title: described.title,
+        terms: [animal?.name ?? described.title, animal?.latin_name ?? "", animal?.category ?? ""],
+        spdx: entry.license ?? null,
+        faceCount: described.faceCount,
+        downloadCount: described.downloadCount,
+        likeCount: described.likeCount,
+        hasThumbnail: Boolean(described.thumbnail),
+      });
+
+      const before = typeof entry.qualityScore === "number" ? entry.qualityScore : null;
+      manifest[slug] = {
+        ...entry,
+        uid,
+        faceCount: described.faceCount,
+        downloadCount: described.downloadCount,
+        likeCount: described.likeCount,
+        thumbnail: described.thumbnail,
+        qualityScore: quality.total,
+        qualityCheckedAt: new Date().toISOString(),
+      };
+
+      updated += 1;
+      console.log(
+        `↻ ${slug}: ${before ?? "unscored"} → ${quality.total} ` +
+          `(downloads ${described.downloadCount ?? "?"}, likes ${described.likeCount ?? "?"}, ` +
+          `faces ${described.faceCount?.toLocaleString("en-US") ?? "?"})`,
+      );
+
+      if (supabase) {
+        const animals = await rest(supabase, `animals?slug=eq.${encodeURIComponent(slug)}&select=id`);
+        const animalId = animals?.[0]?.id;
+        if (animalId) {
+          await rest(supabase, `model_assets?animal_id=eq.${animalId}&source_url=eq.${encodeURIComponent(entry.sourceUrl ?? "")}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              face_count: described.faceCount,
+              download_count: described.downloadCount,
+              like_count: described.likeCount,
+              quality_score: quality.total,
+            }),
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`   ${slug}: ${error.message}`);
+      skipped += 1;
+    }
+
+    await sleep(REQUEST_DELAY_MS);
+  }
+
+  await writeAttribution(manifest);
+  console.log(`\nRefreshed ${updated} model(s), skipped ${skipped}.`);
+  if (!supabase) console.log("Pass --upload to correct the rows already in model_assets.");
+}
+
 /* -------------------------------------------------------------------------- */
 
 async function main() {
@@ -1161,6 +1284,8 @@ async function main() {
                           point animals.model_url at the public URL
   --rehash                recompute bytes/sha256 for models already on disk
                           (run after compressing them)
+  --refresh-quality       re-read face/download/like counts for models already in the
+                          manifest and rescore them (--upload also corrects the rows)
 
 Environment:
   SKETCHFAB_API_TOKEN     Sketchfab OAuth token (required to download)
@@ -1169,6 +1294,8 @@ Environment:
 `);
   } else if (flags.rehash) {
     await rehash();
+  } else if (flags.refreshQuality) {
+    await refreshQuality(flags);
   } else if (flags.report || (!flags.all && flags.species.length === 0)) {
     await report(flags);
   } else {

@@ -598,6 +598,12 @@ create policy "model credits are publicly readable"
   to anon, authenticated
   using (true);
 
+-- Supabase grants every new table in `public` to anon and authenticated by default, so
+-- the read grant is only half the sentence: the platform's privileges are removed and
+-- only SELECT is given back. RLS has no write policy here either, and the two together
+-- mean a browser cannot even attempt a forged credit. Verified live: anon holds SELECT
+-- and nothing else on this table.
+revoke all on public.model_assets from anon, authenticated;
 grant select on public.model_assets to anon, authenticated;
 
 -- ---------------------------------------------------------------------------

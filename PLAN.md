@@ -881,11 +881,20 @@ dòng mà không cần tải lại. Model có licence không hợp lệ bị ch�
   browser không thể tự chế một credit. `check-sql.mjs` phủ bảng mới (+7 test), gồm cả test "mọi cột mà script ghi
   đều phải được script nhắc tên" để một lần đổi tên không lọt qua.
 
-> ⚠️ **Chưa áp được lên database đang chạy.** `supabase/schema.sql` đã có bảng, nhưng lúc làm phase này cả
-> Supabase MCP lẫn Management API đều trả **401 Unauthorized**: `SUPABASE_ACCESS_TOKEN` trong `.env.local` đã bị
-> thu hồi. Cần một PAT mới rồi chạy `npm run db:schema` (idempotent) để tạo bảng. Anon key và service role key
-> vẫn còn hiệu lực (đã kiểm: đọc `animals` 200, đọc `user_settings` bằng service role 200, `model_assets` 404 =
-> chưa tồn tại).
+**Đã áp lên database đang chạy** bằng PAT mới (`npm run db:schema`). Kiểm chứng bằng truy vấn trực tiếp:
+
+| Kiểm | Kết quả |
+| --- | --- |
+| Cột | 18 cột, `quality_score`/`license`/`title`/`attribution` NOT NULL, `file_size_bytes` là `bigint` |
+| Ràng buộc | `license = ANY(CC0, CC-BY)`, mọi count `>= 0`, `file_size_bytes > 0`, `quality_score` 0–100, `unique (animal_id, source_url)`, FK `on delete cascade` |
+| Index | `model_assets_primary_idx` là **partial unique** `(animal_id) where is_primary` |
+| RLS | bật, **1** policy `SELECT` cho `anon, authenticated`, không có policy ghi |
+| Quyền | `anon`/`authenticated` chỉ còn **SELECT**; `service_role` giữ toàn quyền |
+
+> Ghi chú: Supabase cấp sẵn **toàn bộ** quyền trên mỗi bảng mới trong `public` cho `anon`/`authenticated`, nên
+> `grant select` một mình là chưa đủ — schema nay đi kèm `revoke all … from anon, authenticated` trước khi cấp
+> lại SELECT, và `check-sql.mjs` bắt buộc phải có dòng revoke đó. `animals` và `sound_assets` vẫn còn quyền mặc
+> định của nền tảng (RLS mới là thứ chặn ghi) — đã ghi vào phần việc còn lại.
 
 ### 4. Bằng chứng
 
@@ -896,13 +905,24 @@ dòng mà không cần tải lại. Model có licence không hợp lệ bị ch�
 - DRACO: `gltf-transform draco` chạy thật trên `public/models/lion.glb` → **341.08 KB → 341.23 KB**, tức là
   **to hơn**. Script phát hiện và giữ file gốc ("no gain") — nếu không có ngưỡng đó thì phase này đã commit một
   bản regression cho cả 24 file.
+- **24/24 model đã lên Storage** (`animal-assets/models/<slug>.glb`, tổng 10.0 MB) và **24/24 tải lại đúng từng
+  byte** với `content-type: model/gltf-binary`; `animals.model_url` của cả 24 loài trỏ vào Storage.
+- **`--refresh-quality` (mới)**: đọc lại `faceCount`/`downloadCount`/`likeCount`/thumbnail theo uid Sketchfab cho
+  các model tải từ trước phase này rồi tính lại điểm — **60.1–93.3, trung bình 82.4**, 24/24 dòng có đủ số đo
+  (trước đó tất cả chỉ 32.3–50.3 vì manifest cũ không có dữ liệu phổ biến). Ví dụ: `african-bush-elephant`
+  1531 download / 71 like / 4 806 tam giác → 90.4.
+- Đã kiểm `model_assets`: 24 dòng, 24 primary, 24 loài, 100% licence hợp lệ, 0 dòng thiếu credit.
 
 ### 5. Còn lại
 
-1. **Áp `model_assets`** bằng token mới (`npm run db:seed` trước, rồi `npm run models:fetch -- --all --upload`).
+1. **Áp `model_assets`** — ✅ đã xong bằng token mới (`db:schema` → `models:fetch --all --upload` →
+   `--refresh-quality --upload`).
 2. **UI admin**: PLAN ghi rõ "CLI trước, UI admin sau" — cần vai trò admin ở tầng dữ liệu (`app_admins` +
    `is_admin()`, SQL ở [docs/REVIEW.md](docs/REVIEW.md) §3.6), nên nó là việc của phase riêng, không trộn vào đây.
 3. `--count=N` hiện chỉ tải thêm model phụ cho loài; hiển thị chúng (bộ chọn model thay thế trong viewer) là việc UI.
+4. `animals` và `sound_assets` vẫn mang quyền mặc định của Supabase cho `anon`/`authenticated` (RLS mới là thứ
+   chặn ghi). Thu hẹp chúng về đúng `SELECT` như `model_assets` là việc nhỏ nhưng nên làm ở một lần riêng, có
+   kiểm lại đường ghi của app.
 
 ---
 

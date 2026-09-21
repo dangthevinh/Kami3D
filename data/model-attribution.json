@@ -13,7 +13,14 @@
     "sha256": "e716f8fad5b5243f985f9532f6e9b5ab4955275288860b5ee40ec8792a1c9ae4",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:38:52.091Z",
-    "verifiedAt": "2026-09-19T12:45:39.721Z"
+    "verifiedAt": "2026-09-19T12:45:39.721Z",
+    "uid": "a0f877427dcf492a8dc7bcac4751f0a8",
+    "faceCount": 4806,
+    "downloadCount": 1531,
+    "likeCount": 71,
+    "thumbnail": "https://media.sketchfab.com/models/a0f877427dcf492a8dc7bcac4751f0a8/thumbnails/de2953403c2f48bc9dbe20dd8f44e7c5/e08b35e8c50d482e9e39500e980736fe.jpeg",
+    "qualityScore": 90.4,
+    "qualityCheckedAt": "2026-09-21T05:45:36.787Z"
   },
   "axolotl": {
     "title": "Axolotl",
@@ -29,7 +36,14 @@
     "sha256": "7a6cdd1af2221ee6a3b3ea32a9d9443e0368270e2c1f00e12c59520e9157f89e",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:03.052Z",
-    "verifiedAt": "2026-09-19T12:45:39.724Z"
+    "verifiedAt": "2026-09-19T12:45:39.724Z",
+    "uid": "8f3849a57d594233bfe3c92b1db6145e",
+    "faceCount": 25596,
+    "downloadCount": 837,
+    "likeCount": 39,
+    "thumbnail": "https://media.sketchfab.com/models/8f3849a57d594233bfe3c92b1db6145e/thumbnails/4ed7c2120c394a81aac5ff19a832a3cd/b2c4765db6894a568aea859f5072171f.jpeg",
+    "qualityScore": 88.3,
+    "qualityCheckedAt": "2026-09-21T05:45:38.343Z"
   },
   "bald-eagle": {
     "title": "Bald Eagle",
@@ -45,7 +59,14 @@
     "sha256": "baf6043308d83d05082dc0f32fa7a6f3b4d0383ade239034514025d47643ed1b",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:07.969Z",
-    "verifiedAt": "2026-09-19T12:45:39.727Z"
+    "verifiedAt": "2026-09-19T12:45:39.727Z",
+    "uid": "8874cfcf83a54575ba8068376f8a63a8",
+    "faceCount": 15768,
+    "downloadCount": 688,
+    "likeCount": 34,
+    "thumbnail": "https://media.sketchfab.com/models/8874cfcf83a54575ba8068376f8a63a8/thumbnails/f133d9c6454a4fbe988a8a21e63469a3/8ec7cded614841ed9ecc4cbcef826baf.jpeg",
+    "qualityScore": 87.6,
+    "qualityCheckedAt": "2026-09-21T05:45:39.756Z"
   },
   "bengal-tiger": {
     "title": "Bengal Tiger Voxel",
@@ -61,7 +82,14 @@
     "sha256": "84ed5530b51dcd4dfd402237a8129827f3f2626ff3ecae0138cf9d27fd60705b",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:11.063Z",
-    "verifiedAt": "2026-09-19T12:45:39.728Z"
+    "verifiedAt": "2026-09-19T12:45:39.728Z",
+    "uid": "e265fb3789864037bab682fda1003dd1",
+    "faceCount": 6156,
+    "downloadCount": 158,
+    "likeCount": 7,
+    "thumbnail": "https://media.sketchfab.com/models/e265fb3789864037bab682fda1003dd1/thumbnails/b52ea81b58694e5cbe40ea2b9c3639ca/1024x576.jpeg",
+    "qualityScore": 74.8,
+    "qualityCheckedAt": "2026-09-21T05:45:40.866Z"
   },
   "blue-whale": {
     "title": "Blue whale",
@@ -77,7 +105,14 @@
     "sha256": "ea159f10c212c145e0f2dbee47c0d8a15f1eb4dcd501359d6488637bbee1179d",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:14.543Z",
-    "verifiedAt": "2026-09-19T12:45:39.729Z"
+    "verifiedAt": "2026-09-19T12:45:39.729Z",
+    "uid": "a7969d8046754fa1b90f989ef451df1c",
+    "faceCount": 21868,
+    "downloadCount": 1717,
+    "likeCount": 104,
+    "thumbnail": "https://media.sketchfab.com/models/a7969d8046754fa1b90f989ef451df1c/thumbnails/f711ff5f783740adad8a31eceb2f7bbc/8883d398e0254d7cb69f883394e7777d.jpeg",
+    "qualityScore": 91.2,
+    "qualityCheckedAt": "2026-09-21T05:45:41.694Z"
   },
   "common-octopus": {
     "title": "Octopus",
@@ -93,7 +128,14 @@
     "sha256": "e12230431bff3884b38f2680fa83778de696cb3fc3d5789e431120c0ebe138f7",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:41:43.503Z",
-    "verifiedAt": "2026-09-19T12:45:39.730Z"
+    "verifiedAt": "2026-09-19T12:45:39.730Z",
+    "uid": "fa048c4ac32a4d4988214a5e3fe70a86",
+    "faceCount": 3852,
+    "downloadCount": 845,
+    "likeCount": 79,
+    "thumbnail": "https://media.sketchfab.com/models/fa048c4ac32a4d4988214a5e3fe70a86/thumbnails/379c08225d224b338b36259990806b8a/db084c4ac9eb442cbf2345d269c0c141.jpeg",
+    "qualityScore": 71.3,
+    "qualityCheckedAt": "2026-09-21T05:45:42.554Z"
   },
   "emperor-penguin": {
     "title": "Walking Emperor Penguin Chick",
@@ -109,7 +151,14 @@
     "sha256": "8cfafb78a2215c055a8f56b77234bf15a838f39ac84ce88c08530065cc8a889d",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:28.538Z",
-    "verifiedAt": "2026-09-19T12:45:39.731Z"
+    "verifiedAt": "2026-09-19T12:45:39.731Z",
+    "uid": "8985393a97944658bbf5dbc50856194a",
+    "faceCount": 14832,
+    "downloadCount": 100,
+    "likeCount": 18,
+    "thumbnail": "https://media.sketchfab.com/models/8985393a97944658bbf5dbc50856194a/thumbnails/744b4f2a6a3d4cba8e425f801a7d95c5/7732de21e04447eb81f3680127d10c8b.jpeg",
+    "qualityScore": 75.1,
+    "qualityCheckedAt": "2026-09-21T05:45:43.722Z"
   },
   "giant-panda": {
     "title": "Giant Panda",
@@ -125,7 +174,14 @@
     "sha256": "fada53573305125a5796258e856c6b31e84606853fab95ccc274119a8a716a7f",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:32.409Z",
-    "verifiedAt": "2026-09-19T12:45:39.731Z"
+    "verifiedAt": "2026-09-19T12:45:39.731Z",
+    "uid": "76ce633705f04272b30823c428952a6d",
+    "faceCount": 11040,
+    "downloadCount": 2217,
+    "likeCount": 60,
+    "thumbnail": "https://media.sketchfab.com/models/76ce633705f04272b30823c428952a6d/thumbnails/3797b79b536948b6b9435c4938faf7f3/9207aff678034423af3e4403735ea2b6.jpeg",
+    "qualityScore": 91,
+    "qualityCheckedAt": "2026-09-21T05:45:44.722Z"
   },
   "giraffe": {
     "title": "Giraffe",
@@ -141,7 +197,14 @@
     "sha256": "c2573be8551d22217746b419624a53a36eb76f36e6d8fd69d01771d3c34e6d9e",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:36.503Z",
-    "verifiedAt": "2026-09-19T12:45:39.733Z"
+    "verifiedAt": "2026-09-19T12:45:39.733Z",
+    "uid": "522c042aad9f4348a74c2985ec3f99f9",
+    "faceCount": 3932,
+    "downloadCount": 7134,
+    "likeCount": 185,
+    "thumbnail": "https://media.sketchfab.com/models/522c042aad9f4348a74c2985ec3f99f9/thumbnails/1ca13ed7c34946a3965442d06f91943c/4fa417030a9d46679f9b90a11e1a4ab3.jpeg",
+    "qualityScore": 93.3,
+    "qualityCheckedAt": "2026-09-21T05:45:45.565Z"
   },
   "gooty-tarantula": {
     "title": "Mexican Red Knee Tarantula [ICE ARACHNID SKIN]",
@@ -157,7 +220,14 @@
     "sha256": "6dcdcf3dba58602e8f0ad6f7696397b43ed7ec6047381fe2d3a3e7ab15b1ee37",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:42:29.720Z",
-    "verifiedAt": "2026-09-19T12:45:39.734Z"
+    "verifiedAt": "2026-09-19T12:45:39.734Z",
+    "uid": "5abd93a970954517bfeea23f0859d6d8",
+    "faceCount": 20534,
+    "downloadCount": 79,
+    "likeCount": 12,
+    "thumbnail": "https://media.sketchfab.com/models/5abd93a970954517bfeea23f0859d6d8/thumbnails/f60f32ec19d14456b601e0f7c9914351/655cd5e801654ab0a217a0dbba551674.jpeg",
+    "qualityScore": 74,
+    "qualityCheckedAt": "2026-09-21T05:45:46.592Z"
   },
   "gray-wolf": {
     "title": "Gray Wolf",
@@ -173,7 +243,14 @@
     "sha256": "52fe0927c7ab100c1882969dedcf78e997b5e878b7838acd572080b9d83a1e93",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:40.649Z",
-    "verifiedAt": "2026-09-19T12:45:39.736Z"
+    "verifiedAt": "2026-09-19T12:45:39.736Z",
+    "uid": "7bb516f34335412cb6223beab58ec0cc",
+    "faceCount": 2988,
+    "downloadCount": 41,
+    "likeCount": 2,
+    "thumbnail": "https://media.sketchfab.com/models/7bb516f34335412cb6223beab58ec0cc/thumbnails/7b5a977e70264c68ae516e39543a307a/5e17647efd4f4d2793945994abb314ee.jpeg",
+    "qualityScore": 78,
+    "qualityCheckedAt": "2026-09-21T05:45:47.581Z"
   },
   "great-white-shark": {
     "title": "Great White Shark",
@@ -189,7 +266,14 @@
     "sha256": "46b8906506cbc9a179f382ebc8e8f1009982a1a2985fa75c2db0c1ae402656ce",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:49.875Z",
-    "verifiedAt": "2026-09-19T12:45:39.737Z"
+    "verifiedAt": "2026-09-19T12:45:39.737Z",
+    "uid": "bf81b64f0121443da38112f706b7356f",
+    "faceCount": 3750,
+    "downloadCount": 8934,
+    "likeCount": 284,
+    "thumbnail": "https://media.sketchfab.com/models/bf81b64f0121443da38112f706b7356f/thumbnails/5c173e3a2a4a4b88b429c5d80e36c74c/7754777fee924c3aaf538a55a7e6f90b.jpeg",
+    "qualityScore": 93.3,
+    "qualityCheckedAt": "2026-09-21T05:45:48.447Z"
   },
   "green-anaconda": {
     "title": "Anaconda",
@@ -205,7 +289,14 @@
     "sha256": "b5769d78f8f376223c26b7f176d84163b5e0907fec1ea9ba514c170b469920e7",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:42:39.629Z",
-    "verifiedAt": "2026-09-19T12:45:39.738Z"
+    "verifiedAt": "2026-09-19T12:45:39.738Z",
+    "uid": "ff88c4b6dc374ce9a58ba859cd6aca7e",
+    "faceCount": 25300,
+    "downloadCount": 90,
+    "likeCount": 0,
+    "thumbnail": "https://media.sketchfab.com/models/ff88c4b6dc374ce9a58ba859cd6aca7e/thumbnails/96269c9c63e44530a064920aa1e29564/077adc90dc7a459abd345e41dc6e32e0.jpeg",
+    "qualityScore": 60.1,
+    "qualityCheckedAt": "2026-09-21T05:45:49.274Z"
   },
   "king-cobra": {
     "title": "King Cobra",
@@ -221,7 +312,14 @@
     "sha256": "d482d800d6a1b4aaaa39641a0e5a5f82baca023cf1729f609f48c14f23031a26",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:39:59.890Z",
-    "verifiedAt": "2026-09-19T12:45:39.741Z"
+    "verifiedAt": "2026-09-19T12:45:39.741Z",
+    "uid": "a8dab84cd4fc428bbcfe194e3ac14d06",
+    "faceCount": 5752,
+    "downloadCount": 1141,
+    "likeCount": 35,
+    "thumbnail": "https://media.sketchfab.com/models/a8dab84cd4fc428bbcfe194e3ac14d06/thumbnails/278c48ab62ae422d97b1537648ff7bbe/393b3e9a1e4e4469894c82c16918cb6d.jpeg",
+    "qualityScore": 88.8,
+    "qualityCheckedAt": "2026-09-21T05:45:50.096Z"
   },
   "lion": {
     "title": "Lion",
@@ -237,7 +335,14 @@
     "sha256": "c1490f3ed91576afe9c4de24824f4f9c6db9b067dea9edc2edce5bb73179952c",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:03.935Z",
-    "verifiedAt": "2026-09-19T12:45:39.749Z"
+    "verifiedAt": "2026-09-19T12:45:39.749Z",
+    "uid": "79d5e1173bba4f2b80661620a2eca9bc",
+    "faceCount": 5497,
+    "downloadCount": 1442,
+    "likeCount": 89,
+    "thumbnail": "https://media.sketchfab.com/models/79d5e1173bba4f2b80661620a2eca9bc/thumbnails/80462f8a6b614205a0c14c6a0fb8cfd2/1505ceef7dc7483eae040eda4de6f4aa.jpeg",
+    "qualityScore": 90.6,
+    "qualityCheckedAt": "2026-09-21T05:45:50.911Z"
   },
   "megalodon": {
     "title": "megalodon",
@@ -253,7 +358,14 @@
     "sha256": "da1b73f48f6dac6f145e85f26402c58b3ac5a9eb9bc7dda5ab2a078fc7c951e0",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:08.270Z",
-    "verifiedAt": "2026-09-19T12:45:39.752Z"
+    "verifiedAt": "2026-09-19T12:45:39.752Z",
+    "uid": "ecae76225ba24db8bd77f829f25a00b1",
+    "faceCount": 17439,
+    "downloadCount": 1727,
+    "likeCount": 110,
+    "thumbnail": "https://media.sketchfab.com/models/ecae76225ba24db8bd77f829f25a00b1/thumbnails/9a015bbe443144539f5ee94f79388527/fee707b5ebc642e5a91e5d0062bb4d5b.jpeg",
+    "qualityScore": 91.3,
+    "qualityCheckedAt": "2026-09-21T05:45:51.757Z"
   },
   "monarch-butterfly": {
     "title": "Monarch Butterfly",
@@ -269,7 +381,14 @@
     "sha256": "dddc3be43f20bf9e063173b10d5c16e4d19d8f886c26d320caa48b9c807acfdd",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:11.806Z",
-    "verifiedAt": "2026-09-19T12:45:39.753Z"
+    "verifiedAt": "2026-09-19T12:45:39.753Z",
+    "uid": "757d8ea7bd2b4dd69bdcc4fc356c9c93",
+    "faceCount": 6724,
+    "downloadCount": 189,
+    "likeCount": 8,
+    "thumbnail": "https://media.sketchfab.com/models/757d8ea7bd2b4dd69bdcc4fc356c9c93/thumbnails/ee791fdb4fe04c4db09a1b87f371616f/71a798025f6c4a6b9328171ff1dd5cf5.jpeg",
+    "qualityScore": 82.9,
+    "qualityCheckedAt": "2026-09-21T05:45:52.617Z"
   },
   "red-kangaroo": {
     "title": "Red Kangaroo Voxel",
@@ -285,7 +404,14 @@
     "sha256": "3e4a8e85cc95db00181fd7effb52cfc54f7c364f783ded3e78cbfc339682445f",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:14.378Z",
-    "verifiedAt": "2026-09-19T12:45:39.753Z"
+    "verifiedAt": "2026-09-19T12:45:39.753Z",
+    "uid": "172f2caaec0947b5903de899aae3ee46",
+    "faceCount": 2812,
+    "downloadCount": 120,
+    "likeCount": 13,
+    "thumbnail": "https://media.sketchfab.com/models/172f2caaec0947b5903de899aae3ee46/thumbnails/4c32e539cfde4b66b013803ed1b3ce38/1024x576.jpeg",
+    "qualityScore": 75,
+    "qualityCheckedAt": "2026-09-21T05:45:53.466Z"
   },
   "saltwater-crocodile": {
     "title": "HSW Saltwater Crocodile",
@@ -301,7 +427,14 @@
     "sha256": "5e25e4b76da8f6ddec4f163fce1cfc2bafcea804be8db76b2f096c90690fec2c",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:17.249Z",
-    "verifiedAt": "2026-09-19T12:45:39.754Z"
+    "verifiedAt": "2026-09-19T12:45:39.754Z",
+    "uid": "d3226a75194b478383d7ce1808913d2b",
+    "faceCount": 1508,
+    "downloadCount": 91,
+    "likeCount": 11,
+    "thumbnail": "https://media.sketchfab.com/models/d3226a75194b478383d7ce1808913d2b/thumbnails/f9eae1500f91416590fc5b9a1447fdb0/00a684ce8a234bc69a53f79dd646251a.jpeg",
+    "qualityScore": 74.2,
+    "qualityCheckedAt": "2026-09-21T05:45:54.310Z"
   },
   "smilodon": {
     "title": "Smilodon",
@@ -317,7 +450,14 @@
     "sha256": "73aa3cf42cf298f08f79743564c4564320f83e231df254f0611cb1e7098f48dd",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:21.045Z",
-    "verifiedAt": "2026-09-19T12:45:39.757Z"
+    "verifiedAt": "2026-09-19T12:45:39.757Z",
+    "uid": "d86ee2eadc584a90827f737958737561",
+    "faceCount": 16988,
+    "downloadCount": 704,
+    "likeCount": 41,
+    "thumbnail": "https://media.sketchfab.com/models/d86ee2eadc584a90827f737958737561/thumbnails/852cbb462c86458e91f5a8ead7bd50d5/7fc3778c653a480a90c8937c67820b55.jpeg",
+    "qualityScore": 88,
+    "qualityCheckedAt": "2026-09-21T05:45:55.144Z"
   },
   "toco-toucan": {
     "title": "Toucan Tango - Bird",
@@ -333,7 +473,14 @@
     "sha256": "d057f17c02acee90978f98ab768ce8e24e5ac34ffd2a0a00633d20c20178caed",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:24.995Z",
-    "verifiedAt": "2026-09-19T12:45:39.758Z"
+    "verifiedAt": "2026-09-19T12:45:39.758Z",
+    "uid": "7ecef2b2f1bf42be934e34ace1041862",
+    "faceCount": 20174,
+    "downloadCount": 80,
+    "likeCount": 3,
+    "thumbnail": "https://media.sketchfab.com/models/7ecef2b2f1bf42be934e34ace1041862/thumbnails/cc91167a6560421fa1347cc705825aab/4fbb712c8ba343cdaf2a94be0224c8a9.jpeg",
+    "qualityScore": 72.3,
+    "qualityCheckedAt": "2026-09-21T05:45:55.973Z"
   },
   "tyrannosaurus-rex": {
     "title": "Tyrannosaurus rex",
@@ -349,7 +496,14 @@
     "sha256": "9f3058f8c7a8f910d1172b32c96dac5df67201b50dff13f38cb668b865e78ba5",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:29.864Z",
-    "verifiedAt": "2026-09-19T12:45:39.761Z"
+    "verifiedAt": "2026-09-19T12:45:39.761Z",
+    "uid": "497a7f22e77a4678b173fb511bea6064",
+    "faceCount": 28152,
+    "downloadCount": 7884,
+    "likeCount": 221,
+    "thumbnail": "https://media.sketchfab.com/models/497a7f22e77a4678b173fb511bea6064/thumbnails/84a9dff0a85f4adeb3de83ab9db286f3/e36489985d224530b6e133a7691c0af1.jpeg",
+    "qualityScore": 93.3,
+    "qualityCheckedAt": "2026-09-21T05:45:56.821Z"
   },
   "weddell-seal": {
     "title": "Seal",
@@ -365,7 +519,14 @@
     "sha256": "25a6068c0bcd4a5a9b1cafe48d88026f1ef944e314a2960e80eb04c90fe344f1",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:42:46.622Z",
-    "verifiedAt": "2026-09-19T12:45:39.761Z"
+    "verifiedAt": "2026-09-19T12:45:39.761Z",
+    "uid": "0616281841b44983b1c113b578c0f0ce",
+    "faceCount": 610,
+    "downloadCount": 730,
+    "likeCount": 30,
+    "thumbnail": "https://media.sketchfab.com/models/0616281841b44983b1c113b578c0f0ce/thumbnails/5d4f6e8ae9994a49adf3d1e8714b60c0/5415c0e7e1bc42dbad7a92e4e4cf4b5b.jpeg",
+    "qualityScore": 69.6,
+    "qualityCheckedAt": "2026-09-21T05:45:57.664Z"
   },
   "woolly-mammoth": {
     "title": "Woolly Mammoth",
@@ -381,6 +542,13 @@
     "sha256": "00abfc66f0f6056eae2f7bde108150081675082068c0326fee3476c4ae5b2fa9",
     "attributionRequired": true,
     "fetchedAt": "2026-09-19T12:40:53.990Z",
-    "verifiedAt": "2026-09-19T12:45:39.766Z"
+    "verifiedAt": "2026-09-19T12:45:39.766Z",
+    "uid": "8de15acb807b44dfa9093184f6d459e4",
+    "faceCount": 2466,
+    "downloadCount": 169,
+    "likeCount": 8,
+    "thumbnail": "https://media.sketchfab.com/models/8de15acb807b44dfa9093184f6d459e4/thumbnails/255d26ecfd544c898970b7deb07d3516/d8da02b2729648ca8d99c1ede2fd8f65.jpeg",
+    "qualityScore": 82.6,
+    "qualityCheckedAt": "2026-09-21T05:45:58.507Z"
   }
 }
