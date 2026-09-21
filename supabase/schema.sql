@@ -639,7 +639,11 @@ create table if not exists public.animal_geodata (
   -- PostgREST can upsert on it. A unique index over `coalesce(year, 'current')` would
   -- work in Postgres and be invisible to `on_conflict=`, which is the whole point of
   -- writing it down here.
-  dedupe_key  text generated always as (kind || ':' || coalesce(year::text, 'current') || ':' || source) stored,
+  -- `source_version` is part of the key on purpose: re-importing a dataset appends a version
+  -- rather than overwriting one, so "before and after" stays answerable (Phase 17, constraint
+  -- 4). `scripts/seed-geodata.mjs` sends no version, so it lands on `v1` and stays idempotent.
+  source_version text,
+  dedupe_key  text generated always as (kind || ':' || coalesce(year::text, 'current') || ':' || source || ':' || coalesce(source_version, 'v1')) stored,
   created_at  timestamptz not null default now(),
   constraint animal_geodata_unique_row unique (animal_id, dedupe_key),
   -- Only the four shapes a map layer can draw.
@@ -1005,6 +1009,78 @@ create policy "migration routes are publicly readable"
 
 revoke all on public.migration_routes from anon, authenticated;
 grant select on public.migration_routes to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Admins (Phase 17)
+-- ---------------------------------------------------------------------------
+--
+-- The review that preceded this phase said it plainly: there is no admin concept in this
+-- schema, and an /admin page without one is a page that anyone can post to. So the role
+-- comes first.
+--
+-- `is_admin()` reads `app_admins`, which is empty by default: a fresh clone has no admins and
+-- every policy below denies. Nothing here trusts a claim from the browser - the function
+-- compares the *session* identity, through the same `current_user_id()` every other policy
+-- uses, which is `auth.uid()` under Supabase Auth and the JWT subject under Clerk.
+create table if not exists public.app_admins (
+  user_id    text primary key,
+  note       text,
+  created_at timestamptz not null default now()
+);
+
+comment on table public.app_admins is
+  'Who may write geospatial data. Empty by default: no row, no rights. Add one with an INSERT run as the service role.';
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.app_admins a
+    where a.user_id = public.current_user_id()
+  );
+$$;
+
+comment on function public.is_admin() is
+  'True when the current session belongs to an admin. Deny by default: an empty app_admins means nobody.';
+
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
+
+alter table public.app_admins enable row level security;
+
+-- An admin can see who else is an admin; nobody else can read the list. This comes after
+-- the function it calls: a policy cannot reference a function that does not exist yet, and
+-- `npm run db:schema` runs the whole file as one statement.
+drop policy if exists "admins are visible to admins" on public.app_admins;
+create policy "admins are visible to admins"
+  on public.app_admins for select
+  to authenticated
+  using (public.is_admin());
+
+revoke all on public.app_admins from anon, authenticated;
+grant select on public.app_admins to authenticated;
+
+-- Admins may write the geospatial tables. Every other table keeps its read-only public
+-- policy: this is the one place a browser is allowed to change reference data, and it is
+-- gated on a row existing in app_admins.
+do $$
+declare
+  target text;
+begin
+  foreach target in array array['animal_geodata', 'threat_layers', 'range_events', 'migration_routes'] loop
+    execute format('drop policy if exists "admins may write %1$s" on public.%1$s', target);
+    execute format(
+      'create policy "admins may write %1$s" on public.%1$s for all to authenticated using (public.is_admin()) with check (public.is_admin())',
+      target
+    );
+  end loop;
+end $$;
+
+grant insert, update, delete on public.animal_geodata, public.threat_layers, public.range_events, public.migration_routes to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)

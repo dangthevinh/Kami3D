@@ -28,7 +28,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **14** | Habitat & Species Distribution Maps (`/map`) | ✅ Hoàn thành — heatmap GBIF + bộ lọc + legend |
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
-| **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 📝 Đã ghi prompt, chưa triển khai |
+| **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 🟡 Pipeline + vai trò admin xong; chế độ hybrid 3D còn lại |
 
 **Số liệu hiện tại**
 
@@ -37,7 +37,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **257** bài trong **22** suite (`npm run check:suites`) |
+| Test tự động | **267** bài trong **23** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -1530,6 +1530,82 @@ Output cần có:
    thật, trong khi 24 GLB hiện tại không có.
 6. **Caching**: cache theo `(animal_id, kind, year)` với `revalidate` hợp lý thay vì "caching layer thông minh"
    chung chung; dữ liệu địa lý thay đổi rất chậm nên `force-cache` + revalidate theo ngày là đủ.
+
+---
+
+## 🟡 Phase 17 — Kết quả (một phần): Admin geospatial pipeline
+
+**Trạng thái: đã giao phần pipeline + vai trò admin.** Phần "3D-Map Hybrid" chưa làm — lý do ghi ở mục 5.
+
+### 1. Bước 0 của phase: vai trò admin có thật
+
+Review Phase 10 nói thẳng: schema chưa có khái niệm admin, nên `/admin` mà không có role là trang ai cũng POST
+được. Nên role làm trước:
+
+- `public.app_admins` (user_id text, ghi chú) — **rỗng mặc định**, tức là clone mới không có admin nào và mọi
+  policy đều từ chối.
+- `public.is_admin()` — `security definer`, so `current_user_id()` với bảng đó, dùng chung một hàm nhận diện với
+  mọi policy khác (Supabase Auth → `auth.uid()`, Clerk → JWT `sub`).
+- Policy **write** cho admin trên `animal_geodata`, `threat_layers`, `range_events`, `migration_routes` — cộng với
+  các policy đọc công khai đã có. Đã kiểm bằng truy vấn: `is_admin()` = **false** cho anon; 9 policy đúng như thiết
+  kế (4 write cho authenticated + 5 read công khai).
+
+> Lỗi thứ tự đã bị `npm run db:schema` bắt: policy gọi `is_admin()` được tạo trước khi hàm tồn tại → 42883.
+> Toàn bộ file chạy như một câu lệnh nên không có gì bị áp dở dang.
+
+### 2. Import: một cửa kiểm tra, dùng cho cả CLI và trang admin
+
+`lib/geodata-import.ts` (thuần, **10 test** trong `check:import`): nhận GeoJSON (FeatureCollection, một Feature,
+hoặc một geometry trần) hay CSV có cột toạ độ; tự tìm cột `decimalLatitude/latitude/lat/y` và
+`decimalLongitude/longitude/lon/lng/long/x`; kiểm ring kín + **không tự giao** (đúng thứ PostGIS sẽ kiểm lại);
+từ chối LineString kèm chỉ dẫn sang pipeline migration; và **bắt buộc có attribution + licence CC0/CC-BY** — không
+có credit thì không nhập được.
+
+Ba đường dùng chung một cửa:
+
+| Đường | Việc |
+| --- | --- |
+| `npm run geodata:report -- --file=…` | in ra sẽ nhập gì, từ chối gì — không ghi gì |
+| `npm run geodata:import -- … --apply` | ghi bằng service role |
+| `POST /api/admin/geodata` | preview (`publish` thiếu) hoặc publish, sau khi `is_admin()` xác nhận |
+
+Shapefile **không** được đọc ở đây (không có GDAL): script nói rõ phải `ogr2ogr -f GeoJSON` trước, thay vì
+parse nửa vời một định dạng nhị phân.
+
+### 3. Version = append, không ghi đè
+
+Thêm cột `source_version` và đưa nó **vào `dedupe_key`**: nhập lại cùng nguồn tạo **phiên bản mới** thay vì đè, nên
+câu hỏi "trước vs hiện tại" của Phase 15/16 vẫn trả lời được. `seed-geodata.mjs` không gửi version nên rơi vào `v1`
+và vẫn idempotent. Kiểm trên DB: 51 dòng, 3 khoá duy nhất theo `(kind, year, source, version)` — đúng như thiết kế
+(khoá duy nhất là `(animal_id, dedupe_key)`).
+
+### 4. `dispose()` cho GLB — sửa P0.4/R6
+
+Constraint 5 của phase nói `dispose()` là việc chưa làm từ review. Nay `GltfModel` giải phóng geometry, material và
+texture của **bản clone** khi đổi loài hoặc đóng viewer; cache `useGLTF` vẫn giữ nên lần xem lại vẫn tức thì. Đây là
+nửa đầu của yêu cầu "chỉ một WebGL context" — nửa còn lại là bản thân chế độ hybrid.
+
+### 5. Chưa làm: chế độ 3D-Map Hybrid
+
+Lý do là ràng buộc chứ không phải thiếu thời gian: bản đồ là một canvas WebGL của MapLibre, nên viewer 3D là canvas
+**thứ hai duy nhất** được phép tồn tại, và trên điện thoại hai canvas cạnh nhau là quá nhiều. Cách làm đúng — đã
+viết ra để lần sau không phải nghĩ lại:
+
+1. Viewer mount **chỉ khi bấm**, `next/dynamic` + `ssr: false`, và `dispose()` khi đóng (đã có sẵn từ mục 4);
+2. Trên màn hình nhỏ, mở viewer thì **unmount bản đồ** (không phải che bằng CSS) để không bao giờ có hai context;
+3. Trên desktop thì cạnh nhau được, nhưng chỉ một viewer, và không tự mount theo hover.
+
+Hiện `/map` đã có lối vào 3D đúng tinh thần đó: panel loài có nút mở trang chi tiết, nơi model 3D thật sự sống.
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **267 test** (thêm 10 của `check:import`); `tsc` sạch; build xanh.
+- Route mới: `/admin/geodata` **132 kB** First Load (MapLibre vẫn lazy), `/api/admin/geodata` 103 kB.
+- `/map` nay **139 kB** — ngân sách được nâng lên **150 kB** kèm ghi chú số đo, vì timeline + path player là phần
+  thật sự được thêm vào.
+- `POST /api/admin/geodata` trả **403** cho mọi tài khoản không nằm trong `app_admins`, kể cả khi đã đăng nhập —
+  cùng một câu trả lời cho "chưa đăng nhập" và "đăng nhập nhưng không phải admin", để endpoint không thành chỗ
+  liệt kê ai có quyền.
 
 ---
 

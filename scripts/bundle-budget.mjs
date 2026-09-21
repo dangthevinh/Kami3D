@@ -53,9 +53,10 @@ const ROUTES = [
   // build manifest instead. MapLibre itself stays deferred - this budget covers the
   // layer panel, the query codec and the species panel, plus a small margin over the
   // measured number (see docs/MAP.md).
-  // Measured at 128.4 kB on the first build, so 140 is the real number plus room for
-  // a component or two - not a budget chosen to be easy to pass.
-  { route: "/map", manifest: "/map/page", budget: 140 },
+  // Measured at 139 kB after the timeline and the seasonal-path player landed, so the
+  // budget moved with it: this is the measured number plus a small margin, never a number
+  // chosen to be easy to pass.
+  { route: "/map", manifest: "/map/page", budget: 150 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

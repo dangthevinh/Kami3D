@@ -20,7 +20,8 @@ export type GeodataLicense = "CC0" | "CC-BY";
 export interface GeodataProperties {
   slug: string;
   name: string;
-  region: Region | string;
+  /** Filled in from the catalogue when read; an imported file does not have to carry it. */
+  region?: Region | string;
   kind: GeodataKind;
   year: number | null;
   source: string;

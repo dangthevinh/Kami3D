@@ -38,6 +38,7 @@
     "check:map": "node --test scripts/check-map.mjs",
     "check:risk": "node --test scripts/check-risk.mjs",
     "check:timeline": "node --test scripts/check-timeline.mjs",
+    "check:import": "node --test scripts/check-import.mjs",
     "geo:generate": "node scripts/generate-geodata.mjs",
     "geo:seed": "node scripts/seed-geodata.mjs",
     "geo:status": "node scripts/seed-geodata.mjs --status",
