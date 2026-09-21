@@ -39,6 +39,8 @@
     "geo:generate": "node scripts/generate-geodata.mjs",
     "geo:seed": "node scripts/seed-geodata.mjs",
     "geo:status": "node scripts/seed-geodata.mjs --status",
+    "geo:report": "node scripts/fetch-geodata.mjs --report",
+    "geo:fetch": "node scripts/fetch-geodata.mjs --all --apply",
     "sounds:report": "node scripts/fetch-sounds.mjs --report",
     "sounds:fetch": "node scripts/fetch-sounds.mjs --all --apply --wire",
     "check:bundle": "node scripts/bundle-budget.mjs",

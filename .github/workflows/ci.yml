@@ -49,6 +49,12 @@ jobs:
           git diff --exit-code supabase/seed.sql \
             || (echo "::error::supabase/seed.sql is stale — run 'npm run seed:generate' and commit the result." && exit 1)
 
+      - name: Regenerate the geodata and fail if it is out of date
+        run: |
+          npm run geo:generate
+          git diff --exit-code data/animal-geodata.json data/geodata-attribution.json \
+            || (echo "::error::The bundled geodata is stale — run 'npm run geo:generate' and commit the result." && exit 1)
+
       - name: Production build
         run: npm run build
         env:

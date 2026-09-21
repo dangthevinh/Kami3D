@@ -408,6 +408,8 @@ npm run seed:generate   # regenerate supabase/seed.sql from the dataset
 npm run geo:generate    # rewrite data/animal-geodata.json from the regional anchors
 npm run geo:seed        # upsert the geodata into PostGIS (idempotent)
 npm run geo:status      # what public.animal_geodata currently holds
+npm run geo:report      # GBIF occurrences available per species, nothing written
+npm run geo:fetch       # fetch the CC0/CC BY occurrences and store them (--all --apply)
 npm run db:status       # what the database currently holds
 npm run db:seed         # push the catalogue into Supabase (idempotent)
 npm run models:report   # what 3D models are available, with licences

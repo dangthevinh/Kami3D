@@ -679,6 +679,72 @@ revoke all on public.animal_geodata from anon, authenticated;
 grant select on public.animal_geodata to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- The map read path (Phase 14)
+-- ---------------------------------------------------------------------------
+--
+-- The map needs shapes, not rows: a FeatureCollection with simplified geometry and the
+-- handful of properties it draws. Doing that in the database rather than in JavaScript
+-- means the payload is small before it is ever serialised, and `ST_SimplifyPreserveTopology`
+-- (which keeps a polygon valid while removing vertices) is applied where the geometry lives.
+--
+-- `security definer` because it reads a table under RLS on behalf of a public reader, so the
+-- function has to be the one with permission - and it is granted to anon deliberately, like
+-- `increment_animal_view`. It only ever returns data that the table's own SELECT policy
+-- already makes public.
+create or replace function public.map_geodata(
+  p_kind text default null,
+  p_tolerance double precision default 0.01
+)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'type', 'FeatureCollection',
+    'features', coalesce(jsonb_agg(feature order by slug, kind), '[]'::jsonb)
+  )
+  from (
+    select
+      a.slug as slug,
+      g.kind as kind,
+      jsonb_build_object(
+        'type', 'Feature',
+        'properties', jsonb_build_object(
+          'slug', a.slug,
+          'name', a.name,
+          'region', a.region,
+          'category', a.category,
+          'conservation_status', a.conservation_status,
+          'emoji', a.emoji,
+          'kind', g.kind,
+          'year', g.year,
+          'source', g.source,
+          'license', g.license,
+          'attribution', g.attribution
+        ) || coalesce(g.properties, '{}'::jsonb),
+        'geometry', extensions.st_asgeojson(
+          case
+            when p_tolerance > 0 and extensions.geometrytype(g.geometry) in ('POLYGON', 'MULTIPOLYGON')
+              then extensions.st_simplifypreservetopology(g.geometry, p_tolerance)
+            else g.geometry
+          end
+        )::jsonb
+      ) as feature
+    from public.animal_geodata g
+    join public.animals a on a.id = g.animal_id
+    where p_kind is null or g.kind = p_kind
+  ) rows
+$$;
+
+comment on function public.map_geodata(text, double precision) is
+  'The map read path: a GeoJSON FeatureCollection with simplified geometry and only the properties the map draws. Public on purpose - it returns exactly what animal_geodata already exposes.';
+
+revoke all on function public.map_geodata(text, double precision) from public;
+grant execute on function public.map_geodata(text, double precision) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

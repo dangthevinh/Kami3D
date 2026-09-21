@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 
 import { ANIMALS } from "../data/animals.ts";
 import { isLandAt, landBounds, projectLand, projectPoint, unprojectPoint } from "../lib/earth-map.ts";
+import { yearBuckets } from "../scripts/fetch-geodata.mjs";
 import {
   boundsOf,
   envelopeRing,
@@ -398,5 +399,28 @@ test("the geodata kinds and licences match the CHECK constraints in schema.sql",
   // Every kind the bundled data uses must be one the database accepts.
   const used = [...new Set(geodata.features.map((feature) => feature.properties.kind))];
   for (const kind of used) assert.ok(declaredKinds.includes(kind), `bundled data uses ${kind}, which the CHECK rejects`);
+});
+
+
+test("year buckets spread a sampling window instead of taking the newest records", () => {
+  const buckets = yearBuckets("1980,2026", 4);
+
+  assert.equal(buckets.length, 4);
+  assert.equal(buckets[0], "1980,1991");
+  assert.equal(buckets[buckets.length - 1], "2016,2026");
+
+  // Every year in the window is covered exactly once.
+  const covered = buckets.flatMap((bucket) => {
+    const [from, to] = bucket.split(",").map(Number);
+    return Array.from({ length: to - from + 1 }, (_, index) => from + index);
+  });
+  assert.equal(new Set(covered).size, covered.length, "a year appears in two buckets");
+  assert.equal(Math.min(...covered), 1980);
+  assert.equal(Math.max(...covered), 2026);
+
+  // Degenerate input falls back to the window it was given rather than to nothing.
+  assert.deepEqual(yearBuckets("2000", 4), ["2000"]);
+  assert.deepEqual(yearBuckets("2020,2010", 4), ["2020,2010"]);
+  assert.deepEqual(yearBuckets("1990,1990", 4), ["1990,1990"]);
 });
 

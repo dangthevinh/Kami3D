@@ -25,7 +25,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | ✅ Hoàn thành — 6 nhóm, mọi cột có tác dụng thật |
 | **12** | Admin tự động tìm & tải model 3D | ✅ Hoàn thành (CLI) — xếp hạng chất lượng, DRACO, upload, `model_assets`; UI admin để phase riêng |
 | **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | ✅ Hoàn thành — `/map` + PostGIS + URL-as-state |
-| **14** | Habitat & Species Distribution Maps (`/map`) | 📝 Đã ghi prompt, chưa triển khai |
+| **14** | Habitat & Species Distribution Maps (`/map`) | ✅ Hoàn thành — heatmap GBIF + bộ lọc + legend |
 | **15** | Conservation Threat & Risk Maps | 📝 Đã ghi prompt, chưa triển khai |
 | **16** | Timeline & Story Maps | 📝 Đã ghi prompt, chưa triển khai |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 📝 Đã ghi prompt, chưa triển khai |
@@ -1172,6 +1172,60 @@ Trả về code đầy đủ các component chính + ví dụ dữ liệu GeoJSO
 5. **Đồng bộ Globe → Map là một chiều và qua URL**: Globe đang gọi `onRegionSelect(region)`
    ([LazyGlobe.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/3d/LazyGlobe.tsx#L38-L54)). Chuyển chế độ thì ghi `region` vào cùng state layer
    đã đồng bộ URL ở Phase 13 — không dựng thêm store thứ hai cho cùng một khái niệm.
+
+---
+
+## ✅ Phase 14 — Kết quả: Habitat & Species Distribution Maps
+
+**Trạng thái: đã giao.** `/map` nay có heatmap mật độ quan sát từ **dữ liệu GBIF thật**, bộ lọc châu lục + IUCN +
+lớp, panel layer kèm opacity, và legend nói rõ lớp đang vẽ là gì.
+
+### 1. Dữ liệu thật, và cái giá về licence
+
+| Việc | Kết quả |
+| --- | --- |
+| Pipeline | `scripts/fetch-geodata.mjs` (GBIF search API, không cần key): match loài → lọc `license=CC0_1_0,CC_BY_4_0` → kiểm lại từng record → lưu **một MultiPoint mỗi loài** |
+| Đã lưu | **4 323 điểm** cho **23/24 loài**, trải **1980–2026**, 4–5 dataset mỗi loài |
+| Bị từ chối | **megalodon**: 188 record, không record nào dùng được (toàn NC/ND/unknown) — đúng luật licence, và pipeline nói thẳng ra |
+| Tỉ lệ dùng được | Ví dụ sư tử: **3 096/15 971 (19%)**; voi châu Phi 6 450/24 901 (26%); đại bàng đầu trắng 7 627 146/7 777 517 (98%) |
+
+Bài học Phase 9 áp cho địa lý: GBIF phần lớn là **CC BY-NC**, site này có quảng cáo, nên nếu tải ào ạt rồi tính sau
+thì gần như toàn bộ dữ liệu sẽ phải vứt. Pipeline in ra tỉ lệ chấp nhận để con số đó không bị bỏ qua.
+
+### 2. Lấy mẫu trải theo thời gian, không lấy mới nhất
+
+GBIF trả record mới nhất trước, nên "400 record từ 1980" thực chất là 400 record của hai năm gần đây — heatmap
+của người đi xem chim tuần này, không phải bản đồ nơi loài sống. `yearBuckets()` chia cửa sổ năm và lấy mẫu đều
+từng khúc: khoảng năm lưu trong DB từ `2024–2026` (trước) thành **1980–2026** (sau), số dataset từ 2 lên 26 với
+sư tử. Có test riêng cho hàm chia bucket.
+
+### 3. Map: heatmap + bộ lọc + minh bạch dữ liệu
+
+- **Heatmap** vẽ bằng **layer `heatmap` có sẵn của MapLibre**, không dùng `Deck.gl HeatmapLayer` như prompt gốc:
+  deck.gl tốn vài trăm kB cho đúng thứ renderer đã có, trên route có ngân sách 140 kB. Ràng buộc chung #1 của nhóm
+  nói thư viện nặng phải xứng đáng; cái này thì không. Nếu Phase 16 cần arc/trip layer (MapLibre thật sự không vẽ
+  được) thì sẽ cân nhắc lại — đã ghi vào docs.
+- **Bộ lọc**: châu lục (dùng lại `REGIONS`), tình trạng bảo quản (IUCN), lớp. Lọc **thu hẹp cả hình trên bản đồ**,
+  và loài đang chọn luôn được giữ lại dù có lọc — vừa bấm vào một hình mà nó biến mất là lỗi UX.
+- **Legend nói đúng thứ đang vẽ**: "Observation density — 845 records across 6 species, 1980–2026 ·
+  gbif-occurrence-search · CC-BY · where the species has been recorded, not how many there are" (ràng buộc #4).
+- **`map_geodata()` RPC**: `security definer`, trả FeatureCollection đã `ST_SimplifyPreserveTopology` (đo được:
+  456 điểm ở tolerance 0 → 268 ở 0.5° → 125 ở 2°) và chỉ gồm property mà map cần; điểm occurrence **không** bị
+  simplify (làm vậy là dịch chuyển một lần quan sát).
+
+### 4. Bằng chứng
+
+- `npm run check:suites`: **231 test** (thêm 1 của `check-geo` cho bucket + các test Phase 13); `tsc` sạch, build xanh.
+- `/map` **129.1 kB** JS khởi đầu (ngân sách 140) — heatmap, bộ lọc và legend thêm 0.7 kB; MapLibre vẫn deferred.
+- Chrome thật ở `/map?region=Africa&layers=habitat,occurrence`: layer occurrence **bật đúng từ URL**, legend hiện
+  ("845 records across 6 species"), bộ lọc IUCN render, 6 shape của châu Phi (lọc theo vùng thật sự thu hẹp hình),
+  URL chuẩn hoá lại, **không lỗi console**.
+- Vẫn **chưa** kiểm chứng được phần vẽ: Chrome headless không có WebGL. Ghi rõ trong docs/MAP.md.
+
+### 5. Còn lại (chuyển sang Phase 15)
+
+1. `protected_area` và `pressure` chưa có nguồn dữ liệu — panel hiện ghi "no data yet" thay vì giả vờ có.
+2. Vector tiles (`ST_AsMVT`) chỉ nên làm khi vượt ~1 000 feature; hiện 51 feature nên GeoJSON là đúng.
 
 ---
 

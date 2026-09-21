@@ -30,12 +30,41 @@ const LAYER_PAINT: Record<MapLayerId, string> = {
   pressure: "#ff5d8f",
 };
 
-/** Which bundled `kind` each toggle draws. `occurrence` is points, not polygons. */
+/** Which bundled `kind` each polygon toggle draws. */
 const KIND_FOR_LAYER: Partial<Record<MapLayerId, string>> = {
   habitat: "habitat_current",
   historic: "habitat_historic",
   protected: "protected_area",
 };
+
+/**
+ * Observation density, as a heatmap.
+ *
+ * MapLibre draws this itself, and that is a deliberate departure from the plan's
+ * `Deck.gl HeatmapLayer`: deck.gl is several hundred kilobytes for a layer the renderer
+ * already has, on a project whose whole first-paint budget is 165 kB. The plan's own
+ * constraint is that a heavy library has to earn its place; this one would not. If Phase
+ * 16 needs arc or trip layers - which MapLibre genuinely cannot draw - that trade is worth
+ * revisiting.
+ *
+ * The colours are the product palette, and the ramp starts fully transparent so the
+ * habitat polygons underneath stay readable.
+ */
+const HEATMAP_COLOR = [
+  "interpolate",
+  ["linear"],
+  ["heatmap-density"],
+  0,
+  "rgba(4, 6, 15, 0)",
+  0.15,
+  "rgba(56, 224, 255, 0.35)",
+  0.4,
+  "rgba(53, 240, 192, 0.65)",
+  0.7,
+  "rgba(255, 183, 56, 0.85)",
+  1,
+  "rgba(255, 93, 143, 0.95)",
+];
 
 export interface MapCanvasProps {
   features: GeodataFeature[];
@@ -118,6 +147,25 @@ export function MapCanvas({
           </Source>
         );
       })}
+
+      {visible.occurrence ? (
+        <Source id="occurrence-source" type="geojson" data={collectionOf(features, "occurrence")}>
+          <Layer
+            id="occurrence-heat"
+            type="heatmap"
+            paint={{
+              // Weight is per point: the pipeline already thinned duplicates, so every
+              // dot standing here is a real record.
+              "heatmap-weight": 1,
+              "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 6, 1.4],
+              "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 10, 4, 22, 8, 38],
+              "heatmap-opacity": opacity.occurrence,
+              // Spread because MapLibre wants a mutable expression, and this one is a constant.
+              "heatmap-color": [...HEATMAP_COLOR] as unknown as never,
+            }}
+          />
+        </Source>
+      ) : null}
 
       {/* The highlighted species is drawn on top, so a selection is never hidden
           underneath a neighbour that happens to be painted later. */}

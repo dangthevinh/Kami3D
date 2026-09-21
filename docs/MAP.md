@@ -40,7 +40,7 @@ the map keeps the product's dark studio palette whatever accent is chosen - exac
 | --- | --- | --- |
 | Habitat range | `habitat_current` | Demo envelopes (synthetic, see below) |
 | Historic range | `habitat_historic` | Demo envelopes for the four prehistoric species |
-| Observation density | `occurrence` | Not shipped yet - Phase 14 |
+| Observation density | `occurrence` | **GBIF** - 4 323 real records across 23 species, 1980-2026 |
 | Protected areas | `protected_area` | Not shipped yet - Phase 15 |
 | Human pressure | `pressure` | Not shipped yet - Phase 15 |
 
@@ -63,6 +63,39 @@ npm run geo:status     # what the database currently holds
 npm run check:geo      # the axis order, the ring maths, and the bundled file
 ```
 
+## Observation density, from GBIF
+
+```bash
+npm run geo:report                          # what is available per species, nothing written
+npm run geo:fetch                           # every species (--all --apply)
+node scripts/fetch-geodata.mjs --species=lion --apply
+```
+
+This is where the licence rule bites hardest. GBIF holds 15 971 lion records and only **3 096** may be used
+here: the rest are CC BY-NC, and this site carries advertising. Every species is the same, so the search is
+filtered at the source (`license=CC0_1_0&license=CC_BY_4_0`) *and* every record is checked again before it is
+kept. The pipeline prints the ratio it accepted so the number cannot be quietly ignored:
+
+```
+→ lion: 317 points from 370 examined (3096/15971 usable, 19%) · 26 dataset(s) · CC-BY · 1980-2026
+✘ megalodon: 188 records, none this site may use (all NC/ND/unknown)
+```
+
+Two decisions worth knowing:
+
+- **Sampling is spread across the year range, not taken from the top.** GBIF returns the newest records
+  first, so "the first 400 since 1980" is four hundred records from the last two years - a heatmap of recent
+  birdwatching rather than of where a species lives. `yearBuckets` splits the window and samples each bucket,
+  which is why the stored year range is 1980-2026 rather than 2024-2026.
+- **What is stored is a MultiPoint, not the record set.** 4 323 points across 23 species, thinned to one point
+  per ~11 m (two records from the same reserve are one dot on a heatmap). The properties keep the honest
+  counts - available, usable, refused, datasets, countries, year range - and the panel prints them.
+
+The map draws it with **MapLibre's own heatmap layer**, not `Deck.gl HeatmapLayer` as the plan proposed:
+deck.gl is several hundred kilobytes for a layer the renderer already has, on a route whose whole budget is
+140 kB. The plan's own constraint says a heavy library has to earn its place. If Phase 16 needs arc or trip
+layers - which MapLibre genuinely cannot draw - that trade is worth revisiting.
+
 ## The database
 
 `public.animal_geodata` carries every spatial layer in one table, because the alternative was an `alter table`
@@ -75,6 +108,11 @@ at the start of each of the next four phases:
 | `geometry` | `extensions.geometry(Geometry, 4326)` - **longitude first** |
 | `source`, `source_url`, `license`, `attribution` | the licence terms the row arrived with |
 | `dedupe_key` | generated `kind:year:source`, so `on_conflict` can make a re-import an update |
+
+The map does not select that table directly. It calls `public.map_geodata(p_kind, p_tolerance)`, a
+`security definer` function that returns a ready FeatureCollection with `ST_SimplifyPreserveTopology` applied
+to polygons (measured: 456 points at tolerance 0, 268 at 0.5 degrees, 125 at 2) and only the properties the map
+draws. Points pass through untouched - simplifying a sighting moves it.
 
 PostGIS is installed into the `extensions` schema (the Supabase convention), the `geometry` column has a **GiST**
 index (a viewport query plans as `Index Scan using animal_geodata_geometry_idx`), and the table refuses

@@ -57,7 +57,11 @@ const KIND_FOR_LAYER: Partial<Record<MapLayerId, string>> = {
   habitat: "habitat_current",
   historic: "habitat_historic",
   protected: "protected_area",
+  occurrence: "occurrence",
 };
+
+/** The IUCN categories, in the order the Red List lists them. */
+const STATUS_FILTERS = ["Critically Endangered", "Endangered", "Vulnerable", "Near Threatened", "Least Concern"] as const;
 
 function polygonBounds(features: GeodataFeature[]): Bounds | null {
   const rings = features
@@ -87,6 +91,8 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
   const applyQuery = useMapLayers((state) => state.applyQuery);
 
   const [query, setQuery] = React.useState("");
+  const [statuses, setStatuses] = React.useState<string[]>([]);
+  const [categories, setCategories] = React.useState<string[]>([]);
 
   // The server already rendered the defaults, so the URL is applied once on mount.
   React.useEffect(() => {
@@ -102,16 +108,74 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
     window.history.replaceState(null, "", `/map${search}`);
   }, [layers, region, selectedSlug]);
 
-  const features = collection.features;
+  const allFeatures = collection.features;
+
+  const categoriesInData = React.useMemo(
+    () => [...new Set(allFeatures.map((feature) => feature.properties.category).filter(Boolean))].sort() as string[],
+    [allFeatures],
+  );
+
+  /**
+   * The shapes the map draws after the filters.
+   *
+   * The selected species is always included: clicking a shape and then narrowing the filter
+   * must not make the thing you just clicked disappear.
+   */
+  const features = React.useMemo(() => {
+    const matching = allFeatures.filter((feature) => {
+      const props = feature.properties;
+      if (region && props.region !== region) return false;
+      if (statuses.length > 0 && !statuses.includes(String(props.conservation_status))) return false;
+      if (categories.length > 0 && !categories.includes(String(props.category))) return false;
+      return true;
+    });
+
+    if (selectedSlug && !matching.some((feature) => feature.properties.slug === selectedSlug)) {
+      matching.push(...allFeatures.filter((feature) => feature.properties.slug === selectedSlug));
+    }
+
+    return matching;
+  }, [allFeatures, region, statuses, categories, selectedSlug]);
 
   const available = React.useMemo(() => {
     const counts = Object.fromEntries(MAP_LAYER_IDS.map((id) => [id, 0])) as Record<MapLayerId, number>;
     for (const feature of features) {
       for (const [id, kind] of Object.entries(KIND_FOR_LAYER)) {
-        if (feature.properties.kind === kind) counts[id as MapLayerId] += 1;
+        if (feature.properties.kind !== kind) continue;
+        // A shape counts as one shape - except the occurrence layer, where the useful
+        // number is how many records it holds, not how many species it covers.
+        const points = Array.isArray(feature.geometry.coordinates[0]) && feature.geometry.type === "MultiPoint"
+          ? feature.geometry.coordinates.length
+          : 1;
+        counts[id as MapLayerId] += points;
       }
     }
     return counts;
+  }, [features]);
+
+  /**
+   * What the observation layer actually contains, across whatever is on screen.
+   *
+   * The constraint this exists for: a heatmap of sightings must not read as a map of how
+   * many animals there are. So the count, the years and the licence travel with the layer
+   * and are printed next to it, from the same properties the pipeline recorded.
+   */
+  const observation = React.useMemo(() => {
+    const rows = features.filter((feature) => feature.properties.kind === "occurrence");
+    if (rows.length === 0) return null;
+
+    const records = rows.reduce((sum, feature) => sum + Number(feature.properties.records ?? feature.geometry.coordinates.length ?? 0), 0);
+    const years = rows.map((feature) => [Number(feature.properties.year_min ?? 0), Number(feature.properties.year_max ?? 0)]);
+
+    return {
+      records,
+      species: rows.length,
+      from: Math.min(...years.map(([min]) => min)) || null,
+      to: Math.max(...years.map(([, max]) => max)) || null,
+      license: rows.some((feature) => feature.properties.license === "CC-BY") ? "CC-BY" : "CC0",
+      source: rows[0].properties.source,
+      note: String(rows[0].properties.note ?? ""),
+    };
   }, [features]);
 
   const mapBounds = React.useMemo((): [number, number, number, number] | null => {
@@ -192,6 +256,20 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
             <MousePointerClick className="size-3" aria-hidden />
             Click a shape to open the species
           </p>
+
+          {visible.occurrence && observation ? (
+            <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-xs rounded-2xl bg-void/75 p-3 text-[10px] leading-relaxed text-white/60 backdrop-blur ring-1 ring-white/10">
+              <p className="text-[11px] font-semibold text-white/85">Observation density</p>
+              <p className="mt-1">
+                {observation.records.toLocaleString("en-US")} records across {observation.species} species
+                {observation.from && observation.to ? `, ${observation.from}-${observation.to}` : ""}
+              </p>
+              <p className="mt-1 text-white/40">
+                {observation.source} · {observation.license} · where the species has been recorded, not how
+                many there are
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <aside className="space-y-4">
@@ -265,6 +343,74 @@ export function MapExperience({ collection, credits, species, initialQuery, sour
                   {entry}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div className="glass rounded-[var(--radius-card)] p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">Filters</h2>
+              {statuses.length + categories.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatuses([]);
+                    setCategories([]);
+                  }}
+                  className="text-[11px] text-neon hover:text-white"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+
+            <p className="mt-2 text-[10px] uppercase tracking-wide text-white/30">Conservation status</p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {STATUS_FILTERS.map((status) => {
+                const active = statuses.includes(status);
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setStatuses((current) =>
+                        active ? current.filter((entry) => entry !== status) : [...current, status],
+                      )
+                    }
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-[11px] transition-colors",
+                      active ? "bg-white/14 text-white ring-1 ring-neon/40" : "text-white/55 hover:text-white",
+                    )}
+                  >
+                    {status}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-3 text-[10px] uppercase tracking-wide text-white/30">Class</p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {categoriesInData.map((category) => {
+                const active = categories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setCategories((current) =>
+                        active ? current.filter((entry) => entry !== category) : [...current, category],
+                      )
+                    }
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-[11px] transition-colors",
+                      active ? "bg-white/14 text-white ring-1 ring-neon/40" : "text-white/55 hover:text-white",
+                    )}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
