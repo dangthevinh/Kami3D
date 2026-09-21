@@ -18,6 +18,15 @@ import type { LatLng } from "./globe.ts";
  * be testable.
  */
 
+/**
+ * `{ lat, lng }` and `[lng, lat]` both live here, and the converters below are the only crossing.
+ *
+ * `LatLng` is re-exported from `globe.ts` so a caller that needs the object form - the routing and
+ * sampling code does - imports it from the module that owns the coordinate rules rather than
+ * reaching past it.
+ */
+export type { LatLng } from "./globe.ts";
+
 /** `[longitude, latitude]`, the order GeoJSON and MapLibre use. */
 export type LngLat = [number, number];
 export type Ring = LngLat[];
@@ -239,4 +248,32 @@ export function envelopeRing(
 
   ring.push([ring[0][0], ring[0][1]]);
   return ring;
+}
+
+/**
+ * The great-circle distance between two points, in kilometres.
+ *
+ * Haversine rather than a planar difference: the whole point of the logistics page is that a
+ * 30-minute drive is not a 30-kilometre circle, and that reasoning has to start from a distance
+ * that is right anywhere on the planet.
+ */
+const isTuple = (value: LatLng | readonly number[]): value is readonly number[] => Array.isArray(value);
+
+export function distanceKm(a: LatLng | readonly number[], b: LatLng | readonly number[]): number {
+  const [lng1, lat1] = isTuple(a) ? [a[0], a[1]] : [a.lng, a.lat];
+  const [lng2, lat2] = isTuple(b) ? [b[0], b[1]] : [b.lng, b.lat];
+  if (![lng1, lat1, lng2, lat2].every((value) => Number.isFinite(value))) return Number.NaN;
+
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLng = (lng2 - lng1) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** The length of a path through the given points, in kilometres. */
+export function pathLengthKm(points: readonly (LatLng | readonly number[])[]): number {
+  let total = 0;
+  for (let i = 1; i < points.length; i += 1) total += distanceKm(points[i - 1], points[i]);
+  return total;
 }

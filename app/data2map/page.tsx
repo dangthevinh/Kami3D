@@ -6,6 +6,15 @@ import { DATA2MAP_PRODUCTS, plannedProducts } from "@/lib/data2map-products";
 import { cn } from "@/lib/utils";
 
 /**
+ * Read once, at build time.
+ *
+ * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
+ * so a seed is always reflected) and the output is prerendered like every other content route. See
+ * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ */
+export const dynamic = "force-static";
+
+/**
  * `/data2map` — the module landing page.
  *
  * It shows all five products with their real status, and the dataset registry underneath:

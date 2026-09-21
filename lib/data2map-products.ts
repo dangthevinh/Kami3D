@@ -81,9 +81,9 @@ export const DATA2MAP_PRODUCTS: readonly Data2MapProduct[] = [
     name: "Logistics & Fleet",
     tagline: "Routes, traces and the clock",
     detail:
-      "Vehicle traces animated over the road graph, with stops, dwell time and a timeline that answers where a fleet was at any hour.",
+      "Depot coverage bands, clustered delivery stops, a simulated fleet on an hour clock, and a plan compared against the order the work arrived in.",
     phase: "D4",
-    status: "planned",
+    status: "live",
     accent: "glow",
   },
   {

@@ -6,6 +6,15 @@ import sample from "@/data/data2map-real-estate.json";
 import type { FeatureCollection, Geometry } from "geojson";
 
 /**
+ * Read once, at build time.
+ *
+ * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
+ * so a seed is always reflected) and the output is prerendered like every other content route. See
+ * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ */
+export const dynamic = "force-static";
+
+/**
  * `/data2map/real-estate` — land price, zoning, flood risk and the amenities around a plot.
  *
  * ## What is real here and what is not

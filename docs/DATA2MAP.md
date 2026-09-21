@@ -198,6 +198,62 @@ Three things the merge taught us, all recorded because they cost real time:
    visitor pans) and the score's competitor count comes from a separate one-kilometre box around the clicked
    hex — which is also the more correct query, because it no longer depends on the zoom level.
 
+## D4 — Logistics & Fleet
+
+`/data2map/logistics`: three depots, 180 stops and six vans across Ho Chi Minh City, with coverage bands, a
+clock and a planner the visitor can re-run.
+
+### What is real, and what is a labelled simulation
+
+| Layer | Source | Real? |
+| --- | --- | --- |
+| Depots and delivery stops | `data/data2map-logistics.json` (Turf + this project's planner) | simulated — and this is the one dataset where that is a **privacy** rule, not a licensing one |
+| Fleet traces | generated from routes computed by `lib/data2map/routing.ts` | simulated; no real telemetry is collected anywhere in this project |
+| Coverage bands | Turf circles at an assumed 22 km/h | derived, and labelled "not drive time" inside the GeoJSON, in the panel and in the registry |
+| Live traffic | — | **not drawn**: no open traffic layer exists for Vietnamese cities |
+
+Delivery addresses are personal data and fleet telemetry is private. There is no open dataset of either, and
+this project would not ship one if there were - so every feature carries `synthetic: true` and a note, and
+`readLogisticsSample` **refuses** a file where one of them has forgotten to.
+
+### Mapbox's Isochrone API was refused, and the substitute says what it is
+
+Option (a) from the phase brief: Turf `circle` at a stated average speed, drawn as four bands. The bands are
+built at generate time so the renderer never carries Turf, and every one of them carries
+`method` and a note reading *"straight-line coverage at an assumed average speed, not drive time: the road
+bends, the river is in the way, and no routing engine was asked."* Calling that a "30-minute delivery zone"
+would be the most expensive kind of wrong number on this page, because somebody would plan a fleet on it.
+
+### The stale registry, and the cache that caused it
+
+D4 renamed a layer and added three more, reseeded the database, rebuilt - and the page still rendered the old
+list, including a layer that no longer existed anywhere. Two separate bugs were behind it:
+
+1. **The seed only upserted.** A row that left the registry file stayed in `data2map_layers` for ever, so the
+   file stopped being the source of truth. `scripts/seed-data2map.mjs` now deletes rows the file does not
+   mention, and says which ones it removed.
+2. **Next caches those GETs across builds.** The registry is read during `next build` by four static pages,
+   and `.next/cache/fetch-cache` survived the rebuild, so the *previous* build's response was reused. The fix
+   is a second Supabase client that fetches with `cache: "no-store"` (`getSupabaseUncached()`), used only by
+   the registry loader, plus `export const dynamic = "force-static"` on the four pages so they stay
+   prerendered. Turning the cache off for *every* Supabase read was the obvious fix and the wrong one: it
+   makes the catalogue pages dynamic, and this project prerenders them on purpose.
+
+### The planner is a pure function with tests
+
+`lib/data2map/routing.ts`: nearest neighbour, then 2-opt, plus a capacity-respecting batch step. Thirteen checks
+in `npm run check:logistics` pin the properties that matter - 2-opt never lengthens a tour, every stop is
+visited exactly once, a van never carries more than it carries, and a stop that does not fit is returned in
+`unassigned` rather than dropped.
+
+The page computes **three** plans over the same stops - the order the work arrived in, nearest neighbour alone,
+and nearest neighbour plus 2-opt - so the saving it prints is measured against the thing being replaced rather
+than a straw man. `planCost` turns distance and time into dong under printed assumptions (22 km/h, 6 minutes at
+the door, 12 000 dong/km, 60 000 dong/hour), and the panel prints all four numbers next to the total.
+
+Cluster layer on the map is MapLibre's own `cluster: true`; the moving dots are a `circle` layer whose
+positions are computed from the hour - no deck.gl, no second WebGL context.
+
 ## D5 — Cultural & Story Maps
 
 `/data2map/stories`: eight places in Vietnam, a timeline, and the photograph that goes with each one.

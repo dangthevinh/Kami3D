@@ -78,6 +78,9 @@ const ROUTES = [
   // hour clock it reuses. Measured at 150.3 kB - the largest route in the project, which is what a
   // map and a 162-cell grid cost - so the budget is that plus a small margin.
   { route: "/data2map/trends", html: "server/app/data2map/trends.html", budget: 160 },
+  // The third map route, and the one that carries the most features: clustered stops, traces and
+  // coverage bands. Measured after the first build; the budget is that plus a small margin.
+  { route: "/data2map/logistics", html: "server/app/data2map/logistics.html", budget: 160 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

@@ -37,6 +37,37 @@ export function getSupabase(): SupabaseClient | null {
   return cached;
 }
 
+let uncached: SupabaseClient | null = null;
+
+/**
+ * The same client, with Next's data cache switched **off**.
+ *
+ * It exists because of a bug that took an afternoon to see: the Data2Map registry is read at build
+ * time by four static pages, Next caches that GET in `.next/cache/fetch-cache`, and the cache
+ * survives between builds. A seed that renamed a layer therefore left the rebuild still serving the
+ * old layer list - the page rendered a layer that no longer existed anywhere.
+ *
+ * Turning the cache off for *every* Supabase read would have been wrong in the other direction: it
+ * makes the reader dynamic, and this project prerenders its catalogue on purpose. So the registry
+ * gets this client, and the pages that use it declare `dynamic = "force-static"`: one read of a live
+ * table per build, and the same static output as before.
+ */
+export function getSupabaseUncached(): SupabaseClient | null {
+  if (!isSupabaseConfigured) return null;
+  if (uncached) return uncached;
+
+  uncached = createClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: {
+      headers: { "x-application-name": "kami3d" },
+      fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: "no-store" }),
+    },
+    db: { schema: "public" },
+  });
+
+  return uncached;
+}
+
 /** Storage bucket that holds uploaded .glb models and call recordings. */
 export const ASSET_BUCKET = "animal-assets";
 

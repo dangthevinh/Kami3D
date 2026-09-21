@@ -155,6 +155,21 @@ async function main() {
 
   await rest(supabase, "data2map_layers?on_conflict=id", { method: "POST", body: JSON.stringify(layerRows) });
   console.log(`Wrote ${registry.layers.length} layer(s).`);
+
+  // Upserting is not enough: a layer or dataset that leaves the file would otherwise stay in the
+  // table for ever and keep being served to a page that no longer knows about it. The file is the
+  // source of truth, so anything the file does not mention is removed - and said out loud.
+  for (const [table, key, keep] of [
+    ["data2map_datasets", "slug", registry.datasets.map((dataset) => dataset.slug)],
+    ["data2map_layers", "id", registry.layers.map((layer) => layer.id)],
+  ]) {
+    const existing = await rest(supabase, `${table}?select=${key}`);
+    const stale = existing.map((row) => row[key]).filter((value) => !keep.includes(value));
+    if (stale.length === 0) continue;
+
+    await rest(supabase, `${table}?${key}=in.(${stale.join(",")})`, { method: "DELETE" });
+    console.log(`Removed ${stale.length} stale ${table.replace("data2map_", "")} row(s): ${stale.join(", ")}`);
+  }
 }
 
 if (process.argv[1] && process.argv[1].endsWith("seed-data2map.mjs")) {

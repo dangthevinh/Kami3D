@@ -3,7 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import bundled from "@/data/data2map-registry.json";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseUncached } from "@/lib/supabase";
 
 /**
  * The Data2Map registry, from the database when there is one and from the bundled file when
@@ -16,6 +16,10 @@ import { getSupabase } from "@/lib/supabase";
  * Every layer carries the provenance of the dataset behind it - source, licence, year, and
  * whether it is simulated - because that is the discipline the animal maps were held to and a
  * data product with unattributed layers is worse than one with fewer layers.
+ *
+ * The read goes through `getSupabaseUncached()`: the pages that call this are static, so the
+ * registry is read once per build, and a cached GET from a previous build would serve a layer list
+ * that no longer matches the database. See `lib/supabase.ts`.
  */
 
 export interface Data2MapDataset {
@@ -147,7 +151,7 @@ interface LayerRow {
 }
 
 async function loadRegistry(): Promise<Data2MapRegistry> {
-  const supabase = getSupabase();
+  const supabase = getSupabaseUncached();
   if (!supabase) return fromBundled();
 
   try {

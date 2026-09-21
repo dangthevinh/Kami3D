@@ -44,6 +44,8 @@
     "check:footfall": "node --test scripts/check-footfall.mjs",
     "check:trends": "node --test scripts/check-trends.mjs",
     "check:overpass": "node --test scripts/check-overpass.mjs",
+    "check:logistics": "node --test scripts/check-logistics.mjs",
+    "logistics:generate": "node scripts/generate-logistics.mjs",
     "trends:report": "node scripts/fetch-trends.mjs --report",
     "trends:fetch": "node scripts/fetch-trends.mjs --apply",
     "geo:generate": "node scripts/generate-geodata.mjs",

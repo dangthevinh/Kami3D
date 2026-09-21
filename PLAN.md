@@ -32,7 +32,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
-| **D4** | Logistics & Fleet Visualizer | 📝 Đã ghi prompt, chưa triển khai |
+| **D4** | Logistics & Fleet Visualizer | ✅ Hoàn thành — isochrone Turf (nhãn "không phải thời gian lái xe"), cluster MapLibre, planner NN + 2-opt có test |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | 📝 Đã ghi prompt, chưa triển khai |
 
@@ -42,8 +42,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **38** (24 trang loài là SSG, `/explore` nay **tĩnh**, `/data2map/trends` tĩnh) |
-| Test tự động | **331** bài trong **28** suite (`npm run check:suites`) — thêm 17 footfall + 9 trends + 7 overpass |
+| Route dựng sẵn | **39** (24 trang loài là SSG, `/explore` nay **tĩnh**, 5 trang Data2Map tĩnh) |
+| Test tự động | **344** bài trong **29** suite (`npm run check:suites`) — thêm 17 footfall + 9 trends + 7 overpass + 13 logistics |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2254,6 +2254,81 @@ bản đồ động vật bước theo **năm**, trang trends bước theo **gi�
 **D4 → D6.** D4 phải nhớ: isochrone bằng `turf.buffer/isobands` (Mapbox Isochrone API cần token → bị cấm),
 cluster bằng `cluster: true` của MapLibre, thuật toán gom đơn/2-opt là **hàm thuần có test**, và GPS phải là
 mock có nhãn.
+
+---
+
+## ✅ Phase D4 — Kết quả: Logistics & Fleet Visualizer
+
+**Trạng thái: đã giao.** `/data2map/logistics`: 3 kho, 180 điểm giao, 6 xe, dải phủ 15/30/45/60 phút, đồng hồ
+theo giờ và một bộ kế hoạch chạy được ngay trên trình duyệt.
+
+### 1. Dữ liệu mô phỏng ở đây là vì **quyền riêng tư**, không phải vì licence
+
+Đây là điểm khác biệt so với mọi phase trước: địa chỉ giao hàng là **dữ liệu cá nhân**, còn vị trí xe là
+**dữ liệu riêng của doanh nghiệp**. Không có bộ dữ liệu mở nào cho hai thứ đó — và kể cả có thì dự án này
+cũng không nên phát hành. Vì vậy:
+
+- mọi feature mang `synthetic: true` + `note` + licence CC0;
+- `readLogisticsSample()` **ném lỗi** nếu một feature quên khai — mạnh hơn luật của các phase trước, và có test;
+- panel nói thẳng: "a starting plan, not a dispatch system", không có traffic thật, không có đường một chiều,
+  không có ca tài xế.
+
+**Phương pháp thì thật**: trace của từng xe được sinh bằng đúng thuật toán mà trang chạy lại trong trình duyệt
+(`lib/data2map/routing.ts`).
+
+### 2. Mapbox Isochrone API bị từ chối — và cái thay thế tự khai mình là gì
+
+Chọn đường (a) của prompt: Turf `circle` theo vận tốc giả định 22 km/h, dựng sẵn ở bước generate nên bundle
+không phải mang Turf. Mỗi dải mang `method` **và** câu ghi chú *"straight-line coverage at an assumed average
+speed, not drive time: the road bends, the river is in the way, and no routing engine was asked"* — trong chính
+GeoJSON, trong registry, và trên panel. Gọi nó là "vùng giao 30 phút" sẽ là con số sai đắt nhất trên trang này.
+
+### 3. Planner là hàm thuần, và phép so sánh mới là phần đáng giá
+
+`lib/data2map/routing.ts`: nearest neighbour → 2-opt, cộng bước gom đơn theo tải trọng. 13 test
+(`npm run check:logistics`) khoá đúng những tính chất quan trọng: 2-opt **không bao giờ** làm tour dài hơn, mỗi
+điểm được ghé đúng một lần, xe không chở quá tải, và điểm không xếp được **được trả về trong `unassigned`**
+chứ không bị bỏ im lặng.
+
+Trang tính **ba** kế hoạch trên cùng tập điểm — thứ tự đơn đến, nearest-neighbour, và NN+2-opt — nên con số
+tiết kiệm in ra là so với đúng cái đang được thay thế, không phải so với một hình nộm. `planCost` quy đổi
+km + phút ra đồng theo 4 giả định in ngay cạnh kết quả (22 km/h · 6 phút/điểm · 12.000 ₫/km · 60.000 ₫/giờ).
+
+### 4. Cluster và chuyển động: không cần deck.gl, không cần context WebGL thứ hai
+
+Gom cụm bằng `cluster: true` của MapLibre (kèm layer `symbol` đếm số điểm), xe là layer `circle` với vị trí
+tính từ giờ — hàm thuần `tracePositionAt` nội suy **theo quãng đường**, không theo chỉ số đỉnh. Dot được ease
+750 ms giữa hai giờ, và `reduce_motion` tắt phần ease đó.
+
+### 5. Một lỗi cache thật, và hai bug đằng sau nó
+
+Sau khi đổi tên layer + seed lại + build lại, trang vẫn render **danh sách layer cũ**, kể cả một layer không
+còn tồn tại ở đâu. Hai nguyên nhân riêng biệt:
+
+1. `seed-data2map.mjs` chỉ **upsert** — dòng đã rời khỏi file registry vẫn nằm lại trong bảng. Nay seed **xoá**
+   những dòng file không nhắc tới và in ra tên chúng;
+2. Next **cache GET giữa các lần build** (`.next/cache/fetch-cache`): 4 trang tĩnh đọc registry lúc build nên
+   chúng nhận lại response của lần build trước. Cách sửa: client Supabase thứ hai với `cache: "no-store"`
+   (`getSupabaseUncached()`) **chỉ** cho registry, cộng `export const dynamic = "force-static"` để 4 trang vẫn
+   tĩnh. Tắt cache cho **mọi** truy vấn Supabase là cách sửa hiển nhiên — và sai: nó biến các trang catalogue
+   thành dynamic, trong khi dự án cố ý prerender chúng. `check:bundle` chính là lưới an toàn: nó fail nếu
+   route tĩnh mất HTML.
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **344 test** (thêm 13 của `check:logistics`); `tsc` sạch.
+- `npm run check:bundle`: `/data2map/logistics` **149.4 kB** (ngân sách 160) · `/data2map/trends` 150.5 (160) ·
+  `/data2map/real-estate` 144.4 (155) · `/data2map/stories` 141.3 (150) · `/map` 137.2 (150) — mọi route trong ngân sách.
+- Build sạch (`rm -rf .next`) rồi kiểm lại: 4 trang Data2Map vẫn **tĩnh** và hiển thị đúng layer hiện tại.
+- Registry: `logistics-demo` + `isochrone-demo` mới, `fleet-demo` chuyển `live`; seed **xoá** layer `road` cũ;
+  sản phẩm D4 chuyển `live` trên landing (⇒ tự vào sitemap).
+- `/data2map/logistics` trả 200 với 186 stop id, 6 vehicle id và 14 dải phủ trong payload.
+
+### 7. Tiếp theo
+
+**D6 (Agri Geo-Analytics)** — phase cuối của Data2Map. Việc còn lại đã ghi rõ: NDVI cần một tile pipeline chưa
+có (Copernicus Sentinel-2 CC BY 4.0 / Landsat USGS public domain đã chốt licence), nên phải quyết định cách làm
+trước khi dựng UI; dashboard + legend + bộ lọc theo mùa là phần dễ.
 
 ---
 

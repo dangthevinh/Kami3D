@@ -6,6 +6,15 @@ import { readTrendsSample } from "@/lib/data2map/trends";
 import bundled from "@/data/data2map-trends.json";
 
 /**
+ * Read once, at build time.
+ *
+ * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
+ * so a seed is always reflected) and the output is prerendered like every other content route. See
+ * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ */
+export const dynamic = "force-static";
+
+/**
  * `/data2map/trends` — population density, footfall by hour, and where the gap is.
  *
  * ## What is real here and what is not
