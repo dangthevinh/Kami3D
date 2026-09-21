@@ -121,6 +121,19 @@ A missing input is dropped from the weighted mean and listed — the panel print
 missing, because scoring a plot on one layer and presenting it as a verdict is the failure mode this exists to
 avoid. The number is labelled "a Kami3D index, not an appraisal", next to the weights.
 
+### A second renderer was proposed, and refused for the same kind of reason
+
+Phase D7 (`/data2map/twin`) was written after looking at 图扑软件's HT for Web demos - a 3D port and warehouse
+"digital twin" with 2D cockpits beside it. The technology in those demos is a **closed-source WebGL engine sold
+under a commercial licence** (its core is a single ~1 MB `ht.js` loaded by `<script>`), which fails this project's
+rules twice over: a fresh clone would need a licence, and a 1 MB monolith cannot be cut per route to fit a budget.
+
+What D7 takes from the video is the **composition**, not the engine: a real 3D geographic scene (OpenFreeMap's own
+`building` layer extruded with `fill-extrusion`, and public-domain terrain tiles), the existing 2D chart components
+beside it, and - the one piece this module genuinely lacks - a **push pipeline** on Postgres instead of a
+proprietary one. The full analysis and the implementation prompt are in [PLAN.md](../PLAN.md) under *Phase D7*;
+when it is built, the decision goes into `docs/TWIN.md` next to this one.
+
 ## D3 — Footfall & Trend Map
 
 `/data2map/trends`: one hex grid over Ho Chi Minh City where the phase's **real and simulated halves sit on

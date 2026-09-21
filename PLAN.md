@@ -35,6 +35,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D4** | Logistics & Fleet Visualizer | ✅ Hoàn thành — isochrone Turf (nhãn "không phải thời gian lái xe"), cluster MapLibre, planner NN + 2-opt có test |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | ✅ Hoàn thành — NDVI + mưa **thật** từ NASA GIBS (public domain, không cần tile pipeline), mẫu thửa mô phỏng có nhãn |
+| **D7** | Digital Twin 3D & Realtime (GIS 3D + hạ tầng đẩy dữ liệu) | 📝 Đã phân tích công nghệ video HighTopo + ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
 
@@ -1615,7 +1616,7 @@ Hiện `/map` đã có lối vào 3D đúng tinh thần đó: panel loài có n�
 
 ---
 
-## 🧭 Module Data2Map (Phases D1–D6)
+## 🧭 Module Data2Map (Phases D1–D7)
 
 **Data2Map là gì**: module thứ hai của Kami3D — một bộ bản đồ dữ liệu tương tác, xuất hiện như **mục menu
 độc lập**, để người dùng đi từ "thế giới 3D động vật" sang các bản đồ dữ liệu doanh nghiệp. Dùng chung hạ tầng
@@ -1637,7 +1638,7 @@ bản đồ; phần dữ liệu, SEO và cách viết nội dung là của một
 nhưng tách đường** (`/data2map/*`, `components/data2map/*`, `lib/data2map/*`, `docs/DATA2MAP.md`), không trộn
 vào các trang động vật.
 
-**Thứ tự đề xuất**: D1 → D2 → D5 → D3 → D4 → D6. D5 rẻ nhất vì tái dùng gần như toàn bộ 3D + timeline đã có;
+**Thứ tự đề xuất**: D1 → D2 → D5 → D3 → D4 → D6 → (D7). D5 rẻ nhất vì tái dùng gần như toàn bộ 3D + timeline đã có;
 D6 đắt nhất vì cần tile raster (NDVI) mà dự án chưa có hạ tầng tile nào.
 
 ### ⚠️ Đọc trước: hạ tầng D1 yêu cầu **đã có sẵn** — không được dựng lại
@@ -1993,6 +1994,117 @@ Hướng tới đối tượng: thương lái, hợp tác xã, nông dân công 
    và test công thức. Đây là con số người dùng dùng để mua bán — không được trình bày như số liệu chính thức.
 5. **"Mùa thu hoạch theo tỉnh" không có nguồn mở chuẩn hoá** → phải ghi nguồn hoặc đánh dấu mô phỏng.
 6. **Dashboard dùng lại `components/stats/*`** (`DailyBars`, `Sparkline`) đã có từ Phase 4 — không viết lại chart.
+
+---
+
+### Phase D7 — Digital Twin 3D & Realtime (GIS 3D + hạ tầng thời gian thực)
+
+**Nguồn cảm hứng**: video *"GIS Logistics Management Platform | GIS 3D Map Port | Digital Twin"* của kênh
+**HighTopo / 图扑软件** (youtube.com/watch?v=qk9EfkS1jr8). Người dùng yêu cầu Data2Map dùng công nghệ frontend
+**và** backend như video này. Mục dưới đây là phần **phân tích công nghệ** trước, rồi mới tới prompt — vì phần lớn
+công nghệ trong video là **sản phẩm thương mại đóng**, và dự án này có luật cứng về chuyện đó.
+
+**Mục tiêu**: `/data2map/twin` — bản sao 3D của TP.HCM trên **dữ liệu OSM thật** (cao độ công trình + địa hình),
+đặt toàn bộ mẫu logistics D4 lên đó, cộng một hạ tầng **thời gian thực** thật (Postgres + Realtime + rollup) thay
+cho luồng đẩy dữ liệu độc quyền của video.
+
+#### Phân tích công nghệ trong video
+
+| Thành phần trong video | Thực chất là gì (theo tài liệu của 图扑) | Dự án này dùng gì | Quyết định |
+| --- | --- | --- | --- |
+| "HT 3D rend engine" — cảnh cảng/kho 3D | **HT for Web**: engine WebGL **tự phát triển, không mở mã nguồn**, lõi là **một file `ht.js` ~1 MB** nhúng bằng `<script>`; cảnh 3D dựng bằng `new ht.graph3d.Graph3dView()`; có plugin (edges/obj/animation); tài liệu học tập công khai ghi thẳng: *"not open source and requires a commercial license to use"*, chỉ có bản trial | three.js + R3F (đã có) cho 3D rời, **MapLibre `fill-extrusion` + terrain** cho 3D GIS | **Từ chối HT for Web**: thương mại + đóng, phải xin trial/mua licence — vi phạm luật "clone mới chạy không cần key" và luật ngân sách (1 MB một file, không cắt được theo route) |
+| WebGIS 3D + "BIM 轻量化" | Bộ chuyển đổi BIM độc quyền + tile 3D dịch vụ của họ | **OpenFreeMap** (vector tile OSM, ODbL, không key) — schema đã có layer `building` với `render_height`/`render_min_height` ⇒ `fill-extrusion` dựng được thành phố 3D **thật** | **Nhận** phần tile OSM; **từ chối** pipeline BIM (không có converter mở, và dự án không ship model bịa — luật Phase 12) |
+| Nền 3D có địa hình | Terrain do họ dựng sẵn | **AWS Open Data terrain tiles** (`elevation-tiles-prod/terrarium`, nguồn public domain như SRTM), MapLibre `setTerrain` | **Nhận** — không key, không chi phí |
+| Panel 2D cạnh cảnh 3D (BI cockpit) | Component chart + gauge của HT | `components/stats/*` (Phase 4) + KPI card + `RangeTimeline` (Phase 16) | **Nhận cách làm**, không nhận thư viện |
+| Số liệu "thời gian thực" từ RFID/camera/cần cẩu | Dữ liệu đẩy từ hệ thống khách hàng + phần cứng IoT (MQTT/Kafka phía khách) | **Supabase Realtime** (đã có trong stack) + bảng time-series trong Postgres + Edge Function mô phỏng nguồn đẩy | **Nhận kiến trúc đẩy dữ liệu**, nhưng nguồn là **mô phỏng có nhãn** — dự án không có phần cứng và không thu vị trí thật |
+| "AI 算法" tối ưu bến/bãi | Hộp đen, không công bố | `lib/data2map/routing.ts` (NN + 2-opt) và các hàm thuần có test | **Nhận tinh thần**, giữ nguyên nguyên tắc: thuật toán phải đọc được và có test |
+| VR/AR, low-code platform | Sản phẩm riêng của họ | — | **Không** làm: ngoài phạm vi module và không có nguồn dữ liệu mở tương ứng |
+
+**Nguồn đã kiểm cho bảng trên**: hightopo.com (trang chủ: "một engine 3D dựa trên WebGL… MVP"; blog 港口船舶合集 / 智慧仓储物流合集 mô tả cách ghép cảnh 3D + panel 2D + dữ liệu từ hệ thống ngoài và phần cứng IoT), ghi chú học tập công khai về HT for Web (`ht.js` ~1 MB, `ht.graph3d.Graph3dView`, licence thương mại), và **kiểm trực tiếp bằng HTTP trong session này**: renderer dự án đang dùng (OpenFreeMap) có layer `building` với `render_height`/`render_min_height`, còn terrain tiles `elevation-tiles-prod/terrarium` trả 200 — cả hai đều không cần key.
+
+**Kết luận phân tích**: thứ đáng học từ video **không phải** engine của họ, mà là **cách ghép**: một cảnh 3D địa
+lý thật + panel 2D bên cạnh + dòng dữ liệu đẩy liên tục + các chỉ số vận hành. Ba trong bốn thứ đó dự án đã có
+sẵn (MapLibre, chart Phase 4, PostGIS); thứ còn thiếu đúng một mảnh: **hạ tầng đẩy dữ liệu thời gian thực**. D7 vì
+thế tập trung vào mảnh đó, cộng phần 3D GIS làm bằng chính renderer đang có — và ghi lại việc từ chối HT for Web
+ngang hàng với quyết định "không dùng deck.gl" đã có trong [docs/DATA2MAP.md](docs/DATA2MAP.md).
+
+**Prompt để triển khai Phase D7**:
+
+````markdown
+Triển khai Phase D7 – Digital Twin 3D & Realtime trong Data2Map.
+
+Tạo trang: /data2map/twin
+
+1. 3D GIS thật (không cần model ngoài)
+   - Bật chế độ 3D trên nền bản đồ hiện có: layer fill-extrusion đọc chính source-layer "building" của style
+     OpenFreeMap (field render_height / render_min_height), tô theo chiều cao; bật terrain bằng DEM tiles
+     công khai (AWS elevation-tiles-prod terrarium) + hillshade.
+   - Giữ nguyên mọi layer Data2Map đang có (kho, điểm giao, dải phủ, NDVI…) và vẽ chúng trong cùng cảnh 3D:
+     điểm giao = circle, dải phủ = fill có opacity, tuyến = line, để thấy chúng nằm trên địa hình.
+   - Camera: nút nghiêng 0/45/60 độ + bay tới kho đang chọn; tôn trọng reduce_motion (không bay, đặt thẳng camera).
+
+2. Twin của mẫu logistics D4
+   - Đặt 3 kho, 180 điểm giao, 6 tuyến của D4 lên cảnh 3D; click một công trình OSM → panel hiện chiều cao
+     render_height và ghi rõ "chiều cao đến từ OpenMapTiles, không phải khảo sát"; nếu cần thuộc tính thật hơn
+     thì truy vấn Overpass theo khung nhìn (ODbL, không lưu).
+   - Không dựng model cảng/kho bịa. Nếu muốn có mô hình, chỉ nhận model thật qua pipeline admin (Phase 12/17) và
+     để chỗ trống có lý do như D5 đã làm.
+
+3. Hạ tầng thời gian thực (mảnh còn thiếu)
+   - Bảng time-series vehicle_positions(vehicle_id, at timestamptz, lng, lat, speed_kmh, heading, source text)
+     + index theo (vehicle_id, at desc); RLS: anon/authenticated chỉ SELECT, ghi chỉ qua service role.
+   - Bảng rollup logistics_kpi_hourly(hour timestamptz, vehicle_id, distance_km, stops_done, avg_speed_kmh…)
+     cập nhật bằng pg_cron; giữ retention 7 ngày cho vehicle_positions (xoá theo lịch, có SQL rõ ràng).
+   - Nguồn đẩy: Edge Function simulate-fleet (hoặc scripts/simulate-fleet.mjs khi chưa deploy) phát vị trí mỗi
+     5 giây theo tuyến đã tính, ghi vào bảng; trang đăng ký Supabase Realtime (postgres_changes) và vẽ xe chạy.
+   - Mất kết nối: UI hiện "đang kết nối lại" và vẫn đọc được dữ liệu tĩnh; chỉ subscribe khi route đang hiển thị;
+     huỷ kênh khi unmount. Không có gì chạy nền khi tab ẩn.
+
+4. BI cockpit 2D cạnh cảnh 3D
+   - Panel trái: KPI (số xe đang chạy, km đã đi trong ngày, điểm đã giao, tốc độ trung bình, tỉ lệ đúng hạn),
+     sparkline/daily bars dùng lại components/stats/*, timeline theo giờ dùng lại RangeTimeline.
+   - Mọi chỉ số phải ghi công thức ngay trong panel (giống D2/D3/D4): "km/ngày = tổng quãng đường các tuyến
+     trong rollup", "đúng hạn = điểm giao trong cửa sổ khách hẹn / tổng điểm giao".
+
+5. Nhãn và trung thực dữ liệu
+   - Xe, vị trí, tốc độ: MÔ PHỎNG (CC0) và ghi "synthetic: true" + note ở mọi feature/row sinh ra; UI ghi
+     "Simulated fleet" ở chỗ dễ thấy.
+   - Công trình/địa hình: THẬT (OSM ODbL qua OpenFreeMap; DEM nguồn public domain) — attribution hiện trên bản đồ.
+   - Không dùng HT for Web, không dùng 3D Tiles cần token (Cesium ion/Google), không converter BIM.
+
+6. Hiệu năng & ngân sách
+   - Route mới khai trong scripts/bundle-budget.mjs; MapLibre vẫn phải next/dynamic + MountWhenVisible.
+   - fill-extrusion chỉ bật ở zoom ≥ 14 và tự tắt ở zoom thấp; terrain tắt mặc định trên thiết bị yếu
+     (kiểm bằng matchMedia/deviceMemory nếu có), có nút bật/tắt và ghi rõ lý do.
+   - Một WebGL context trên route: 3D là của chính MapLibre, KHÔNG mount thêm canvas three.js cùng lúc.
+
+7. Kiểm thử
+   - lib/data2map/twin.ts: hàm thuần (chiều cao → màu, LOD theo zoom, nội suy vị trí theo thời gian, công thức
+     KPI) + scripts/check-twin.mjs.
+   - SQL mới (bảng, RLS, retention, rollup) thêm vào scripts/check-sql.mjs; seed/rollup có script chạy được.
+   - E2E nhẹ: trang trả 200 khi không có WebGL (fallback), console sạch, sitemap có route.
+````
+
+**Ràng buộc riêng của D7**:
+
+1. **HT for Web bị từ chối** — thương mại, đóng, phải xin授权; nhúng `ht.js` (~1 MB một file) cũng phá luật
+   ngân sách theo route. Quyết định này ghi vào `docs/TWIN.md` kèm lý do, cùng chỗ với "no deck.gl".
+2. **Một WebGL context**: 3D GIS làm bằng `fill-extrusion` + terrain của **chính MapLibre** trên route này. Muốn
+   dùng R3F thì phải là route khác và **không** mount đồng thời (luật #6 của module).
+3. **Licence vẫn là ràng buộc cứng**: OSM/OpenFreeMap (ODbL 1.0, attribution), DEM công khai (nguồn public domain,
+   ghi attribution). **Không** 3D Tiles cần token, **không** BIM converter độc quyền.
+4. **Không thu dữ liệu vị trí thật của bất kỳ ai** — đây là dữ liệu cá nhân. Nguồn đẩy là mô phỏng có nhãn; bảng
+   time-series có retention và RLS chỉ-đọc cho anon; không có endpoint nào nhận vị trí từ người dùng.
+5. **Realtime phải chịu lỗi**: mất mạng → hiện trạng thái kết nối lại, dữ liệu tĩnh vẫn xem được; subscribe chỉ khi
+   route hiển thị; unsubscribe khi unmount; không rò rỉ kênh khi đổi trang.
+6. **Chỉ số vận hành phải có công thức in ra UI** (km/ngày, đúng hạn, tốc độ trung bình) — không có "AI黑箱":
+   mọi thuật toán nằm trong `lib/` dưới dạng hàm thuần có test.
+7. **Ngân sách**: route mới có dòng riêng trong `scripts/bundle-budget.mjs`; `maplibre-gl`/`MaplibreMap` vẫn nằm
+   trong `FORBIDDEN` cho các route khác; three.js vẫn lazy.
+8. **`reduce_motion` tắt camera bay và mọi animation** (dot xe chạy theo nhịp tĩnh khi bật); theme sáng/tối vẫn đúng.
+
+**Thứ tự đề xuất nếu làm D7**: schema + rollup → Edge Function mô phỏng → trang twin (3D GIS) → realtime → cockpit
+→ `docs/TWIN.md` + test. Ước lượng: 1 phase, cỡ D4.
 
 ---
 
