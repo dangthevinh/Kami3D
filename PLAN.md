@@ -23,7 +23,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **9** | Âm thanh loài: pipeline tải + kiểm licence | ✅ Hoàn thành — 6/24 loài có tiếng kêu, mode quiz sound đã bật |
 | **10** | Review toàn diện & đề xuất cải tiến | ✅ Hoàn thành — báo cáo ở [docs/REVIEW.md](docs/REVIEW.md) |
 | **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | ✅ Hoàn thành — 6 nhóm, mọi cột có tác dụng thật |
-| **12** | Admin tự động tìm & tải model 3D | 📝 Đã ghi prompt — lưu ý: pipeline đã có sẵn một phần |
+| **12** | Admin tự động tìm & tải model 3D | ✅ Hoàn thành (CLI) — xếp hạng chất lượng, DRACO, upload, `model_assets`; UI admin để phase riêng |
 | **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | 📝 Đã ghi prompt, chưa triển khai |
 | **14** | Habitat & Species Distribution Maps (`/map`) | 📝 Đã ghi prompt, chưa triển khai |
 | **15** | Conservation Threat & Risk Maps | 📝 Đã ghi prompt, chưa triển khai |
@@ -823,6 +823,86 @@ create table model_assets (
    còn hơn gắn một model không rõ nguồn gốc.
 8. **Nén DRACO phải chạy ngoài bundle.** `@gltf-transform/cli` là **devDependency**, chỉ gọi từ script Node —
    `check:bundle` sẽ chặn nếu three.js/gltf kéo vào first paint.
+
+---
+
+## ✅ Phase 12 — Kết quả: Admin tự động tìm & tải model 3D thật
+
+**Trạng thái: đã giao phần code + test.** Phase này **mở rộng** pipeline đang chạy (`scripts/fetch-models.mjs`),
+đúng như bảng đối chiếu ở trên: tìm kiếm và kiểm licence đã có sẵn, còn thiếu **lọc chất lượng**, **nén DRACO**,
+**upload Storage** và **bảng `model_assets`**.
+
+### 1. Việc chính: xếp hạng theo chất lượng, không lấy kết quả đầu tiên
+
+`lib/model-quality.ts` (thuần, có test) cho điểm mỗi candidate 0–100:
+
+| Tín hiệu | Trọng số | Ghi chú |
+| --- | --- | --- |
+| Khớp tên | 30 | đúng tên loài / tên khoa học > chứa tên > chứa ngược |
+| Licence | 15 | CC0/Public Domain 15, CC BY 8.25 |
+| Độ phổ biến | 25 | download (60%) + like (40%), thang log, có trần |
+| Polygon | 20 | so với ngân sách mobile; **không biết faceCount = trung tính**, không phải 0 |
+| Thumbnail | 10 | có ảnh xem trước rõ ràng |
+
+Tổng được lưu nguyên vào `model_assets.quality_score` (CHECK 0–100, có comment ghi rõ thang). Báo cáo in cả
+phần điểm, nên một thứ hạng có thể bị phản biện chứ không phải chỉ để tin:
+
+```
+🦁 Lion (lion)
+   ✔     75  excellent CC-BY-4.0 Lion                                       sketchfab
+        ↳ title 30 · licence 8.3 · popularity 6.7 · complexity 20 · thumbnail 10 · 42,710 faces
+   ✔   74.8  good      CC-BY-4.0 Lion                                       sketchfab
+        ↳ title 30 · licence 8.3 · popularity 6.5 · complexity 20 · thumbnail 10 · 5,497 faces
+```
+
+Đây là dữ liệu thật từ API công khai của Sketchfab (search không cần key), chạy ngay trong lúc làm phase.
+Một model bị từ chối licence **không bao giờ** thắng, dù điểm cao — có test riêng cho đúng ca đó.
+
+### 2. Các cờ mới của pipeline
+
+| Cờ | Việc |
+| --- | --- |
+| `--count=N` | giữ tối đa N model mỗi loài: model đầu là **primary** (`<slug>.glb`), các model sau là `<slug>-alt2.glb`… |
+| `--compress` | chạy DRACO qua `@gltf-transform/cli` (**devDependency** — `check:bundle` chặn nếu toolchain lọt vào bundle) |
+| `--upload` | upload lên bucket `animal-assets` (một bucket duy nhất của dự án), ghi `model_assets`, và trỏ `animals.model_url` cho model primary |
+| `--report` | nay in điểm chất lượng + face count + download, và đếm **toàn bộ** candidate (trước đây chỉ đếm 3 dòng in ra) |
+
+`--upload` khi file đã có sẵn trong repo là chế độ **chỉ-upload**: 24 model đang commit được đưa lên Storage và ghi
+dòng mà không cần tải lại. Model có licence không hợp lệ bị chặn ngay ở bước ghi — "không credit được thì không lưu".
+
+### 3. Database: `public.model_assets`
+
+- Cột theo đúng yêu cầu + `provider`, `attribution`, `public_url`, `quality_score` (0–100), `is_primary`.
+- `license in ('CC0', 'CC-BY')` — đúng hai giá trị mà `lib/model-quality.ts` có thể sinh ra (có test đối chiếu).
+- `face_count` / `download_count` / `like_count` / `file_size_bytes` đều có CHECK không âm (`bigint` cho file size).
+- `unique (animal_id, source_url)`: chạy lại pipeline là **update**, không nhân bản dòng.
+- **Partial unique index** `(animal_id) where is_primary`: `animals.model_url` chỉ biểu diễn được một model chính.
+- RLS bật, **một** policy `SELECT to anon, authenticated using (true)` + `grant select`; **không có write policy** —
+  browser không thể tự chế một credit. `check-sql.mjs` phủ bảng mới (+7 test), gồm cả test "mọi cột mà script ghi
+  đều phải được script nhắc tên" để một lần đổi tên không lọt qua.
+
+> ⚠️ **Chưa áp được lên database đang chạy.** `supabase/schema.sql` đã có bảng, nhưng lúc làm phase này cả
+> Supabase MCP lẫn Management API đều trả **401 Unauthorized**: `SUPABASE_ACCESS_TOKEN` trong `.env.local` đã bị
+> thu hồi. Cần một PAT mới rồi chạy `npm run db:schema` (idempotent) để tạo bảng. Anon key và service role key
+> vẫn còn hiệu lực (đã kiểm: đọc `animals` 200, đọc `user_settings` bằng service role 200, `model_assets` 404 =
+> chưa tồn tại).
+
+### 4. Bằng chứng
+
+- `npm run check:suites`: **211 test** — thêm 15 của `check-models` và 7 của `check-sql`; `npx tsc --noEmit` sạch.
+- Báo cáo thật từ Sketchfab cho `lion`: 24 candidate → **16 hợp lệ, 8 bị từ chối vì licence**, thứ hạng 75 / 74.8 /
+  70.4 với đầy đủ phần điểm.
+- `--count=2` chọn đúng hai model điểm cao nhất (75 và 74.8) rồi dừng.
+- DRACO: `gltf-transform draco` chạy thật trên `public/models/lion.glb` → **341.08 KB → 341.23 KB**, tức là
+  **to hơn**. Script phát hiện và giữ file gốc ("no gain") — nếu không có ngưỡng đó thì phase này đã commit một
+  bản regression cho cả 24 file.
+
+### 5. Còn lại
+
+1. **Áp `model_assets`** bằng token mới (`npm run db:seed` trước, rồi `npm run models:fetch -- --all --upload`).
+2. **UI admin**: PLAN ghi rõ "CLI trước, UI admin sau" — cần vai trò admin ở tầng dữ liệu (`app_admins` +
+   `is_admin()`, SQL ở [docs/REVIEW.md](docs/REVIEW.md) §3.6), nên nó là việc của phase riêng, không trộn vào đây.
+3. `--count=N` hiện chỉ tải thêm model phụ cho loài; hiển thị chúng (bộ chọn model thay thế trong viewer) là việc UI.
 
 ---
 

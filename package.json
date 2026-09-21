@@ -34,6 +34,7 @@
     "check:quiz": "node --test scripts/check-quiz.mjs scripts/check-scoring.mjs",
     "check:sounds": "node --test scripts/check-sounds.mjs",
     "check:settings": "node --test scripts/check-settings.mjs",
+    "check:models": "node --test scripts/check-models.mjs",
     "sounds:report": "node scripts/fetch-sounds.mjs --report",
     "sounds:fetch": "node scripts/fetch-sounds.mjs --all --apply --wire",
     "check:bundle": "node scripts/bundle-budget.mjs",
@@ -60,6 +61,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.5.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",

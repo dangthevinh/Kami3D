@@ -34,11 +34,16 @@
 
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, extname, join } from "node:path";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 import { ANIMALS } from "../data/animals.ts";
+import { describeQuality, modelLicenseFromSpdx, scoreModelQuality } from "../lib/model-quality.ts";
+
+const run = promisify(execFile);
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MODEL_DIR = join(ROOT, "public", "models");
@@ -47,6 +52,8 @@ const DIRECT_SOURCES_FILE = join(ROOT, "data", "model-sources.json");
 const QUERY_OVERRIDES_FILE = join(ROOT, "data", "model-queries.json");
 
 const USER_AGENT = "Kami3D-model-fetcher/1.0 (+https://github.com/dangthevinh/Kami3D)";
+/** One bucket for every asset the product ships; storage paths keep them apart. */
+const ASSET_BUCKET = "animal-assets";
 const REQUEST_DELAY_MS = 350;
 
 /** Mutable run configuration, populated from the CLI flags. */
@@ -203,7 +210,14 @@ const sketchfab = {
       // /models/<uid> always resolves; viewerUrl carries a slug that can be "none".
       sourceUrl: `https://sketchfab.com/models/${model.uid}`,
       faceCount: model.faceCount ?? null,
-      thumbnail: model.thumbnails?.images?.[0]?.url ?? null,
+      // The only quality signals the API gives: how many people wanted this model
+      // and how many liked it. Absent on providers that do not report them, which
+      // the scorer treats as "no signal" rather than as zero.
+      downloadCount: model.downloadCount ?? null,
+      likeCount: model.likeCount ?? null,
+      thumbnail: model.thumbnails?.images?.find((image) => image.width >= 512)?.url
+        ?? model.thumbnails?.images?.[0]?.url
+        ?? null,
       annotationCount: model.annotationCount ?? 0,
     }));
   },
@@ -484,45 +498,169 @@ async function wireModelUrl(slug, url) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Pick the best candidate for a species.
- *
- * Ranking favours, in order: no-attribution licences, a title that matches the
- * species, then lower polygon counts (mobile budget). Candidates whose licence
- * is denied are excluded before ranking, and the reason is reported.
+ * Score and order every candidate for a species.
+
+ * The rules live in `lib/model-quality.ts` so they can be pinned by a test; this
+ * function only feeds them the candidate fields and sorts. A denied licence scores
+ * zero on the licence component but is still *listed*, because the report has to be
+ * able to say why a candidate was refused — it is never selected, since callers
+ * filter on `licence.ok`.
  */
 export function rankCandidates(candidates, animal) {
-  const wanted = [animal.name, animal.latin_name, animal.category].map((value) => value.toLowerCase());
+  const terms = [animal.name, animal.latin_name, animal.category];
 
   return candidates
     .map((candidate) => {
       const licence = evaluateLicense(candidate.licenseLabel);
-      const title = candidate.title.toLowerCase();
-      let score = 0;
-      let matched = false;
+      const quality = scoreModelQuality({
+        title: candidate.title ?? "",
+        terms,
+        spdx: licence.ok ? licence.spdx : null,
+        faceCount: candidate.faceCount ?? null,
+        downloadCount: candidate.downloadCount ?? null,
+        likeCount: candidate.likeCount ?? null,
+        hasThumbnail: Boolean(candidate.thumbnail),
+      });
 
-      if (wanted.some((term) => title === term)) {
-        score += 40;
-        matched = true;
-      } else if (wanted.some((term) => title.includes(term))) {
-        score += 25;
-        matched = true;
-      } else if (wanted.some((term) => term.includes(title) && title.length > 3)) {
-        score += 12;
-        matched = true;
-      }
-
-      if (licence.spdx === "CC0-1.0" || licence.spdx === "PDM-1.0") score += 20;
-      else if (licence.spdx === "CC-BY-4.0") score += 10;
-
-      if (typeof candidate.faceCount === "number") {
-        if (candidate.faceCount < 30_000) score += 12;
-        else if (candidate.faceCount < 100_000) score += 5;
-        else if (candidate.faceCount > 500_000) score -= 15;
-      }
-
-      return { candidate, licence, score, matched };
+      // Ties are broken by title so two identical scores cannot reorder between runs.
+      return { candidate, licence, score: quality.total, quality, matched: quality.matched };
     })
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => b.score - a.score || a.candidate.title.localeCompare(b.candidate.title));
+}
+
+/* -------------------------------------------------------------------------- */
+/* DRACO compression                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The compressor, resolved from `node_modules` rather than through `npx`.
+ *
+ * It is a **devDependency**: `check:bundle` fails if three.js or a glTF toolchain
+ * reaches the browser bundle, and the visitor has no reason to download a
+ * compactor. Installing it locally also means no network round trip per model.
+ */
+const GLTF_TRANSFORM = join(ROOT, "node_modules", ".bin", "gltf-transform");
+
+async function compressGlb(file) {
+  if (!existsSync(GLTF_TRANSFORM)) {
+    throw new Error(
+      "DRACO compression needs @gltf-transform/cli — run: npm install --save-dev @gltf-transform/cli",
+    );
+  }
+
+  const before = (await readFile(file)).length;
+  const temporary = `${file}.draco.glb`;
+
+  try {
+    await run(GLTF_TRANSFORM, ["draco", file, temporary], { timeout: 180_000, maxBuffer: 8 * 1024 * 1024 });
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw new Error(`DRACO compression failed: ${String(error.message).split("\n")[0]}`);
+  }
+
+  const after = (await readFile(temporary)).length;
+  // Keep the result only when it is genuinely smaller: a model that already
+  // carries DRACO, or has almost no geometry, can come out bigger.
+  if (after >= before) {
+    await rm(temporary, { force: true });
+    return { before, after: before, kept: false };
+  }
+
+  await rm(file);
+  await rename(temporary, file);
+  return { before, after, kept: true };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Supabase Storage + `model_assets`                                          */
+/* -------------------------------------------------------------------------- */
+
+function supabaseConfig() {
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
+  return { url, key, ready: Boolean(url && key) };
+}
+
+/**
+ * Uploads into `animal-assets`, the bucket models already live in.
+ *
+ * The project has exactly one asset bucket (see `lib/supabase.ts` and
+ * `docs/ASSETS.md`); adding a second one for models would mean two places to look
+ * and two policies to keep in step, so the storage path — `models/<file>` — is what
+ * separates a model from an image or a call recording.
+ */
+async function uploadToStorage(supabase, path, bytes) {
+  const response = await fetch(`${supabase.url}/storage/v1/object/${ASSET_BUCKET}/${path}`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${supabase.key}`,
+      apikey: supabase.key,
+      "content-type": "model/gltf-binary",
+      "x-upsert": "true",
+      "cache-control": "public, max-age=31536000, immutable",
+    },
+    body: bytes,
+    signal: AbortSignal.timeout(120_000),
+  });
+
+  if (!response.ok) throw new Error(`storage upload failed: ${response.status} ${await response.text()}`);
+  return `${supabase.url}/storage/v1/object/public/${ASSET_BUCKET}/${path}`;
+}
+
+async function rest(supabase, path, init = {}) {
+  const response = await fetch(`${supabase.url}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: supabase.key,
+      authorization: `Bearer ${supabase.key}`,
+      "content-type": "application/json",
+      prefer: "resolution=merge-duplicates,return=representation",
+      ...(init.headers ?? {}),
+    },
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!response.ok) throw new Error(`${init.method ?? "GET"} ${path} failed: ${response.status} ${await response.text()}`);
+  return response.status === 204 ? null : response.json().catch(() => null);
+}
+
+/**
+ * Records one model and, when it is the species' primary, points `animals.model_url`
+ * at it.
+ *
+ * `model_assets` has `unique (animal_id, source_url)`, so re-running the pipeline
+ * updates the row instead of duplicating it. The partial unique index allows only
+ * one primary per species, so the previous primary is demoted first — otherwise the
+ * second upload would fail on a constraint that the reader cannot see.
+ */
+async function recordInDatabase(supabase, animal, row) {
+  const animals = await rest(supabase, `animals?slug=eq.${encodeURIComponent(animal.slug)}&select=id`);
+  const animalId = animals?.[0]?.id;
+  if (!animalId) throw new Error(`no animals row for ${animal.slug} — run "npm run db:seed" first`);
+
+  if (row.is_primary) {
+    await rest(supabase, `model_assets?animal_id=eq.${animalId}&is_primary=is.true`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_primary: false }),
+    });
+  }
+
+  await rest(supabase, "model_assets?on_conflict=animal_id,source_url", {
+    method: "POST",
+    body: JSON.stringify([{ animal_id: animalId, ...row }]),
+  });
+
+  if (row.is_primary) {
+    await rest(supabase, `animals?slug=eq.${encodeURIComponent(animal.slug)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ model_url: row.public_url }),
+    });
+  }
+}
+
+/** The credit line a CC-BY model has to carry, in the same shape as a call credit. */
+export function modelCredit({ title, author, spdx, provider }) {
+  return `${title} by ${author} — ${spdx} (via ${provider})`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -530,10 +668,32 @@ export function rankCandidates(candidates, animal) {
 /* -------------------------------------------------------------------------- */
 
 function parseArgs(argv) {
-  const flags = { species: [], providers: Object.keys(PROVIDERS), all: false, apply: false, force: false, report: false, wire: false, strictMatch: false, rehash: false };
+  const flags = {
+    species: [],
+    providers: Object.keys(PROVIDERS),
+    all: false,
+    apply: false,
+    force: false,
+    report: false,
+    wire: false,
+    strictMatch: false,
+    rehash: false,
+    /** Compress every downloaded model with DRACO before it is stored. */
+    compress: false,
+    /** Push the files to Supabase Storage and record them in `model_assets`. */
+    upload: false,
+    /** How many models to keep per species. The first is the primary. */
+    count: 1,
+  };
   for (const arg of argv) {
     if (arg === "--all") flags.all = true;
     else if (arg === "--apply") flags.apply = true;
+    else if (arg === "--compress") flags.compress = true;
+    else if (arg === "--upload") flags.upload = true;
+    else if (arg.startsWith("--count=")) {
+      const count = Number.parseInt(arg.slice("--count=".length), 10);
+      flags.count = Number.isFinite(count) && count > 0 ? Math.min(count, 10) : 1;
+    }
     else if (arg === "--force") flags.force = true;
     else if (arg === "--wire") flags.wire = true;
     else if (arg === "--strict-match") flags.strictMatch = true;
@@ -628,7 +788,12 @@ async function report(flags) {
   for (const animal of animals) {
     const candidates = await gatherCandidates(animal, flags.providers, overrides);
     const ranked = rankCandidates(candidates, animal);
+    // Count every candidate, not just the three printed below: a summary that only
+    // describes what is on screen is how "3 candidates available" ends up quoted in a
+    // decision it cannot support.
     const ok = ranked.filter((entry) => entry.licence.ok);
+    allowed += ok.length;
+    refused += ranked.length - ok.length;
 
     console.log(`${animal.emoji} ${animal.name} (${animal.slug})`);
     if (ranked.length === 0) {
@@ -636,16 +801,23 @@ async function report(flags) {
       continue;
     }
 
-    for (const { candidate, licence, matched } of ranked.slice(0, 3)) {
+    for (const { candidate, licence, score, quality, matched } of ranked.slice(0, 3)) {
       // A model whose title says nothing about the species is usually a stray
       // result, so it is flagged rather than presented as a good match.
       const flag = matched ? " " : "?";
+      // The score is printed with its parts because "62" alone cannot be argued
+      // with: downloads/complexity/thumbnail are what actually moved the number.
       if (licence.ok) {
-        allowed += 1;
-        console.log(`   ✔${flag} ${licence.spdx.padEnd(9)} ${candidate.title.slice(0, 44).padEnd(46)} ${candidate.provider}`);
+        console.log(
+          `   ✔${flag} ${String(score).padStart(5)}  ${describeQuality(score).padEnd(9)} ${licence.spdx.padEnd(9)} ` +
+            `${candidate.title.slice(0, 40).padEnd(42)} ${candidate.provider}` +
+            `\n        ↳ title ${quality.title} · licence ${quality.license} · popularity ${quality.popularity} ·` +
+            ` complexity ${quality.complexity} · thumbnail ${quality.thumbnail}` +
+            `${typeof candidate.faceCount === "number" ? ` · ${candidate.faceCount.toLocaleString("en-US")} faces` : ""}` +
+            `${typeof candidate.downloadCount === "number" ? ` · ${candidate.downloadCount} downloads` : ""}`,
+        );
       } else {
-        refused += 1;
-        console.log(`   ✘${flag} refused   ${candidate.title.slice(0, 44).padEnd(46)} ${licence.reason}`);
+        console.log(`   ✘${flag} refused   ${candidate.title.slice(0, 40).padEnd(42)} ${licence.reason}`);
       }
     }
     console.log("");
@@ -653,6 +825,77 @@ async function report(flags) {
 
   console.log(`Summary: ${allowed} redistributable candidate(s), ${refused} refused on licence grounds.`);
   console.log("Run with --apply to download the best allowed candidate per species.");
+}
+
+/** Where a species' Nth model lives: `<slug>.glb`, then `<slug>-alt2.glb`, … */
+export function modelFileName(slug, index) {
+  return index === 0 ? `${slug}.glb` : `${slug}-alt${index + 1}.glb`;
+}
+
+/**
+ * The quality score of a manifest entry.
+ *
+ * Entries written before this phase carry no face count, download count or
+ * thumbnail, so they are scored from what they do say: the title, the licence, and
+ * the fact that we have no popularity signal — which the scorer treats as unknown
+ * rather than as zero.
+ */
+function qualityForEntry(animal, entry) {
+  if (typeof entry.qualityScore === "number") return entry.qualityScore;
+
+  return scoreModelQuality({
+    title: entry.title ?? animal.name,
+    terms: [animal.name, animal.latin_name, animal.category],
+    spdx: entry.license ?? null,
+    faceCount: entry.faceCount ?? null,
+    downloadCount: entry.downloadCount ?? null,
+    likeCount: entry.likeCount ?? null,
+    hasThumbnail: Boolean(entry.thumbnail),
+  }).total;
+}
+
+/**
+ * Uploads one model and records it — the storage object, the `model_assets` row and,
+ * for the primary, `animals.model_url`.
+ *
+ * The licence is re-checked here rather than trusted from the caller: this is the
+ * last point before a model becomes part of the product, and `model_assets` refuses
+ * anything but CC0 and CC BY anyway. Failing here means the row is not written and
+ * the file is not stored, which is the correct outcome for an unattributable model.
+ */
+async function storeModel({ supabase, animal, file, entry, index }) {
+  const license = modelLicenseFromSpdx(entry.license);
+  if (!license) {
+    throw new Error(`refusing to store a model under "${entry.license ?? "no licence"}" — only CC0 and CC BY are shipped`);
+  }
+
+  const storagePath = `models/${basename(file)}`;
+  const bytes = await readFile(file);
+  const publicUrl = await uploadToStorage(supabase, storagePath, bytes);
+
+  await recordInDatabase(supabase, animal, {
+    provider: entry.provider ?? "unknown",
+    sketchfab_uid: entry.provider === "sketchfab" ? entry.uid ?? null : null,
+    title: entry.title ?? animal.name,
+    license,
+    source_url: entry.sourceUrl ?? null,
+    attribution: modelCredit({
+      title: entry.title ?? animal.name,
+      author: entry.author ?? "Unknown",
+      spdx: entry.license ?? license,
+      provider: entry.provider ?? "unknown",
+    }),
+    face_count: entry.faceCount ?? null,
+    download_count: entry.downloadCount ?? null,
+    like_count: entry.likeCount ?? null,
+    file_size_bytes: bytes.length,
+    storage_path: storagePath,
+    public_url: publicUrl,
+    quality_score: qualityForEntry(animal, entry),
+    is_primary: index === 0,
+  });
+
+  return publicUrl;
 }
 
 async function fetchModels(flags) {
@@ -673,6 +916,13 @@ async function fetchModels(flags) {
     }
   }
 
+  const supabase = flags.upload ? supabaseConfig() : null;
+  if (flags.upload && !supabase.ready) {
+    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see README).");
+    process.exitCode = 2;
+    return;
+  }
+
   const animals = flags.all
     ? ANIMALS
     : ANIMALS.filter((animal) => flags.species.includes(animal.slug));
@@ -680,23 +930,62 @@ async function fetchModels(flags) {
   const overrides = await loadQueryOverrides();
   const manifest = await readAttribution();
   let downloaded = 0;
+  let stored = 0;
   let skipped = 0;
+  // Upload-only runs never touch the manifest; rewriting it would reorder the file
+  // and add noise to a diff that changed nothing.
+  let manifestDirty = false;
 
   for (const animal of animals) {
-    const destination = join(MODEL_DIR, `${animal.slug}.glb`);
+    const primaryPath = join(MODEL_DIR, modelFileName(animal.slug, 0));
+    const hasLocal = existsSync(primaryPath);
 
-    if (existsSync(destination) && !flags.force) {
+    // Upload-only pass. The 24 models that shipped before this phase are already in
+    // the repository: there is nothing to search for, but there is a row to write and
+    // an object to store — and refusing to credit a model we cannot attribute keeps
+    // the licence rule honest even on this path.
+    if (hasLocal && flags.upload && !flags.force) {
+      const entry = manifest[animal.slug];
+      if (!entry) {
+        console.log(`? ${animal.slug}: model on disk with no attribution entry — storing nothing`);
+        skipped += 1;
+        continue;
+      }
+
+      try {
+        await storeModel({ supabase, animal, file: primaryPath, entry, index: 0 });
+        stored += 1;
+        console.log(`⇧ ${animal.slug}: stored ${basename(primaryPath)} and recorded it`);
+      } catch (error) {
+        console.error(`   failed: ${error.message}`);
+        skipped += 1;
+      }
+      continue;
+    }
+
+    if (hasLocal && !flags.force) {
       console.log(`= ${animal.slug}: already has a local model (use --force to replace)`);
       skipped += 1;
       continue;
     }
 
     const candidates = await gatherCandidates(animal, flags.providers, overrides);
-    const best = rankCandidates(candidates, animal).find(
+    const ranked = rankCandidates(candidates, animal).filter(
       (entry) => entry.licence.ok && (!flags.strictMatch || entry.matched),
     );
 
-    if (!best) {
+    // One model per source: two providers can return the same asset, and
+    // `model_assets` is keyed on (animal_id, source_url).
+    const seen = new Set();
+    const chosen = [];
+    for (const entry of ranked) {
+      if (seen.has(entry.candidate.sourceUrl)) continue;
+      seen.add(entry.candidate.sourceUrl);
+      chosen.push(entry);
+      if (chosen.length >= flags.count) break;
+    }
+
+    if (chosen.length === 0) {
       console.log(
         `✘ ${animal.slug}: no candidate with a redistributable licence${flags.strictMatch ? " AND a matching title" : ""}`,
       );
@@ -704,71 +993,108 @@ async function fetchModels(flags) {
       continue;
     }
 
-    const { candidate, licence, matched } = best;
     console.log(
-      `→ ${animal.slug}: ${candidate.title} by ${candidate.author} [${licence.spdx}] from ${candidate.provider}` +
-        (matched ? "" : "\n   ⚠ the title does not mention this species — check it before publishing"),
+      `→ ${animal.slug}: ${chosen.length} model(s) selected — ` +
+        chosen.map((entry) => `${entry.score} ${entry.candidate.title.slice(0, 34)}`).join(" | "),
     );
 
     if (!flags.apply) {
+      for (const entry of chosen) {
+        if (!entry.matched) console.log(`   ⚠ "${entry.candidate.title.slice(0, 50)}" does not name this species`);
+      }
       console.log("   (dry run — add --apply to download)");
       continue;
     }
 
-    const provider = PROVIDERS[providerKeyFor(candidate.provider)];
     await mkdir(MODEL_DIR, { recursive: true });
 
-    try {
-      const result = await provider.download(candidate, destination);
+    /** Key for an alternate model: the manifest already owns the plain slug. */
+    const manifestKey = (index) => (index === 0 ? animal.slug : `${animal.slug}-alt${index + 1}`);
 
-      manifest[animal.slug] = {
-        title: candidate.title,
-        author: candidate.author,
-        authorUrl: candidate.authorUrl,
-        license: licence.spdx,
-        licenseUrl: candidate.licenseUrl,
-        sourceUrl: candidate.sourceUrl,
-        provider: candidate.provider,
-        file: `/models/${result.file.split("/").pop()}`,
-        format: result.format,
-        bytes: result.bytes,
-        sha256: createHash("sha256")
-          .update(await readFile(result.file))
-          .digest("hex"),
-        attributionRequired: licence.attributionRequired,
-        fetchedAt: new Date().toISOString(),
-      };
+    for (const [index, entry] of chosen.entries()) {
+      const { candidate, licence, quality } = entry;
+      const destination = join(MODEL_DIR, modelFileName(animal.slug, index));
+      const provider = PROVIDERS[providerKeyFor(candidate.provider)];
 
-      downloaded += 1;
-      console.log(`   saved ${result.file.replace(ROOT + "/", "")} (${(result.bytes / 1024).toFixed(0)} KB)`);
+      try {
+        const result = await provider.download(candidate, destination);
+        let bytes = result.bytes;
 
-      if (flags.wire && result.format !== "zip") {
-        const wired = await wireModelUrl(animal.slug, `/models/${result.file.split("/").pop()}`);
-        console.log(
-          wired
-            ? `   wired data/animals.ts: model_url -> /models/${result.file.split("/").pop()}`
-            : "   data/animals.ts already points at this model",
-        );
-      } else if (result.format === "zip") {
-        console.log("   note: this provider returned an archive; extract the .glb and wire model_url by hand.");
+        if (flags.compress && result.format === "glb") {
+          const compressed = await compressGlb(result.file);
+          bytes = compressed.after;
+          console.log(
+            compressed.kept
+              ? `   DRACO: ${(compressed.before / 1024).toFixed(0)} KB → ${(compressed.after / 1024).toFixed(0)} KB`
+              : "   DRACO: no gain, keeping the original file",
+          );
+        }
+
+        const file = `/models/${basename(result.file)}`;
+        const record = {
+          title: candidate.title,
+          author: candidate.author,
+          authorUrl: candidate.authorUrl,
+          license: licence.spdx,
+          licenseUrl: candidate.licenseUrl,
+          sourceUrl: candidate.sourceUrl,
+          provider: candidate.provider,
+          uid: candidate.id ?? null,
+          file,
+          format: result.format,
+          bytes,
+          faceCount: candidate.faceCount ?? null,
+          downloadCount: candidate.downloadCount ?? null,
+          likeCount: candidate.likeCount ?? null,
+          thumbnail: candidate.thumbnail ?? null,
+          qualityScore: quality.total,
+          sha256: createHash("sha256")
+            .update(await readFile(result.file))
+            .digest("hex"),
+          attributionRequired: licence.attributionRequired,
+          fetchedAt: new Date().toISOString(),
+        };
+
+        manifest[manifestKey(index)] = record;
+        manifestDirty = true;
+        downloaded += 1;
+        console.log(`   saved ${result.file.replace(ROOT + "/", "")} (${(bytes / 1024).toFixed(0)} KB, quality ${quality.total})`);
+
+        if (result.format === "zip") {
+          console.log("   note: this provider returned an archive; extract the .glb and wire model_url by hand.");
+        } else if (flags.wire && index === 0) {
+          const wired = await wireModelUrl(animal.slug, file);
+          console.log(
+            wired
+              ? `   wired data/animals.ts: model_url -> ${file}`
+              : "   data/animals.ts already points at this model",
+          );
+        }
+
+        if (flags.upload) {
+          await storeModel({ supabase, animal, file: result.file, entry: record, index });
+          stored += 1;
+          console.log(`   stored ${file} and recorded it in model_assets${index === 0 ? " (primary)" : ""}`);
+        }
+      } catch (error) {
+        console.error(`   failed: ${error.message}`);
+        skipped += 1;
       }
-    } catch (error) {
-      console.error(`   failed: ${error.message}`);
-      skipped += 1;
-    }
 
-    await sleep(REQUEST_DELAY_MS);
+      await sleep(REQUEST_DELAY_MS);
+    }
   }
 
-  if (flags.apply && downloaded > 0) {
+  if (manifestDirty) {
     await writeAttribution(manifest);
     console.log(`\nWrote attribution for ${downloaded} model(s) to data/model-attribution.json.`);
     console.log("Commit that file: it is what lets the UI credit the author.");
     if (flags.wire) console.log("data/animals.ts was updated — run 'npm run seed:generate' to refresh the SQL seed.");
-    console.log("Compress before shipping — see docs/MODELS.md for the DRACO step.");
+    if (!flags.compress) console.log("Compress before shipping — pass --compress, or see docs/MODELS.md.");
   }
 
-  console.log(`\n${downloaded} downloaded, ${skipped} skipped.`);
+  console.log(`\n${downloaded} downloaded, ${stored} stored, ${skipped} skipped.`);
+  if (flags.upload) console.log("Re-run \"npm run db:seed\" only before this: seeding rewrites animals.model_url from the dataset.");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -785,7 +1111,9 @@ async function rehash() {
   let updated = 0;
 
   for (const [slug, entry] of Object.entries(manifest)) {
-    const file = join(MODEL_DIR, `${slug}.glb`);
+    // A manifest key is a slug for the primary model and `<slug>-alt2` for the ones
+    // `--count` adds, so the entry itself is the authority on which file it describes.
+    const file = join(MODEL_DIR, basename(entry.file ?? `${slug}.glb`));
     if (!existsSync(file)) {
       console.log(`? ${slug}: no local file, leaving the entry alone`);
       continue;
@@ -794,7 +1122,7 @@ async function rehash() {
     const buffer = await readFile(file);
     manifest[slug] = {
       ...entry,
-      file: `/models/${slug}.glb`,
+      file: `/models/${basename(file)}`,
       format: "glb",
       bytes: buffer.length,
       sha256: createHash("sha256").update(buffer).digest("hex"),
@@ -809,12 +1137,13 @@ async function rehash() {
 
 /* -------------------------------------------------------------------------- */
 
-await loadEnvFiles();
+async function main() {
+  await loadEnvFiles();
 
-const flags = parseArgs(process.argv.slice(2));
+  const flags = parseArgs(process.argv.slice(2));
 
-if (flags.help) {
-  console.log(`Kami3D model fetcher
+  if (flags.help) {
+    console.log(`Kami3D model fetcher
 
   --report                list what each provider offers, download nothing
   --species=<slug>        limit to one or more species (repeatable)
@@ -825,6 +1154,11 @@ if (flags.help) {
   --force                 replace an existing local model
   --strict-match          skip candidates whose title does not name the species
   --max-mb=<n>            refuse models larger than n megabytes (default 12)
+  --count=<n>             keep up to n models per species (default 1; the first is
+                          the primary one and is what model_url points at)
+  --compress              run DRACO over every downloaded .glb before storing it
+  --upload                push to the animal-assets bucket, write model_assets and
+                          point animals.model_url at the public URL
   --rehash                recompute bytes/sha256 for models already on disk
                           (run after compressing them)
 
@@ -833,10 +1167,17 @@ Environment:
   SI_API_KEY              Smithsonian Open Access key
   POLY_PIZZA_API_KEY      Poly Pizza key
 `);
-} else if (flags.rehash) {
-  await rehash();
-} else if (flags.report || (!flags.all && flags.species.length === 0)) {
-  await report(flags);
-} else {
-  await fetchModels(flags);
+  } else if (flags.rehash) {
+    await rehash();
+  } else if (flags.report || (!flags.all && flags.species.length === 0)) {
+    await report(flags);
+  } else {
+    await fetchModels(flags);
+  }
+}
+
+// Only run when invoked directly: the check suite imports the pure helpers
+// (ranking, file naming, licence mapping) without searching or downloading anything.
+if (process.argv[1] && process.argv[1].endsWith("fetch-models.mjs")) {
+  await main();
 }

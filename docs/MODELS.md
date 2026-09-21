@@ -7,9 +7,39 @@ records the attribution each licence requires.
 npm run models:report                                  # what is out there, nothing downloaded
 npm run models:fetch -- --species=lion --apply --wire  # one species, downloaded and wired in
 npm run models:fetch -- --all --apply --wire           # every species still missing a model
+npm run models:fetch -- --species=lion --apply --compress --upload   # compressed and stored
+npm run models:fetch -- --species=lion --count=3 --apply             # keep the top three
 ```
 
 Nothing downloads unless you pass `--apply`. Without it the script is a pure report.
+
+## Quality ranking
+
+Search relevance is not quality. The first licensed hit for "lion" is regularly a 2.4-million-triangle
+statue with no thumbnail and no downloads, so every licensed candidate is scored and the best one wins
+(`lib/model-quality.ts`, pinned by `npm run check:models`):
+
+| Signal | Weight | What it means |
+| --- | --- | --- |
+| Title | 30 | exact species or binomial name > contains it > contains it in reverse |
+| Licence | 15 | CC0/Public Domain 15, CC BY 8.25 — no-attribution first, as a tie-break |
+| Popularity | 25 | downloads (60%) and likes (40%), log-scaled and capped |
+| Complexity | 20 | face count against a mobile budget; unknown counts are neutral, not zero |
+| Thumbnail | 10 | a clear preview means a usable card and social image |
+
+The total is 0–100 and is stored verbatim in `model_assets.quality_score`. The report prints the parts, so a
+ranking can be argued with instead of merely believed:
+
+```
+🦁 Lion (lion)
+   ✔     75  excellent CC-BY-4.0 Lion                                       sketchfab
+        ↳ title 30 · licence 8.3 · popularity 6.7 · complexity 20 · thumbnail 10 · 42,710 faces
+   ✔   74.8  good      CC-BY-4.0 Lion                                       sketchfab
+        ↳ title 30 · licence 8.3 · popularity 6.5 · complexity 20 · thumbnail 10 · 5,497 faces
+```
+
+A licence the project refuses can never win, however good the model is: refused candidates are listed with
+the reason but are filtered out before selection.
 
 ## The licence rule
 
@@ -102,8 +132,44 @@ than showing a broken canvas.
 
 ## Compressing before you ship
 
-Providers hand you whatever they have; compress before committing. See `docs/ASSETS.md` for the DRACO pipeline
-(`gltf-transform optimize … --compress draco`). Budget: **≤ 1.5 MB and ≤ 75k triangles** per model.
+Providers hand you whatever they have; compress before committing. `--compress` runs the DRACO pass for you,
+through `@gltf-transform/cli` (a **devDependency**: `check:bundle` fails if a glTF toolchain ever reaches the
+browser bundle, and a visitor has no reason to download a compactor). Budget: **≤ 1.5 MB and ≤ 75k triangles**
+per model.
+
+```bash
+npm run models:fetch -- --species=lion --apply --compress
+```
+
+The pass is skipped when it does not help, which is not a theoretical case: every model already in the
+catalogue was compressed by hand, and re-running DRACO over one of them produces a *slightly larger* file
+(measured: `lion.glb` 341.08 KB → 341.23 KB). The script reports "no gain, keeping the original file" and
+leaves the bytes alone rather than committing a regression.
+
+## Storage and the database
+
+`--upload` is the Phase 12 path: upload to Supabase Storage, write a `model_assets` row, and (for the primary
+model) point `animals.model_url` at the public URL.
+
+```bash
+npm run models:fetch -- --all --upload        # the models already in public/models
+```
+
+With no `--apply` and a local file present, `--upload` is an upload-only pass: it stores the file that is
+already committed and records it, which is how the existing catalogue gets into storage. Without
+`--upload`, nothing touches Supabase and `data/animals.ts` stays the only wiring — the same dual path as the
+call recordings: the bundle keeps a repo-relative `/models/…` URL so Demo Mode works offline, and the database
+gets the storage URL.
+
+| Where | What |
+| --- | --- |
+| Bucket | `animal-assets` (the one asset bucket; the `models/` prefix keeps it apart from images and calls) |
+| Table | `public.model_assets` — one row per model, at most one `is_primary` per species (partial unique index) |
+| Credit | `attribution` column, rendered as a tooltip/link in the viewer alongside the JSON manifest credit |
+
+Order matters once: `npm run db:seed` rewrites `animals.model_url` from the dataset, so seed first, then
+`--upload`. Re-running the upload is safe — `(animal_id, source_url)` is unique, so a row is updated rather
+than duplicated, and the previous primary is demoted before a new one is promoted.
 
 ## Scale and orientation
 

@@ -20,6 +20,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { ANIMALS } from "../data/animals.ts";
+import { MODEL_LICENSES } from "../lib/model-quality.ts";
 import {
   ACCENT_COLORS,
   DEFAULT_USER_SETTINGS,
@@ -330,5 +331,94 @@ test("the identity helper every owner policy uses is defined once and granted", 
     /grant execute on function public\.current_user_id\(\) to anon, authenticated/.test(schema),
     "current_user_id() must be executable by authenticated (and anon, which has no rows to see)",
   );
+});
+
+
+/* -------------------------------------------------------------------------- */
+/* Phase 12 — model_assets                                                    */
+/* -------------------------------------------------------------------------- */
+
+const modelTable = readTable("model_assets");
+const modelColumns = new Set(modelTable.columns.map((column) => column.name));
+const fetchModelsSource = readFileSync(join(root, "scripts", "fetch-models.mjs"), "utf8");
+
+test("model_assets has every column the pipeline records", () => {
+  const required = [
+    "id", "animal_id", "provider", "sketchfab_uid", "title", "license", "source_url", "attribution",
+    "face_count", "download_count", "like_count", "file_size_bytes", "storage_path", "public_url",
+    "quality_score", "is_primary", "downloaded_at", "created_at",
+  ];
+
+  const missing = required.filter((column) => !modelColumns.has(column));
+  assert.deepEqual(missing, [], `schema is missing model_assets columns: ${missing.join(", ")}`);
+});
+
+test("every model_assets column is mentioned by the pipeline that writes it", () => {
+  // A column renamed on one side and not the other is a runtime 400 from PostgREST,
+  // which is exactly the kind of breakage a check should catch instead of a deploy.
+  const written = [
+    "animal_id", "provider", "sketchfab_uid", "title", "license", "source_url", "attribution",
+    "face_count", "download_count", "like_count", "file_size_bytes", "storage_path", "public_url",
+    "quality_score", "is_primary",
+  ];
+
+  const missing = written.filter((column) => !fetchModelsSource.includes(column));
+  assert.deepEqual(missing, [], `scripts/fetch-models.mjs never names: ${missing.join(", ")}`);
+});
+
+test("the licence CHECK allows exactly the values lib/model-quality.ts can produce", () => {
+  const declared = modelTable.checks.get("license");
+  assert.ok(declared?.length, "model_assets.license has no CHECK");
+  assert.deepEqual([...declared].sort(), [...MODEL_LICENSES].sort());
+});
+
+test("quality_score is documented as 0-100 and constrained to it", () => {
+  const definition = modelTable.columns.find((column) => column.name === "quality_score")?.definition ?? "";
+  assert.ok(/not null/i.test(definition), "quality_score must be not null: an unscored model is a bug");
+  assert.ok(/>=\s*0/.test(definition) && /<=\s*100/.test(definition), `quality_score range missing: ${definition}`);
+  assert.ok(
+    /comment on column public\.model_assets\.quality_score is/.test(schema),
+    "the 0-100 scale has to be written down, or every reader invents their own",
+  );
+});
+
+test("no count in model_assets can be negative", () => {
+  for (const column of ["face_count", "download_count", "like_count"]) {
+    const definition = modelTable.columns.find((entry) => entry.name === column)?.definition ?? "";
+    assert.ok(/check \(\s*\w+ is null or \w+ >= 0\s*\)/i.test(definition), `${column} has no non-negative CHECK`);
+  }
+
+  const size = modelTable.columns.find((entry) => entry.name === "file_size_bytes")?.definition ?? "";
+  assert.ok(/file_size_bytes > 0/i.test(size), "file_size_bytes must be positive when present");
+  assert.ok(/bigint/i.test(size), "a 4 GB scan does not fit in an integer");
+});
+
+test("a row cannot be de-duplicated twice, and only one model per species is primary", () => {
+  assert.ok(
+    /constraint model_assets_unique_source unique \(animal_id, source_url\)/.test(schema),
+    "re-running the pipeline must update a row, not add one",
+  );
+  assert.ok(
+    /create unique index if not exists model_assets_primary_idx on public\.model_assets \(animal_id\) where is_primary/.test(schema),
+    "animals.model_url can only express one primary model per species",
+  );
+});
+
+test("model credits are public to read and impossible to write from a browser", () => {
+  assert.ok(/alter table public\.model_assets enable row level security/.test(schema), "RLS must be on");
+  assert.ok(
+    /on public\.model_assets for select[\s\S]{0,120}?to anon, authenticated[\s\S]{0,80}?using \(true\)/.test(schema),
+    "model_assets must have a public SELECT policy",
+  );
+
+  for (const verb of ["insert", "update", "delete"]) {
+    assert.ok(
+      !new RegExp(`on public\\.model_assets for ${verb}`).test(schema),
+      `model_assets must have no ${verb} policy: a browser cannot forge a credit`,
+    );
+  }
+
+  assert.ok(/grant select on public\.model_assets to anon, authenticated/.test(schema), "anon must be able to read credits");
+  assert.ok(!/grant[^;]*insert[^;]*on public\.model_assets/.test(schema), "no write grant on model_assets");
 });
 

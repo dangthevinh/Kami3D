@@ -535,6 +535,72 @@ create policy "sound credits are publicly readable"
 grant select on public.sound_assets to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Model assets (every real 3D model a species has)
+-- ---------------------------------------------------------------------------
+--
+-- One row per downloaded model, written by `scripts/fetch-models.mjs` with the
+-- service role. A species may have several: `--count=N` keeps the runners-up, and
+-- the partial unique index below allows exactly one of them to be the primary — the
+-- one `animals.model_url` points at, because that column can only express one.
+--
+-- The licence column is constrained to the only two values the pipeline accepts
+-- (see `scripts/fetch-models.mjs` and `lib/model-quality.ts`); a model whose licence
+-- is share-alike, non-commercial or simply unknown is never stored, which is the
+-- project rule that matters more than any other in this file.
+create table if not exists public.model_assets (
+  id               uuid primary key default gen_random_uuid(),
+  animal_id        uuid not null references public.animals (id) on delete cascade,
+  provider         text not null default 'sketchfab',
+  sketchfab_uid    text,
+  title            text not null,
+  license          text not null check (license in ('CC0', 'CC-BY')),
+  source_url       text,
+  attribution      text not null,
+  -- Null means "the provider did not report it", which is different from zero and is
+  -- what the quality score treats as no signal rather than as a bad model.
+  face_count       integer check (face_count is null or face_count >= 0),
+  download_count   integer check (download_count is null or download_count >= 0),
+  like_count       integer check (like_count is null or like_count >= 0),
+  file_size_bytes  bigint check (file_size_bytes is null or file_size_bytes > 0),
+  storage_path     text,
+  public_url       text,
+  quality_score    numeric not null check (quality_score >= 0 and quality_score <= 100),
+  is_primary       boolean not null default false,
+  downloaded_at    timestamptz not null default now(),
+  created_at       timestamptz not null default now(),
+  -- Re-running the pipeline updates a model instead of duplicating it. A row with no
+  -- source URL cannot be de-duplicated (Postgres treats NULLs as distinct), which is
+  -- acceptable because every provider the pipeline talks to supplies one.
+  constraint model_assets_unique_source unique (animal_id, source_url)
+);
+
+comment on table public.model_assets is
+  'Every real 3D model a species has: where it came from, under which licence, its measured quality, and where the file is stored. Written by scripts/fetch-models.mjs with the service role.';
+comment on column public.model_assets.quality_score is
+  '0-100, higher is better. Computed by lib/model-quality.ts: title match 30, licence 15, popularity 25, polygon budget 20, thumbnail 10.';
+comment on column public.model_assets.license is 'Normalised to the two licences Kami3D ships: CC0 or CC-BY.';
+comment on column public.model_assets.attribution is 'Ready-to-render credit: title, author, licence, source.';
+comment on column public.model_assets.is_primary is 'The model animals.model_url points at. At most one per species, enforced by a partial unique index.';
+
+create index if not exists model_assets_animal_idx on public.model_assets (animal_id);
+create index if not exists model_assets_created_idx on public.model_assets (created_at desc);
+-- One primary per species. Without this, two rows could both claim to be primary
+-- while `animals.model_url` can only ever point at one of them.
+create unique index if not exists model_assets_primary_idx on public.model_assets (animal_id) where is_primary;
+
+alter table public.model_assets enable row level security;
+
+-- Readable by everyone: a credit is public metadata. There is deliberately **no** write
+-- policy — a browser must not be able to forge a credit or invent a model row.
+drop policy if exists "model credits are publicly readable" on public.model_assets;
+create policy "model credits are publicly readable"
+  on public.model_assets for select
+  to anon, authenticated
+  using (true);
+
+grant select on public.model_assets to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

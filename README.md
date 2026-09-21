@@ -344,15 +344,22 @@ what is available — nothing is downloaded, and it works with no API keys becau
 public.
 
 ```bash
-npm run models:report                                    # licence audit, downloads nothing
+npm run models:report                                    # licence audit + quality scores, downloads nothing
 npm run models:fetch -- --species=lion --apply --wire    # fetch one species and wire it in
-npm run models:fetch                                     # all species (--all --apply --wire)
+npm run models:fetch -- --all --apply                    # every species still missing a model
+npm run models:fetch -- --species=lion --count=3 --apply --compress --upload
 ```
 
 Downloads are gated on a licence allow-list (CC0, public domain, CC BY). Share-alike, no-derivatives,
 non-commercial and all-rights-reserved models are refused, and every accepted model records its author, source
 and licence in `data/model-attribution.json` — which the species page renders as a credit line. A CC BY model
 therefore cannot reach the site without its attribution.
+
+Among the candidates that pass, the **best one wins rather than the first**: each is scored out of 100 on
+title match (30), licence (15), downloads and likes (25), polygon budget (20) and thumbnail (10), and the
+report prints the breakdown so the ranking can be argued with. `--count=N` keeps the runners-up, `--compress`
+runs the DRACO pass, and `--upload` stores the file in the `animal-assets` bucket and records it in
+`public.model_assets` with a public, read-only credit row.
 
 The shipped catalogue already contains **24 DRACO-compressed models (10 MB, down from 61 MB)** under CC BY 4.0,
 with the decoder vendored in `public/draco/` so nothing is fetched from a CDN.
@@ -379,6 +386,7 @@ npm run check:quiz      # quiz round builder (variants, determinism) + scoring r
 npm run check:globe     # globe camera maths (fly-to, facing region) + pin ranking
 npm run check:sounds    # call licences, size window, ranking, catalogue/credit agreement
 npm run check:settings  # settings model: bounds, column mapping, palette reuse, i18n completeness
+npm run check:models    # model quality: weights, licence mapping, ranking, file naming, credit line
 npm run sounds:report   # what recordings are available, downloads nothing
 npm run sounds:fetch    # download + credit every species that lacks a call (--upload for Storage)
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
@@ -392,7 +400,7 @@ npm run seed:generate   # regenerate supabase/seed.sql from the dataset
 npm run db:status       # what the database currently holds
 npm run db:seed         # push the catalogue into Supabase (idempotent)
 npm run models:report   # what 3D models are available, with licences
-npm run models:fetch    # download the redistributable ones
+npm run models:fetch    # download the redistributable ones (--compress, --upload, --count=N)
 npm run publish -- "message"   # verify, build, commit, push — one step per phase
 ```
 
