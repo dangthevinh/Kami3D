@@ -607,6 +607,78 @@ revoke all on public.model_assets from anon, authenticated;
 grant select on public.model_assets to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Geospatial data (Phase 13): PostGIS + `animal_geodata`
+-- ---------------------------------------------------------------------------
+--
+-- PostGIS is installed into the `extensions` schema, which is the Supabase
+-- convention and keeps its thousand-odd functions out of `public` — where every
+-- function is reachable as an RPC endpoint unless it is revoked by hand.
+--
+-- One table carries every spatial layer the product will ever draw, because the
+-- alternative is `alter table` at the start of each of the next four phases:
+-- `kind` says which layer a row belongs to, `year` says when (null = present day),
+-- and `source`/`license`/`attribution` are the licence terms the row arrived with.
+--
+-- Rows are written by `scripts/seed-geodata.mjs` (and, later, by the admin pipeline)
+-- with the service role. Readable by everyone, with no write policy: geospatial data
+-- is public reference material, and a browser must not be able to invent a range map.
+create extension if not exists postgis with schema extensions;
+
+create table if not exists public.animal_geodata (
+  id          uuid primary key default gen_random_uuid(),
+  animal_id   uuid not null references public.animals (id) on delete cascade,
+  kind        text not null check (kind in ('habitat_current', 'habitat_historic', 'protected_area', 'occurrence')),
+  year        integer check (year is null or (year between -10000 and 2100)),
+  geometry    extensions.geometry(Geometry, 4326) not null,
+  source      text not null,
+  source_url  text,
+  license     text not null check (license in ('CC0', 'CC-BY')),
+  attribution text not null,
+  properties  jsonb not null default '{}'::jsonb,
+  -- One row per (species, kind, year, source), spelled out as a generated column so
+  -- PostgREST can upsert on it. A unique index over `coalesce(year, 'current')` would
+  -- work in Postgres and be invisible to `on_conflict=`, which is the whole point of
+  -- writing it down here.
+  dedupe_key  text generated always as (kind || ':' || coalesce(year::text, 'current') || ':' || source) stored,
+  created_at  timestamptz not null default now(),
+  constraint animal_geodata_unique_row unique (animal_id, dedupe_key),
+  -- Only the four shapes a map layer can draw.
+  constraint animal_geodata_geometry_type check (
+    extensions.geometrytype(geometry) in ('POINT', 'MULTIPOINT', 'POLYGON', 'MULTIPOLYGON')
+  ),
+  -- Self-intersecting rings are refused at the door: `ST_Intersects` on an invalid
+  -- polygon answers wrongly and says nothing about it.
+  constraint animal_geodata_valid_geometry check (extensions.st_isvalid(geometry))
+);
+
+comment on table public.animal_geodata is
+  'Every spatial layer: habitat ranges (current and historic), protected areas and observation points. Written by scripts/seed-geodata.mjs with the service role; read-only for everyone else.';
+comment on column public.animal_geodata.kind is 'Which layer the row belongs to. Constrained, so a typo cannot create a fifth layer nobody draws.';
+comment on column public.animal_geodata.year is 'Negative years are BCE, for the prehistoric species. NULL means present day.';
+comment on column public.animal_geodata.geometry is 'WGS84 (SRID 4326), the same order MapLibre and GeoJSON use: longitude first.';
+comment on column public.animal_geodata.license is 'Normalised to the two licences Kami3D ships: CC0 or CC-BY. GBIF records are CC BY 4.0 and must be cited; IUCN range maps are not redistributable here.';
+comment on column public.animal_geodata.attribution is 'Ready-to-render credit: dataset, publisher, licence, and the DOI when there is one.';
+
+-- GiST is what makes `ST_Intersects` and the /map bounding-box query usable; the
+-- btree one is what makes "this species, this layer, this year" a lookup.
+create index if not exists animal_geodata_geometry_idx on public.animal_geodata using gist (geometry);
+create index if not exists animal_geodata_animal_idx on public.animal_geodata (animal_id, kind, year);
+create index if not exists animal_geodata_kind_idx on public.animal_geodata (kind);
+
+alter table public.animal_geodata enable row level security;
+
+drop policy if exists "geodata is publicly readable" on public.animal_geodata;
+create policy "geodata is publicly readable"
+  on public.animal_geodata for select
+  to anon, authenticated
+  using (true);
+
+-- Supabase grants every new table in `public` to anon and authenticated by default, so
+-- the read grant is paired with a revoke (see `model_assets` for the same reasoning).
+revoke all on public.animal_geodata from anon, authenticated;
+grant select on public.animal_geodata to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

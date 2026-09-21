@@ -33,6 +33,7 @@ Optional next step: `npm run models:report` lists downloadable 3D models for eve
 | `/` | Landing page: stats, an interactive 3D globe, featured species, prehistoric teaser |
 | `/explore` | Full catalogue with region/class/status/sort filters, deep-linkable via query string |
 | `/animal/[slug]` | Species page: 3D model viewer, size comparison, fact sheet, favourites, dynamic OG image |
+| `/map` | Habitat ranges on an interactive map (MapLibre, no API key), filterable by region and layer |
 | `/quiz` | Ten-round 3D silhouette quiz with timers, streaks and badges |
 | `/profile` | Collection: favourites, badges, score history |
 | `/settings` | Preferences: appearance, 3D quality, audio, language and units, notifications, account |
@@ -146,6 +147,11 @@ Each species card shows how many times its page has been opened, counted in the 
 ### Leaderboard and trends
 
 `/leaderboard` ranks species by total views and charts the last thirty days.
+
+`/map` draws habitat ranges from PostGIS (or from a bundled sample when there is no database), with a region
+filter, layer switches and a species panel. The state lives in the URL, the renderer loads only on that route
+(MapLibre is deferred exactly like three.js), and the bundled shapes say on screen that they are demo envelopes
+rather than published ranges. Details, including the licensing rules that decide what can ship: [docs/MAP.md](docs/MAP.md).
 
 - `animal_views_daily` holds one row per species per day, keyed `(animal_id, day)`. The increment function writes
   the total and the daily row **in the same call**, so a view can never land in one and be lost from the other.
@@ -387,6 +393,8 @@ npm run check:globe     # globe camera maths (fly-to, facing region) + pin ranki
 npm run check:sounds    # call licences, size window, ranking, catalogue/credit agreement
 npm run check:settings  # settings model: bounds, column mapping, palette reuse, i18n completeness
 npm run check:models    # model quality: weights, licence mapping, ranking, file naming, credit line
+npm run check:map       # the map query codec (URL round trip, junk input) and the layer catalogue
+npm run check:geo       # coordinate order, ring maths, and the bundled geodata
 npm run sounds:report   # what recordings are available, downloads nothing
 npm run sounds:fetch    # download + credit every species that lacks a call (--upload for Storage)
 npm run check:bundle    # after a build: per-route JS budget + "no eager 3D/auth" gate
@@ -397,6 +405,9 @@ npm run audit:settings  # a real browser: the preferences actually re-tint, de-a
 npm run audit:perf      # headless Chrome: TTFB/FCP/LCP/CLS and what loaded before paint
                         #   THROTTLE=1 adds Slow 4G + a 4x CPU slowdown
 npm run seed:generate   # regenerate supabase/seed.sql from the dataset
+npm run geo:generate    # rewrite data/animal-geodata.json from the regional anchors
+npm run geo:seed        # upsert the geodata into PostGIS (idempotent)
+npm run geo:status      # what public.animal_geodata currently holds
 npm run db:status       # what the database currently holds
 npm run db:seed         # push the catalogue into Supabase (idempotent)
 npm run models:report   # what 3D models are available, with licences

@@ -15,7 +15,21 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { ANIMALS } from "../data/animals.ts";
 import { isLandAt, landBounds, projectLand, projectPoint, unprojectPoint } from "../lib/earth-map.ts";
+import {
+  boundsOf,
+  envelopeRing,
+  expandBounds,
+  fromLngLat,
+  fromLngLatRing,
+  isValidLngLat,
+  ringAreaKm2,
+  ringIsClosed,
+  ringIsSimple,
+  toLngLat,
+  toLngLatRing,
+} from "../lib/geo.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const data = JSON.parse(readFileSync(join(root, "public", "geo", "land-110m.json"), "utf8"));
@@ -239,3 +253,150 @@ test("projected rings stay inside the texture", () => {
     }
   }
 });
+
+/* -------------------------------------------------------------------------- */
+/* Phase 13: coordinate order, ring validity, and the bundled geodata          */
+/* -------------------------------------------------------------------------- */
+
+const geodata = JSON.parse(readFileSync(join(root, "data", "animal-geodata.json"), "utf8"));
+const geodataAttribution = JSON.parse(readFileSync(join(root, "data", "geodata-attribution.json"), "utf8"));
+const schema = readFileSync(join(root, "supabase", "schema.sql"), "utf8");
+
+test("the two coordinate orders convert both ways, and the order matters", () => {
+  // London. Written as a LatLng object, read as a tuple: if either converter ever
+  // swapped its arguments the map would still render - in Kazakhstan.
+  const london = { lat: 51.5074, lng: -0.1278 };
+  assert.deepEqual(toLngLat(london), [-0.1278, 51.5074]);
+  assert.deepEqual(fromLngLat([-0.1278, 51.5074]), london);
+  assert.deepEqual(fromLngLat(toLngLat(london)), london);
+
+  // A point in the wrong order is NOT the same point: the trap this module exists for.
+  assert.notDeepEqual(toLngLat(london), [51.5074, -0.1278]);
+  assert.ok(isValidLngLat(toLngLat(london)));
+  assert.equal(isValidLngLat([200, 10]), false);
+  assert.equal(isValidLngLat([10, 91]), false);
+  assert.equal(isValidLngLat([Number.NaN, 10]), false);
+  assert.equal(isValidLngLat([10]), false);
+});
+
+test("ring conversion keeps every vertex, including the closing one", () => {
+  const ring = [
+    { lat: 0, lng: 0 },
+    { lat: 0, lng: 1 },
+    { lat: 1, lng: 1 },
+    { lat: 1, lng: 0 },
+    { lat: 0, lng: 0 },
+  ];
+
+  const converted = toLngLatRing(ring);
+  assert.equal(converted.length, ring.length);
+  assert.deepEqual(converted[0], [0, 0]);
+  assert.deepEqual(converted[2], [1, 1]);
+  assert.deepEqual(fromLngLatRing(converted), ring);
+  assert.ok(ringIsClosed(converted));
+});
+
+test("bounds cover every point and ignore nonsense", () => {
+  const bounds = boundsOf([[-0.1278, 51.5074], [2.3522, 48.8566], [999, 5]]);
+  assert.deepEqual(bounds, { west: -0.1278, east: 2.3522, south: 48.8566, north: 51.5074 });
+  assert.equal(boundsOf([]), null);
+  assert.equal(boundsOf([[999, 999]]), null);
+
+  const wider = expandBounds(bounds, 0.5);
+  assert.ok(wider.west < bounds.west && wider.east > bounds.east);
+  assert.ok(wider.south < bounds.south && wider.north > bounds.north);
+  assert.deepEqual(expandBounds(bounds, 0), bounds);
+});
+
+test("a ring is only closed when it returns to its first vertex", () => {
+  const square = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+  assert.ok(ringIsClosed(square));
+  assert.equal(ringIsClosed([[0, 0], [1, 0], [1, 1], [0, 1]]), false, "unclosed");
+  assert.equal(ringIsClosed([[0, 0], [1, 1], [0, 0]]), false, "too few vertices");
+});
+
+test("a self-intersecting ring is caught, not drawn", () => {
+  const square = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]];
+  // A bow tie: the two diagonals cross, and PostGIS ST_IsValid would refuse it.
+  const bowtie = [[0, 0], [2, 2], [2, 0], [0, 2], [0, 0]];
+
+  assert.ok(ringIsSimple(square));
+  assert.equal(ringIsSimple(bowtie), false);
+});
+
+test("area is spherical, so a degree is not a fixed number of kilometres", () => {
+  const atEquator = ringAreaKm2([[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]);
+  const nearPole = ringAreaKm2([[0, 70], [1, 70], [1, 71], [0, 71], [0, 70]]);
+
+  // 1 degree x 1 degree at the equator is about 12 300 km2 (111.32 x 110.57).
+  assert.ok(Math.abs(atEquator - 12308) / 12308 < 0.01, `equatorial square was ${Math.round(atEquator)} km2`);
+  assert.ok(nearPole < atEquator, "the same degree span is a smaller area nearer the pole");
+  assert.equal(ringAreaKm2([[0, 0], [1, 1]]), 0, "a line encloses nothing");
+});
+
+test("the envelope generator is deterministic and always produces a valid ring", () => {
+  const anchor = { lat: -12, lng: -60 };
+  const first = envelopeRing(anchor, { radiusKm: 400, points: 18, seed: 7 });
+  const again = envelopeRing(anchor, { radiusKm: 400, points: 18, seed: 7 });
+  const different = envelopeRing(anchor, { radiusKm: 400, points: 18, seed: 8 });
+
+  assert.deepEqual(first, again, "the same seed must produce the same ring: the file is committed");
+  assert.notDeepEqual(first, different, "a different seed must move at least one vertex");
+  assert.equal(first.length, 19, "18 vertices plus the closing one");
+  assert.ok(ringIsClosed(first) && ringIsSimple(first));
+  for (const point of first) assert.ok(isValidLngLat(point), `invalid point ${point}`);
+
+  // A wider envelope must cover a wider area.
+  const small = ringAreaKm2(envelopeRing(anchor, { radiusKm: 200, points: 18, seed: 7 }));
+  const large = ringAreaKm2(envelopeRing(anchor, { radiusKm: 800, points: 18, seed: 7 }));
+  assert.ok(large > small * 10, `800 km should cover far more than 200 km: ${Math.round(small)} vs ${Math.round(large)}`);
+
+  // The poles clamp instead of wrapping past 90 degrees.
+  const polar = envelopeRing({ lat: 89, lng: 0 }, { radiusKm: 600, points: 12, seed: 3 });
+  assert.ok(polar.every((point) => Math.abs(point[1]) <= 90));
+});
+
+test("the bundled geodata is valid, labelled as synthetic, and fits its own kinds", () => {
+  const kinds = new Set(["habitat_current", "habitat_historic", "protected_area", "occurrence"]);
+  const slugs = new Set(ANIMALS.map((animal) => animal.slug));
+  const problems = [];
+
+  assert.equal(geodata.type, "FeatureCollection");
+  assert.ok(geodata.features.length >= ANIMALS.length, "every species needs at least one envelope");
+
+  for (const feature of geodata.features) {
+    const props = feature.properties;
+    const ring = feature.geometry.coordinates[0];
+
+    if (feature.geometry.type !== "Polygon") problems.push(`${props.slug}: not a Polygon`);
+    if (!kinds.has(props.kind)) problems.push(`${props.slug}: unknown kind ${props.kind}`);
+    if (!slugs.has(props.slug)) problems.push(`${props.slug}: not in the catalogue`);
+    if (props.synthetic !== true) problems.push(`${props.slug}: not labelled synthetic`);
+    if (typeof props.note !== "string" || props.note.length < 20) problems.push(`${props.slug}: no note`);
+    if (!geodataAttribution[props.source]) problems.push(`${props.slug}: source ${props.source} has no credit`);
+    if (props.license !== "CC0") problems.push(`${props.slug}: unexpected licence ${props.license}`);
+    if (!ringIsClosed(ring) || !ringIsSimple(ring)) problems.push(`${props.slug}: invalid ring`);
+    if (!ring.every(isValidLngLat)) problems.push(`${props.slug}: out-of-range coordinate`);
+    if (props.year !== null && !Number.isInteger(props.year)) problems.push(`${props.slug}: bad year`);
+  }
+
+  assert.deepEqual(problems, [], problems.slice(0, 6).join(" | "));
+
+  // The file ships inside the map route, so its size is part of the budget.
+  const bytes = readFileSync(join(root, "data", "animal-geodata.json")).length;
+  assert.ok(bytes < 48 * 1024, `bundled geodata is ${(bytes / 1024).toFixed(0)} KB - trim it before it ships`);
+});
+
+test("the geodata kinds and licences match the CHECK constraints in schema.sql", () => {
+  const table = schema.slice(schema.indexOf("create table if not exists public.animal_geodata"));
+  const kindCheck = table.match(/kind\s+text not null check \(kind in \(([^)]*)\)\)/i)?.[1] ?? "";
+  const declaredKinds = [...kindCheck.matchAll(/'([a-z_]+)'/g)].map((entry) => entry[1]).sort();
+
+  assert.deepEqual(declaredKinds, ["habitat_current", "habitat_historic", "occurrence", "protected_area"]);
+  assert.ok(/license\s+text not null check \(license in \('CC0', 'CC-BY'\)\)/.test(table), "geodata licence CHECK drifted");
+
+  // Every kind the bundled data uses must be one the database accepts.
+  const used = [...new Set(geodata.features.map((feature) => feature.properties.kind))];
+  for (const kind of used) assert.ok(declaredKinds.includes(kind), `bundled data uses ${kind}, which the CHECK rejects`);
+});
+

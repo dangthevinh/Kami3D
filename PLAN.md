@@ -24,7 +24,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **10** | Review toàn diện & đề xuất cải tiến | ✅ Hoàn thành — báo cáo ở [docs/REVIEW.md](docs/REVIEW.md) |
 | **11** | Hệ thống Settings hoàn chỉnh (`/settings` + `user_settings`) | ✅ Hoàn thành — 6 nhóm, mọi cột có tác dụng thật |
 | **12** | Admin tự động tìm & tải model 3D | ✅ Hoàn thành (CLI) — xếp hạng chất lượng, DRACO, upload, `model_assets`; UI admin để phase riêng |
-| **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | 📝 Đã ghi prompt, chưa triển khai |
+| **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | ✅ Hoàn thành — `/map` + PostGIS + URL-as-state |
 | **14** | Habitat & Species Distribution Maps (`/map`) | 📝 Đã ghi prompt, chưa triển khai |
 | **15** | Conservation Threat & Risk Maps | 📝 Đã ghi prompt, chưa triển khai |
 | **16** | Timeline & Story Maps | 📝 Đã ghi prompt, chưa triển khai |
@@ -37,7 +37,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **189** bài trong **17** suite (`npm run check:suites`) |
+| Test tự động | **230** bài trong **19** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -1036,6 +1036,79 @@ Output cần có:
    render gì — nếu chỉ nằm trong memory thì mọi view bản đồ đều không share được.
 6. **Đừng tự viết controls.** MapLibre đã có `NavigationControl` (zoom + compass), `GeolocateControl`,
    `FullscreenControl`, `ScaleControl`; tự viết lại vừa thừa vừa mất touch behavior.
+
+---
+
+## ✅ Phase 13 — Kết quả: nền tảng Data-to-Map
+
+**Trạng thái: đã giao.** PostGIS + `animal_geodata` sống trên database thật, `/map` chạy được, và 7 ràng buộc
+chung của nhóm Data-to-Map đều được giữ.
+
+### 1. Database: PostGIS + `public.animal_geodata`
+
+| Kiểm | Kết quả (truy vấn trực tiếp) |
+| --- | --- |
+| Extension | `postgis 3.3.7` trong schema `extensions` (đúng convention Supabase) |
+| Bảng | `kind` (4 giá trị, CHECK), `year` (âm = TCN, NULL = hiện tại), `geometry extensions.geometry(Geometry, 4326)`, `source`, `source_url`, `license` (CC0/CC-BY), `attribution`, `properties` jsonb |
+| Ràng buộc | chỉ 4 loại hình (POINT/MULTIPOINT/POLYGON/MULTIPOLYGON), **`ST_IsValid`** chặn polygon tự giao, `unique (animal_id, dedupe_key)` |
+| Index | **GiST trên `geometry`** — `explain` cho thấy viewport query dùng `Index Scan using animal_geodata_geometry_idx` |
+| RLS | bật, 1 policy `SELECT` công khai, **không có write policy**; `anon`/`authenticated` chỉ còn `SELECT` |
+| Dữ liệu | 28 dòng (24 habitat hiện tại + 4 habitat lịch sử cho loài tiền sử), `ST_IsValid` = true cho tất cả |
+
+`dedupe_key` là cột generated (`kind:year:source`) chứ không phải unique index trên `coalesce(year,…)`: PostgREST
+chỉ upsert được theo cột có unique constraint thật, nên nếu viết index biểu thức thì `on_conflict=` sẽ không thấy nó.
+
+### 2. Thứ tự toạ độ — cái bẫy số một
+
+`lib/geo.ts` (thuần, không phụ thuộc gì) là **nơi duy nhất** biết `[lng, lat]` khác `{ lat, lng }`: 4 hàm chuyển
+đổi, kiểm tra toạ độ hợp lệ, bounding box, đóng/mở ring, **phát hiện ring tự giao** (bản client của `ST_IsValid`),
+diện tích cầu, và bộ sinh envelope tất định. 9 test mới trong `check-geo` khoá toàn bộ, gồm test khẳng định
+điểm sai thứ tự **không** bằng điểm đúng.
+
+### 3. `/map` và bundle
+
+- `components/map/BaseMap.tsx` — MapLibre + **controls có sẵn** (`NavigationControl`, `GeolocateControl`,
+  `FullscreenControl`, `ScaleControl`, `AttributionControl`), style tối, `fitBounds` khi vùng đổi.
+- `lib/map-query.ts` — state của bản đồ là URL (`?layers=…&region=…&species=…`), parser chịu được rác và test
+  được bằng Node; `lib/map-layers.ts` là store Zustand ghi lại bằng `history.replaceState`.
+- Nạp lazy đúng khuôn three.js: `MapExperience → LazyMap → dynamic(ssr:false) → MapCanvas`; `check:bundle` có
+  **2 marker mới** (`maplibre-gl`, `MaplibreMap`) chặn rò rỉ sang route khác.
+- **`/map` là route server-render theo yêu cầu** (URL quyết định server vẽ gì), nên `bundle-budget.mjs` nay đọc
+  danh sách chunk từ `app-build-manifest.json` cho route động — vẫn giữ nguyên trần ngân sách.
+
+| Route | JS khởi đầu (gzip) | Ngân sách |
+| --- | --- | --- |
+| `/map` | **128.4 kB** | 140 kB (số đo + biên, không phải số dễ đạt) |
+| các route cũ | 129–158 kB (không đổi) | 165 kB |
+
+### 4. Đã kiểm chứng gì, và chưa kiểm chứng gì
+
+Kiểm trong Chrome thật ở `/map?region=Africa&layers=habitat`: server render đúng vùng từ URL; client chuẩn hoá
+lại thành `?layers=habitat&region=Africa`; 28 shape tới được panel; hydration **không có lỗi console**; và khi
+không có WebGL thì trang hiện panel giải thích thay vì hình chữ nhật trắng.
+
+> ⚠️ **Chưa kiểm chứng được: chính tấm bản đồ.** Chrome headless trong môi trường này không có WebGL nên MapLibre
+> không vẽ. Mọi thứ *quanh* renderer đều có test; phần vẽ là MapLibre làm việc của MapLibre. Cần mở `/map` bằng
+> trình duyệt thật để tin tấm hình.
+
+### 5. Dữ liệu: nói rõ nó là gì
+
+28 hình hiện có là **envelope tổng hợp** quanh anchor vùng của từng loài, và mỗi feature tự khai điều đó
+(`"synthetic": true` + `note` được render nguyên văn trong panel). Chúng tồn tại để clone mới (Demo Mode, không
+database) vẫn mở được bản đồ — đúng luật của `data/animals.ts`.
+
+Range thật là câu hỏi về licence trước khi là câu hỏi về dữ liệu: **IUCN range map hạn chế dùng thương mại**,
+**GBIF là CC BY 4.0 và phải cite DOI**. Đó là lý do Phase 14 sẽ đi qua `scripts/fetch-geodata.mjs` với cột
+`license`/`attribution` (đã `NOT NULL` từ phase này).
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **230 test** (thêm 10 của `check-map` và 9 của `check-geo`); `npx tsc --noEmit` sạch.
+- `npm run build` + `npm run check:bundle`: 7/7 route trong ngân sách, `three`/Clerk vẫn deferred.
+- `npm run geo:seed` chạy 2 lần liên tiếp: vẫn 28 dòng (upsert theo `dedupe_key`, không nhân bản).
+- PostGIS thực thi: `ST_IsValid` true, `ST_Area` cho ra 940 763 km² cho envelope voi châu Phi, GiST index được dùng.
+- Tài liệu: [docs/MAP.md](docs/MAP.md) (kiến trúc, dữ liệu, chi phí bundle, điều chưa kiểm chứng),
+  `npm run check:map`, `npm run check:geo`, `npm run geo:generate|seed|status`.
 
 ---
 

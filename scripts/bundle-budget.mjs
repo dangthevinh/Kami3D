@@ -48,6 +48,14 @@ const ROUTES = [
   { route: "/leaderboard", html: "server/app/leaderboard.html", budget: 165 },
   { route: "/about", html: "server/app/about.html", budget: 165 },
   { route: "/animal/[slug]", html: "server/app/animal/lion.html", budget: 165 },
+  // The map route is server-rendered on demand (its URL decides what the server
+  // draws), so there is no prerendered HTML to read: its chunks come from the app
+  // build manifest instead. MapLibre itself stays deferred - this budget covers the
+  // layer panel, the query codec and the species panel, plus a small margin over the
+  // measured number (see docs/MAP.md).
+  // Measured at 128.4 kB on the first build, so 140 is the real number plus room for
+  // a component or two - not a budget chosen to be easy to pass.
+  { route: "/map", manifest: "/map/page", budget: 140 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */
@@ -56,6 +64,8 @@ const FORBIDDEN = [
   { marker: "GoTrueClient", why: "the Supabase client must only load for a session that exists" },
   { marker: "@clerk/nextjs", why: "Clerk's client must only load for a signed-in visitor" },
   { marker: "framer-motion", why: "the motion library was removed; animations are CSS" },
+  { marker: "maplibre-gl", why: "the map renderer must only load on /map, behind next/dynamic" },
+  { marker: "MaplibreMap", why: "react-map-gl must not be part of any other route first paint" },
 ];
 
 if (!existsSync(nextDir)) {
@@ -92,22 +102,53 @@ function scriptsIn(htmlPath) {
   return [...urls].filter((url) => !/\/polyfills-[^/]*\.js$/.test(url));
 }
 
+/**
+ * The chunks a server-rendered route loads, from `app-build-manifest.json`.
+ *
+ * A dynamic route has no prerendered HTML to parse, but Next records exactly what it
+ * would send - the layout, the shared chunks and the page itself - so a route that
+ * cannot be checked by reading its HTML can still be held to a budget.
+ */
+function scriptsInManifest(key) {
+  const file = path.join(nextDir, "app-build-manifest.json");
+  if (!existsSync(file)) return null;
+
+  const manifest = JSON.parse(readFileSync(file, "utf8"));
+  const chunks = manifest?.pages?.[key];
+  if (!Array.isArray(chunks)) return null;
+
+  return chunks
+    .filter((chunk) => chunk.endsWith(".js") && !/polyfills-[^/]*\.js$/.test(chunk))
+    .map((chunk) => `/_next/${chunk}`);
+}
+
 const problems = [];
 const rows = [];
 
-for (const { route, html, budget } of ROUTES) {
-  const htmlPath = path.join(nextDir, html);
-  if (!existsSync(htmlPath)) {
-    problems.push(`${route}: expected prerendered HTML at ${html} — is the route still static?`);
-    continue;
+for (const { route, html, manifest, budget } of ROUTES) {
+  let urls;
+
+  if (manifest) {
+    urls = scriptsInManifest(manifest);
+    if (!urls) {
+      problems.push(`${route}: no chunk list for "${manifest}" in app-build-manifest.json`);
+      continue;
+    }
+  } else {
+    const htmlPath = path.join(nextDir, html);
+    if (!existsSync(htmlPath)) {
+      problems.push(`${route}: expected prerendered HTML at ${html} — is the route still static?`);
+      continue;
+    }
+    urls = scriptsIn(htmlPath);
   }
 
   let bytes = 0;
   const files = [];
-  for (const url of scriptsIn(htmlPath)) {
+  for (const url of urls) {
     const file = resolveAsset(url);
     if (!file) {
-      problems.push(`${route}: ${url} is referenced by the HTML but missing from ${nextDir}`);
+      problems.push(`${route}: ${url} is referenced by the route but missing from ${nextDir}`);
       continue;
     }
     files.push(file);
@@ -150,7 +191,8 @@ if (!clerkChunks.length) {
 }
 
 rows.sort((a, b) => b.kb - a.kb);
-console.log("initial JavaScript per route, from the build's own HTML (gzip -6, polyfills excluded):\n");
+console.log("initial JavaScript per route, from the build's own HTML or its chunk manifest");
+console.log("(gzip -6, polyfills excluded):\n");
 for (const row of rows) {
   const flag = row.kb > row.budget ? "OVER" : " ok ";
   console.log(`  ${flag} ${String(row.kb).padStart(7)} kB  ${row.route.padEnd(18)} ${row.chunks} chunks  (budget ${row.budget})`);
