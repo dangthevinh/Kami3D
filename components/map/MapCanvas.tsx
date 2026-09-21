@@ -3,6 +3,8 @@
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { Layer, Source } from "react-map-gl/maplibre";
+
+import { pointAlongLine } from "@/lib/migration";
 import * as React from "react";
 
 import { BaseMap } from "@/components/map/BaseMap";
@@ -70,6 +72,12 @@ export interface MapCanvasProps {
   features: GeodataFeature[];
   /** Threat centroids with severity: a city is a dot at world zoom. */
   threats?: FeatureCollection<Geometry> | null;
+  /** The seasonal centroid path being animated, if any. */
+  route?: FeatureCollection<Geometry> | null;
+  /** Where the dot is, 0-1. Null means "not playing". */
+  routeProgress?: number | null;
+  /** The stops, as points, so a visitor can click one. */
+  stops?: FeatureCollection<Geometry> | null;
   visible: Record<MapLayerId, boolean>;
   opacity: Record<MapLayerId, number>;
   /** The species to highlight, or null. */
@@ -88,6 +96,33 @@ export interface MapCanvasProps {
  * validated at both ends (the generator and `check-geo` refuse an invalid ring) and
  * `lib/geodata.ts` strips the `crs` member RFC 7946 removed.
  */
+/**
+ * The travelling dot, as a one-feature collection.
+ *
+ * The position comes from `lib/migration.ts` (`pointAlongLine`), which moves by distance
+ * along the line rather than by vertex index - tested in `check-timeline.mjs`, because a
+ * dot that stutters between unevenly spaced stops is exactly the kind of thing that looks
+ * fine in a screenshot and wrong in motion.
+ */
+function dotAt(route: FeatureCollection<Geometry>, progress: number): FeatureCollection<Geometry> {
+  const line = route.features[0];
+  const coordinates = (line?.geometry as { coordinates?: [number, number][] } | undefined)?.coordinates ?? [];
+  const position = pointAlongLine(coordinates, progress);
+
+  return {
+    type: "FeatureCollection",
+    features: position
+      ? [
+          {
+            type: "Feature",
+            properties: {},
+            geometry: { type: "Point", coordinates: position.point },
+          } as Feature<Geometry>,
+        ]
+      : [],
+  };
+}
+
 function collectionOf(features: GeodataFeature[], kind: string): FeatureCollection<Geometry> {
   return {
     type: "FeatureCollection",
@@ -98,6 +133,9 @@ function collectionOf(features: GeodataFeature[], kind: string): FeatureCollecti
 export function MapCanvas({
   features,
   threats = null,
+  route = null,
+  routeProgress = null,
+  stops = null,
   visible,
   opacity,
   selectedSlug,
@@ -231,6 +269,72 @@ export function MapCanvas({
               "heatmap-opacity": opacity.occurrence,
               // Spread because MapLibre wants a mutable expression, and this one is a constant.
               "heatmap-color": [...HEATMAP_COLOR] as unknown as never,
+            }}
+          />
+        </Source>
+      ) : null}
+
+      {/* The seasonal path, and the dot travelling along it. `line-gradient` is what makes
+          the travelled part of the line visible: MapLibre interpolates it by
+          `line-progress`, so the animation is one number changing, not a new geometry per
+          frame. */}
+      {route ? (
+        <Source id="route-source" type="geojson" data={route}>
+          <Layer
+            id="route-line"
+            type="line"
+            paint={{
+              "line-color": "rgba(169, 123, 255, 0.35)",
+              "line-width": 2,
+              "line-dasharray": [2, 2],
+            }}
+          />
+          <Layer
+            id="route-travelled"
+            type="line"
+            paint={{
+              "line-color": "#a97bff",
+              "line-width": 3,
+              "line-gradient": [
+                "interpolate",
+                ["linear"],
+                ["line-progress"],
+                0,
+                "rgba(169, 123, 255, 0.2)",
+                1,
+                "#35f0c0",
+              ],
+            }}
+            layout={{ "line-cap": "round" }}
+          />
+        </Source>
+      ) : null}
+
+      {stops ? (
+        <Source id="stops-source" type="geojson" data={stops}>
+          <Layer
+            id="stops-points"
+            type="circle"
+            paint={{
+              "circle-radius": 4,
+              "circle-color": "#0b1226",
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#a97bff",
+            }}
+          />
+        </Source>
+      ) : null}
+
+      {route && routeProgress !== null ? (
+        <Source id="dot-source" type="geojson" data={dotAt(route, routeProgress)}>
+          <Layer
+            id="dot-point"
+            type="circle"
+            paint={{
+              "circle-radius": 6,
+              "circle-color": "#35f0c0",
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "rgba(4, 6, 15, 0.9)",
             }}
           />
         </Source>

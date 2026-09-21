@@ -1,0 +1,169 @@
+{
+  "note": "Dated events for the timeline. Each entry is a Kami3D summary of the cited source - the summary text is ours (CC0), the source is linked. No range polygon is implied by an event.",
+  "license": "CC0-1.0",
+  "attribution": "Kami3D timeline summaries, citing the linked sources.",
+  "events": [
+    {
+      "slug": "megalodon",
+      "year": -3600000,
+      "kind": "extinction",
+      "title": "Megalodon dies out",
+      "summary": "The last Otodus megalodon populations disappear, around 3.6 million years ago, as ocean temperatures fell and its prey moved to cooler water.",
+      "source": "Wikipedia: Megalodon",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Megalodon"
+    },
+    {
+      "slug": "tyrannosaurus-rex",
+      "year": -66000000,
+      "kind": "extinction",
+      "title": "The end-Cretaceous extinction",
+      "summary": "The Chicxulub impact ends the Cretaceous and, with it, the non-avian dinosaurs - including Tyrannosaurus rex.",
+      "source": "Wikipedia: Cretaceous-Paleogene extinction event",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Cretaceous%E2%80%93Paleogene_extinction_event"
+    },
+    {
+      "slug": "smilodon",
+      "year": -10000,
+      "kind": "extinction",
+      "title": "Smilodon dies out",
+      "summary": "Smilodon disappears at the end of the Pleistocene, after its large-bodied prey collapsed.",
+      "source": "Wikipedia: Smilodon",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Smilodon"
+    },
+    {
+      "slug": "woolly-mammoth",
+      "year": -2000,
+      "kind": "extinction",
+      "title": "The last mammoths on Wrangel Island",
+      "summary": "The final isolated population of woolly mammoths, on Wrangel Island, dies out about 4 000 years ago.",
+      "source": "Wikipedia: Woolly mammoth",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Woolly_mammoth"
+    },
+    {
+      "slug": null,
+      "year": 1973,
+      "kind": "protection",
+      "title": "CITES signed",
+      "summary": "The Convention on International Trade in Endangered Species is signed in Washington, creating the permit system that still governs trade in endangered species.",
+      "source": "CITES",
+      "sourceUrl": "https://cites.org/eng/disc/what.php"
+    },
+    {
+      "slug": "bengal-tiger",
+      "year": 1973,
+      "kind": "protection",
+      "title": "Project Tiger begins",
+      "summary": "India launches Project Tiger, creating reserves that are still the backbone of tiger conservation.",
+      "source": "Project Tiger, Government of India",
+      "sourceUrl": "https://projecttiger.nic.in/"
+    },
+    {
+      "slug": "blue-whale",
+      "year": 1982,
+      "kind": "protection",
+      "title": "Commercial whaling moratorium agreed",
+      "summary": "The International Whaling Commission agrees a moratorium on commercial whaling, in force from the 1985-86 season.",
+      "source": "International Whaling Commission",
+      "sourceUrl": "https://iwc.int/management-and-conservation/whaling"
+    },
+    {
+      "slug": "african-bush-elephant",
+      "year": 1989,
+      "kind": "protection",
+      "title": "International ivory trade banned",
+      "summary": "CITES moves the African elephant to Appendix I, banning the international commercial ivory trade.",
+      "source": "CITES",
+      "sourceUrl": "https://cites.org/eng/news/cites-bans-international-trade-in-african-elephant-ivory"
+    },
+    {
+      "slug": "gray-wolf",
+      "year": 1995,
+      "kind": "recovery",
+      "title": "Wolves return to Yellowstone",
+      "summary": "Fourteen wolves are released in Yellowstone National Park, the start of a reintroduction that reshaped the park's ecosystem.",
+      "source": "US National Park Service",
+      "sourceUrl": "https://www.nps.gov/yell/learn/nature/wolf-reintroduction.htm"
+    },
+    {
+      "slug": "bald-eagle",
+      "year": 2007,
+      "kind": "recovery",
+      "title": "Bald eagle leaves the endangered list",
+      "summary": "The bald eagle is removed from the US endangered species list after decades of recovery, from a low of about 400 breeding pairs.",
+      "source": "US Fish & Wildlife Service",
+      "sourceUrl": "https://www.fws.gov/species/bald-eagle"
+    },
+    {
+      "slug": "lion",
+      "year": 2015,
+      "kind": "decline",
+      "title": "Cecil the lion is killed",
+      "summary": "A tagged lion known as Cecil is shot outside Hwange National Park in Zimbabwe, setting off a global argument about trophy hunting.",
+      "source": "Wikipedia: Cecil (lion)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Cecil_(lion)"
+    },
+    {
+      "slug": "giraffe",
+      "year": 2016,
+      "kind": "decline",
+      "title": "Giraffes listed as Vulnerable",
+      "summary": "The IUCN moves the giraffe from Least Concern to Vulnerable, citing a decline of around 40% over three decades.",
+      "source": "IUCN Red List",
+      "sourceUrl": "https://www.iucnredlist.org/species/9194/51127065"
+    },
+    {
+      "slug": "axolotl",
+      "year": 2019,
+      "kind": "decline",
+      "title": "The axolotl's canals keep shrinking",
+      "summary": "The IUCN assessment keeps the axolotl at Critically Endangered, with urban expansion in Xochimilco and introduced fish as the main threats.",
+      "source": "IUCN Red List",
+      "sourceUrl": "https://www.iucnredlist.org/species/109/3013717"
+    },
+    {
+      "slug": "red-kangaroo",
+      "year": 2020,
+      "kind": "decline",
+      "title": "Three billion animals in the bushfires",
+      "summary": "The 2019-20 Australian bushfire season is estimated to have affected three billion animals, including kangaroos, koalas and reptiles.",
+      "source": "WWF-Australia",
+      "sourceUrl": "https://www.wwf.org.au/news/news/2020/3-billion-animals-impacted-by-australia-bushfire-crisis"
+    },
+    {
+      "slug": "giant-panda",
+      "year": 2021,
+      "kind": "recovery",
+      "title": "Giant panda downlisted to Vulnerable",
+      "summary": "The IUCN moves the giant panda from Endangered to Vulnerable, crediting decades of habitat protection and bamboo forest recovery.",
+      "source": "IUCN Red List",
+      "sourceUrl": "https://www.iucnredlist.org/species/712/121745669"
+    },
+    {
+      "slug": "monarch-butterfly",
+      "year": 2022,
+      "kind": "decline",
+      "title": "Migratory monarch listed as Endangered",
+      "summary": "The IUCN lists the migratory monarch butterfly as Endangered, citing habitat loss and climate-driven extremes at its overwintering sites.",
+      "source": "IUCN",
+      "sourceUrl": "https://www.iucn.org/news/202207/migratory-monarch-butterfly-endangered-iucn-red-list"
+    },
+    {
+      "slug": "emperor-penguin",
+      "year": 2022,
+      "kind": "decline",
+      "title": "Emperor penguin listed as threatened",
+      "summary": "The US Fish & Wildlife Service lists the emperor penguin as threatened under the Endangered Species Act, with sea-ice loss as the driving risk.",
+      "source": "US Fish & Wildlife Service",
+      "sourceUrl": "https://www.fws.gov/press-release/2022-10/emperor-penguin-listed-threatened-under-endangered-species-act"
+    },
+    {
+      "slug": null,
+      "year": 2020,
+      "kind": "event",
+      "title": "Lockdowns change what we see",
+      "summary": "During the first COVID-19 lockdowns, wildlife was reported in unusually urban places - a reminder that observation effort, not only animal numbers, shapes the record.",
+      "source": "Wikipedia: Impact of the COVID-19 pandemic on wildlife",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Impact_of_the_COVID-19_pandemic_on_wildlife"
+    }
+  ]
+}

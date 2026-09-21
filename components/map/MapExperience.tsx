@@ -7,6 +7,10 @@ import * as React from "react";
 import { LayerPanel } from "@/components/map/LayerPanel";
 import { LazyMap } from "@/components/map/LazyMap";
 import { RiskBreakdownList, RiskLegend, RiskPanel, type RiskRow } from "@/components/map/RiskPanel";
+import { PathPlayer, RangeTimeline } from "@/components/map/TimelinePanel";
+import { useSettings } from "@/components/settings/SettingsProvider";
+import { describeGap, formatYear, frameForYear, yearsWithRanges, type TimelineEvent } from "@/lib/timeline";
+import type { MigrationRoute } from "@/types/migration";
 import { Badge } from "@/components/ui/badge";
 import { boundsOf, expandBounds, type Bounds } from "@/lib/geo";
 import { creditFor } from "@/lib/geodata-credits";
@@ -18,6 +22,8 @@ import {
   type MapQuery,
 } from "@/lib/map-layers";
 import { cn } from "@/lib/utils";
+import type { Feature, FeatureCollection, Geometry } from "geojson";
+
 import { assessRisk, type ObservationBucket } from "@/lib/risk";
 import { REGIONS } from "@/types/animal";
 import type { GeodataCollection, GeodataCredits, GeodataFeature } from "@/types/geodata";
@@ -55,6 +61,10 @@ export interface MapExperienceProps {
   source: "database" | "bundled";
   /** The spatial join: how much of each species range a threat overlaps. */
   impact: ThreatImpactRow[];
+  /** Dated, cited annotations for the timeline. */
+  events: TimelineEvent[];
+  /** Derived seasonal paths, with the method and coherence that produced them. */
+  routes: MigrationRoute[];
 }
 
 /** Which bundled `kind` a layer draws; the count behind each switch comes from it. */
@@ -90,7 +100,10 @@ export function MapExperience({
   initialQuery,
   source,
   impact,
+  events,
+  routes,
 }: MapExperienceProps) {
+  const reduceMotion = useSettings().settings.reduceMotion;
   const visible = useMapLayers((state) => state.visible);
   const opacity = useMapLayers((state) => state.opacity);
   const layers = useMapLayers((state) => state.layers);
@@ -103,6 +116,32 @@ export function MapExperience({
   const applyQuery = useMapLayers((state) => state.applyQuery);
 
   const [query, setQuery] = React.useState("");
+  const [mode, setMode] = React.useState<"ranges" | "path">("ranges");
+  const [mobilePanel, setMobilePanel] = React.useState<"filters" | "layers" | "risk" | "time">("time");
+  const [progress, setProgress] = React.useState(0);
+
+  /**
+   * The timeline, and the year it is showing.
+   *
+   * The default is the most recent year with a published shape, because that is the map
+   * every other page links to. `year` only narrows the *range* layer: occurrence, threat
+   * and path layers are not dated in this data, and pretending otherwise would be a worse
+   * lie than a simpler control.
+   */
+  const years = React.useMemo(() => yearsWithRanges(collection.features), [collection.features]);
+  const [year, setYear] = React.useState<number | null>(null);
+  const activeYear = year ?? years[years.length - 1] ?? new Date().getUTCFullYear();
+
+  const frame = React.useMemo(
+    () => frameForYear({ features: collection.features, events, year: activeYear, window: 2 }),
+    [collection.features, events, activeYear],
+  );
+
+  const [routeSlug, setRouteSlug] = React.useState<string | null>(null);
+  const route = React.useMemo(
+    () => routes.find((entry) => entry.slug === routeSlug) ?? routes[0] ?? null,
+    [routes, routeSlug],
+  );
   const [statuses, setStatuses] = React.useState<string[]>([]);
   const [categories, setCategories] = React.useState<string[]>([]);
 
@@ -136,6 +175,13 @@ export function MapExperience({
   const features = React.useMemo(() => {
     const matching = allFeatures.filter((feature) => {
       const props = feature.properties;
+      // The timeline dates the habitat layer only; occurrences, threats and paths are not
+      // dated in this data, and hiding them behind a year would be an invention.
+      if (mode === "ranges" && (props.kind === "habitat_current" || props.kind === "habitat_historic")) {
+        const own = props.year;
+        const value = own === null || own === undefined ? new Date().getUTCFullYear() : Number(own);
+        if (value !== activeYear) return false;
+      }
       if (region && props.region !== region) return false;
       if (statuses.length > 0 && !statuses.includes(String(props.conservation_status))) return false;
       if (categories.length > 0 && !categories.includes(String(props.category))) return false;
@@ -147,7 +193,7 @@ export function MapExperience({
     }
 
     return matching;
-  }, [allFeatures, region, statuses, categories, selectedSlug]);
+  }, [allFeatures, region, statuses, categories, selectedSlug, mode, activeYear]);
 
   const available = React.useMemo(() => {
     const counts = Object.fromEntries(MAP_LAYER_IDS.map((id) => [id, 0])) as Record<MapLayerId, number>;
@@ -284,6 +330,41 @@ export function MapExperience({
     };
   }, [visible.pressure, threatPoints, loadingThreats]);
 
+  const routeCollection = React.useMemo<FeatureCollection<Geometry> | null>(
+    () =>
+      route
+        ? {
+            type: "FeatureCollection",
+            features: [
+              {
+                type: "Feature",
+                properties: {},
+                geometry: { type: "LineString", coordinates: route.coordinates },
+              } as Feature<Geometry>,
+            ],
+          }
+        : null,
+    [route],
+  );
+
+  const stopCollection = React.useMemo<FeatureCollection<Geometry> | null>(
+    () =>
+      route
+        ? {
+            type: "FeatureCollection" as const,
+            features: route.stops.map(
+              (stop) =>
+                ({
+                  type: "Feature",
+                  properties: { month: stop.month, records: stop.records },
+                  geometry: { type: "Point", coordinates: stop.coordinates },
+                }) as Feature<Geometry>,
+            ),
+          }
+        : null,
+    [route],
+  );
+
   const threatCollection = React.useMemo(
     () => ({ type: "FeatureCollection" as const, features: threatPoints ?? [] }),
     [threatPoints],
@@ -294,6 +375,16 @@ export function MapExperience({
   const selectedFeature = selectedSlug
     ? features.find((feature) => feature.properties.slug === selectedSlug) ?? null
     : null;
+
+  /**
+   * One panel at a time on a phone; everything at once on a laptop.
+   *
+   * A map, a timeline and four panels do not fit on a phone screen together, and a
+   * collapsed panel the visitor cannot find is the same as a missing feature - so the
+   * panels are tabs on small screens and a column on large ones.
+   */
+  const panelClass = (name: typeof mobilePanel) =>
+    cn(mobilePanel === name ? "block" : "hidden", "lg:block");
 
   const matches = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -337,6 +428,9 @@ export function MapExperience({
             className="h-full w-full"
             features={features}
             threats={threatPoints && threatPoints.length > 0 ? threatCollection : null}
+            route={route && mode === "path" ? routeCollection : null}
+            routeProgress={route && mode === "path" ? progress : null}
+            stops={route && mode === "path" ? stopCollection : null}
             visible={visible}
             opacity={opacity}
             selectedSlug={selectedSlug}
@@ -367,6 +461,68 @@ export function MapExperience({
         </div>
 
         <aside className="space-y-4">
+          <div className="glass rounded-[var(--radius-card)] p-1.5" role="group" aria-label="Map mode">
+            <div className="grid grid-cols-2 gap-1.5">
+              {(["ranges", "path"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={mode === value}
+                  onClick={() => setMode(value)}
+                  className={cn(
+                    "rounded-xl px-3 py-2 text-xs font-medium transition-colors",
+                    mode === value ? "bg-white/14 text-white ring-1 ring-neon/40" : "text-white/60 hover:bg-white/8 hover:text-white",
+                  )}
+                >
+                  {value === "ranges" ? "Ranges & timeline" : "Seasonal path"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile tabs: the same panels, one at a time. */}
+          <div className="glass flex gap-1 rounded-full p-1 lg:hidden" role="tablist" aria-label="Panels">
+            {(["time", "filters", "layers", "risk"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={mobilePanel === value}
+                onClick={() => setMobilePanel(value)}
+                className={cn(
+                  "flex-1 rounded-full px-2 py-1.5 text-[11px] capitalize transition-colors",
+                  mobilePanel === value ? "bg-white/14 text-white" : "text-white/55",
+                )}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+
+          <div className={panelClass("time")}>
+            {mode === "ranges" ? (
+              <RangeTimeline
+                years={years}
+                year={activeYear}
+                onYear={setYear}
+                events={frame.events}
+                gapMessage={describeGap(frame, formatYear)}
+                reduceMotion={reduceMotion}
+              />
+            ) : (
+              <PathPlayer
+                routes={routes}
+                slug={routeSlug}
+                onSlug={setRouteSlug}
+                reduceMotion={reduceMotion}
+                progress={progress}
+                onProgress={setProgress}
+                speciesName={(slug) => species.find((entry) => entry.slug === slug)?.name ?? slug}
+              />
+            )}
+          </div>
+
+          <div className={cn("space-y-4", panelClass("filters"))}>
           <div className="glass rounded-[var(--radius-card)] p-4">
             <label htmlFor="map-species-search" className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
               Find a species
@@ -508,17 +664,23 @@ export function MapExperience({
             </div>
           </div>
 
-          <RiskLegend />
+          </div>
 
-          <LayerPanel
+          <div className={cn("space-y-4", panelClass("layers"))}>
+            <RiskLegend />
+
+            <LayerPanel
             visible={visible}
             opacity={opacity}
             available={available}
             onToggle={setVisible}
-            onOpacity={setOpacity}
-          />
+              onOpacity={setOpacity}
+            />
+          </div>
 
-          <RiskPanel rows={riskRows} selectedSlug={selectedSlug} onSelect={setSpecies} />
+          <div className={panelClass("risk")}>
+            <RiskPanel rows={riskRows} selectedSlug={selectedSlug} onSelect={setSpecies} />
+          </div>
 
           {selected ? (
             <div className="glass rounded-[var(--radius-card)] p-4">

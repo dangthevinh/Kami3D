@@ -27,7 +27,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **13** | Nền tảng Data-to-Map (BaseMap + PostGIS + `animal_geodata`) | ✅ Hoàn thành — `/map` + PostGIS + URL-as-state |
 | **14** | Habitat & Species Distribution Maps (`/map`) | ✅ Hoàn thành — heatmap GBIF + bộ lọc + legend |
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
-| **16** | Timeline & Story Maps | 📝 Đã ghi prompt, chưa triển khai |
+| **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
@@ -37,7 +37,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **245** bài trong **21** suite (`npm run check:suites`) |
+| Test tự động | **257** bài trong **22** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -1412,6 +1412,64 @@ Trả về code hoàn chỉnh cho TimelineSlider + MigrationLayer + trang demo.
    vì nó là *đường*, không phải *vùng* — nhét vào `animal_geodata` sẽ làm hỏng mọi truy vấn habitat.
 5. **Mobile**: timeline + panel layer cùng lúc chiếm gần hết màn hình điện thoại; phải có chế độ thu gọn
    (chỉ một panel mở tại một thời điểm) và `touch-action` đúng để kéo timeline không bị bản đồ nuốt gesture.
+
+---
+
+## ✅ Phase 16 — Kết quả: Timeline & Story Maps
+
+**Trạng thái: đã giao.** Timeline có annotation có nguồn, thanh trượt theo năm, và "seasonal path" suy ra từ dữ
+liệu GBIF thật — kèm một phát hiện trung thực về giới hạn của phương pháp.
+
+### 1. Annotation tách khỏi polygon theo năm
+
+- Bảng `range_events`: **18 sự kiện có ngày + có nguồn** (CITES 1973, lệnh cấm săn cá voi 1982, Yellowstone 1995,
+  gấu trúc được hạ mức 2021, monarch 2022, bushfire 2020…). Nội dung là **bản tóm tắt của chúng tôi** (CC0), nguồn
+  là link — nên annotation tồn tại được ở chỗ mà range map số hoá không tồn tại.
+- `lib/timeline.ts`: `yearsWithRanges`, `frameForYear`, `describeGap`, `eventsForYear`, `timelineTicks`, `formatYear`.
+  Có test khoá đúng luật quan trọng nhất: **năm không có polygon thì phải nói ra** và chỉ ra năm gần nhất có dữ liệu;
+  annotation không bao giờ bị trộn vào ranges.
+- `year` của `range_events` được mở rộng về `-100000000` (T. rex ở -66 triệu năm) — có ghi lý do trong schema.
+
+### 2. Seasonal path: suy ra, và nói rõ là suy ra
+
+Không có dataset mở nào chứa đường di cư được theo dõi cho các loài này. Có dữ liệu quan sát có ngày: GBIF. Nên
+`migration_routes` lưu **centroid theo từng tháng của các record hợp lệ**, nối theo thứ tự — "nơi người quan sát
+đã ở, lấy trung bình theo tháng".
+
+**Phát hiện quan trọng**: tôi thêm chỉ số `mean_spread_km` (độ tản của từng tháng) và tỉ lệ route/spread với kỳ
+vọng nó phân biệt được loài di cư với loài phân bố toàn cầu. **Nó không phân biệt được**: emperor-penguin đứng đầu
+(12.8x) vì cụm tháng rất chặt còn centroid đi vòng quanh lục địa, trong khi monarch — loài di cư nổi tiếng nhất
+trong danh sách — chỉ 1.7x. Nên lớp này **không được gọi là migration**: UI gọi nó là seasonal path, in cả
+`mean_spread_km` và tỉ lệ cạnh đường, và docs ghi rõ muốn khẳng định đúng thì cần dữ liệu tracking thật (Movebank,
+giấy phép theo từng study).
+
+### 3. Animation không thư viện, và tôn trọng người dùng
+
+- `lib/migration.ts` (thuần, có test): `pointAlongLine` đi theo **khoảng cách** chứ không theo index đỉnh (đi theo
+  index sẽ bò qua các điểm mùa hè và lao qua khoảng trống mùa đông), `routeLengthKm`, `advanceProgress` (có wrap,
+  không chia cho 0 khi hai điểm trùng nhau).
+- Vẽ bằng `line-gradient` + `line-progress` của MapLibre và một điểm cập nhật mỗi frame — không Framer Motion,
+  không Deck.gl TripsLayer (ràng buộc #1 và #5).
+- **Autoplay tắt** khi `prefers-reduced-motion` hoặc setting `reduce_motion` của Phase 11 bật; nút play bị vô hiệu
+  hoá kèm tooltip nói lý do, thay vì im lặng không làm gì.
+- Mobile: panel thành tab (mở một cái một lúc), hai slider đặt `touch-action: pan-y` để bản đồ không nuốt gesture.
+
+### 4. Bằng chứng
+
+- `npm run check:suites`: **257 test** (thêm 12 của `check-timeline`); `tsc` sạch; build xanh; `/map` **134.9 kB**
+  (ngân sách 140).
+- Dữ liệu: 18 event (6 decline, 4 extinction, 4 protection, 3 recovery, 1 event); **7 seasonal path** với
+  396–2 100 record mỗi path, 4 677–25 942 km.
+- Chrome thật: bấm "Seasonal path" → select 7 loài, mặc định bald-eagle hiện **"6 monthly stops · 1,272 km ·
+  2,100 records"** và **"Mean monthly spread 1,597 km"** cùng ghi chú "derived path"; không lỗi console.
+- `audit:theme` vẫn đạt trên `/map` ở cả hai theme sau khi thêm panel mới.
+
+### 5. Còn lại (chuyển sang Phase 17)
+
+1. Chế độ xem (`ranges` / `path`) chưa nằm trong URL — mọi thứ khác của bản đồ thì có.
+2. Muốn "migration" đúng nghĩa thì cần dữ liệu tracking (Movebank) với giấy phép theo study.
+3. Slider so sánh "trước vs nay" nhiều loài cùng lúc: hiện timeline đổi một năm cho cả lớp habitat, chưa có
+   chế độ so sánh hai năm cạnh nhau.
 
 ---
 

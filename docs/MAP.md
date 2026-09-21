@@ -142,6 +142,52 @@ Contrast is audited, not eyeballed: the band colours are hex for fills and Tailw
 amber `#ffb738` on the light palette is 1.6:1. `npm run audit:theme` caught exactly that, and now passes on
 `/map` in both themes.
 
+## The timeline, and the seasonal path
+
+```bash
+npm run events:seed        # the dated, cited annotations (data/range-events.json)
+npm run migrations:report  # what each species would produce, nothing written
+npm run migrations:fetch   # store the derived paths
+npm run check:timeline     # the timeline arithmetic and the path maths
+```
+
+Two features, and one honest finding.
+
+**Annotations are not ranges.** `range_events` holds 18 dated events, each one *our* summary of a cited source
+(CITES 1973, the whaling moratorium 1982, Yellowstone 1995, the giant panda downlisting 2021, and so on). The
+text is ours and CC0; the source is a link. `frameForYear` returns ranges and events separately, and a year with
+no polygon says so and names the nearest years that have one - it never interpolates a shape nobody published.
+
+**The seasonal path is derived, and says so.** There is no open dataset of tracked migration routes for these
+species, so `migration_routes` holds the **monthly centroid of the usable GBIF observations**, joined in order:
+where observers were, averaged by month. Every route carries its method, its record count, its length and its
+**mean monthly spread**, and the panel prints all of them. Measured on the seven species that produced a path:
+
+| Species | Route | Mean monthly spread | Ratio |
+| --- | --- | --- | --- |
+| bald-eagle | 1 272 km | 1 597 km | 0.8x |
+| monarch-butterfly | 5 781 km | 3 359 km | 1.7x |
+| green-anaconda | 4 677 km | 1 376 km | 3.4x |
+| gray-wolf | 18 579 km | 4 927 km | 3.8x |
+| blue-whale | 25 942 km | 4 102 km | 6.3x |
+| great-white-shark | 22 907 km | 2 963 km | 7.7x |
+| emperor-penguin | 21 354 km | 1 671 km | 12.8x |
+
+The ratio was meant to separate a migrating population from a cosmopolitan one, and it **does not**: the
+emperor penguin scores highest because its monthly clusters are tight and its centroid walks around a
+continent, while the monarch - the one species here whose migration is famous - scores 1.7x. So the layer is not
+called migration, the panel calls it a seasonal path from observations, and the number is on screen next to the
+line. A real tracking dataset (Movebank, per-study licences) is the way to make this claim properly.
+
+**Motion respects the visitor.** The timeline and the path are played with `requestAnimationFrame` over one
+number - no animation library, which the bundle check forbids anyway - and autoplay is disabled when either the
+operating system or `/settings` asks for reduced motion. The path dot moves by distance along the line, not by
+vertex index, or it would crawl through closely-spaced summer stops and sprint through the winter gap; the
+play button is disabled, with a tooltip saying why, rather than silently doing nothing.
+
+On a phone the panels become tabs (one open at a time) and both sliders set `touch-action: pan-y` so dragging
+them is not swallowed by the map.
+
 ## The database
 
 `public.animal_geodata` carries every spatial layer in one table, because the alternative was an `alter table`

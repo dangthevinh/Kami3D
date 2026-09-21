@@ -919,6 +919,94 @@ revoke all on function public.map_threats(text, integer) from public;
 grant execute on function public.map_threats(text, integer) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Timeline annotations and migration routes (Phase 16)
+-- ---------------------------------------------------------------------------
+--
+-- Two things the range polygons cannot express, and neither belongs in
+-- `animal_geodata`:
+--
+--   * `range_events` - a dated event with a source. The constraint that matters here is
+--     that an annotation is *our summary of a cited source*, not a digitised range: the
+--     timeline shows events where they exist and says "no range data for this year"
+--     everywhere else, instead of interpolating a shape nobody published.
+--   * `migration_routes` - a path, not an area. Putting a LineString in `animal_geodata`
+--     would make every habitat query filter it out by hand.
+--
+-- Both are publicly readable and have no write policy, like every other dataset here.
+create table if not exists public.range_events (
+  id          uuid primary key default gen_random_uuid(),
+  animal_id   uuid references public.animals (id) on delete cascade,
+  -- Wider than `animal_geodata.year`: the catalogue includes species whose events are
+  -- geological (Tyrannosaurus rex at -66 million), and an annotation is a citation, not a
+  -- measured range.
+  year        integer not null check (year between -100000000 and 2100),
+  title       text not null,
+  summary     text not null,
+  kind        text not null default 'event' check (kind in ('event', 'protection', 'decline', 'recovery', 'extinction')),
+  location    extensions.geometry(Point, 4326),
+  source      text not null,
+  source_url  text not null,
+  license     text not null default 'CC0' check (license in ('CC0', 'CC-BY')),
+  attribution text not null,
+  created_at  timestamptz not null default now(),
+  constraint range_events_unique unique (year, title)
+);
+
+comment on table public.range_events is
+  'Dated events with a citation: our own summary text, pointing at the source. Separate from range polygons on purpose - a timeline with no range for a year says so rather than drawing one.';
+comment on column public.range_events.summary is 'Written by Kami3D from the cited source, not copied from it.';
+
+create index if not exists range_events_year_idx on public.range_events (year);
+create index if not exists range_events_animal_idx on public.range_events (animal_id, year);
+
+alter table public.range_events enable row level security;
+
+drop policy if exists "range events are publicly readable" on public.range_events;
+create policy "range events are publicly readable"
+  on public.range_events for select
+  to anon, authenticated
+  using (true);
+
+revoke all on public.range_events from anon, authenticated;
+grant select on public.range_events to anon, authenticated;
+
+create table if not exists public.migration_routes (
+  id          uuid primary key default gen_random_uuid(),
+  animal_id   uuid not null references public.animals (id) on delete cascade,
+  season      text not null check (season in ('spring', 'summer', 'autumn', 'winter', 'year-round')),
+  geometry    extensions.geometry(LineString, 4326) not null,
+  stops       jsonb not null default '[]'::jsonb,
+  source      text not null,
+  source_url  text,
+  license     text not null check (license in ('CC0', 'CC-BY')),
+  attribution text not null,
+  properties  jsonb not null default '{}'::jsonb,
+  dedupe_key  text generated always as (season || ':' || source) stored,
+  created_at  timestamptz not null default now(),
+  constraint migration_routes_unique unique (animal_id, dedupe_key),
+  constraint migration_routes_valid check (extensions.st_isvalid(geometry)),
+  constraint migration_routes_points check (extensions.st_npoints(geometry) >= 2)
+);
+
+comment on table public.migration_routes is
+  'A path a species moves along. Derived from monthly GBIF observation centroids (see scripts/fetch-migrations.mjs), not a tracked or published route - the attribution says so.';
+comment on column public.migration_routes.stops is 'The monthly centroids the line passes through: month, label, coordinates and the record count behind each.';
+
+create index if not exists migration_routes_geometry_idx on public.migration_routes using gist (geometry);
+create index if not exists migration_routes_animal_idx on public.migration_routes (animal_id, season);
+
+alter table public.migration_routes enable row level security;
+
+drop policy if exists "migration routes are publicly readable" on public.migration_routes;
+create policy "migration routes are publicly readable"
+  on public.migration_routes for select
+  to anon, authenticated
+  using (true);
+
+revoke all on public.migration_routes from anon, authenticated;
+grant select on public.migration_routes to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

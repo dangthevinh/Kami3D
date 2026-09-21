@@ -4,6 +4,7 @@ import { MapExperience, type MapSpecies } from "@/components/map/MapExperience";
 import { getAllAnimals } from "@/lib/animals";
 import { getGeodata } from "@/lib/geodata";
 import { parseMapQuery } from "@/lib/map-query";
+import { getMigrationRoutes, getTimelineEvents } from "@/lib/timeline-data";
 import { getThreatImpact } from "@/lib/threats";
 
 /**
@@ -42,10 +43,12 @@ export default async function MapPage({
     ).toString(),
   );
 
-  const [{ collection, credits, source }, animals, impact] = await Promise.all([
+  const [{ collection, credits, source }, animals, impact, events, routes] = await Promise.all([
     getGeodata(),
     getAllAnimals(),
     getThreatImpact(),
+    getTimelineEvents(),
+    getMigrationRoutes(),
   ]);
 
   const species: MapSpecies[] = animals.map((animal) => ({
@@ -65,6 +68,8 @@ export default async function MapPage({
       initialQuery={query}
       source={source}
       impact={impact}
+      events={events}
+      routes={routes}
     />
   );
 }
