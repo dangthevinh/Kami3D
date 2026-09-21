@@ -62,6 +62,10 @@ const ROUTES = [
   // the one route that does not draw anything. Measured at 104.6 kB on the first build, so the
   // budget is that plus a small margin - not a number chosen to be easy to pass.
   { route: "/data2map", manifest: "/data2map/page", budget: 115 },
+  // The first product page, and the first Data2Map route that draws a map. Its renderer is the
+  // same lazily-loaded MapLibre chunk /map uses; measured after the first build.
+  // Measured at 127.1 kB on the first build; the budget is that plus a small margin.
+  { route: "/data2map/real-estate", manifest: "/data2map/real-estate/page", budget: 135 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

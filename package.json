@@ -40,6 +40,7 @@
     "check:timeline": "node --test scripts/check-timeline.mjs",
     "check:import": "node --test scripts/check-import.mjs",
     "check:data2map": "node --test scripts/check-data2map.mjs",
+    "check:score": "node --test scripts/check-score.mjs",
     "geo:generate": "node scripts/generate-geodata.mjs",
     "geo:seed": "node scripts/seed-geodata.mjs",
     "geo:status": "node scripts/seed-geodata.mjs --status",

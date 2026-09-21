@@ -50,7 +50,7 @@ export const DATA2MAP_PRODUCTS: readonly Data2MapProduct[] = [
     detail:
       "A land-price surface, zoning overlays on a satellite base, the amenities within walking distance, and the flood and pollution layers that decide whether a plot is worth it.",
     phase: "D2",
-    status: "planned",
+    status: "live",
     accent: "neon",
   },
   {

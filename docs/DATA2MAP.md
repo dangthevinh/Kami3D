@@ -70,6 +70,57 @@ measured layer needs it: more than roughly 100 000 points on screen, or an arc/t
 cannot draw. If that day comes: `dynamic(ssr: false)` inside the route, its own budget, and a new marker in
 `FORBIDDEN` in `scripts/bundle-budget.mjs`.
 
+## D2 — Real Estate & Zoning
+
+`/data2map/real-estate`: a land-price hex grid, zoning parcels, flood bands and the amenities around a plot,
+plus a **potential score** that shows every input behind it.
+
+### What is real, and what is a labelled simulation
+
+| Layer | Source | Real? |
+| --- | --- | --- |
+| Amenities | OpenStreetMap via Overpass, ODbL | **real** — 280 schools, hospitals, markets and parks in the sample view |
+| Land price | `data/data2map-real-estate.json` (Turf hex grid) | simulated, `synthetic: true` + note |
+| Zoning | same file | simulated |
+| Flood bands | same file | simulated, with a return period per band |
+| Air and noise pollution | — | **not drawn**: Vietnam publishes monitoring stations, not polygons, and an inferred surface would be a guess dressed as data |
+
+Vietnam publishes land price tables as legal documents and zoning as drawings; there is no open machine-readable
+layer for either. The page is real — the layers, the scoring, the satellite base and the amenity overlay all work —
+and the price surface advertises itself as an artefact. **Upload is the main path**: a real dataset arrives through
+`/admin/geodata` or `npm run geodata:import`, and the sample steps aside layer by layer without the page changing.
+
+### Amenities, and why they are not stored
+
+ODbL is fine to display with attribution and is **not** something to accumulate into a private database, so
+`app/api/data2map/amenities` queries Overpass per view, answers with GeoJSON, and stores nothing beyond an HTTP
+cache. It tries the documented mirrors in order (`OVERPASS_URL` first, for a self-hosted instance) because the
+main endpoint answered 504 during this build — and when every mirror is down it says so and lets the other layers
+keep working, rather than showing an empty layer as if the city had no schools.
+
+### The satellite base
+
+A raster layer over the dark style, not a second basemap: **NASA EOSDIS GIBS**, public domain, keyless,
+world-wide. It is daily imagery from a fixed snapshot date at a coarse resolution, and the panel says exactly
+that. A high-resolution commercial provider would need a key (breaking "a fresh clone runs with no
+configuration") and its own terms review, which is why none is pointed at by default.
+
+### The potential score
+
+`lib/data2map/score.ts`, pinned by 12 checks in `npm run check:score` — the same discipline as the animal risk
+index, for a higher-stakes question:
+
+| Input | Weight | Where it comes from |
+| --- | --- | --- |
+| Price against the area median | 30 | the hex that was clicked, and the median of the grid |
+| Amenities within 1 km | 30 | the Overpass layer, counted per kind and capped at two each |
+| Flood band | 25 | the band the point falls inside, inverted so lower hazard scores higher |
+| Zoning and floor-area ratio | 15 | the parcel the point falls inside |
+
+A missing input is dropped from the weighted mean and listed — the panel prints the coverage and which inputs were
+missing, because scoring a plot on one layer and presenting it as a verdict is the failure mode this exists to
+avoid. The number is labelled "a Kami3D index, not an appraisal", next to the weights.
+
 ## Conventions this module follows
 
 - **One WebGL context per page.** A product page with a map may mount at most one extra 3D canvas, on demand, and

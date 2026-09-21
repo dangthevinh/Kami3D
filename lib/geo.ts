@@ -93,6 +93,43 @@ export function expandBounds(bounds: Bounds, factor = 0.15): Bounds {
   };
 }
 
+/**
+ * Whether a point is inside a ring. Ray casting, boundary included.
+ *
+ * The one spatial question this project asks on the client ("which hex did the visitor click,
+ * and is it inside a flood band") and it is cheaper to write than to import Turf for: Turf is
+ * a fine dependency and it is the wrong one to ship into a route for twelve lines of arithmetic.
+ * Pinned by `scripts/check-geo.mjs`, including the boundary.
+ */
+export function pointInRing(point: readonly number[], ring: readonly (readonly number[])[]): boolean {
+  const x = point[0];
+  const y = point[1];
+  let inside = false;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const xi = ring[i][0];
+    const yi = ring[i][1];
+    const xj = ring[j][0];
+    const yj = ring[j][1];
+
+    // A vertex exactly on the ray counts as a hit once, which is what keeps a point on a
+    // shared edge from being reported as inside both polygons.
+    const straddles = yi > y !== yj > y;
+    if (straddles && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+
+  return inside;
+}
+
+/** A point inside a Polygon (outer ring, minus its holes). */
+export function pointInPolygon(point: readonly number[], polygon: readonly (readonly (readonly number[])[])[]): boolean {
+  if (polygon.length === 0 || !pointInRing(point, polygon[0])) return false;
+  for (let hole = 1; hole < polygon.length; hole += 1) {
+    if (pointInRing(point, polygon[hole])) return false;
+  }
+  return true;
+}
+
 /** A GeoJSON ring repeats its first point at the end and has at least four of them. */
 export function ringIsClosed(ring: readonly (readonly number[])[]): boolean {
   if (ring.length < 4) return false;

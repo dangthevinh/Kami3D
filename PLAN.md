@@ -30,7 +30,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 🟡 Pipeline + vai trò admin xong; chế độ hybrid 3D còn lại |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
-| **D2** | Real Estate & Zoning Overlay | 📝 Đã ghi prompt, chưa triển khai |
+| **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | 📝 Đã ghi prompt, chưa triển khai |
 | **D4** | Logistics & Fleet Visualizer | 📝 Đã ghi prompt, chưa triển khai |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | 📝 Đã ghi prompt, chưa triển khai |
@@ -43,7 +43,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **276** bài trong **24** suite (`npm run check:suites`) |
+| Test tự động | **289** bài trong **25** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2051,6 +2051,74 @@ in nhãn "simulated" trong bảng registry (8 chỗ trên trang) — cùng luậ
 
 D2 (Real Estate & Zoning) — nơi registry bắt đầu có dữ liệu thật: `land_price` và `zoning` là mô phỏng có nhãn,
 `amenity` lấy từ Overpass, và trạng thái dataset chuyển từ `planned` sang `live` khi pipeline chạy.
+
+---
+
+## ✅ Phase D2 — Kết quả: Real Estate & Zoning
+
+**Trạng thái: đã giao.** `/data2map/real-estate` với heatmap giá đất, quy hoạch, ngập, **tiện ích thật từ OSM**, và
+potential score in ra từng input. Đây là trang Data2Map đầu tiên vẽ bản đồ.
+
+### 1. Cái gì thật, cái gì mô phỏng có nhãn
+
+| Layer | Nguồn | Thật? |
+| --- | --- | --- |
+| Amenity | OpenStreetMap qua Overpass, ODbL | **thật — 280 POI** trong khung nhìn mẫu (đã gọi API thật) |
+| Land price | `data/data2map-real-estate.json` (hex grid sinh bằng Turf) | mô phỏng, `synthetic: true` + note |
+| Zoning | cùng file | mô phỏng |
+| Flood | cùng file, có return period mỗi dải | mô phỏng |
+| Ô nhiễm khí/tiếng ồn | — | **không vẽ**: VN có trạm quan trắc, không có polygon; suy diễn ra một lớp là nói dối có hình |
+
+Đúng ràng buộc #1: giá đất và quy hoạch VN không có dạng máy đọc được, nên **upload là đường chính** (pipeline admin
+Phase 17), dữ liệu mẫu mang cờ mô phỏng, và trang **không** giả định dữ liệu thật sẽ "có sau": panel "Not drawn"
+nói rõ vì sao thiếu và cách thay bằng dữ liệu thật.
+
+### 2. Amenity: lớp thật duy nhất, và vì sao không lưu
+
+`app/api/data2map/amenities` hỏi Overpass theo khung nhìn, trả GeoJSON, **không lưu gì** (ODbL: hiển thị kèm
+attribution thì được, tích thành CSDL riêng thì không). Lần chạy đầu tiên, Overpass chính trả **504** — endpoint đã
+xử lý đúng (503 + giải thích, các lớp khác vẫn chạy), và tôi thêm **danh sách mirror** (`OVERPASS_URL` trước, cho
+instance tự host): lần chạy lại trả **200, 280 feature, 51 KB**.
+
+### 3. Heatmap và satellite
+
+- Heatmap giá đất dùng **layer `heatmap`/`fill` native của MapLibre** với ramp nội suy theo `price_vnd_m2` (đúng
+  ràng buộc #3) — không thêm deck.gl.
+- Satellite là **raster layer của NASA EOSDIS GIBS** (public domain, không cần key) phủ lên style tối, kèm ghi chú
+  trong panel rằng đó là ảnh daily từ một snapshot cố định, không phải ảnh khảo sát. Nhà cung cấp độ phân giải cao
+  cần key → phá luật "clone mới không cần gì", nên không đặt mặc định (ràng buộc #4).
+
+### 4. Potential score: hàm thuần, có test
+
+`lib/data2map/score.ts` + `check:score` (**12 test**): giá so với median vùng 30 · tiện ích trong 1 km 30 · dải ngập
+25 (đảo chiều: rủi ro thấp điểm cao) · quy hoạch + FAR 15.
+
+Hai luật giống hệt risk index Phase 15: **input thiếu là thiếu** (bị loại khỏi trung bình, panel in % trọng số đã
+dùng và tên input thiếu), và **nó nói rõ nó là gì** — "a Kami3D index, not an appraisal" đặt ngay cạnh trọng số.
+Test khoá chiều tác động của từng input, cap tiện ích (4 trường không bằng 4× 1 trường), median, và input vô lý.
+
+### 5. Chia sẻ, không fork
+
+- `components/map/LayerPanel.tsx` nay **generic theo id** và nhận danh sách layer từ registry → `/map` giữ nguyên
+  hành vi, Data2Map truyền 4 layer của mình. Đúng ràng buộc D1 #1.
+- `components/data2map/RealEstateCanvas.tsx` chỉ dùng `BaseMap` dùng chung + Source/Layer của nó; `react-map-gl`
+  vẫn chỉ nằm trong chunk lazy.
+- `pointInRing`/`pointInPolygon` được thêm vào `lib/geo.ts` (**12 dòng ray casting, có test**) thay vì kéo Turf vào
+  client chỉ để hỏi "điểm này nằm trong hex nào".
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **289 test** (thêm 12 của `check:score` và 1 của `check-geo`); `tsc` sạch; build xanh.
+- **`/data2map/real-estate` 127.1 kB** (ngân sách 135, đặt sau khi đo); `/data2map` vẫn **104.6 kB** — landing không
+  bị kéo theo bản đồ.
+- Registry: 4 dataset của real_estate chuyển `live`, thêm `flood-demo`; tổng **10 dataset, 10 layer** trong DB.
+- API amenity trả **280 POI thật** kèm attribution ODbL; trang trả 200 với đủ layer, ghi chú satellite và panel
+  "Not drawn".
+
+### 7. Tiếp theo
+
+Thứ tự còn lại: **D5 → D3 → D4 → D6**. D5 (story maps) rẻ nhất vì tái dùng timeline Phase 16 + viewer 3D, nhưng
+phải giữ ràng buộc "một WebGL context": mở viewer thì unmount bản đồ trên màn hình nhỏ.
 
 ---
 

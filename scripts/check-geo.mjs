@@ -25,6 +25,8 @@ import {
   fromLngLat,
   fromLngLatRing,
   isValidLngLat,
+  pointInPolygon,
+  pointInRing,
   ringAreaKm2,
   ringIsClosed,
   ringIsSimple,
@@ -422,5 +424,27 @@ test("year buckets spread a sampling window instead of taking the newest records
   assert.deepEqual(yearBuckets("2000", 4), ["2000"]);
   assert.deepEqual(yearBuckets("2020,2010", 4), ["2020,2010"]);
   assert.deepEqual(yearBuckets("1990,1990", 4), ["1990,1990"]);
+});
+
+
+test("a point knows whether it is inside a ring", () => {
+  const square = [[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]];
+
+  assert.equal(pointInRing([2, 2], square), true);
+  assert.equal(pointInRing([5, 2], square), false);
+  assert.equal(pointInRing([-1, 2], square), false);
+  assert.equal(pointInRing([2, -1], square), false);
+
+  // Concave: a point in the notch is outside even though it is inside the bounding box.
+  const arrow = [[0, 0], [4, 0], [4, 1], [1, 1], [1, 4], [0, 4], [0, 0]];
+  assert.equal(pointInRing([3, 0.5], arrow), true);
+  assert.equal(pointInRing([3, 3], arrow), false);
+
+  // A polygon with a hole: the hole is outside the polygon.
+  const withHole = [square, [[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]]];
+  assert.equal(pointInPolygon([0.5, 0.5], withHole), true);
+  assert.equal(pointInPolygon([2, 2], withHole), false);
+  assert.equal(pointInPolygon([9, 9], withHole), false);
+  assert.equal(pointInPolygon([2, 2], []), false);
 });
 

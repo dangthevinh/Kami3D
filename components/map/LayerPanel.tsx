@@ -18,25 +18,50 @@ import { cn } from "@/lib/utils";
  * or empty.
  */
 
-export interface LayerPanelProps {
-  visible: Record<MapLayerId, boolean>;
-  opacity: Record<MapLayerId, number>;
-  /** Which layers have any feature behind them right now. */
-  available: Record<MapLayerId, number>;
-  onToggle: (id: MapLayerId, visible: boolean) => void;
-  onOpacity: (id: MapLayerId, opacity: number) => void;
+/**
+ * The layers the panel can show: the animal map ones by default, or Data2Map's registry.
+ *
+ * Generic over the id type rather than welded to `MapLayerId`: the module has its own layer
+ * vocabulary (`land_price`, `zoning`, …) and the plan for it says explicitly not to fork this
+ * component. One panel, two lists of layers.
+ */
+export interface LayerPanelEntry {
+  id: string;
+  label: string;
+  hint: string;
+  source: string;
+  license: string;
+  unavailable?: string;
 }
 
-export function LayerPanel({ visible, opacity, available, onToggle, onOpacity }: LayerPanelProps) {
+export interface LayerPanelProps<T extends string = MapLayerId> {
+  visible: Record<T, boolean>;
+  opacity: Record<T, number>;
+  /** Which layers have any feature behind them right now. */
+  available: Record<T, number>;
+  onToggle: (id: T, visible: boolean) => void;
+  onOpacity: (id: T, opacity: number) => void;
+  /** Defaults to the animal map catalogue; Data2Map passes its registry. */
+  layers?: readonly LayerPanelEntry[];
+}
+
+export function LayerPanel<T extends string = MapLayerId>({
+  visible,
+  opacity,
+  available,
+  onToggle,
+  onOpacity,
+  layers = MAP_LAYERS,
+}: LayerPanelProps<T>) {
   return (
     <div className="glass rounded-[var(--radius-card)] p-4">
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">Layers</h2>
 
       <ul className="mt-3 space-y-3">
-        {MAP_LAYERS.map((layer) => {
-          const count = available[layer.id] ?? 0;
+        {layers.map((layer) => {
+          const count = available[layer.id as T] ?? 0;
           const disabled = count === 0;
-          const checked = visible[layer.id] && !disabled;
+          const checked = Boolean(visible[layer.id as T]) && !disabled;
 
           return (
             <li key={layer.id}>
@@ -48,7 +73,7 @@ export function LayerPanel({ visible, opacity, available, onToggle, onOpacity }:
                   aria-label={layer.label}
                   data-layer={layer.id}
                   disabled={disabled}
-                  onClick={() => onToggle(layer.id, !checked)}
+                  onClick={() => onToggle(layer.id as T, !checked)}
                   className={cn(
                     "mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded border transition-colors",
                     checked ? "border-neon bg-neon/25 text-neon" : "border-white/25 text-transparent",
@@ -85,12 +110,12 @@ export function LayerPanel({ visible, opacity, available, onToggle, onOpacity }:
                         min={10}
                         max={100}
                         step={5}
-                        value={Math.round(opacity[layer.id] * 100)}
-                        onChange={(event) => onOpacity(layer.id, Number(event.target.value) / 100)}
+                        value={Math.round(opacity[layer.id as T] * 100)}
+                        onChange={(event) => onOpacity(layer.id as T, Number(event.target.value) / 100)}
                         className="h-1 w-24 cursor-pointer appearance-none rounded-full bg-white/12 accent-neon"
                       />
                       <span className="w-8 text-right text-[10px] tabular-nums text-white/40">
-                        {Math.round(opacity[layer.id] * 100)}%
+                        {Math.round(opacity[layer.id as T] * 100)}%
                       </span>
                     </label>
                   ) : null}
