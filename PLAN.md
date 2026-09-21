@@ -34,7 +34,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
 | **D4** | Logistics & Fleet Visualizer | ✅ Hoàn thành — isochrone Turf (nhãn "không phải thời gian lái xe"), cluster MapLibre, planner NN + 2-opt có test |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
-| **D6** | Agri Geo-Analytics Dashboard | 📝 Đã ghi prompt, chưa triển khai |
+| **D6** | Agri Geo-Analytics Dashboard | ✅ Hoàn thành — NDVI + mưa **thật** từ NASA GIBS (public domain, không cần tile pipeline), mẫu thửa mô phỏng có nhãn |
 
 **Số liệu hiện tại**
 
@@ -42,8 +42,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **39** (24 trang loài là SSG, `/explore` nay **tĩnh**, 5 trang Data2Map tĩnh) |
-| Test tự động | **344** bài trong **29** suite (`npm run check:suites`) — thêm 17 footfall + 9 trends + 7 overpass + 13 logistics |
+| Route dựng sẵn | **40** (24 trang loài là SSG, `/explore` nay **tĩnh**, **6** trang Data2Map tĩnh) |
+| Test tự động | **357** bài trong **31** suite (`npm run check:suites`) — thêm 17 footfall · 9 trends · 7 overpass · 13 logistics · 7 ndvi · 6 agriculture |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2329,6 +2329,77 @@ còn tồn tại ở đâu. Hai nguyên nhân riêng biệt:
 **D6 (Agri Geo-Analytics)** — phase cuối của Data2Map. Việc còn lại đã ghi rõ: NDVI cần một tile pipeline chưa
 có (Copernicus Sentinel-2 CC BY 4.0 / Landsat USGS public domain đã chốt licence), nên phải quyết định cách làm
 trước khi dựng UI; dashboard + legend + bộ lọc theo mùa là phần dễ.
+
+---
+
+## ✅ Phase D6 — Kết quả: Agri Geo-Analytics Dashboard
+
+**Trạng thái: đã giao.** `/data2map/agriculture`: 28 ảnh tổ hợp MODIS NDVI **thật** trên đồng bằng sông Cửu Long,
+lớp mưa IMERG **thật** cùng đồng hồ, mẫu 140 thửa **mô phỏng có nhãn**, và một mô hình năng suất in ra hệ số của
+chính nó.
+
+### 1. "Phase đắt nhất" hoá ra không cần tile pipeline
+
+Kế hoạch lo D6 nhất vì NDVI/mưa là **raster**, mà dự án chưa có hạ tầng tile — lời khuyên trong PLAN là làm phần
+vector trước. Cách ra là **tìm dịch vụ tile không cần key trước khi tự dựng**: **NASA EOSDIS GIBS** phục vụ cả
+hai lớp dưới dạng WMTS public domain, không tài khoản, toàn cầu:
+
+| Lớp | Layer GIBS | Licence | Độ phân giải |
+| --- | --- | --- | --- |
+| Sức khỏe cây trồng | `MODIS_Terra_NDVI_8Day` | Public domain (NASA) | 250 m, tổ hợp 8 ngày |
+| Mưa | `IMERG_Precipitation_Rate` | Public domain (NASA) | 0,1°, sản phẩm nửa giờ |
+
+Không tiền xử lý, không lưu trữ, không băng thông của mình. Nhưng GIBS **không cho số**: tile là một bức ảnh đã
+render, đọc giá trị từng thửa ra từ đó là đoán pixel. Sentinel-2 10 m (đọc được một thửa thay vì một huyện) vì
+thế vẫn nằm ở `planned` trong registry **kèm lý do**: licence đã chốt (Copernicus CC BY), pipeline thì chưa.
+
+### 2. Bảng màu là của NASA, và luật "không có dữ liệu" mới là điểm chính
+
+`lib/data2map/ndvi.ts` lấy các lớp từ chính colour map `MODIS_NDVI` v1.3 của GIBS — kể cả chỗ gãy ở 0,3 nơi
+thang chuyển từ nâu sang xanh — và mang lớp `No Data` của NASA thành **`null`** của dự án: ô không có số liệu
+được vẽ như **sự vắng mặt**, không bao giờ là xanh đậm. Đó đúng là kiểu sai mà dashboard nông nghiệp phải chống:
+một tấm bản đồ xanh mướt trên cánh đồng ngập nước hoặc đầy mây. `check:ndvi` khoá cả luật biên (NDVI ∈ [-1,1],
+ngoài khoảng → `null`).
+
+### 3. Con số năng suất là **mô hình**, và nó nói rõ là mô hình nào
+
+`estimateYield` tuyến tính theo "vigour" giữa sàn NDVI và mốc tham chiếu của từng cây, kẹp hai đầu nên chỉ số
+bão hoà không thể thổi phồng sản lượng. Hệ số là **của chúng tôi**, chọn trong khoảng công bố của từng hệ thống,
+và `YIELD_COEFFICIENT_SOURCE` được in nguyên văn trong panel — kể cả câu "Not from a specific study, not
+calibrated to any province", vì bịa một trích dẫn còn tệ hơn thừa nhận đây là minh hoạ. Chuỗi khuyến nghị
+**không bao giờ** nhắc tới thuốc: dự án không có phân tích đất, không có dự báo thời tiết, không có kỹ sư nông
+nghiệp, và khuyến nghị là phần dễ gây hại nhất khi nói chắc.
+
+### 4. Cái gì được vẽ, cái gì chỉ được mô tả
+
+| Lớp | Nguồn | Thật? |
+| --- | --- | --- |
+| Sức khỏe cây trồng (NDVI) | NASA GIBS, 28 tổ hợp mùa 2025 | **thật**, public domain |
+| Mưa | NASA GIBS (GPM IMERG), cùng đồng hồ | **thật**, public domain |
+| Vùng tỉnh | vòng tròn quanh tâm tỉnh | mô phỏng, có nhãn "không phải ranh giới" |
+| Mẫu thửa | `data/data2map-agriculture.json` | mô phỏng, CC0, **tắt mặc định** |
+| Năng suất + khuyến nghị | mô hình ở trên | minh hoạ, có in hệ số |
+| Sentinel-2 10 m | — | **planned**: cần pipeline tiền xử lý |
+
+### 5. Dashboard không viết lại chart (ràng buộc #6)
+
+Dùng lại `components/stats/DailyBars` và `Sparkline` của Phase 4. `Sparkline` được thêm **một prop tuỳ chọn**
+`label`: mặc định của nó là "View trend" cho chuỗi lượt xem, và một biểu đồ NDVI bị trình đọc màn hình đọc là
+"views" là đúng kiểu nói dối nhỏ mà dự án này đang loại bỏ dần.
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **357 test** trong **31** suite (thêm 7 ndvi + 6 agriculture); `tsc` sạch.
+- `npm run check:bundle`: `/data2map/agriculture` **148,5 kB** (ngân sách 160) — mọi route trong ngân sách.
+- Build sạch: `/data2map/agriculture` **tĩnh** (280 kB HTML) với đủ 4 nhãn layer, tên 2 layer GIBS, câu nguồn hệ
+  số và 140 `field_id` trong payload; sitemap có đủ 6 mục Data2Map.
+- Registry: 16 dataset / 16 layer; `ndvi-gibs-modis` + `imerg-rain` + `agri-demo` chuyển `live`,
+  `ndvi-sentinel2` vẫn `planned` **kèm lý do**; sản phẩm D6 chuyển `live` (⇒ tự vào sitemap).
+
+### 7. Data2Map đã xong 5/5 sản phẩm
+
+D1 (nền tảng) · D2 (bất động sản) · D3 (footfall) · D4 (logistics) · D5 (story maps) · **D6 (nông nghiệp)** — tất
+cả `live`, tất cả có registry ghi nguồn + licence + cờ mô phỏng, và mọi con số không đo được đều tự khai.
 
 ---
 

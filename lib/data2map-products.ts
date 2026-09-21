@@ -92,9 +92,9 @@ export const DATA2MAP_PRODUCTS: readonly Data2MapProduct[] = [
     name: "Agri Geo-Analytics",
     tagline: "Fields, seasons and vegetation",
     detail:
-      "Field boundaries with the vegetation index over the growing season, rainfall and yield estimates. The licence is settled (Copernicus, USGS); the tile pipeline is not built yet.",
+      "Real MODIS NDVI and IMERG rainfall over the Mekong Delta on an eight-day clock, with a simulated parcel sample and a yield model that prints its own coefficients.",
     phase: "D6",
-    status: "planned",
+    status: "live",
     accent: "coral",
   },
 ];

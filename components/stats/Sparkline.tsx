@@ -14,6 +14,7 @@ export function Sparkline({
   width = 120,
   height = 34,
   className,
+  label,
   // A CSS variable rather than a hex value: the accent is darkened for the light
   // theme, and this SVG is rendered on the server in both.
   color = "var(--color-neon)",
@@ -23,6 +24,14 @@ export function Sparkline({
   height?: number;
   className?: string;
   color?: string;
+  /**
+   * What the line actually shows, for screen readers.
+   *
+   * The default describes the view trend this component was written for. Data2Map plots other
+   * series through it, and a chart whose accessible name says "views" while it draws an NDVI curve
+   * is the kind of small lie this project keeps designing out.
+   */
+  label?: string;
 }) {
   const { line, area, total } = sparkline(points, width, height, 3);
 
@@ -36,7 +45,7 @@ export function Sparkline({
       preserveAspectRatio="none"
       className={cn("overflow-visible", className)}
       role="img"
-      aria-label={total > 0 ? `View trend, ${total} views in this window` : "No views in this window"}
+      aria-label={label ?? (total > 0 ? `View trend, ${total} views in this window` : "No views in this window")}
     >
       <path d={area} fill={color} fillOpacity={0.14} />
       <path

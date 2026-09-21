@@ -254,6 +254,61 @@ the door, 12 000 dong/km, 60 000 dong/hour), and the panel prints all four numbe
 Cluster layer on the map is MapLibre's own `cluster: true`; the moving dots are a `circle` layer whose
 positions are computed from the hour - no deck.gl, no second WebGL context.
 
+## D6 — Agri Geo-Analytics
+
+`/data2map/agriculture`: real MODIS NDVI and IMERG rainfall over the Mekong Delta on an eight-day clock, with a
+simulated sample of parcels and a yield model that prints its coefficients.
+
+### The tile pipeline the plan was worried about turned out not to be needed
+
+D6 was flagged as the most expensive phase of the module: NDVI, soil moisture, temperature and rainfall are
+**rasters**, MapLibre draws rasters from XYZ tile URLs, and this project has no tile pipeline - so the plan's
+advice was to build the vector half and leave the raster for a later phase.
+
+The way out was to look for a keyless tile service before building one. **NASA EOSDIS GIBS** serves both layers
+the brief asks for as public-domain WMTS tiles, world-wide, with no account:
+
+| Layer | GIBS layer | Licence | Resolution |
+| --- | --- | --- | --- |
+| Crop health | `MODIS_Terra_NDVI_8Day` | Public domain (NASA) | 250 m, 8-day composite |
+| Rainfall | `IMERG_Precipitation_Rate` | Public domain (NASA) | 0.1°, half-hourly product |
+
+That is a real raster with no preprocessing, no storage and no bandwidth budget of ours. What it is **not** is
+numbers: a tile is a rendered picture, and reading per-parcel values out of one would be guessing at pixels.
+Sentinel-2 at 10 m - which would read a field rather than a district - stays `planned` in the registry with the
+reason written next to it: the licence is settled (Copernicus CC BY), the preprocessing pipeline is not built.
+
+### The palette is NASA's, and the "no data" rule is the point
+
+`lib/data2map/ndvi.ts` takes its classes from GIBS's own `MODIS_NDVI` colour map v1.3, including the break at
+0.3 where the ramp turns from brown to green, and it carries NASA's `No Data` class as the project's **`null`**:
+a missing reading is drawn as an absence, never as dark green. That is the failure mode an agricultural
+dashboard has to be built against - a beautiful green map over a flooded or cloud-covered field - and it is
+pinned by `check:ndvi`, together with the bounds (NDVI is -1 to 1, and anything outside it comes back `null`).
+
+### The yield number is a model, and it says which one
+
+`estimateYield` is linear in vigour between a crop's NDVI floor and its reference, clamped at both ends so a
+saturated index cannot inflate a harvest. The coefficients are **ours**, chosen inside the published range for
+each system, and `YIELD_COEFFICIENT_SOURCE` is printed in the panel verbatim - including the sentence "Not from
+a specific study, not calibrated to any province", because inventing a citation is worse than admitting to a
+demonstration. The advice strings never mention a chemical: this project has no soil test, no weather forecast
+and no agronomist, and advice is the part of a dashboard that can do real harm when it is confidently wrong.
+
+### What is drawn, and what is only described
+
+| Layer | Source | Real? |
+| --- | --- | --- |
+| Crop health (NDVI) | NASA GIBS, 28 composites of the 2025 season | **real**, public domain |
+| Rainfall | NASA GIBS (GPM IMERG), same clock | **real**, public domain |
+| Provincial envelopes | circles around provincial centres | simulated, and labelled "not a boundary" |
+| Parcel sample | `data/data2map-agriculture.json` | simulated, CC0, off by default |
+| Yield and advice | the module above | a demonstration model, coefficients printed |
+| Sentinel-2 at 10 m | — | **planned**: needs the preprocessing pipeline |
+
+The dashboard reuses `components/stats/DailyBars` and `Sparkline` rather than adding a chart library; the
+sparkline grew an optional `label` so a chart of NDVI is not announced to a screen reader as "views".
+
 ## D5 — Cultural & Story Maps
 
 `/data2map/stories`: eight places in Vietnam, a timeline, and the photograph that goes with each one.

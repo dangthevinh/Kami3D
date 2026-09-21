@@ -81,6 +81,9 @@ const ROUTES = [
   // The third map route, and the one that carries the most features: clustered stops, traces and
   // coverage bands. Measured after the first build; the budget is that plus a small margin.
   { route: "/data2map/logistics", html: "server/app/data2map/logistics.html", budget: 160 },
+  // The last Data2Map route: raster layers over a parcel sample, with the shared stats components
+  // rather than a chart library. Measured after the first build; the budget is that plus a margin.
+  { route: "/data2map/agriculture", html: "server/app/data2map/agriculture.html", budget: 160 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */
