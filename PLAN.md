@@ -2012,15 +2012,52 @@ cho luồng đẩy dữ liệu độc quyền của video.
 
 | Thành phần trong video | Thực chất là gì (theo tài liệu của 图扑) | Dự án này dùng gì | Quyết định |
 | --- | --- | --- | --- |
-| "HT 3D rend engine" — cảnh cảng/kho 3D | **HT for Web**: engine WebGL **tự phát triển, không mở mã nguồn**, lõi là **một file `ht.js` ~1 MB** nhúng bằng `<script>`; cảnh 3D dựng bằng `new ht.graph3d.Graph3dView()`; có plugin (edges/obj/animation); tài liệu học tập công khai ghi thẳng: *"not open source and requires a commercial license to use"*, chỉ có bản trial | three.js + R3F (đã có) cho 3D rời, **MapLibre `fill-extrusion` + terrain** cho 3D GIS | **Từ chối HT for Web**: thương mại + đóng, phải xin trial/mua licence — vi phạm luật "clone mới chạy không cần key" và luật ngân sách (1 MB một file, không cắt được theo route) |
-| WebGIS 3D + "BIM 轻量化" | Bộ chuyển đổi BIM độc quyền + tile 3D dịch vụ của họ | **OpenFreeMap** (vector tile OSM, ODbL, không key) — schema đã có layer `building` với `render_height`/`render_min_height` ⇒ `fill-extrusion` dựng được thành phố 3D **thật** | **Nhận** phần tile OSM; **từ chối** pipeline BIM (không có converter mở, và dự án không ship model bịa — luật Phase 12) |
+| "HT 3D rend engine" — cảnh cảng/kho 3D | **HT for Web**: engine WebGL **tự phát triển, không mở mã nguồn**, lõi là **một file `ht.js` ~1 MB** nhúng bằng `<script>`; cảnh 3D dựng bằng `new ht.graph3d.Graph3dView()`; có plugin (edges/obj/animation); tài liệu học tập công khai ghi thẳng: *"not open source and requires a commercial license to use"*, chỉ có bản trial | three.js + R3F (đã có) cho 3D rời, **MapLibre `fill-extrusion` + terrain** cho 3D GIS | **Từ chối HT for Web**: thương mại + đóng, phải xin trial/mua licence — vi phạm luật "clone mới chạy không cần key" và luật ngân sách (1 MB một file, không cắt được theo route) → **thay bằng** three.js + R3F (MIT) và MapLibre (BSD-3), cả hai **đã có** trong stack |
+| WebGIS 3D + "BIM 轻量化" | Bộ chuyển đổi BIM độc quyền + tile 3D dịch vụ của họ | **OpenFreeMap** (vector tile OSM, ODbL, không key) — schema đã có layer `building` với `render_height`/`render_min_height` ⇒ `fill-extrusion` dựng được thành phố 3D **thật** | **Nhận** phần tile OSM; **thay** converter BIM độc quyền bằng **web-ifc (MPL-2.0) + @thatopen/components (MIT)** — đọc IFC ngay trong trình duyệt; vẫn không ship model bịa (luật Phase 12) |
 | Nền 3D có địa hình | Terrain do họ dựng sẵn | **AWS Open Data terrain tiles** (`elevation-tiles-prod/terrarium`, nguồn public domain như SRTM), MapLibre `setTerrain` | **Nhận** — không key, không chi phí |
-| Panel 2D cạnh cảnh 3D (BI cockpit) | Component chart + gauge của HT | `components/stats/*` (Phase 4) + KPI card + `RangeTimeline` (Phase 16) | **Nhận cách làm**, không nhận thư viện |
-| Số liệu "thời gian thực" từ RFID/camera/cần cẩu | Dữ liệu đẩy từ hệ thống khách hàng + phần cứng IoT (MQTT/Kafka phía khách) | **Supabase Realtime** (đã có trong stack) + bảng time-series trong Postgres + Edge Function mô phỏng nguồn đẩy | **Nhận kiến trúc đẩy dữ liệu**, nhưng nguồn là **mô phỏng có nhãn** — dự án không có phần cứng và không thu vị trí thật |
+| Panel 2D cạnh cảnh 3D (BI cockpit) | Component chart + gauge của HT | `components/stats/*` (Phase 4) + KPI card + `RangeTimeline` (Phase 16); nếu cần gauge/heatmap phức tạp thì **Apache ECharts (Apache-2.0)** với ngân sách riêng | **Nhận cách làm**, không nhận thư viện; ECharts là cửa mở có điều kiện |
+| Số liệu "thời gian thực" từ RFID/camera/cần cẩu | Dữ liệu đẩy từ hệ thống khách hàng + phần cứng IoT (MQTT/Kafka phía khách) | **Supabase Realtime** (đã có trong stack) + bảng time-series trong Postgres + Edge Function mô phỏng nguồn đẩy; đường tự host tương đương: **EMQX/Mosquitto + Node-RED**, **Eclipse Ditto (EPL-2.0)** hoặc **ThingsBoard (Apache-2.0)** | **Nhận kiến trúc đẩy dữ liệu**, nhưng nguồn là **mô phỏng có nhãn** — dự án không có phần cứng và không thu vị trí thật |
 | "AI 算法" tối ưu bến/bãi | Hộp đen, không công bố | `lib/data2map/routing.ts` (NN + 2-opt) và các hàm thuần có test | **Nhận tinh thần**, giữ nguyên nguyên tắc: thuật toán phải đọc được và có test |
 | VR/AR, low-code platform | Sản phẩm riêng của họ | — | **Không** làm: ngoài phạm vi module và không có nguồn dữ liệu mở tương ứng |
 
 **Nguồn đã kiểm cho bảng trên**: hightopo.com (trang chủ: "một engine 3D dựa trên WebGL… MVP"; blog 港口船舶合集 / 智慧仓储物流合集 mô tả cách ghép cảnh 3D + panel 2D + dữ liệu từ hệ thống ngoài và phần cứng IoT), ghi chú học tập công khai về HT for Web (`ht.js` ~1 MB, `ht.graph3d.Graph3dView`, licence thương mại), và **kiểm trực tiếp bằng HTTP trong session này**: renderer dự án đang dùng (OpenFreeMap) có layer `building` với `render_height`/`render_min_height`, còn terrain tiles `elevation-tiles-prod/terrarium` trả 200 — cả hai đều không cần key.
+
+#### Thay thế mã nguồn mở cho từng mảnh của HT for Web
+
+HT for Web không phải một thư viện mà là **bốn sản phẩm gộp** (engine 3D, WebGIS, bộ chart/2D, nền tảng low-code),
+nên không có một "bản open source của HT" — nhưng **từng mảnh đều có thay thế mã nguồn mở**, và phần lớn đã nằm
+trong stack của dự án. Bảng dưới đã **kiểm licence trực tiếp** (npm registry + GitHub API, trong session này):
+
+| Mảnh của HT for Web | Thay thế mã nguồn mở | Licence (đã kiểm) | Dùng ở D7 |
+| --- | --- | --- | --- |
+| HT 3D render engine (`Graph3dView`) | **three.js + @react-three/fiber** (+ drei) | MIT | ✔ đã có trong stack — dùng cho cảnh có model rời |
+| WebGIS 3D, tile bản đồ | **MapLibre GL JS** + `fill-extrusion` + `setTerrain` | BSD-3-Clause | ✔ mặc định của D7 (thành phố 3D thật từ OSM) |
+| 3D Tiles / quả địa cầu | **CesiumJS** (1.145) hoặc **3d-tiles-renderer** (NASA-AMMOS, 0.5) | Apache-2.0 | ○ ghi lại, chỉ mở khi có tileset thật + ngân sách route riêng |
+| BIM 轻量化 (IFC) | **web-ifc** + **@thatopen/components** | MPL-2.0 (weak copyleft theo file) + MIT | ○ sẵn sàng cho IFC upload qua admin, chưa cần ở D7 |
+| BIM viewer khác | ~~xeokit-sdk~~ | **AGPL-3.0** (+ bản thương mại) | ✗ **từ chối**: copyleft mạnh, không hợp allow-list của dự án |
+| Bộ chart / gauge 2D | **Apache ECharts** (6.1) | Apache-2.0 | ○ chỉ thêm **nếu** số đo cho thấy component tự viết không đủ; phải khai ngân sách riêng (cùng luật với deck.gl) |
+| Panel 2D hiện tại | `components/stats/*` (tự viết) | — | ✔ mặc định: 0 kB thêm |
+| Đẩy dữ liệu thời gian thực | **Supabase Realtime** (đang dùng) | — | ✔ mặc định của D7 |
+| Broker IoT tự host (nếu cần) | **EMQX** / **Eclipse Mosquitto** (broker) + **Node-RED** (luồng) | EMQX & Mosquitto: GitHub báo *NOASSERTION* → **phải đọc LICENSE trước khi dùng**; Node-RED: Apache-2.0 | ○ đường di trú khi có phần cứng thật |
+| Nền tảng digital twin | **Eclipse Ditto** (EPL-2.0) · **ThingsBoard** (Apache-2.0) | đã kiểm | ○ ghi lại; nặng vận hành, chưa dùng |
+| Time-series | **TimescaleDB** (Apache-2.0 + TSL) | GitHub *NOASSERTION* → đọc LICENSE | ○ thay Postgres thô khi dữ liệu lớn hơn demo |
+| Dashboard vận hành nội bộ | **Grafana** | **AGPL-3.0** | △ chỉ dùng nội bộ, **không** nhúng vào sản phẩm |
+
+Hai ghi chú về cách đọc bảng này:
+
+1. **Các dòng ghi `NOASSERTION` là cố ý**: EMQX, Eclipse Mosquitto và TimescaleDB trộn nhiều giấy phép trong
+   repo (phần cộng đồng + phần thương mại), nên GitHub không kết luận được — và đó chính là lý do chúng nằm ở cột
+   "đường di trú" chứ không phải "đã chọn". Luật của dự án là *đọc LICENSE trước khi thêm dependency*, không tin
+   vào nhãn.
+2. **AGPL không tự động là sai, nhưng ở đây là không**: xeokit và Grafana đều copyleft mạnh. Grafana chỉ dùng như
+   công cụ nội bộ (không phân phối lại, không nhúng bundle) thì chấp nhận được; xeokit nhúng vào trang là chuyện
+   khác hẳn, nên nó bị từ chối và web-ifc/@thatopen là đường thay thế.
+
+**Vậy D7 dùng OSS, không dùng HT** — và phần "3D đẹp như video" vẫn đạt được, chỉ khác đường đi: **thành phố 3D
+thật** (OSM `fill-extrusion` + terrain, không model bịa) thay cho cảnh model cảng độc quyền, **ECharts/component
+tự viết** thay cho bộ chart của họ, **Supabase Realtime** thay cho luồng đẩy độc quyền. Chỗ duy nhất OSS chưa
+thay được là **cảnh model công trình đẹp** — vì đó là *tài sản model* chứ không phải công nghệ, và dự án đã có
+luật: chỉ nhận model thật qua pipeline admin (Phase 12/17).
 
 **Kết luận phân tích**: thứ đáng học từ video **không phải** engine của họ, mà là **cách ghép**: một cảnh 3D địa
 lý thật + panel 2D bên cạnh + dòng dữ liệu đẩy liên tục + các chỉ số vận hành. Ba trong bốn thứ đó dự án đã có
@@ -2035,10 +2072,11 @@ Triển khai Phase D7 – Digital Twin 3D & Realtime trong Data2Map.
 
 Tạo trang: /data2map/twin
 
-1. 3D GIS thật (không cần model ngoài)
+1. 3D GIS thật (không cần model ngoài, không cần thư viện mới)
    - Bật chế độ 3D trên nền bản đồ hiện có: layer fill-extrusion đọc chính source-layer "building" của style
      OpenFreeMap (field render_height / render_min_height), tô theo chiều cao; bật terrain bằng DEM tiles
-     công khai (AWS elevation-tiles-prod terrarium) + hillshade.
+     công khai (AWS elevation-tiles-prod terrarium) + hillshade. Đây là "thay thế mã nguồn mở" cho WebGIS 3D
+     của HT for Web: MapLibre (BSD-3) đã có trong stack, không thêm dependency nào.
    - Giữ nguyên mọi layer Data2Map đang có (kho, điểm giao, dải phủ, NDVI…) và vẽ chúng trong cùng cảnh 3D:
      điểm giao = circle, dải phủ = fill có opacity, tuyến = line, để thấy chúng nằm trên địa hình.
    - Camera: nút nghiêng 0/45/60 độ + bay tới kho đang chọn; tôn trọng reduce_motion (không bay, đặt thẳng camera).
@@ -2050,13 +2088,16 @@ Tạo trang: /data2map/twin
    - Không dựng model cảng/kho bịa. Nếu muốn có mô hình, chỉ nhận model thật qua pipeline admin (Phase 12/17) và
      để chỗ trống có lý do như D5 đã làm.
 
-3. Hạ tầng thời gian thực (mảnh còn thiếu)
+3. Hạ tầng thời gian thực (mảnh còn thiếu — thay thế mã nguồn mở cho luồng đẩy của HT)
    - Bảng time-series vehicle_positions(vehicle_id, at timestamptz, lng, lat, speed_kmh, heading, source text)
      + index theo (vehicle_id, at desc); RLS: anon/authenticated chỉ SELECT, ghi chỉ qua service role.
    - Bảng rollup logistics_kpi_hourly(hour timestamptz, vehicle_id, distance_km, stops_done, avg_speed_kmh…)
      cập nhật bằng pg_cron; giữ retention 7 ngày cho vehicle_positions (xoá theo lịch, có SQL rõ ràng).
    - Nguồn đẩy: Edge Function simulate-fleet (hoặc scripts/simulate-fleet.mjs khi chưa deploy) phát vị trí mỗi
      5 giây theo tuyến đã tính, ghi vào bảng; trang đăng ký Supabase Realtime (postgres_changes) và vẽ xe chạy.
+   - Viết sẵn "đường di trú" trong docs/TWIN.md cho ngày có phần cứng thật: MQTT (EMQX hoặc Eclipse Mosquitto)
+     → Node-RED/Edge Function → bảng time-series; hoặc Eclipse Ditto (EPL-2.0) / ThingsBoard (Apache-2.0) làm
+     device registry. Không cài gì trong phase này, chỉ ghi lại để không phải thiết kế lại từ đầu.
    - Mất kết nối: UI hiện "đang kết nối lại" và vẫn đọc được dữ liệu tĩnh; chỉ subscribe khi route đang hiển thị;
      huỷ kênh khi unmount. Không có gì chạy nền khi tab ẩn.
 
@@ -2065,6 +2106,8 @@ Tạo trang: /data2map/twin
      sparkline/daily bars dùng lại components/stats/*, timeline theo giờ dùng lại RangeTimeline.
    - Mọi chỉ số phải ghi công thức ngay trong panel (giống D2/D3/D4): "km/ngày = tổng quãng đường các tuyến
      trong rollup", "đúng hạn = điểm giao trong cửa sổ khách hẹn / tổng điểm giao".
+   - Nếu cockpit cần gauge/heatmap mà component tự viết không đủ: chỉ khi đó mới cân nhắc Apache ECharts
+     (Apache-2.0), lazy theo route, khai ngân sách riêng — cùng luật với quyết định "no deck.gl".
 
 5. Nhãn và trung thực dữ liệu
    - Xe, vị trí, tốc độ: MÔ PHỎNG (CC0) và ghi "synthetic: true" + note ở mọi feature/row sinh ra; UI ghi
@@ -2087,8 +2130,15 @@ Tạo trang: /data2map/twin
 
 **Ràng buộc riêng của D7**:
 
-1. **HT for Web bị từ chối** — thương mại, đóng, phải xin授权; nhúng `ht.js` (~1 MB một file) cũng phá luật
-   ngân sách theo route. Quyết định này ghi vào `docs/TWIN.md` kèm lý do, cùng chỗ với "no deck.gl".
+1. **HT for Web bị từ chối, và đã có bộ thay thế mã nguồn mở** (bảng ở trên): three.js + R3F (MIT) cho cảnh
+   3D, MapLibre `fill-extrusion` + terrain (BSD-3) cho WebGIS 3D, web-ifc + @thatopen/components (MPL-2.0/MIT)
+   cho BIM, Supabase Realtime cho đẩy dữ liệu, ECharts (Apache-2.0) nếu cockpit cần. Nhúng `ht.js` (~1 MB một
+   file) cũng phá ngân sách theo route. Quyết định + bảng thay thế ghi vào `docs/TWIN.md`, cùng chỗ với
+   "no deck.gl".
+   - **AGPL không được nhúng vào bundle**: xeokit-sdk (AGPL-3.0) bị từ chối vì lý do này; Grafana (AGPL-3.0) chỉ
+     dùng như công cụ vận hành nội bộ, không phân phối lại.
+   - **Repo ghi `NOASSERTION` thì phải đọc LICENSE trước khi thêm** (EMQX, Eclipse Mosquitto, TimescaleDB) —
+     không tin vào nhãn, và ghi lại kết luận đọc được vào `docs/TWIN.md`.
 2. **Một WebGL context**: 3D GIS làm bằng `fill-extrusion` + terrain của **chính MapLibre** trên route này. Muốn
    dùng R3F thì phải là route khác và **không** mount đồng thời (luật #6 của module).
 3. **Licence vẫn là ràng buộc cứng**: OSM/OpenFreeMap (ODbL 1.0, attribution), DEM công khai (nguồn public domain,
