@@ -29,6 +29,12 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 🟡 Pipeline + vai trò admin xong; chế độ hybrid 3D còn lại |
+| **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
+| **D2** | Real Estate & Zoning Overlay | 📝 Đã ghi prompt, chưa triển khai |
+| **D3** | Footfall & Trend Map (F&B/Retail) | 📝 Đã ghi prompt, chưa triển khai |
+| **D4** | Logistics & Fleet Visualizer | 📝 Đã ghi prompt, chưa triển khai |
+| **D5** | Cultural & Story Maps (kết hợp 3D) | 📝 Đã ghi prompt, chưa triển khai |
+| **D6** | Agri Geo-Analytics Dashboard | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
 
@@ -37,7 +43,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **267** bài trong **23** suite (`npm run check:suites`) |
+| Test tự động | **276** bài trong **24** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -1609,6 +1615,445 @@ Hiện `/map` đã có lối vào 3D đúng tinh thần đó: panel loài có n�
 
 ---
 
+## 🧭 Module Data2Map (Phases D1–D6)
+
+**Data2Map là gì**: module thứ hai của Kami3D — một bộ bản đồ dữ liệu tương tác, xuất hiện như **mục menu
+độc lập**, để người dùng đi từ "thế giới 3D động vật" sang các bản đồ dữ liệu doanh nghiệp. Dùng chung hạ tầng
+(auth Clerk, Supabase + PostGIS, UI Kami3D, ngăn xếp bản đồ đã dựng ở Phase 13–17) nhưng có bộ trang riêng.
+
+**Cấu trúc menu**: `/data2map` (trang chủ module) + 5 sản phẩm con
+
+| Sản phẩm con | Route | Phase |
+| --- | --- | --- |
+| Real Estate & Zoning | `/data2map/real-estate` | D2 |
+| Footfall & Trend Map | `/data2map/trends` | D3 |
+| Logistics & Fleet | `/data2map/logistics` | D4 |
+| Cultural & Story Maps | `/data2map/stories` | D5 |
+| Agri Geo-Analytics | `/data2map/agriculture` | D6 |
+
+**Một điều nên nói thẳng**: người dùng mục tiêu của Data2Map (môi giới bất động sản, chủ F&B, đơn vị vận tải,
+hợp tác xã) **không** phải người xem bách khoa động vật. Phần dùng chung thật sự chỉ là auth + DB + UI + ngăn xếp
+bản đồ; phần dữ liệu, SEO và cách viết nội dung là của một sản phẩm khác. Vì vậy Data2Map nên **ở cùng repo
+nhưng tách đường** (`/data2map/*`, `components/data2map/*`, `lib/data2map/*`, `docs/DATA2MAP.md`), không trộn
+vào các trang động vật.
+
+**Thứ tự đề xuất**: D1 → D2 → D5 → D3 → D4 → D6. D5 rẻ nhất vì tái dùng gần như toàn bộ 3D + timeline đã có;
+D6 đắt nhất vì cần tile raster (NDVI) mà dự án chưa có hạ tầng tile nào.
+
+### ⚠️ Đọc trước: hạ tầng D1 yêu cầu **đã có sẵn** — không được dựng lại
+
+| D1 yêu cầu tạo | Thực tế trong repo | Kết luận |
+| --- | --- | --- |
+| `components/data2map/BaseMap.tsx` | [components/map/BaseMap.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/map/BaseMap.tsx) — MapLibre + react-map-gl, style keyless, controls native (zoom/compass/geolocate/fullscreen/scale/attribution), `children` là `<Source>/<Layer>` | **Không tạo file thứ hai.** Đây đúng là component D1 mô tả. Dùng lại nguyên trạng |
+| `LayerControl.tsx` (bật/tắt + opacity) | [components/map/LayerPanel.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/map/LayerPanel.tsx) | Tham số hoá/thêm layer của Data2Map, không fork |
+| `MapLegend.tsx` | Legend hiện nằm trong LayerPanel | Tách thành component dùng chung nếu cần, một chỗ |
+| `MapSearch.tsx` | [lib/map-query.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/map-query.ts) (URL-as-state, có test `check:map`) + `components/animal/FilterBar.tsx` | Tái dùng cơ chế URL, không viết parser thứ hai |
+| `useData2Map` + Context | [lib/map-layers.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/map-layers.ts) (Zustand) | Dùng chung store; Context mới = hai nguồn sự thật cho cùng "layer nào đang bật" |
+| "Bật PostGIS" | `create extension postgis with schema extensions` đã có trong [schema.sql](file:///Users/macbookpro2015/Kami/Kami3D/supabase/schema.sql#L625) | Xong rồi |
+| Turf.js | `@turf/turf@7` đã là dependency | Xong rồi |
+| Shadcn UI | `components/ui/{badge,button,card,input,skeleton}` (Radix Slot + cva) | Dùng lại; **không** chạy `shadcn init` |
+| Framer Motion | Đã gỡ khỏi dự án và bị `check:bundle` **chặn** (marker `framer-motion`) | **Không dùng.** Animation = CSS |
+| Deck.gl | **Chưa cài**, và chưa chắc cần (xem ràng buộc #3) | Chỉ thêm khi có số đo biện minh |
+
+### Ràng buộc chung cho D1–D6
+
+1. **Một ngăn xếp bản đồ duy nhất.** Data2Map thêm **dữ liệu và trang**, không thêm renderer. Mọi thứ đi qua
+   `components/map/*` + `lib/map-*.ts` hiện có; nếu buộc phải sửa chúng để dùng chung, sửa **một chỗ** rồi
+   cả `/map` lẫn `/data2map/*` cùng hưởng.
+2. **Mỗi route mới phải được khai budget.** `/map` đang là `{ route: "/map", manifest: "/map/page", budget: 150 }`
+   với số đo thật **139 kB** ([bundle-budget.mjs](file:///Users/macbookpro2015/Kami/Kami3D/scripts/bundle-budget.mjs#L44-L60)) — route render theo yêu cầu thì
+   khai bằng `manifest`, không phải `html`. Trang `/data2map` (chỉ có card) phải **không** nạp MapLibre và giữ
+   budget thấp; 5 trang có bản đồ khai riêng theo cùng khuôn. Marker `maplibre-gl` / `MaplibreMap` đã có trong
+   `FORBIDDEN` nên bản đồ không rò sang route khác — nhưng chỉ áp dụng cho route **đã có trong `ROUTES`**.
+3. **Deck.gl là lựa chọn cuối, không phải mặc định.** MapLibre đã có layer `heatmap`, `cluster` (qua
+   `cluster: true` trên GeoJSON source), `circle`, `fill`, `line`, `symbol`, `fill-extrusion`; Turf (đã cài) có
+   `hexGrid` + `interpolate` nên hexagon làm được bằng `fill` layer. Nghĩa là Heatmap/Hexagon/Cluster của D2–D4
+   **không cần** deck.gl. Chỉ cân nhắc deck.gl khi có số đo cho thấy cần (>~100k điểm, hoặc TripsLayer/ArcLayer
+   animation), và khi đó: `dynamic(ssr:false)` trong route, budget riêng, thêm marker vào `FORBIDDEN`. Cửa sổ
+   của `/map` là 150 kB — deck.gl một mình đã vượt.
+4. **Licence dữ liệu vẫn là ràng buộc cứng** — và dự án đã có tiền lệ rõ ở [docs/MAP.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/MAP.md#L37-L55):
+   WDPA **bị từ chối** (phi thương mại, mà site có quảng cáo), IUCN range map **bị từ chối**, GBIF **được nhận**
+   (CC BY 4.0 + phải cite DOI của lượt tải). Data2Map phải theo đúng kỷ luật đó:
+   - **Google Places (D3): ToS cấm lưu trữ/cache dữ liệu địa điểm ngoài phạm vi cho phép** → **không được seed
+     vào DB**. Prompt D3 ghi "mock dữ liệu từ Google Places", nhưng đường đó vừa vi phạm ToS vừa cần API key
+     (phá luật "clone mới chạy được không cần key"). Dùng POI **OpenStreetMap qua Overpass** (ODbL, có thật,
+     ghi attribution) hoặc dữ liệu mô phỏng có nhãn.
+   - **Ảnh vệ tinh (D2)**: mỗi nhà cung cấp một ToS riêng. Phải thêm mục attribution riêng trong
+     [lib/map-style.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/map-style.ts#L30-L36), **không** dùng chung `MAP_ATTRIBUTION` (đang là ODbL 1.0 của
+     OpenFreeMap), và provider phải không cần key.
+   - **NDVI (D6)**: nguồn thật **có** — Sentinel-2 (Copernicus, attribution "Contains modified Copernicus
+     Sentinel data") và Landsat (USGS, public domain).
+   - **Dân số (D3)**: WorldPop (CC BY 4.0) hoặc GHSL (JRC) — dùng được, kèm attribution.
+5. **Dữ liệu mô phỏng phải tự khai là mô phỏng.** Phase 13 đã đặt khuôn: cờ `"synthetic": true` + `note` mà
+   panel render nguyên văn. D3 (footfall theo giờ), D4 (GPS xe), D6 (sản lượng ước tính) **không có nguồn mở** →
+   bắt buộc mang cờ đó. Đây là cùng một luật với "không dùng model demo/placeholder" ở Phase 12.
+6. **Một WebGL context.** D5 mở ModelViewer 3D cạnh bản đồ; mỗi trang chỉ được có **một** canvas 3D phụ, mount
+   theo yêu cầu người dùng, và `dispose()` GLB khi đổi (lỗi R6 trong [docs/REVIEW.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/REVIEW.md) — Phase 17 hybrid vì
+   thế vẫn đang 🟡). Dùng [lib/webgl.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/webgl.ts) đã có để xử lý mất context.
+7. **Schema: khuyến nghị giữ `public`.** D1 cho hai lựa chọn (`schema data2map` **hoặc** bảng chung). Một schema
+   mới phải được thêm vào **Exposed schemas** trong Supabase rồi mới gọi được qua `supabase.from(...)`, kèm
+   grant + RLS + `check-sql` — trong khi cả 12 bảng hiện tại đều ở `public`. Nên chọn **bảng chung có tiền tố**:
+   `data2map_layers`, `data2map_datasets`, `data2map_user_prefs`.
+8. **RLS theo đúng hai khuôn đang có**: dữ liệu công khai (layers, datasets) = `enable row level security` +
+   **một** policy `SELECT to anon, authenticated using (true)` + `grant select`, **không** write policy;
+   dữ liệu của người dùng (`user_map_preferences`) = owner-only theo khuôn `user_settings` (đã có đủ
+   select/insert/update/delete + `revoke all from anon`). Ghi dữ liệu đi qua `app/api/admin/geodata/route.ts` +
+   `lib/supabase-admin.ts` + vai trò `app_admins`/`is_admin()` — **không** mở write policy cho browser.
+   Bảng mới phải được thêm vào `check-sql.mjs`.
+9. **i18n và SEO phải quyết trước, không sau.** Mọi chuỗi qua `lib/i18n.ts` (đã có); 6 route mới phải vào
+   [app/sitemap.ts](file:///Users/macbookpro2015/Kami/Kami3D/app/sitemap.ts) + canonical qua `lib/seo.ts` + JSON-LD qua `components/seo/JsonLd.tsx`
+   — hoặc chủ động `noindex` nếu Data2Map là B2B nội bộ. Không có trạng thái "quên".
+
+---
+
+### Phase D1 — Data2Map Foundation
+
+**Mục tiêu**: mục menu mới, layout riêng, trang chủ module với 5 card, và bảng dữ liệu dùng chung cho các sản
+phẩm con — **trên nền hạ tầng bản đồ đã có**, không dựng lại.
+
+**Prompt để triển khai Phase D1**:
+
+````markdown
+Phase D1 – Data2Map Foundation cho Kami3D.
+
+Tạo hạ tầng dùng chung cho module Data2Map:
+
+1. Thêm mục menu "Data2Map" vào Navbar chính của Kami3D.
+2. Tạo layout riêng: `app/data2map/layout.tsx`
+3. Tech stack bắt buộc:
+   - MapLibre GL JS hoặc Mapbox GL JS + react-map-gl
+   - Deck.gl (Heatmap, Hexagon, Cluster, Isochrone…)
+   - Supabase + PostGIS
+   - Turf.js
+   - Tailwind + Shadcn UI + Framer Motion (giữ style Kami3D)
+
+4. Component cốt lõi cần có:
+   - `components/data2map/BaseMap.tsx` (map tái sử dụng, dark theme)
+   - `components/data2map/LayerControl.tsx` (bật/tắt layer + opacity)
+   - `components/data2map/MapLegend.tsx`
+   - `components/data2map/MapSearch.tsx`
+   - Hook `useData2Map` và Context để quản lý layer state
+
+5. Database:
+   - Bật PostGIS
+   - Tạo schema `data2map` hoặc các bảng chung: `map_layers`, `map_datasets`, `user_map_preferences`
+
+6. Trang landing: `app/data2map/page.tsx` giới thiệu 5 sản phẩm con với card đẹp.
+
+Yêu cầu: Code production-ready, TypeScript strict, UI đồng bộ Kami3D (Glassmorphism + Dark).
+````
+
+**Ràng buộc riêng của D1**:
+
+1. **Không tạo `components/data2map/BaseMap.tsx`** (xem bảng đối chiếu phía trên). Nếu bạn muốn tên thư mục
+   `data2map` cho rõ ràng, cách đúng là **di chuyển** `components/map/*` sang tên dùng chung rồi cập nhật import
+   một lần — không phải copy thành hai bản.
+2. **Menu**: `Navbar` hiện có `GuestMenu`, `UserMenu`, `SettingsMenu` ([components/layout](file:///Users/macbookpro2015/Kami/Kami3D/components/layout)) — thêm một
+   mục + 5 link con mà không làm vỡ menu mobile đang chạy.
+3. **`/data2map` không được nạp MapLibre.** Landing chỉ có card → budget giữ mức thấp; nạp bản đồ ở đây là tự
+   phá cửa sổ 150 kB của chính mình.
+4. **Ba bảng mới theo tiền tố `data2map_`** trong `public`, RLS theo ràng buộc chung #8, `data2map_user_prefs`
+   owner-only. `map_layers` nên là **registry** (id, tên, kind, nguồn, licence, năm, bật/tắt mặc định) để
+   LayerPanel render từ DB thay vì hard-code 5 lần ở 5 trang.
+5. **Tái dùng `lib/map-query.ts`**: thêm layer mới cho Data2Map mà **không** sửa contract cũ đang bị
+   `check:map` khoá — nếu cần namespace thì mở rộng danh sách layer hợp lệ, đừng viết parser mới.
+6. **`docs/DATA2MAP.md`** là nơi ghi lại quyết định dữ liệu/licence, đúng khuôn [docs/MAP.md](file:///Users/macbookpro2015/Kami/Kami3D/docs/MAP.md) — module
+   mới mà không có tài liệu thì sáu tháng sau sẽ có người thêm lại deck.gl.
+
+---
+
+### Phase D2 — Real Estate & Zoning Overlay
+
+**Mục tiêu**: `/data2map/real-estate` — heatmap giá đất, overlay quy hoạch (kể cả trên nền vệ tinh), tiện ích
+xung quanh, nguy cơ ngập, ô nhiễm, panel bật/tắt + opacity, click ra chi tiết và "điểm tiềm năng".
+
+**Prompt để triển khai Phase D2**:
+
+````markdown
+Triển khai Phase D2 – Real Estate & Zoning Overlay trong module Data2Map của Kami3D.
+
+Tạo trang: `/data2map/real-estate`
+
+Tính năng bắt buộc:
+1. Heatmap giá đất theo khu vực
+2. Layer quy hoạch sử dụng đất (có thể overlay lên satellite)
+3. Layer tiện ích xung quanh (trường học, bệnh viện, chợ, công viên…)
+4. Layer nguy cơ ngập lụt theo mùa
+5. Layer ô nhiễm tiếng ồn / không khí (nếu có dữ liệu)
+6. Panel bật/tắt từng lớp + chỉnh độ mờ
+7. Click vào thửa đất/khu vực → hiện thông tin chi tiết + điểm tiềm năng
+
+Dữ liệu đầu vào giả định: GeoJSON giá đất, quy hoạch, tiện ích, ngập lụt.
+
+Yêu cầu kỹ thuật:
+- Dùng Deck.gl HeatmapLayer + GeoJsonLayer
+- Hỗ trợ chuyển đổi giữa Map và Satellite
+- Responsive, có legend rõ ràng
+- Tích hợp với BaseMap ở Phase D1
+
+Trả về đầy đủ: page, các component layer, ví dụ dữ liệu GeoJSON mẫu, và cách thêm dữ liệu thật sau này.
+````
+
+**Ràng buộc riêng của D2**:
+
+1. **Giá đất và quy hoạch Việt Nam không có GeoJSON mở.** Bảng giá đất công bố dạng văn bản/quyết định, quy hoạch
+   sử dụng đất hầu như không phát hành dạng máy đọc được. Nên thiết kế theo hướng **upload là đường chính**
+   (dùng lại pipeline admin ở ràng buộc #8), còn dữ liệu mẫu thì phải mang cờ `synthetic`. Đừng dựng UI giả
+   định rằng dữ liệu này sẽ "có sau".
+2. **Nguồn thật khả thi duy nhất trong 6 lớp là tiện ích** — lấy từ **OpenStreetMap qua Overpass**
+   (`amenity=school|hospital|marketplace`, `leisure=park`), licence **ODbL**, phải ghi attribution. Đây là lớp
+   nên làm trước để trang có dữ liệu thật.
+3. **Heatmap giá đất dùng layer `heatmap` native của MapLibre** (đúng cách `/map` đang vẽ mật độ GBIF). Không
+   thêm deck.gl cho một heatmap.
+4. **Satellite**: provider phải keyless + có attribution riêng (ràng buộc #4). Kiểm tra ToS trước khi mặc định —
+   ảnh vệ tinh là loại dữ liệu dễ vi phạm nhất.
+5. **"Điểm tiềm năng" phải là hàm thuần có test** trong `lib/data2map/score.ts` + một suite `check:` — đúng khuôn
+   `lib/risk.ts` của Phase 15. Con số hiển thị cho người dùng quyết định mua thì càng phải test được.
+6. **Ô nhiễm tiếng ồn/không khí**: Việt Nam có một số trạm quan trắc công khai nhưng không có lớp dạng
+   polygon/LiDAR mở → nhiều khả năng phải **bỏ layer** hoặc chỉ hiển thị điểm trạm có nguồn + giờ đo.
+
+---
+
+### Phase D3 — Footfall & Trend Map
+
+**Mục tiêu**: `/data2map/trends` — hotspot F&B đang lên, lọc theo loại hình, công cụ chọn vị trí ("khoảng trống
+thị trường"), lớp mật độ dân cư + lưu lượng, thanh thời gian theo giờ/ngày.
+
+**Prompt để triển khai Phase D3**:
+
+````markdown
+Triển khai Phase D3 – Footfall & Trend Map trong Data2Map.
+
+Tạo trang: `/data2map/trends`
+
+Tính năng chính:
+1. Hotspot Map thời gian thực (hoặc gần thực) các quán F&B đang trendy
+2. Lọc theo loại hình: Cafe, Trà sữa, Nhà hàng, Bakery…
+3. Site Selection Tool:
+   - Người dùng chọn loại hình kinh doanh
+   - Map hiển thị "khoảng trống thị trường" (mật độ dân cao + ít đối thủ)
+4. Density layer mật độ dân cư + lưu lượng giao thông
+5. Click vào hotspot → hiện đánh giá, số check-in, xu hướng gần đây
+
+Kỹ thuật:
+- Deck.gl HeatmapLayer + ScatterplotLayer + HexagonLayer
+- Có thể mock dữ liệu từ Google Places / giả lập
+- Có thanh thời gian (theo giờ hoặc theo ngày) để xem xu hướng
+
+UI phải đẹp, phù hợp với giới trẻ và chủ doanh nghiệp.
+````
+
+**Ràng buộc riêng của D3**:
+
+1. **Không dùng Google Places để lưu dữ liệu** (ràng buộc #4) — vừa vi phạm ToS vừa cần key. Đường thật:
+   POI F&B từ **OSM/Overpass** (ODbL) làm nền, phần "đang trendy / số check-in / đánh giá" thì **mô phỏng có
+   nhãn** vì không có nguồn mở nào cho Việt Nam.
+2. **"Thời gian thực" là lời hứa không giữ được** với dữ liệu mở. Đổi nhãn UI thành đúng bản chất (ví dụ "mật độ
+   POI theo giờ trong ngày, dữ liệu mô phỏng") thay vì để người dùng tin đây là số liệu sống.
+3. **Hexagon làm được bằng Turf + layer `fill`** (`turf.hexGrid` + `interpolate` gán giá trị) — không cần
+   `HexagonLayer` của deck.gl.
+4. **Site Selection là hàm thuần có test**: đầu vào = lưới mật độ dân + số đối thủ trong bán kính, đầu ra = điểm.
+   Đặt ở `lib/data2map/` cùng test; tái dùng `turf.buffer`/`booleanPointInPolygon`.
+5. **Mật độ dân dùng nguồn thật** (WorldPop CC BY 4.0 / GHSL) — nhưng đây là raster, cần tiền xử lý thành tile
+   hoặc vector hoá theo ô lưới; chốt cách làm trước khi code UI.
+6. **Lưu lượng giao thông**: không có nguồn mở cho Việt Nam → nếu đưa vào thì là lớp mô phỏng có nhãn, hoặc bỏ.
+
+---
+
+### Phase D4 — Logistics & Fleet Visualizer
+
+**Mục tiêu**: `/data2map/logistics` — isochrone 15/30/45/60 phút từ kho, cụm điểm giao, vị trí xe (GPS mock),
+gom đơn + gợi ý tuyến, lớp giao thông.
+
+**Prompt để triển khai Phase D4**:
+
+````markdown
+Triển khai Phase D4 – Logistics & Fleet Visualizer trong Data2Map.
+
+Tạo trang: `/data2map/logistics`
+
+Tính năng bắt buộc:
+1. Isochrone Map: từ một kho, hiển thị vùng phủ trong 15 / 30 / 45 / 60 phút
+2. Density Clusters điểm giao hàng
+3. Hiển thị vị trí xe (mock GPS)
+4. Công cụ gom đơn (clustering) và gợi ý lộ trình tối ưu cơ bản
+5. Layer tình trạng giao thông (nếu có)
+
+Kỹ thuật:
+- Dùng isochrone từ Mapbox Isochrone API hoặc tự tính bằng Turf + OSRM giả lập
+- Deck.gl ClusterLayer + ArcLayer / TripsLayer
+- Panel điều khiển thời gian và chọn kho
+
+Tập trung vào giá trị giảm chi phí vận hành cho doanh nghiệp logistics.
+````
+
+**Ràng buộc riêng của D4**:
+
+1. **Mapbox Isochrone API bị loại** vì cần access token — vi phạm luật "clone mới chạy được không cần key" đã
+   ghi rõ trong [lib/map-style.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/map-style.ts#L1-L21). Ba đường còn lại, phải chọn và ghi rõ:
+   **(a)** Turf `buffer` + `isobands` → xấp xỉ theo khoảng cách, **không** phản ánh đường bộ (phải ghi rõ trong UI);
+   **(b)** tự dựng graph từ OSM + Dijkstra → đúng hơn, nặng hơn; **(c)** self-host OSRM/Valhalla → đúng nhất,
+   nhưng là hạ tầng mới. Với D4, (a) là đủ nếu nhãn trung thực; nói "vùng phủ 30 phút" khi chỉ là bán kính
+   30 phút sẽ khiến người dùng ra quyết định sai.
+2. **Cluster bằng MapLibre native** (`cluster: true`, `clusterRadius`) — không cần `ClusterLayer`.
+   Arc/Trips animation làm bằng `line` layer + `requestAnimationFrame` (Phase 16 đã làm đúng cách này cho
+   seasonal path).
+3. **Gom đơn + tuyến tối ưu là thuật toán trong `lib/`**: nearest-neighbour + 2-opt là đủ cho quy mô demo, viết
+   hàm thuần + test. Không cần thư viện solver.
+4. **GPS mock phải gắn cờ mô phỏng** và **không** lưu vết vị trí thật của bất kỳ ai — đây là dữ liệu cá nhân, khác
+   hẳn loại dữ liệu công khai của các phase trước.
+5. **Lớp giao thông**: không có nguồn mở cho Việt Nam → mô phỏng có nhãn, hoặc bỏ.
+
+---
+
+### Phase D5 — Cultural & Story Maps
+
+**Mục tiêu**: `/data2map/stories` — timeline bản đồ (1800 → nay), điểm di tích kèm câu chuyện/ảnh/audio, mở
+ModelViewer 3D hoặc ảnh 360, chế độ Story Mode tự chạy.
+
+**Prompt để triển khai Phase D5**:
+
+````markdown
+Triển khai Phase D5 – Cultural & Story Maps trong Data2Map.
+
+Tạo trang: `/data2map/stories`
+
+Tính năng chính:
+1. Timeline Map: thanh thời gian kéo được (ví dụ 1800 → 2026). Khi kéo, bản đồ thay đổi ranh giới, sự kiện, giao diện.
+2. Các điểm di tích gắn câu chuyện, hình ảnh, audio.
+3. 3D Virtual Tour: click vào di tích → mở ModelViewer 3D (tái sử dụng component 3D của Kami3D) hoặc ảnh 360.
+4. Chế độ "Story Mode": tự động dẫn người dùng qua các điểm theo câu chuyện.
+
+Yêu cầu đặc biệt:
+- Kết hợp mạnh với hệ thống 3D hiện có của Kami3D
+- Animation mượt khi chuyển năm
+- Hỗ trợ cả desktop và mobile
+
+Đây là phase thể hiện rõ nhất sự kết hợp giữa Data2Map và thế mạnh 3D gốc của Kami3D.
+````
+
+**Ràng buộc riêng của D5**:
+
+1. **Timeline đã có, đừng viết lại.** [components/map/TimelinePanel.tsx](file:///Users/macbookpro2015/Kami/Kami3D/components/map/TimelinePanel.tsx) + [lib/timeline.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/timeline.ts) +
+   `lib/timeline-data.ts` (Phase 16) đã xử lý thanh thời gian, annotation và phát animation. D5 chỉ đổi
+   **nguồn dữ liệu** (di tích thay vì range động vật) — không dựng slider thứ hai.
+2. **3D dùng lại `ModelViewer`/`LazyViewers`**, một WebGL context (ràng buộc #6), và `dispose()` GLB. Đây đúng
+   là phần Phase 17 hybrid còn 🟡 — nên D5 thừa hưởng luôn việc còn lại đó thay vì làm hai lần.
+3. **Ảnh và audio di tích: dùng Wikimedia Commons** (phần lớn CC BY-SA / CC0) → bắt buộc attribution + tôn trọng
+   share-alike, dùng lại khuôn [lib/attribution.ts](file:///Users/macbookpro2015/Kami/Kami3D/lib/attribution.ts) và bucket Storage hiện có. Không nhúng ảnh
+   "sưu tầm" không rõ nguồn.
+4. **"Story Mode" autoplay phải tôn trọng `reduce_motion`** (setting Phase 11) và `prefers-reduced-motion` — đây
+   là chuyển động liên tục tự chạy, đúng loại phải tắt theo yêu cầu người dùng.
+5. **Ảnh 360**: cần thư viện riêng (`@photo-sphere-viewer` ~vài chục kB) — phải khai vào budget, và chỉ nạp khi
+   người dùng bấm mở.
+
+---
+
+### Phase D6 — Agri Geo-Analytics Dashboard
+
+**Mục tiêu**: `/data2map/agriculture` — bản đồ sức khỏe cây trồng (NDVI), lớp độ ẩm/nhiệt độ/mưa, phân bố nguồn
+cung theo tỉnh + mùa thu hoạch, lọc theo cây trồng/thời gian, click ra sản lượng ước tính + khuyến nghị, dashboard
+số liệu cạnh bản đồ.
+
+**Prompt để triển khai Phase D6**:
+
+````markdown
+Triển khai Phase D6 – Agri Geo-Analytics trong Data2Map.
+
+Tạo trang: `/data2map/agriculture`
+
+Tính năng:
+1. Bản đồ sức khỏe cây trồng (NDVI) theo màu sắc trên từng thửa/vùng
+2. Layer độ ẩm đất, nhiệt độ, lượng mưa
+3. Bản đồ phân bố nguồn cung nông sản theo tỉnh/huyện + mùa thu hoạch
+4. Công cụ lọc theo loại cây trồng và thời gian
+5. Click vào vùng → hiện sản lượng ước tính, thời điểm thu hoạch, khuyến nghị
+
+Kỹ thuật:
+- Hiển thị raster (NDVI) hoặc vector đã xử lý
+- Legend màu chuẩn nông nghiệp
+- Có thể dùng Deck.gl hoặc MapLibre raster source
+- Dashboard bên cạnh map hiển thị số liệu tổng hợp
+
+Hướng tới đối tượng: thương lái, hợp tác xã, nông dân công nghệ.
+````
+
+**Ràng buộc riêng của D6**:
+
+1. **Đây là phase đắt nhất — và nên tách raster ra khỏi phần vector.** NDVI/độ ẩm/nhiệt độ/mưa là **raster**;
+   MapLibre hiển thị raster qua `raster` source cần URL tile XYZ. Dự án **chưa có hạ tầng tile nào** (mọi thứ
+   hiện tại là vector GeoJSON từ PostGIS). Nghĩa là D6 cần thêm: pipeline tiền xử lý (Sentinel-2 / Landsat /
+   ERA5) → tiles → Storage/CDN, có chi phí lưu trữ và băng thông. Nếu chưa sẵn sàng, hãy làm phần **vector**
+   trước (vùng trồng, nguồn cung theo tỉnh) và để raster thành phase riêng.
+2. **Nguồn thật, dùng được**: Sentinel-2 (Copernicus — attribution "Contains modified Copernicus Sentinel data"),
+   Landsat (USGS, public domain), ERA5/CHIRPS cho mưa. Không cần bịa, nhưng cần xử lý.
+3. **Thang màu NDVI phải là hàm thuần + test** (`lib/data2map/ndvi.ts`): NDVI ∈ [-1, 1], dải màu chuẩn nông
+   nghiệp, và phải trả `null` cho pixel mây/nước thay vì vẽ thành "cây trồng khỏe".
+4. **"Sản lượng ước tính" và "khuyến nghị" phải nói rõ là ước tính**: ghi công thức + nguồn tham số ngay trong UI,
+   và test công thức. Đây là con số người dùng dùng để mua bán — không được trình bày như số liệu chính thức.
+5. **"Mùa thu hoạch theo tỉnh" không có nguồn mở chuẩn hoá** → phải ghi nguồn hoặc đánh dấu mô phỏng.
+6. **Dashboard dùng lại `components/stats/*`** (`DailyBars`, `Sparkline`) đã có từ Phase 4 — không viết lại chart.
+
+---
+
+## ✅ Phase D1 — Kết quả: Data2Map Foundation
+
+**Trạng thái: đã giao.** Mục menu riêng, layout riêng, trang chủ module, ba bảng dữ liệu và một registry mà các
+phase sau sẽ đọc — **trên hạ tầng bản đồ đã có**, không dựng lại (đúng bảng đối chiếu ở đầu module).
+
+### 1. Không tạo hạ tầng thứ hai
+
+| Prompt D1 yêu cầu | Thực tế dùng |
+| --- | --- |
+| `components/data2map/BaseMap.tsx` | `components/map/BaseMap.tsx` (MapLibre, style keyless, controls native) |
+| `LayerControl.tsx` | `components/map/LayerPanel.tsx`, nay đọc từ registry |
+| `MapSearch.tsx` | `lib/map-query.ts` (URL là state, đã có `check:map` khoá) |
+| `useData2Map` + Context | `lib/map-layers.ts` (zustand) — một store, một nguồn sự thật cho mỗi công tắc |
+| Bật PostGIS | đã có từ Phase 13 |
+
+Deck.gl **không được thêm** — MapLibre đã có heatmap/cluster/circle/fill/line/fill-extrusion, Turf đã là
+dependency. Lý do và ngưỡng để cân nhắc lại đã ghi ở [docs/DATA2MAP.md](docs/DATA2MAP.md).
+
+### 2. Ba bảng, và registry là bảng thật
+
+- `data2map_datasets` — provenance: source, licence, năm, geometry kind, record count, `synthetic`, `note`, `status`.
+- `data2map_layers` — registry mà panel render từ đó, `id` là token trên URL.
+- `data2map_user_prefs` — công tắc của người dùng, owner-only đủ 4 lệnh, `revoke all from anon`.
+
+Hai bảng đầu: RLS + **một** policy `SELECT to anon, authenticated using (true)` + `revoke`/`grant select`, không có
+write policy — đúng khuôn chung #8. Đã áp lên DB và seed: **9 dataset, 10 layer**.
+
+### 3. Licence: quyết trước khi ghi dữ liệu
+
+`data2map_datasets.license` là bảng **duy nhất** chấp nhận `ODbL` — vì POI và đường của OpenStreetMap (ODbL) là
+nguồn thật cho amenity/road, dùng kèm attribution và fetch theo view thay vì lưu thành CSDL dẫn xuất. Các bảng
+động vật giữ nguyên luật hai giá trị. **Google Places bị từ chối** (ToS cấm cache + cần API key), đúng như prompt D3
+đã cảnh báo. Bảng giá đất và quy hoạch Việt Nam không có dạng máy đọc được → đường chính là **upload** qua pipeline
+admin Phase 17, còn dữ liệu mẫu mang cờ `synthetic`.
+
+### 4. Dữ liệu mô phỏng tự khai
+
+`synthetic: true` + `note` bắt buộc, và `check:data2map` **fail** nếu một dataset mô phỏng thiếu note. Landing page
+in nhãn "simulated" trong bảng registry (8 chỗ trên trang) — cùng luật với envelope demo ở Phase 13.
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **276 test** (thêm 9 của `check:data2map`); `tsc` sạch; build xanh.
+- **`/data2map` 104.6 kB** JS khởi đầu (ngân sách 115, đo rồi mới đặt) — và `check:bundle` xác nhận **không có**
+  `maplibre-gl`/`MaplibreMap` trong chunk đầu của route này. Đây là route duy nhất của module không vẽ gì.
+- `/map` 135.7 kB (ngân sách 150) — thêm `/data2map` vào `ROUTES` không làm phình route cũ.
+- Chrome thật: tiêu đề, 5 card sản phẩm, 9 dòng registry, nhãn simulated, và mục **Data2Map** trong navbar.
+- `check:data2map` khoá thêm ba thứ dễ hỏng: sản phẩm `live` **phải** có `app/data2map/<route>/page.tsx`; sản phẩm
+  `planned` **không được** có sẵn page (nếu có thì phải đổi status); và `/data2map` + mọi sản phẩm live phải nằm
+  trong `app/sitemap.ts` (phát hiện luôn: `/map` từ Phase 13 vẫn thiếu trong sitemap → đã thêm).
+
+### 6. Tiếp theo
+
+D2 (Real Estate & Zoning) — nơi registry bắt đầu có dữ liệu thật: `land_price` và `zoning` là mô phỏng có nhãn,
+`amenity` lấy từ Overpass, và trạng thái dataset chuyển từ `planned` sang `live` khi pipeline chạy.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -1629,7 +2074,7 @@ Hiện `/map` đã có lối vào 3D đúng tinh thần đó: panel loài có n�
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 144 bài test trong 16 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh)
+npm run check        # typecheck + 267 bài test trong 23 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata)
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 37 route
 npm run db:status    # database đang có bao nhiêu loài

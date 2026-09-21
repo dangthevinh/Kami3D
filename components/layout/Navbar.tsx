@@ -1,6 +1,6 @@
 "use client";
 
-import { Compass, Gamepad2, Heart, MapPinned, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
+import { Boxes, Compass, Gamepad2, Heart, MapPinned, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
@@ -17,6 +17,9 @@ const NAV_LINKS = [
   { href: "/map", label: "Map", icon: MapPinned },
   { href: "/quiz", label: "Quiz", icon: Gamepad2 },
   { href: "/leaderboard", label: "Most viewed", icon: Trophy },
+  // Data2Map is a second product surface, not another encyclopedia page: one navbar entry,
+  // and its own five sub-links live in the module layout.
+  { href: "/data2map", label: "Data2Map", icon: Boxes },
   { href: "/profile", label: "Collection", icon: Heart },
 ] as const;
 

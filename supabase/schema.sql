@@ -1083,6 +1083,135 @@ end $$;
 grant insert, update, delete on public.animal_geodata, public.threat_layers, public.range_events, public.migration_routes to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Data2Map (Phase D1): the shared registry
+-- ---------------------------------------------------------------------------
+--
+-- Data2Map is a second product surface on the same infrastructure - a set of data maps
+-- for business users, not an animal encyclopedia. It keeps its own routes (`/data2map/*`)
+-- and its own tables, all prefixed here, because a shared schema is one thing and a shared
+-- namespace is another: `map_layers` in `public` would be a name nobody can trace back.
+--
+-- Three tables, and the split is the point:
+--
+--   * `data2map_datasets` - where a layer's data comes from, under which licence, and
+--     whether it is real or synthetic. Nothing is drawn in this module without a row here,
+--     which is the same rule the animal maps follow (`docs/MAP.md` records two datasets
+--     refused on licence grounds rather than drawn anyway).
+--   * `data2map_layers` - the registry the layer panel renders from, so five product pages
+--     do not each hard-code the same switch five times.
+--   * `data2map_user_prefs` - the visitor's own switches, owner-only, exactly like
+--     `user_settings`.
+--
+-- Rows in the first two are written with the service role (or by an admin through the
+-- geodata import path); there is no write policy for browsers.
+create table if not exists public.data2map_datasets (
+  id            uuid primary key default gen_random_uuid(),
+  slug          text not null unique,
+  name          text not null,
+  product       text not null check (product in ('real_estate', 'trends', 'logistics', 'stories', 'agriculture')),
+  kind          text not null,
+  source        text not null,
+  source_url    text,
+  -- Wider than every other table on purpose: OpenStreetMap POIs (ODbL) are the honest
+  -- source for amenities, and ODbL is a share-alike *data* licence rather than the
+  -- attribution-only pair the rest of the product ships. It is recorded, attributed and
+  -- documented in docs/DATA2MAP.md, which is the condition for using it at all.
+  license       text not null check (license in ('CC0', 'CC-BY', 'ODbL')),
+  license_label text,
+  attribution   text not null,
+  year          integer check (year is null or (year between -10000 and 2100)),
+  geometry_kind text check (geometry_kind is null or geometry_kind in ('point', 'line', 'polygon', 'raster')),
+  record_count  integer check (record_count is null or record_count >= 0),
+  -- `synthetic` is not a detail: every simulated dataset in this module has to say so, and
+  -- the UI renders the note. Same rule as the demo envelopes on the animal map.
+  synthetic     boolean not null default false,
+  note          text,
+  status        text not null default 'planned' check (status in ('planned', 'live', 'retired')),
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+comment on table public.data2map_datasets is
+  'Provenance for every Data2Map layer: source, licence, year, and whether the data is real or simulated. A layer with no row here is not drawn.';
+comment on column public.data2map_datasets.license is 'Only CC0 and CC BY. Google Places is excluded by its terms (no caching), WDPA by its non-commercial clause - see docs/DATA2MAP.md.';
+
+drop trigger if exists data2map_datasets_touch on public.data2map_datasets;
+create trigger data2map_datasets_touch
+  before update on public.data2map_datasets
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.data2map_layers (
+  id              text primary key,
+  label           text not null,
+  hint            text not null,
+  product         text not null check (product in ('real_estate', 'trends', 'logistics', 'stories', 'agriculture')),
+  dataset_slug    text references public.data2map_datasets (slug) on delete set null,
+  default_visible boolean not null default false,
+  default_opacity numeric not null default 0.5 check (default_opacity >= 0.05 and default_opacity <= 1),
+  sort_order      integer not null default 0,
+  created_at      timestamptz not null default now()
+);
+
+comment on table public.data2map_layers is
+  'The layer registry the Data2Map panel renders from, so five product pages do not each hard-code the same switch. `id` is the URL token.';
+
+create index if not exists data2map_layers_product_idx on public.data2map_layers (product, sort_order);
+
+create table if not exists public.data2map_user_prefs (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    text not null unique,
+  product    text not null default 'real_estate' check (product in ('real_estate', 'trends', 'logistics', 'stories', 'agriculture')),
+  visible    jsonb not null default '{}'::jsonb,
+  opacity    jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+comment on table public.data2map_user_prefs is
+  'A visitor''s own Data2Map switches. Owner-only, written with the visitor''s session - never a service role from the browser.';
+
+drop trigger if exists data2map_user_prefs_touch on public.data2map_user_prefs;
+create trigger data2map_user_prefs_touch
+  before update on public.data2map_user_prefs
+  for each row execute function public.set_updated_at();
+
+alter table public.data2map_datasets enable row level security;
+alter table public.data2map_layers enable row level security;
+alter table public.data2map_user_prefs enable row level security;
+
+drop policy if exists "data2map datasets are publicly readable" on public.data2map_datasets;
+create policy "data2map datasets are publicly readable"
+  on public.data2map_datasets for select to anon, authenticated using (true);
+
+drop policy if exists "data2map layers are publicly readable" on public.data2map_layers;
+create policy "data2map layers are publicly readable"
+  on public.data2map_layers for select to anon, authenticated using (true);
+
+drop policy if exists "data2map prefs are visible to their owner" on public.data2map_user_prefs;
+create policy "data2map prefs are visible to their owner"
+  on public.data2map_user_prefs for select to authenticated using (user_id = public.current_user_id());
+
+drop policy if exists "data2map prefs are created by their owner" on public.data2map_user_prefs;
+create policy "data2map prefs are created by their owner"
+  on public.data2map_user_prefs for insert to authenticated with check (user_id = public.current_user_id());
+
+drop policy if exists "data2map prefs are updated by their owner" on public.data2map_user_prefs;
+create policy "data2map prefs are updated by their owner"
+  on public.data2map_user_prefs for update to authenticated
+  using (user_id = public.current_user_id()) with check (user_id = public.current_user_id());
+
+drop policy if exists "data2map prefs are deleted by their owner" on public.data2map_user_prefs;
+create policy "data2map prefs are deleted by their owner"
+  on public.data2map_user_prefs for delete to authenticated using (user_id = public.current_user_id());
+
+revoke all on public.data2map_datasets from anon, authenticated;
+revoke all on public.data2map_layers from anon, authenticated;
+revoke all on public.data2map_user_prefs from anon;
+grant select on public.data2map_datasets to anon, authenticated;
+grant select on public.data2map_layers to anon, authenticated;
+grant select, insert, update, delete on public.data2map_user_prefs to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

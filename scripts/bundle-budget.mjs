@@ -57,6 +57,11 @@ const ROUTES = [
   // budget moved with it: this is the measured number plus a small margin, never a number
   // chosen to be easy to pass.
   { route: "/map", manifest: "/map/page", budget: 150 },
+  // The Data2Map landing is a page of cards and must stay cheap: it lists five products and
+  // their data sources, and loading a map renderer to do that would spend the whole budget on
+  // the one route that does not draw anything. Measured at 104.6 kB on the first build, so the
+  // budget is that plus a small margin - not a number chosen to be easy to pass.
+  { route: "/data2map", manifest: "/data2map/page", budget: 115 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */
