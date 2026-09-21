@@ -132,10 +132,10 @@
       "attribution": "Kami3D story entries, citing the linked sources.",
       "year": null,
       "geometryKind": "point",
-      "recordCount": 0,
+      "recordCount": 8,
       "synthetic": false,
-      "note": "Written by Kami3D and cited, the same rule the animal timeline uses: an annotation is our summary of a source, never a copied text or an interpolated shape.",
-      "status": "planned"
+      "note": "Eight curated entries with real coordinates and a story each. Photographs come from Wikimedia Commons and are credited per entry in data/data2map-stories.json.",
+      "status": "live"
     },
     {
       "slug": "ndvi-sentinel2",

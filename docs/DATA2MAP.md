@@ -121,6 +121,42 @@ A missing input is dropped from the weighted mean and listed — the panel print
 missing, because scoring a plot on one layer and presenting it as a verdict is the failure mode this exists to
 avoid. The number is labelled "a Kami3D index, not an appraisal", next to the weights.
 
+## D5 — Cultural & Story Maps
+
+`/data2map/stories`: eight places in Vietnam, a timeline, and the photograph that goes with each one.
+
+**The timeline is Phase 16's.** `RangeTimeline` and `lib/timeline.ts` already handle years, annotations and
+autoplay; D5 only changes the source, and `storyToTimelineEvent` maps a story onto the shape the panel already
+takes. A second slider would have been two places to fix every bug, which the phase brief forbids.
+
+**Story mode is that play button**, and it refuses to run when the visitor has asked for reduced motion — in the
+operating system or in `/settings`. Story mode is exactly the kind of continuous self-running motion those
+preferences exist to stop, so the button is disabled with a tooltip saying why rather than silently doing nothing.
+
+### Images: Commons, with the licence recorded
+
+`scripts/fetch-stories.mjs` searches Wikimedia Commons per story, accepts only CC0, public domain, CC BY and
+CC BY-SA, and records the file page, the author and the **exact** licence label. Share-alike is a condition of
+use rather than a courtesy, so the credit is rendered on the page and again in the lightbox. Fluffy artist fields
+are cleaned into something a person can read (one came back as three hundred characters of licence notes).
+
+```bash
+npm run stories:report           # what each story would get
+npm run stories:fetch -- --force # resolve and write the credits
+npm run check:stories            # validity, credits, timeline contract
+```
+
+The stories themselves — eight summaries, each citing its source — are Kami3D's own text, the same rule the
+animal timeline follows. The sample carries two public-domain images, one CC0, three CC BY-SA and two CC BY.
+
+### The 3D slot, honestly empty
+
+The phase asked for a 3D model or a 360 photo per site. This project has models of **animals** and none of
+heritage sites, and a 360 viewer would need both a library and 360 sources. So the panel says what is missing
+rather than showing a button that opens nothing, and the route mounts no second canvas at all — which satisfies
+the one-WebGL-context rule by not needing one. When a heritage model exists, it arrives through the admin
+pipeline and the panel gains the button.
+
 ## Conventions this module follows
 
 - **One WebGL context per page.** A product page with a map may mount at most one extra 3D canvas, on demand, and

@@ -33,7 +33,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | 📝 Đã ghi prompt, chưa triển khai |
 | **D4** | Logistics & Fleet Visualizer | 📝 Đã ghi prompt, chưa triển khai |
-| **D5** | Cultural & Story Maps (kết hợp 3D) | 📝 Đã ghi prompt, chưa triển khai |
+| **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | 📝 Đã ghi prompt, chưa triển khai |
 
 **Số liệu hiện tại**
@@ -43,7 +43,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **289** bài trong **25** suite (`npm run check:suites`) |
+| Test tự động | **298** bài trong **26** suite (`npm run check:suites`) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2119,6 +2119,63 @@ Test khoá chiều tác động của từng input, cap tiện ích (4 trường
 
 Thứ tự còn lại: **D5 → D3 → D4 → D6**. D5 (story maps) rẻ nhất vì tái dùng timeline Phase 16 + viewer 3D, nhưng
 phải giữ ràng buộc "một WebGL context": mở viewer thì unmount bản đồ trên màn hình nhỏ.
+
+---
+
+## ✅ Phase D5 — Kết quả: Cultural & Story Maps
+
+**Trạng thái: đã giao.** `/data2map/stories`: 8 địa danh Việt Nam, timeline tái dùng của Phase 16, ảnh thật từ
+Wikimedia Commons kèm credit đầy đủ.
+
+### 1. Không viết lại timeline
+
+Đúng ràng buộc #1: `RangeTimeline` + `lib/timeline.ts` của Phase 16 được dùng nguyên trạng — D5 chỉ đổi **nguồn dữ
+liệu**, qua `storyToTimelineEvent()` biến một story thành đúng shape `TimelineEvent` mà panel đang nhận. Có test
+khoá contract đó (`check:stories`, 9 test).
+
+**Story mode** chính là nút play đó, và nó **từ chối chạy** khi người dùng đã xin giảm chuyển động (`prefers-reduced-motion`
+hoặc setting `reduce_motion` Phase 11) — nút bị vô hiệu hoá kèm tooltip nói lý do (ràng buộc #4).
+
+### 2. Ảnh: Commons, có ghi licence
+
+`scripts/fetch-stories.mjs` tìm ảnh theo từ khoá trên Commons, **chỉ nhận** CC0/public domain/CC BY/CC BY-SA, và ghi
+lại file page + tác giả + **đúng nhãn licence**. Kết quả cho 8 địa danh: **2 public domain, 1 CC0, 2 CC BY, 3 CC BY-SA**
+— đã kiểm một URL ảnh trả HTTP 200. Share-alike là điều kiện sử dụng nên credit được render ở cả panel lẫn lightbox.
+
+Trường `artist` của Commons có trường hợp dài 300 ký tự toàn ghi chú licence → script rút thành credit đọc được.
+Câu chuyện (8 đoạn) là **văn của chúng tôi**, mỗi đoạn dẫn nguồn — cùng luật với timeline động vật.
+
+### 3. Chỗ 3D: để trống một cách trung thực
+
+Prompt yêu cầu mở ModelViewer 3D hoặc ảnh 360. Dự án **có model động vật, không có model di tích**, và 360 thì cần
+cả thư viện lẫn nguồn ảnh 360 — nên panel **nói ra điều đó** thay vì hiện nút mở không có gì, và route không mount
+canvas thứ hai nào (thoả ràng buộc "một WebGL context" bằng cách không cần context). Khi có model di tích, nó vào
+bằng pipeline admin và nút sẽ xuất hiện.
+
+### 4. Một lỗi thật trong công cụ đo bundle
+
+Khi build xong rồi `next start`, tôi phát hiện `check:bundle` báo **thiếu chunk list** cho `/map`: server production
+**ghi đè** `.next/app-build-manifest.json` bằng vài entry nó cần. Tệ hơn: khi tôi thử fallback sang
+`page_client-reference-manifest.js`, `/map` ra **62.9 kB** so với **136.9 kB** đo từ build manifest — tức là đo
+đúng một nửa. Tôi **bỏ fallback** và để nó fail to và rõ ("run the build again with no server running"), vì một
+trần ngân sách đo thiếu còn tệ hơn một trần không trả lời.
+
+Đồng thời ba route Data2Map được chuyển sang đo bằng **HTML** như mọi route khác (chúng là static), và số thật hoá ra
+**cao hơn** số cũ (131.2 / 144.2 / 141.2 thay vì 104.6 / 127.1 / 127.4) — vì danh sách trong manifest thiếu các chunk
+dùng chung. Ngân sách đã đặt lại theo số đo đúng kèm ghi chú.
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **298 test** (thêm 9 của `check:stories`); `tsc` sạch; build xanh.
+- `npm run check:bundle`: `/map` 136.9 (150) · `/data2map` 131.2 (140) · `/data2map/real-estate` 144.2 (155) ·
+  `/data2map/stories` 141.2 (150) — không route nào nạp MapLibre sai chỗ.
+- Trang trả 200 với tiêu đề, tên địa danh, timeline, khối "Story mode", credit Wikimedia và nhãn CC BY-SA.
+- Registry: `stories-curated` chuyển `live`; sản phẩm D5 chuyển `live` trên landing (⇒ tự vào sitemap).
+
+### 6. Tiếp theo
+
+**D3 → D4 → D6.** D3 (footfall) phải nhớ ràng buộc: Google Places **bị cấm** (ToS) → dùng POI OpenStreetMap qua
+Overpass hoặc dữ liệu mô phỏng có nhãn, và timeline theo giờ cũng phải tôn trọng `reduce_motion`.
 
 ---
 

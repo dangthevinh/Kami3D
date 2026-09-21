@@ -61,11 +61,19 @@ const ROUTES = [
   // their data sources, and loading a map renderer to do that would spend the whole budget on
   // the one route that does not draw anything. Measured at 104.6 kB on the first build, so the
   // budget is that plus a small margin - not a number chosen to be easy to pass.
-  { route: "/data2map", manifest: "/data2map/page", budget: 115 },
+  // Measured from the HTML, like every other route: 131.2 kB. The manifest-based numbers these
+  // budgets started from were an undercount - the manifest lists the chunks Next tracks, and the
+  // HTML lists everything the browser actually fetches before `load`. Same route, honest number.
+  { route: "/data2map", html: "server/app/data2map.html", budget: 140 },
   // The first product page, and the first Data2Map route that draws a map. Its renderer is the
   // same lazily-loaded MapLibre chunk /map uses; measured after the first build.
   // Measured at 127.1 kB on the first build; the budget is that plus a small margin.
-  { route: "/data2map/real-estate", manifest: "/data2map/real-estate/page", budget: 135 },
+  // 144.2 kB measured - the largest route in the project, because it carries the map renderer.
+  { route: "/data2map/real-estate", html: "server/app/data2map/real-estate.html", budget: 155 },
+  // The story page has no map: it is a timeline, an image and a panel, so its budget is close to
+  // the landing page's. Measured after the first build.
+  // 141.2 kB measured: the timeline, the story panel and the lightbox.
+  { route: "/data2map/stories", html: "server/app/data2map/stories.html", budget: 150 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */
@@ -125,7 +133,11 @@ function scriptsInManifest(key) {
 
   const manifest = JSON.parse(readFileSync(file, "utf8"));
   const chunks = manifest?.pages?.[key];
-  if (!Array.isArray(chunks)) return null;
+
+  // No fallback on purpose. The client-reference manifest was tried and reports about half the
+  // truth (it lists the page chunks, not the shared framework ones: `/map` came out at 62.9 kB
+  // against 136.9 kB measured from the build manifest). A budget that silently under-measures is
+  // worse than one that refuses to answer, so a missing entry is a loud failure instead.
 
   return chunks
     .filter((chunk) => chunk.endsWith(".js") && !/polyfills-[^/]*\.js$/.test(chunk))
@@ -141,7 +153,12 @@ for (const { route, html, manifest, budget } of ROUTES) {
   if (manifest) {
     urls = scriptsInManifest(manifest);
     if (!urls) {
-      problems.push(`${route}: no chunk list for "${manifest}" in app-build-manifest.json`);
+      // This happens after a `next start` has run against the build: the server rewrites
+      // `app-build-manifest.json` with the handful of entries it needed. Rebuilding fixes it,
+      // and CI never hits it because it goes straight from build to check.
+      problems.push(
+        `${route}: no chunk list for "${manifest}" in app-build-manifest.json - run the build again with no server running`,
+      );
       continue;
     }
   } else {

@@ -1,0 +1,194 @@
+{
+  "note": "Curated story entries for /data2map/stories. Each summary is Kami3D's own text citing the linked source; each image is resolved from Wikimedia Commons by scripts/fetch-stories.mjs, which records the file, its author and its exact licence. An entry with no image is shown without one rather than with a stand-in.",
+  "license": "CC0-1.0",
+  "attribution": "Kami3D story summaries, citing the linked sources.",
+  "imagePolicy": {
+    "allowed": [
+      "CC0",
+      "Public domain",
+      "CC BY",
+      "CC BY-SA"
+    ],
+    "refused": "Non-commercial, no-derivatives and unknown licences are refused; the script prints what it refused."
+  },
+  "stories": [
+    {
+      "slug": "hoan-kiem-lake",
+      "name": "Hoàn Kiếm Lake",
+      "lat": 21.0287,
+      "lng": 105.8524,
+      "year": 1428,
+      "kind": "heritage",
+      "title": "The lake where the sword was returned",
+      "summary": "Legend has it that Emperor Lê Lợi returned a magical sword to the Golden Turtle God in this lake in the 15th century, which is where its name comes from: the Lake of the Returned Sword. The Turtle Tower on its small island is the city's emblem.",
+      "source": "Wikipedia: Hoàn Kiếm Lake",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Hoàn_Kiếm_Lake",
+      "searchTerm": "Hoan Kiem Lake Hanoi"
+    },
+    {
+      "slug": "one-pillar-pagoda",
+      "name": "One Pillar Pagoda",
+      "lat": 21.0358,
+      "lng": 105.8336,
+      "year": 1049,
+      "kind": "heritage",
+      "title": "A pagoda on a single stone pillar",
+      "summary": "Emperor Lý Thái Tông built the pagoda in 1049, and it stands on one stone pillar in the middle of a lotus pond - a shape meant to recall a lotus flower rising from the water. The French destroyed the original in 1954; what stands today is a reconstruction.",
+      "source": "Wikipedia: One Pillar Pagoda",
+      "sourceUrl": "https://en.wikipedia.org/wiki/One_Pillar_Pagoda",
+      "searchTerm": "One Pillar Pagoda"
+    },
+    {
+      "slug": "my-son-sanctuary",
+      "name": "Thánh địa Mỹ Sơn",
+      "lat": 15.7644,
+      "lng": 108.1239,
+      "year": 400,
+      "kind": "heritage",
+      "title": "The Champa temples in the valley",
+      "summary": "The Champa kingdom built Hindu temples here between the 4th and 14th centuries, in a valley ringed by hills. It is a UNESCO World Heritage Site, and parts of it were damaged by bombing in the 20th century.",
+      "source": "UNESCO World Heritage Centre",
+      "sourceUrl": "https://whc.unesco.org/en/list/949/",
+      "searchTerm": "My Son Sanctuary"
+    },
+    {
+      "slug": "hoi-an-ancient-town",
+      "name": "Phố cổ Hội An",
+      "lat": 15.877,
+      "lng": 108.3272,
+      "year": 1595,
+      "kind": "heritage",
+      "title": "A port where merchants met",
+      "summary": "Hội An was a trading port from the 15th to the 19th century, where Japanese, Chinese and European merchants met. Its Japanese Covered Bridge dates from the 1590s, and the town survived the wars that flattened much of central Vietnam.",
+      "source": "UNESCO World Heritage Centre",
+      "sourceUrl": "https://whc.unesco.org/en/list/948/",
+      "searchTerm": "Hoi An Ancient Town"
+    },
+    {
+      "slug": "ho-citadel",
+      "name": "Thành nhà Hồ",
+      "lat": 20.0783,
+      "lng": 105.6047,
+      "year": 1397,
+      "kind": "heritage",
+      "title": "A citadel of stone blocks",
+      "summary": "The Hồ dynasty built this citadel in 1397, with walls of large stone blocks fitted without mortar. It is a UNESCO World Heritage Site, listed in 2011.",
+      "source": "UNESCO World Heritage Centre",
+      "sourceUrl": "https://whc.unesco.org/en/list/1358/",
+      "searchTerm": "Citadel of Ho Dynasty"
+    },
+    {
+      "slug": "imperial-city-hue",
+      "name": "Cố đô Huế",
+      "lat": 16.4698,
+      "lng": 107.5796,
+      "year": 1802,
+      "kind": "heritage",
+      "title": "The Nguyễn capital",
+      "summary": "Huế was the capital of the Nguyễn dynasty from 1802 to 1945. Inside the Citadel lies the Imperial Enclosure, with the Forbidden Purple City at its centre; it became a UNESCO World Heritage Site in 1993.",
+      "source": "UNESCO World Heritage Centre",
+      "sourceUrl": "https://whc.unesco.org/en/list/678/",
+      "searchTerm": "Imperial City Hue"
+    },
+    {
+      "slug": "ha-long-bay",
+      "name": "Vịnh Hạ Long",
+      "lat": 20.9101,
+      "lng": 107.1839,
+      "year": 1994,
+      "kind": "landscape",
+      "title": "Sixteen hundred islands of limestone",
+      "summary": "Ha Long Bay holds around 1,600 limestone islands and islets, most of them too steep to live on. It has been a UNESCO World Heritage Site since 1994.",
+      "source": "UNESCO World Heritage Centre",
+      "sourceUrl": "https://whc.unesco.org/en/list/672/",
+      "searchTerm": "Ha Long Bay"
+    },
+    {
+      "slug": "cu-chi-tunnels",
+      "name": "Địa đạo Củ Chi",
+      "lat": 11.1425,
+      "lng": 106.4621,
+      "year": 1968,
+      "kind": "battlefield",
+      "title": "A city underground",
+      "summary": "During the Vietnam War the Viet Cong dug a network of tunnels at Củ Chi with living areas, kitchens and hospitals below ground, and several levels stacked under each other. Parts of it are open to visitors today.",
+      "source": "Wikipedia: Củ Chi tunnels",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Củ_Chi_tunnels",
+      "searchTerm": "Cu Chi Tunnels Vietnam war"
+    }
+  ],
+  "images": {
+    "hoan-kiem-lake": {
+      "file": "File:Hoan Kiem Lake - Hanoi, Vietnam - DSC03688.JPG",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Hoan_Kiem_Lake_-_Hanoi%2C_Vietnam_-_DSC03688.JPG/1920px-Hoan_Kiem_Lake_-_Hanoi%2C_Vietnam_-_DSC03688.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Hoan_Kiem_Lake_-_Hanoi,_Vietnam_-_DSC03688.JPG",
+      "width": 1600,
+      "license": "CC0",
+      "licenseLabel": "CC0",
+      "author": "Daderot"
+    },
+    "one-pillar-pagoda": {
+      "file": "File:One Pillar Pagoda Hanoi Vietnam.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f8/One_Pillar_Pagoda_Hanoi_Vietnam.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:One_Pillar_Pagoda_Hanoi_Vietnam.jpg",
+      "width": 1600,
+      "license": "CC-BY-SA",
+      "licenseLabel": "CC BY-SA 2.5",
+      "author": "Thomas Schoch"
+    },
+    "my-son-sanctuary": {
+      "file": "File:My Son A1 Yoni.jpg",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/My_Son_A1_Yoni.jpg/1920px-My_Son_A1_Yoni.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:My_Son_A1_Yoni.jpg",
+      "width": 1600,
+      "license": "CC-BY-SA",
+      "licenseLabel": "CC BY-SA 3.0",
+      "author": "[Tycho] talk"
+    },
+    "hoi-an-ancient-town": {
+      "file": "File:Hội An, Ancient Town, 2020-01 CN-01.jpg",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f2/H%E1%BB%99i_An%2C_Ancient_Town%2C_2020-01_CN-01.jpg/1920px-H%E1%BB%99i_An%2C_Ancient_Town%2C_2020-01_CN-01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:H%E1%BB%99i_An,_Ancient_Town,_2020-01_CN-01.jpg",
+      "width": 1600,
+      "license": "CC-BY-SA",
+      "licenseLabel": "CC BY-SA 4.0",
+      "author": "Steffen Schmitz (more photos)"
+    },
+    "ho-citadel": {
+      "file": "File:Dan da thanh Tay Do.png",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Dan_da_thanh_Tay_Do.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Dan_da_thanh_Tay_Do.png",
+      "width": 1600,
+      "license": "CC0",
+      "licenseLabel": "Public domain",
+      "author": "Binh Giang"
+    },
+    "imperial-city-hue": {
+      "file": "File:Gate in Imperial City, Huế (III).jpg",
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Gate_in_Imperial_City%2C_Hu%E1%BA%BF_%28III%29.jpg/1920px-Gate_in_Imperial_City%2C_Hu%E1%BA%BF_%28III%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Gate_in_Imperial_City,_Hu%E1%BA%BF_(III).jpg",
+      "width": 1600,
+      "license": "CC-BY",
+      "licenseLabel": "CC BY 4.0",
+      "author": "This Photo was taken by Supanut Arunoprayote."
+    },
+    "ha-long-bay": {
+      "file": "File:Halong Bay in Vietnam.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Halong_Bay_in_Vietnam.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Halong_Bay_in_Vietnam.jpg",
+      "width": 1600,
+      "license": "CC-BY-SA",
+      "licenseLabel": "CC BY-SA 3.0",
+      "author": "Thomas Hirsch / User:Ravn"
+    },
+    "cu-chi-tunnels": {
+      "file": "File:Lightning Mines, Boobytraps and Tunnel Training Center at Cu Chi Base Camp.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Lightning_Mines%2C_Boobytraps_and_Tunnel_Training_Center_at_Cu_Chi_Base_Camp.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Lightning_Mines,_Boobytraps_and_Tunnel_Training_Center_at_Cu_Chi_Base_Camp.jpg",
+      "width": 1600,
+      "license": "CC0",
+      "licenseLabel": "Public domain",
+      "author": "PFC Thomas L."
+    }
+  }
+}

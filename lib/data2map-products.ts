@@ -61,7 +61,7 @@ export const DATA2MAP_PRODUCTS: readonly Data2MapProduct[] = [
     detail:
       "Curated, cited entries pinned to real coordinates, with the 3D viewer beside the map for the places that have a model.",
     phase: "D5",
-    status: "planned",
+    status: "live",
     accent: "iris",
   },
   {
