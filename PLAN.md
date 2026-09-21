@@ -31,7 +31,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 🟡 Pipeline + vai trò admin xong; chế độ hybrid 3D còn lại |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
-| **D3** | Footfall & Trend Map (F&B/Retail) | 📝 Đã ghi prompt, chưa triển khai |
+| **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
 | **D4** | Logistics & Fleet Visualizer | 📝 Đã ghi prompt, chưa triển khai |
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | 📝 Đã ghi prompt, chưa triển khai |
@@ -42,8 +42,8 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **37** (24 trang loài là SSG, `/explore` nay **tĩnh**) |
-| Test tự động | **298** bài trong **26** suite (`npm run check:suites`) |
+| Route dựng sẵn | **38** (24 trang loài là SSG, `/explore` nay **tĩnh**, `/data2map/trends` tĩnh) |
+| Test tự động | **331** bài trong **28** suite (`npm run check:suites`) — thêm 17 footfall + 9 trends + 7 overpass |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -2176,6 +2176,84 @@ dùng chung. Ngân sách đã đặt lại theo số đo đúng kèm ghi chú.
 
 **D3 → D4 → D6.** D3 (footfall) phải nhớ ràng buộc: Google Places **bị cấm** (ToS) → dùng POI OpenStreetMap qua
 Overpass hoặc dữ liệu mô phỏng có nhãn, và timeline theo giờ cũng phải tôn trọng `reduce_motion`.
+
+---
+
+## ✅ Phase D3 — Kết quả: Footfall & Trend Map
+
+**Trạng thái: đã giao.** `/data2map/trends`: lưới hex 162 ô phủ TP.HCM, **mật độ dân số thật** (WorldPop
+2020), **quán ăn/uống thật** (OpenStreetMap), lớp footfall theo giờ **mô phỏng có nhãn**, đồng hồ 24 giờ và
+điểm "khoảng trống thị trường" nói rõ từng đầu vào.
+
+### 1. Hai nửa thật/giả nằm trên **cùng một feature** — và không được lẫn vào nhau
+
+Đây là rủi ro lớn nhất của phase: một con số thật (dân số) và một con số bịa (footfall) nằm cạnh nhau trong
+cùng một dòng dữ liệu. Cách chặn:
+
+- mỗi feature mang **hai bộ provenance riêng** (`population_source`/`population_license` = WorldPop/CC BY 4.0;
+  `footfall_source`/`footfall_license` = Kami3D synthetic/CC0) + cờ `synthetic: true` + `note`;
+- file ghi `properties.provenance` cho cả hai nửa, và `readTrendsSample()` **ném lỗi** nếu thiếu (có test);
+- panel in nguồn + licence ngay dưới tên metric, và popup ghi "simulated" cạnh đúng con số mô phỏng.
+
+### 2. Dân số thật **không cần raster, không cần GDAL**
+
+WorldPop là raster — nhưng API `api.worldpop.org/v1/services/stats` trả **tổng dân số trong một polygon**,
+không cần key. `scripts/fetch-trends.mjs` dựng lưới hex bằng Turf, hỏi từng ô, và commit con số vào
+`data/data2map-trends.json`. Raster không hề vào repo, không thêm dependency nào.
+
+Bài học vận hành (đã ghi vào script):
+
+- đường **async** nhanh hơn hẳn đường đồng bộ: `runasync=false` trả lời tại chỗ nhưng ~100 giây/polygon khi
+  có vài chục request bay cùng lúc (một run 4 tiếng); submit task rồi poll mất ~25 giây cho 4 ô;
+- **16 worker là sai**: 22 kết quả và 48 lỗi trong 20 phút, vì task xếp hàng server-side và cửa sổ poll 3
+  phút hết hạn trước khi task chạy xong. 4 worker + poll 5 phút thì chạy hết;
+- run **resumable**: mỗi 10 ô ghi checkpoint kèm `partial: true`, lần chạy sau chỉ hỏi ô còn thiếu, và
+  `--check` từ chối một file vẫn đang là checkpoint.
+
+### 3. Lời hứa "real-time" bị **đổi nhãn**, Google Places bị từ chối lần nữa
+
+Prompt yêu cầu "hotspot thời gian thực, mock từ Google Places". Không nửa nào giữ được: ToS của Google cấm
+lưu dữ liệu địa điểm (ràng buộc #4 của module) và cần key (phá luật "clone mới chạy không cần key"), còn
+footfall theo giờ thì không ai công bố. Nên: **địa điểm lấy từ OSM**, **độ sôi động là mô phỏng và tự khai**,
+và trang ghi cả hai nguồn cạnh nhau thay vì trộn thành một con số nghe rất chắc.
+
+### 4. Không cần deck.gl (đúng như quyết định ở [docs/DATA2MAP.md](docs/DATA2MAP.md))
+
+Hexagon = `turf.hexGrid` + layer `fill` với `interpolate` neo theo **giá trị lớn nhất đang hiển thị**, nên một
+giờ vắng vẫn đọc được thay vì tối đều. Heatmap/cluster của MapLibre không dùng tới. Marker `maplibre-gl` /
+`MaplibreMap` trong `FORBIDDEN` vẫn chặn renderer rò sang route khác.
+
+### 5. Đồng hồ là của Phase 16, không phải slider thứ hai
+
+`RangeTimeline` được **tham số hoá** thêm 3 prop tuỳ chọn (`format`, `labels`, `stepMs`) thay vì viết bản sao:
+bản đồ động vật bước theo **năm**, trang trends bước theo **giờ**, còn số liệu, hành vi bàn phím và luật
+`reduce_motion` vẫn là một đoạn code duy nhất.
+
+### 6. Chấm điểm "khoảng trống" — và chỗ nó nói ra điều mình thiếu
+
+`lib/data2map/footfall.ts` (17 test) + `lib/data2map/trends.ts` (9 test) + `lib/overpass.ts` (7 test):
+
+| Đầu vào | Trọng số | Nguồn |
+| --- | --- | --- |
+| Demand | 45 | **thật** — mật độ dân số WorldPop, thang log bão hoà ở 30.000/km²; chỉ rơi về footfall mô phỏng khi thiếu density, và panel in rõ nó đã dùng nguồn nào |
+| Supply | 40 | **thật** — số đối thủ OSM trong 1 km quanh ô vừa click (truy vấn riêng, không phụ thuộc zoom) |
+| Access | 15 | **thiếu**, và được báo là thiếu chứ không tính bằng 0 |
+
+### 7. Bằng chứng
+
+- `npm run check:suites`: bổ sung 33 test (17 footfall + 9 trends + 7 overpass).
+- `npm run data2map:seed`: 11 dataset / 11 layer; `population-worldpop` và `footfall-demo` chuyển `live`,
+  thêm dataset ODbL `fb-pois-osm`; sản phẩm D3 chuyển `live` trên landing (⇒ tự vào sitemap).
+- `/api/data2map/pois` trả **800 POI thật** cho một khung 4×3 km (cafe 305 · trà sữa 8 · nhà hàng 453 ·
+  bakery 34), có `counts`, `license: ODbL`, `truncated` và cache 1 giờ.
+- Lưới hex: **162 ô** cạnh 1 km, dân số **302–170.927 người/ô**, mật độ **116–65.786 người/km²**
+  (WorldPop 2020), tổng **6.444.826 người** trong khung 27×18 km — đo thật, không ước lượng.
+
+### 8. Tiếp theo
+
+**D4 → D6.** D4 phải nhớ: isochrone bằng `turf.buffer/isobands` (Mapbox Isochrone API cần token → bị cấm),
+cluster bằng `cluster: true` của MapLibre, thuật toán gom đơn/2-opt là **hàm thuần có test**, và GPS phải là
+mock có nhãn.
 
 ---
 

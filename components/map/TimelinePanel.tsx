@@ -22,6 +22,25 @@ import type { MigrationRoute } from "@/types/migration";
  * than a nicety.
  */
 
+/**
+ * The words the slider uses.
+ *
+ * The animal map steps through **years** and the trends page steps through **hours of the day**;
+ * the numbers, the keyboard behaviour and the reduced-motion rule are identical, so the component
+ * is parameterised rather than forked. A second slider would have been two places to fix every bug.
+ */
+export interface TimelineLabels {
+  heading?: string;
+  /** The slider's accessible name. "Year" by default, "Hour of day" for the clock. */
+  aria?: string;
+  play?: string;
+  pause?: string;
+  reset?: string;
+  /** The line under the slider: how many steps, and the range. */
+  span?: (count: number, from: number, to: number) => string;
+  empty?: string;
+}
+
 export interface TimelinePanelProps {
   years: number[];
   year: number;
@@ -29,11 +48,36 @@ export interface TimelinePanelProps {
   events: TimelineEvent[];
   gapMessage: string;
   reduceMotion: boolean;
+  /** How one step is written. A year by default; the trends page passes an hour. */
+  format?: (value: number) => string;
+  labels?: TimelineLabels;
+  /** How long a step stays on screen while playing. */
+  stepMs?: number;
 }
 
-export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceMotion }: TimelinePanelProps) {
+const DEFAULT_LABELS: Required<Pick<TimelineLabels, "heading" | "aria" | "play" | "pause" | "reset">> = {
+  heading: "Timeline",
+  aria: "Year",
+  play: "Play the timeline",
+  pause: "Pause the timeline",
+  reset: "Back to the earliest year with data",
+};
+
+export function RangeTimeline({
+  years,
+  year,
+  onYear,
+  events,
+  gapMessage,
+  reduceMotion,
+  format = formatYear,
+  labels,
+  stepMs = 1600,
+}: TimelinePanelProps) {
   const [playing, setPlaying] = React.useState(false);
   const index = Math.max(0, years.indexOf(year));
+  const words = { ...DEFAULT_LABELS, ...labels };
+  const written = format(year);
 
   // Stepping through the years that have data, rather than every year in between: a
   // timeline that spends 10 000 ticks on the Pleistocene before reaching 2026 is not a
@@ -49,10 +93,10 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
       const next = (years.indexOf(year) + 1) % Math.max(1, years.length);
       onYear(years[next]);
       if (next === 0) setPlaying(false);
-    }, 1600);
+    }, stepMs);
 
     return () => window.clearInterval(timer);
-  }, [playing, reduceMotion, years, year, onYear]);
+  }, [playing, reduceMotion, years, year, onYear, stepMs]);
 
   const markers = events.filter((event) => Number.isFinite(event.year));
   const span = years.length > 1 ? { from: Math.min(...years), to: Math.max(...years) } : null;
@@ -60,8 +104,8 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
   return (
     <div className="glass rounded-[var(--radius-card)] p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">Timeline</h2>
-        <span className="text-[11px] tabular-nums text-white/70">{formatYear(year)}</span>
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">{words.heading}</h2>
+        <span className="text-[11px] tabular-nums text-white/70">{written}</span>
       </div>
 
       <div className="mt-3 flex items-center gap-2">
@@ -69,7 +113,7 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
           type="button"
           onClick={() => setPlaying((value) => !value)}
           disabled={reduceMotion || years.length < 2}
-          aria-label={playing ? "Pause the timeline" : "Play the timeline"}
+          aria-label={playing ? words.pause : words.play}
           title={reduceMotion ? "Autoplay is off because you asked for reduced motion" : undefined}
           className={cn(
             "grid size-8 shrink-0 place-items-center rounded-full ring-1 transition-colors",
@@ -87,8 +131,8 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
           max={Math.max(0, years.length - 1)}
           step={1}
           value={index}
-          aria-label="Year"
-          aria-valuetext={formatYear(year)}
+          aria-label={words.aria}
+          aria-valuetext={written}
           onChange={(event) => onYear(years[Number(event.target.value)] ?? year)}
           // The map tries to take every gesture; a timeline that cannot be dragged on a
           // phone is a timeline nobody uses.
@@ -99,7 +143,7 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
         <button
           type="button"
           onClick={() => onYear(years[0] ?? year)}
-          aria-label="Back to the earliest year with data"
+          aria-label={words.reset}
           className="grid size-8 shrink-0 place-items-center rounded-full text-white/60 ring-1 ring-white/15 transition-colors hover:bg-white/10 hover:text-white"
         >
           <RotateCcw className="size-3.5" />
@@ -108,9 +152,9 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
 
       {span ? (
         <p className="mt-2 flex justify-between text-[10px] text-white/35">
-          <span>{formatYear(span.from)}</span>
-          <span>{years.length} year(s) with a published shape</span>
-          <span>{formatYear(span.to)}</span>
+          <span>{format(span.from)}</span>
+          <span>{labels?.span ? words.span?.(years.length, span.from, span.to) : `${years.length} year(s) with a published shape`}</span>
+          <span>{format(span.to)}</span>
         </p>
       ) : null}
 
@@ -126,7 +170,7 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
             <li key={event.id} className="text-[11px] leading-relaxed">
               <span className="flex items-baseline justify-between gap-2">
                 <span className="font-medium text-white/85">{event.title}</span>
-                <span className="shrink-0 tabular-nums text-white/45">{formatYear(event.year)}</span>
+                <span className="shrink-0 tabular-nums text-white/45">{format(event.year)}</span>
               </span>
               <span className="text-white/55">{event.summary}</span>
               <a
@@ -142,8 +186,8 @@ export function RangeTimeline({ years, year, onYear, events, gapMessage, reduceM
         </ul>
       ) : (
         <p className="mt-3 text-[11px] leading-relaxed text-white/35">
-          No cited event falls near this year. Annotations are ours, dated and sourced; a year
-          without one is a year we have nothing to say about.
+          {words.empty ??
+            "No cited event falls near this year. Annotations are ours, dated and sourced; a year without one is a year we have nothing to say about."}
         </p>
       )}
     </div>

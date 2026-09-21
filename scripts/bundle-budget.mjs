@@ -74,6 +74,10 @@ const ROUTES = [
   // the landing page's. Measured after the first build.
   // 141.2 kB measured: the timeline, the story panel and the lightbox.
   { route: "/data2map/stories", html: "server/app/data2map/stories.html", budget: 150 },
+  // The second map route: the same lazily-loaded MapLibre chunk, plus the hex data it draws and the
+  // hour clock it reuses. Measured at 150.3 kB - the largest route in the project, which is what a
+  // map and a 162-cell grid cost - so the budget is that plus a small margin.
+  { route: "/data2map/trends", html: "server/app/data2map/trends.html", budget: 160 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

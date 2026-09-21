@@ -121,6 +121,83 @@ A missing input is dropped from the weighted mean and listed — the panel print
 missing, because scoring a plot on one layer and presenting it as a verdict is the failure mode this exists to
 avoid. The number is labelled "a Kami3D index, not an appraisal", next to the weights.
 
+## D3 — Footfall & Trend Map
+
+`/data2map/trends`: one hex grid over Ho Chi Minh City where the phase's **real and simulated halves sit on
+the same geometry**, plus the real places the site score counts.
+
+### What is real, and what is a labelled simulation
+
+| Layer | Source | Real? |
+| --- | --- | --- |
+| Population density | WorldPop 2020, CC BY 4.0, summed per hex through their statistics API | **real** — 162 hexes |
+| Food & drink | OpenStreetMap via Overpass, ODbL | **real** — cafes, bubble-tea shops, restaurants and bakeries, fetched per view and never stored |
+| Hourly footfall | derived from the real density and an hourly profile per type of business | simulated, `synthetic: true` + CC0, stated in the layer hint, in the clock's own note and in the popup |
+| Traffic volume | — | **not drawn**: there is no open traffic-count layer for Vietnamese cities |
+| "Real-time" hotspots | — | **refused and relabelled** (below) |
+
+### The promise that had to be relabelled
+
+The brief asked for a real-time hotspot map, mocked from Google Places. Neither half survives contact with the
+data: Google's terms forbid storing place data and need a key, and hourly footfall is sold rather than
+published. So places come from OpenStreetMap, busy-ness is simulated and says so, and the page prints both
+provenances next to each other instead of blending them into one confident number.
+
+### Population without a tile pipeline
+
+WorldPop is a raster, this project has no GDAL and no tile pipeline, and shipping a fake density surface was
+never on the table. It turns out not to be needed: **`api.worldpop.org/v1/services/stats` answers a polygon
+with the population inside it**, keyless. `scripts/fetch-trends.mjs` builds the Turf hex grid, asks once per
+hex, and commits the numbers — the raster never enters the repository.
+
+The asynchronous path is the one that works: `runasync=false` answered inline and took roughly a hundred
+seconds per polygon once a few dozen were in flight (a four-hour run), while submitting a task and polling it
+took about twenty-five seconds for four hexes. The run is resumable and checkpoints every ten hexes with
+`partial: true`, so an interruption costs ten hexes rather than ninety — and `--check` refuses a file that is
+still a checkpoint. The committed file records the method, the year and the licence in
+`properties.provenance.population`: *WorldPop 2020, 100 m gridded population (CC BY 4.0)*.
+
+### The clock is Phase 16's, not a second slider
+
+`RangeTimeline` learned three optional props — `format`, `labels` and `stepMs` — rather than gaining a
+sibling. The animal map steps through years, the trends page steps through hours of the day, and the numbers,
+the keyboard behaviour and the reduced-motion rule stay one implementation. The hour is a URL-free piece of
+page state, which is the one place this page is less linkable than `/map`.
+
+### The site-gap score
+
+`lib/data2map/footfall.ts`, pinned by 17 checks in `npm run check:footfall` and 9 more in `check:trends`:
+
+| Input | Weight | Where it comes from |
+| --- | --- | --- |
+| Demand | 45 | **real** population density, logarithmic and saturating at 30 000/km². Falls back to the simulated footfall index only when density is missing — and the panel prints which of the two it used |
+| Supply | 40 | **real** competitor count from OpenStreetMap within 1 km, curved so that an empty block scores 0.8 (it may be empty for a reason) and saturation scores 0 |
+| Access | 15 | usually missing, and reported as missing rather than scored as zero |
+
+A missing input is dropped from the weighted mean and listed with the coverage, the same rule D2's potential
+score follows. The number is labelled "a Kami3D index, not a market study".
+
+### One Overpass client, two pages
+
+D2's amenities route and D3's food-and-drink route needed the same three things: a bounded query, a mirror
+list and elements turned into attributed GeoJSON. That machinery moved to `lib/overpass.ts` and both routes
+call it, pinned by `npm run check:overpass` — which also fails if either route grows its own endpoint list or
+if a category the page offers has no Overpass selector.
+
+Three things the merge taught us, all recorded because they cost real time:
+
+1. **A mirror list is configuration, not decoration.** On the day this page was built, `overpass-api.de`
+   answered 504 and both other mirrors timed out — for a 2 km box with four selectors — while
+   `maps.mail.ru` answered instantly. It is in the list now, with a comment saying why.
+2. **An empty answer is re-asked.** Most instances carry the whole planet; some are regional extracts.
+   `overpass.osm.ch` answered a district of Ho Chi Minh City with zero cafes, which is indistinguishable
+   from a real empty answer. `runOverpass` now tries every mirror before believing an empty set — and the
+   regional instance was removed from the list anyway.
+3. **Ask a viewport-sized question.** The page's first version asked for its whole 27 × 18 km window at
+   once; every mirror refused it. The layer is now fetched **per view** (refetched, debounced, when the
+   visitor pans) and the score's competitor count comes from a separate one-kilometre box around the clicked
+   hex — which is also the more correct query, because it no longer depends on the zoom level.
+
 ## D5 — Cultural & Story Maps
 
 `/data2map/stories`: eight places in Vietnam, a timeline, and the photograph that goes with each one.

@@ -70,9 +70,9 @@ export const DATA2MAP_PRODUCTS: readonly Data2MapProduct[] = [
     name: "Footfall & Trend Map",
     tagline: "How busy a place is, by hour and by week",
     detail:
-      "A playable clock over footfall and population signals, for choosing a site or reading a catchment. Simulated where no open dataset exists - and labelled as simulated.",
+      "A playable clock over real population density and a simulated footfall index, food and drink places from OpenStreetMap, and a market-gap score for choosing a site.",
     phase: "D3",
-    status: "planned",
+    status: "live",
     accent: "solar",
   },
   {

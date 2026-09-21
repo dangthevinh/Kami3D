@@ -34,3 +34,27 @@ export const MAP_ATTRIBUTION = {
   dataUrl: "https://www.openstreetmap.org/copyright",
   license: "ODbL 1.0",
 } as const;
+
+/**
+ * The satellite overlay: NASA EOSDIS GIBS, public domain, keyless, world-wide.
+ *
+ * A **raster layer over the dark style**, not a second basemap. It is daily MODIS true-colour
+ * imagery from a fixed snapshot date at a coarse resolution - a photograph of the ground, not a
+ * survey - and every panel that offers it says so rather than letting it read as a recent
+ * high-resolution image. Shared here because two Data2Map pages draw it, and one place for the
+ * URL and the snapshot date is one place to update when it moves.
+ */
+export const SATELLITE_BASEMAP = {
+  id: "satellite",
+  tiles: [
+    "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/2024-01-01/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+  ],
+  tileSize: 256,
+  attribution: {
+    name: "NASA EOSDIS GIBS",
+    url: "https://gibs.earthdata.nasa.gov",
+    data: "MODIS Terra true colour",
+    license: "Public domain",
+    snapshot: "2024-01-01",
+  },
+} as const;
