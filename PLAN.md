@@ -2923,6 +2923,76 @@ material + texture trong VRAM. Hàm mới:
 
 ---
 
+## 🟡 P0.1 — Kết quả (một phần): danh tính hợp nhất & RLS được thi hành
+
+**Trạng thái: phần SQL + code + kiểm chứng đã giao. Còn một bước cấu hình phía bạn (dashboard Supabase).**
+
+### 1. Phát hiện: migration P0.1 trong schema **chưa từng được áp**
+
+`docs/REVIEW.md` §3.1 đã viết sẵn hàm `public.current_user_id()` (đọc `auth.uid()` **hoặc** claim `sub` của
+Clerk), nhưng **5 policy sở hữu vẫn dùng dạng cũ** `user_id = ((select auth.uid())::text)` — nghĩa là dưới Clerk
+chúng luôn từ chối, và "RLS thật" chưa hề tồn tại cho `user_favorites`/`quiz_scores`. Test mới viết ra đã bắt
+đúng chỗ này ngay lần chạy đầu.
+
+Đã sửa: 5 policy chuyển sang `public.current_user_id()`, thêm `revoke update on public.animals from anon,
+authenticated` (review §3.2 yêu cầu, và nó chặn luôn một `grant all` trong tương lai), kèm comment giải thích vì
+sao một bộ policy chạy được cho **cả hai** provider.
+
+### 2. Phía code: đường đi để RLS thi hành, không phải service role
+
+`lib/personal-data-mode.ts` (hàm thuần, có test) quyết định client nào dùng cho dữ liệu của người dùng:
+
+| Trường hợp | Client | RLS thi hành? |
+| --- | --- | --- |
+| Supabase Auth | client có session | ✅ |
+| Clerk **+** `CLERK_SUPABASE_JWT_TEMPLATE` | client mang token Clerk (mint theo request qua `getToken({ template })`) | ✅ |
+| Clerk **không** có template | service role + lọc `user_id` ở tầng query | ❌ (đúng như review R1 mô tả) |
+
+Token mint hỏng thì `accessToken` trả `null` (request bị RLS từ chối) chứ **không** âm thầm rơi về service role —
+có test khoá đúng điều đó.
+
+### 3. Kiểm chứng trên project thật — `npm run verify:rls`
+
+Hai câu hỏi, hỏi bằng hai cách khác nhau:
+
+**Database tự khai** (qua Management API, đọc `pg_class`/`pg_policies`): RLS bật trên cả 5 bảng
+(`animals`, `user_favorites`, `quiz_scores`, `sound_assets`, `app_admins`) và **mọi policy sở hữu đều dùng
+`current_user_id`**.
+
+**Key công khai làm được gì** (đúng cái key nằm trong bundle):
+
+| Phép thử bằng key anon | Kết quả |
+| --- | --- |
+| đọc danh mục `animals` | 200 |
+| đọc credit âm thanh | 200 |
+| đọc yêu thích của người khác | **401** |
+| ghi một yêu thích | **401** |
+| đọc / ghi điểm quiz | **401** |
+| đọc danh sách admin | **401** |
+| sửa danh mục (`PATCH animals`) | **401** — và giá trị đọc lại **không đổi** |
+
+(`PATCH` trả 200/204 với 0 dòng cũng là "bị từ chối"; script so giá trị trước/sau nên không bị lừa bởi status code.)
+
+### 4. Còn lại đúng một bước, và nó thuộc về bạn
+
+1. Supabase Dashboard → **Authentication → Third-Party Auth** → thêm **Clerk** (dán domain/issuer của Clerk);
+2. Clerk Dashboard → **JWT Templates** → tạo template tên **`supabase`**;
+3. thêm `CLERK_SUPABASE_JWT_TEMPLATE=supabase` vào `.env.local`.
+
+Sau ba bước đó không phải sửa code: `getPersonalDataClient()` tự chuyển sang token Clerk và quyền sở hữu do
+RLS thi hành. `npm run verify:rls` là phép kiểm để xác nhận (cùng `select public.current_user_id() is not null`
+trong SQL editor khi đã đăng nhập).
+
+### 5. Bằng chứng
+
+- `npm run check:suites`: **406 test / 36 suite** (thêm 7 của `check:rls`).
+- `npm run verify:rls`: **PASS** — RLS bật ở mọi bảng, policy dùng helper, key anon bị chặn ở 5/5 phép thử ghi/đọc
+  dữ liệu cá nhân.
+- `npm run db:schema`: đã áp migration lên project thật.
+- Test bắt được một lỗi thật ngay lần chạy đầu (5 policy còn dạng `auth.uid()`) — lý do tồn tại của nó.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -2930,7 +3000,7 @@ material + texture trong VRAM. Hàm mới:
 | 1 | ~~**Cập nhật `CLERK_SECRET_KEY`**~~ | ✅ **Không còn là vấn đề** — kiểm lại trong phiên này: key trong `.env.local` trả **HTTP 200** cho `GET https://api.clerk.com/v1/users`, và tìm được đúng tài khoản `kaiovinh@gmail.com` (Clerk user `user_3Ja1siqFIUisqvpNzeflv0tkkA6`). Việc còn lại là **bạn đăng nhập thử trên trình duyệt** (bước 2). |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm (Google sign-in qua Clerk). Kiểm tra được từ phía tôi: Clerk API xanh, `AUTH_PROVIDER=clerk`, và `app_admins` đã có dòng cho user của bạn. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | Hiện Clerk đi vòng qua RLS bằng service role; bật Clerk làm Third-Party Auth trong Supabase rồi áp SQL ở `docs/REVIEW.md` §3.1–3.3 |
+| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | 🟡 **SQL + code + kiểm chứng đã xong; còn đúng 1 bước phía bạn**: Supabase Dashboard → Authentication → Third-Party Auth → thêm Clerk; tạo Clerk JWT template tên `supabase`; rồi đặt `CLERK_SUPABASE_JWT_TEMPLATE=supabase` trong `.env.local`. Sau đó app tự chuyển từ service role sang token Clerk và RLS là thứ thi hành quyền sở hữu (không cần sửa code nữa) |
 | 5 | ~~**P0.2 — chống bơm lượt xem**~~ | ✅ **Xong** — cửa sổ trượt 40/phút mỗi địa chỉ + chặn `Sec-Fetch-Site: cross-site`; đã kiểm trên server thật (403 và 429 kèm `retry-after`) |
 | 6 | ~~**P0.3 — tầng lỗi/đang tải**~~ | ✅ **Xong** — `app/error.tsx`, `app/global-error.tsx`, `PageSkeleton` cho 4 route động; đã render lại bằng Chrome headless |
 | 7 | ~~**P0.4 — `dispose()` GLB**~~ | ✅ **Xong** — `lib/three-dispose.ts` dùng chung cho trang loài và quiz, 6 test; lỗ rò ở quiz (mỗi câu reveal một model) đã bịt |

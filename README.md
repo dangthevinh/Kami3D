@@ -186,6 +186,7 @@ Two project settings are worth knowing about:
 `<UserButton />`. Exactly one provider is authoritative, chosen in `lib/auth-provider.ts` and used by the layout,
 the auth pages, `middleware.ts` and the server helpers alike:
 
+| `CLERK_SUPABASE_JWT_TEMPLATE` | server | The Clerk JWT template name that Supabase should trust (default name to create: `supabase`). Set it only **after** enabling Clerk under Supabase → Authentication → Third-Party Auth; until then personal rows are written with the service role and the application filters by `user_id`. With it set, the app sends a Clerk token as the bearer token and the database's row level security enforces ownership instead |
 | `AUTH_PROVIDER` | Behaviour |
 | --- | --- |
 | *(empty)* | Supabase when configured, otherwise Clerk, otherwise Demo Mode |
