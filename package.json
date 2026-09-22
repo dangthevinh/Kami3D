@@ -52,6 +52,7 @@
     "check:guard": "node --test scripts/check-guard.mjs",
     "check:hybrid": "node --test scripts/check-hybrid.mjs",
     "check:rls": "node --test scripts/check-rls.mjs",
+    "check:channel": "node --test scripts/check-channel.mjs",
     "verify:rls": "node scripts/verify-rls.mjs",
     "verify:clerk-rls": "node scripts/verify-clerk-rls.mjs",
     "fleet:seed": "node scripts/seed-fleet.mjs",

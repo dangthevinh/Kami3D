@@ -88,6 +88,9 @@ const ROUTES = [
   // next/dynamic - which is why a route with a map, a stream and a cockpit still measures close to
   // its neighbours. 152.1 kB measured; the budget is that plus a small margin.
   { route: "/data2map/twin", html: "server/app/data2map/twin.html", budget: 160 },
+  // The admin analytics page (18A) is dynamic - it reads the last thirty days per request - so it is
+  // measured from the manifest like /map. A table of numbers should never cost what a map costs.
+  { route: "/admin/analytics", manifest: "/admin/analytics/page", budget: 140 },
 ];
 
 /** Must never appear in an initial chunk of a content route. */

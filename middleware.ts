@@ -4,6 +4,7 @@ import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server
 
 import { activeAuthProvider } from "@/lib/auth-provider";
 import { AUTH_HINT_COOKIE } from "@/lib/auth-hint";
+import { classifyChannel, honorsDoNotTrack, isPageRequest, routeClass } from "@/lib/channel";
 import { data2mapIsPublic, identityListed, isData2MapPath, isDatabaseAdmin } from "@/lib/data2map-access";
 
 /**
@@ -146,7 +147,57 @@ function withAuthHint(response: NextResponse, signedIn: boolean) {
   return response;
 }
 
+/**
+ * One page view, counted — and the four reasons this is not a tracking pixel.
+ *
+ *   1. **nothing is waited for.** The write goes out through `event.waitUntil`, so a slow database
+ *      cannot slow a page and a failed count cannot reach a reader;
+ *   2. **nothing about a person is sent.** A channel label and a normalised route: no IP, no user
+ *      agent, no cookie, no query string (see `lib/channel.ts`, and the schema test that refuses a
+ *      column named like an identifier);
+ *   3. **bots are their own channel**, so a crawler never inflates a percentage a human reads;
+ *   4. **a visitor can refuse.** `DNT: 1` or `Sec-GPC: 1` means nothing is written at all - not a
+ *      hash, not a count, nothing.
+ *
+ * It is deliberately here rather than in a client beacon: the headers that answer "where did this
+ * come from" are on the request, and a visitor with JavaScript off is still a reader.
+ */
+function recordTraffic(request: NextRequest, event: NextFetchEvent) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return; // Demo Mode: there is no database to count in.
+  if (request.method !== "GET") return;
+  if (!isPageRequest(request.nextUrl.pathname)) return;
+  if (honorsDoNotTrack(request.headers)) return;
+
+  const channel = classifyChannel({
+    referer: request.headers.get("referer"),
+    secFetchSite: request.headers.get("sec-fetch-site"),
+    userAgent: request.headers.get("user-agent"),
+    host: request.headers.get("host"),
+    campaign: request.nextUrl.searchParams.get("utm_source") ?? request.nextUrl.searchParams.get("utm_campaign"),
+  });
+
+  event.waitUntil(
+    fetch(url + "/rest/v1/rpc/bump_traffic", {
+      method: "POST",
+      headers: { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" },
+      body: JSON.stringify({
+        p_day: new Date().toISOString().slice(0, 10),
+        p_channel: channel,
+        p_route: routeClass(request.nextUrl.pathname),
+      }),
+      cache: "no-store",
+    })
+      .then(() => undefined)
+      // A counter is not worth an error page: the reader never hears about this.
+      .catch(() => undefined),
+  );
+}
+
 export default async function middleware(request: NextRequest, event: NextFetchEvent) {
+  recordTraffic(request, event);
+
   switch (activeAuthProvider()) {
     case "supabase": {
       // Skip the round trip entirely when there is no session to refresh.

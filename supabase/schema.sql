@@ -1453,6 +1453,157 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- Phase 18A — traffic by channel, counted first-party and only in aggregate
+-- ---------------------------------------------------------------------------
+-- Three tables, and their shape is the privacy policy: a day, a channel (or a route, or whether a
+-- search matched), and a count. There is no visitor id, no IP, no user agent, no session id and no
+-- query string - `scripts/check-channel.mjs` reads this file and fails if such a column ever appears.
+-- Bots are a channel of their own rather than being mixed into "visitors", and everything the admin
+-- page prints excludes them.
+--
+-- Rows are written by `bump_traffic()`, which only the service role may execute, and read by admins
+-- through `public.is_admin()`. See docs/ANALYTICS.md.
+
+create table if not exists public.traffic_daily (
+  day     date not null default current_date,
+  channel text not null check (channel in ('direct', 'internal', 'search', 'social', 'referral', 'campaign', 'bot')),
+  hits    integer not null default 0 check (hits >= 0),
+  primary key (day, channel)
+);
+
+comment on table public.traffic_daily is
+  'Page views per day per acquisition channel. Aggregate only: no visitor identifier exists anywhere in this schema.';
+
+create table if not exists public.page_daily (
+  day    date not null default current_date,
+  route  text not null check (char_length(route) between 1 and 120),
+  hits   integer not null default 0 check (hits >= 0),
+  primary key (day, route)
+);
+
+comment on table public.page_daily is
+  'Page views per day per normalised route (/animal/[slug], not /animal/lion?utm=...). Query strings are never stored.';
+
+create table if not exists public.search_daily (
+  day     date not null default current_date,
+  outcome text not null check (outcome in ('matched', 'no_match')),
+  -- Empty string rather than NULL: this column is part of the key, and the term itself is never
+  -- stored - only which catalogue entry it matched.
+  slug    text not null default '',
+  hits    integer not null default 0 check (hits >= 0),
+  primary key (day, outcome, slug)
+);
+
+comment on table public.search_daily is
+  'Search usage, as "did it match a species" rather than "what did they type": a search box can hold a name.';
+
+create index if not exists traffic_daily_day_idx on public.traffic_daily (day desc);
+create index if not exists page_daily_day_idx on public.page_daily (day desc);
+
+alter table public.traffic_daily enable row level security;
+alter table public.page_daily enable row level security;
+alter table public.search_daily enable row level security;
+
+-- Admins read; nobody else does. There is no write policy at all: the only writer is the function.
+drop policy if exists "traffic is visible to admins" on public.traffic_daily;
+create policy "traffic is visible to admins"
+  on public.traffic_daily for select to authenticated using (public.is_admin());
+
+drop policy if exists "pages are visible to admins" on public.page_daily;
+create policy "pages are visible to admins"
+  on public.page_daily for select to authenticated using (public.is_admin());
+
+drop policy if exists "searches are visible to admins" on public.search_daily;
+create policy "searches are visible to admins"
+  on public.search_daily for select to authenticated using (public.is_admin());
+
+revoke all on public.traffic_daily from anon, authenticated;
+revoke all on public.page_daily from anon, authenticated;
+revoke all on public.search_daily from anon, authenticated;
+grant select on public.traffic_daily to authenticated;
+grant select on public.page_daily to authenticated;
+grant select on public.search_daily to authenticated;
+
+-- One round trip, one transaction, four counters. The middleware calls this and does not wait for it.
+create or replace function public.bump_traffic(
+  p_day date,
+  p_channel text,
+  p_route text,
+  p_search_outcome text default null,
+  p_search_slug text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_day is null then
+    raise exception 'p_day is required';
+  end if;
+
+  insert into public.traffic_daily (day, channel, hits)
+  values (p_day, p_channel, 1)
+  on conflict (day, channel) do update set hits = public.traffic_daily.hits + 1;
+
+  insert into public.page_daily (day, route, hits)
+  values (p_day, left(coalesce(p_route, '/'), 120), 1)
+  on conflict (day, route) do update set hits = public.page_daily.hits + 1;
+
+  if p_search_outcome is not null then
+    insert into public.search_daily (day, outcome, slug, hits)
+    values (p_day, p_search_outcome, left(coalesce(p_search_slug, ''), 120), 1)
+    on conflict (day, outcome, slug) do update set hits = public.search_daily.hits + 1;
+  end if;
+end;
+$$;
+
+comment on function public.bump_traffic(date, text, text, text, text) is
+  'Increments the three daily counters in one transaction. service_role only: the middleware calls it through PostgREST.';
+
+revoke all on function public.bump_traffic(date, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.bump_traffic(date, text, text, text, text) to service_role;
+
+-- Retention, with a floor, exactly like the position sweep in D7.
+create or replace function public.prune_traffic(retain_days integer default 400)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  removed integer;
+begin
+  if retain_days is null or retain_days <= 0 then
+    raise exception 'retain_days must be positive';
+  end if;
+
+  delete from public.traffic_daily where day < current_date - retain_days;
+  get diagnostics removed = row_count;
+  delete from public.page_daily where day < current_date - retain_days;
+  delete from public.search_daily where day < current_date - retain_days;
+
+  return removed;
+end;
+$$;
+
+comment on function public.prune_traffic(integer) is
+  'Deletes counters older than retain_days (default 400) and returns how many traffic rows went. service_role only.';
+
+revoke all on function public.prune_traffic(integer) from public, anon, authenticated;
+grant execute on function public.prune_traffic(integer) to service_role;
+
+do $$
+begin
+  perform cron.schedule('kami3d-traffic-retention', '23 4 * * *', 'select public.prune_traffic(400)');
+exception
+  when undefined_object then raise notice 'pg_cron is not installed; run npm run traffic:prune instead';
+  when invalid_schema_name then raise notice 'pg_cron is not installed; run npm run traffic:prune instead';
+  when insufficient_privilege then raise notice 'no privilege to schedule cron jobs; prune manually';
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Storage: animal-assets (models, images) and animal-sounds (calls)
 -- ---------------------------------------------------------------------------
 

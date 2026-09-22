@@ -29,7 +29,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | ✅ Hoàn thành — pipeline + vai trò admin + chế độ hybrid 3D (một WebGL context, có audit bằng Chrome thật) |
-| **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | 📝 Đã ghi prompt, chưa triển khai |
+| **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | 🟡 **18A xong** — 3 bảng tổng hợp + classifier thuần + middleware đếm + `/admin/analytics`; 18B chưa triển khai |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -3019,6 +3019,71 @@ role như cũ — nghĩa là việc bật provider không làm hỏng gì, và c
   dữ liệu cá nhân.
 - `npm run db:schema`: đã áp migration lên project thật.
 - Test bắt được một lỗi thật ngay lần chạy đầu (5 policy còn dạng `auth.uid()`) — lý do tồn tại của nó.
+
+---
+
+## ✅ Phase 18A — Kết quả: kênh & phân tích người dùng (admin)
+
+**Trạng thái: đã giao.** `/admin/analytics` — kênh truy cập và hành vi người dùng, đo **first-party**, **tổng hợp**,
+không SDK bên thứ ba. 18B (tự động tìm/tải model 3D có hạn mức) vẫn là phase tiếp theo.
+
+### 1. Classifier là hàm thuần, và thứ tự quyết định mới là phần đúng
+
+`lib/channel.ts` (10 test trong `npm run check:channel`): **bot trước tiên** (UA crawler/monitor/CLI), rồi **campaign**
+(nếu có `utm_source`/`utm_campaign`), rồi mới tới referrer — internal nếu cùng host, search/social theo bảng host,
+còn lại là referral; không referrer và có `Sec-Fetch-Site: same-origin` là internal, không gì cả là `direct`.
+
+Chi tiết đáng giữ: **campaign được chuẩn hoá** (lowercase, chỉ `[a-z0-9_-]`, cắt 40 ký tự) — nên một địa chỉ email
+lỡ nằm trong tên chiến dịch sẽ không được lưu nguyên dạng.
+
+### 2. Ba bảng, và hình dạng của chúng **chính là** chính sách riêng tư
+
+`traffic_daily(day, channel, hits)` · `page_daily(day, route, hits)` · `search_daily(day, outcome, slug, hits)`.
+Không có IP, không UA thô, không visitor id, không query string. `check:channel` **đọc schema.sql và fail** nếu ai
+đó thêm một cột tên kiểu `ip`/`user_agent`/`visitor`/`session` — và khẳng định mọi kênh classifier sinh ra đều nằm
+trong CHECK constraint (nếu không, một lượt thật sẽ không đếm được).
+
+Ghi bằng **một hàm** `bump_traffic()` (SECURITY DEFINER, chỉ `service_role` gọi được), đọc bằng policy
+`is_admin()` — không có policy ghi nào. Retention 400 ngày qua `prune_traffic()`, có sàn và có cron.
+
+### 3. Đếm ở middleware, không chờ database
+
+Middleware phân loại request rồi gọi `bump_traffic` qua PostgREST trong `event.waitUntil` — **không chặn response**,
+lỗi bị nuốt (một cái đếm không đáng một trang lỗi). Chọn middleware thay vì beacon phía client vì các header trả lời
+"đến từ đâu" nằm ở request, và người tắt JavaScript vẫn là người đọc.
+
+**Tôn trọng lựa chọn của người dùng**: `DNT: 1` hoặc `Sec-GPC: 1` → **không ghi gì cả**.
+
+Tìm kiếm: chỉ ghi `matched`/`no_match` + slug khớp. **Không bao giờ lưu chữ người dùng gõ** — ô tìm kiếm có thể chứa
+tên người.
+
+### 4. Đo thật, không phải mô tả
+
+Sau khi build, tôi gửi 5 request với 5 referrer khác nhau (Google, Facebook, một site lạ, không referrer, và một
+`Googlebot`) vào server production rồi đọc lại database:
+
+```
+traffic_daily: search 2 · social 1 · referral 1 · direct 1 · bot 1 · internal 6
+page_daily:    /animal/[slug] 6 · /map 2 · / 1 · /explore 1 · /about 1 · /quiz 1
+```
+
+Đúng như thiết kế: mỗi referrer vào đúng kênh của nó, Googlebot nằm riêng ở hàng `bot`, và mọi route đều đã được
+chuẩn hoá (`/animal/[slug]` chứ không phải từng loài một).
+
+### 5. Trang admin
+
+`/admin/analytics`: 4 ô KPI (lượt xem không tính bot · hit của bot · kênh dẫn đầu · tìm kiếm không khớp), bảng 7
+kênh kèm % và sparkline 30 ngày (bot ghi rõ "excluded"), top 10 route, tìm kiếm + số liệu quiz/favourites/settings,
+và khối "What this page is not" nói thẳng: không danh sách người dùng, không session/unique, không cross-site,
+không SDK. Công thức in ngay cạnh số. Cổng vào dùng đúng `is_admin()` như `/admin/geodata`, và RLS là thứ chặn
+dữ liệu chứ không chỉ là ẩn trang.
+
+### 6. Bằng chứng
+
+- `npm run check:suites`: **416 test / 37 suite** (thêm 9 của `check:channel`, trong đó 2 test khoá schema + middleware).
+- `npm run db:schema`: đã áp lên project thật (3 bảng + `bump_traffic` + `prune_traffic` + policy admin-only).
+- `npm run check:bundle`: route admin khai riêng trong `scripts/bundle-budget.mjs` (đo theo manifest như `/map`).
+- Kết quả 5 request ở mục 4 là số liệu thật đọc từ Postgres, không phải mô tả.
 
 ---
 
