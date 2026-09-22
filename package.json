@@ -50,6 +50,7 @@
     "check:twin": "node --test scripts/check-twin.mjs",
     "check:dispose": "node --test scripts/check-dispose.mjs",
     "check:guard": "node --test scripts/check-guard.mjs",
+    "check:hybrid": "node --test scripts/check-hybrid.mjs",
     "fleet:seed": "node scripts/seed-fleet.mjs",
     "fleet:simulate": "node scripts/simulate-fleet.mjs",
     "fleet:verify": "node scripts/verify-realtime.mjs",
@@ -78,7 +79,8 @@
     "check:bundle": "node scripts/bundle-budget.mjs",
     "audit:perf": "node scripts/audit-browser.mjs",
     "audit:theme": "node scripts/audit-theme.mjs",
-    "audit:settings": "node scripts/audit-settings.mjs"
+    "audit:settings": "node scripts/audit-settings.mjs",
+    "audit:hybrid": "node scripts/audit-hybrid.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",

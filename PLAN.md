@@ -28,7 +28,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **14** | Habitat & Species Distribution Maps (`/map`) | ✅ Hoàn thành — heatmap GBIF + bộ lọc + legend |
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
-| **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | 🟡 Pipeline + vai trò admin xong; chế độ hybrid 3D còn lại |
+| **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | ✅ Hoàn thành — pipeline + vai trò admin + chế độ hybrid 3D (một WebGL context, có audit bằng Chrome thật) |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -1593,17 +1593,32 @@ Constraint 5 của phase nói `dispose()` là việc chưa làm từ review. Nay
 texture của **bản clone** khi đổi loài hoặc đóng viewer; cache `useGLTF` vẫn giữ nên lần xem lại vẫn tức thì. Đây là
 nửa đầu của yêu cầu "chỉ một WebGL context" — nửa còn lại là bản thân chế độ hybrid.
 
-### 5. Chưa làm: chế độ 3D-Map Hybrid
+### 5. Chế độ 3D-Map Hybrid — đã làm (nốt phần còn 🟡 của phase này)
 
-Lý do là ràng buộc chứ không phải thiếu thời gian: bản đồ là một canvas WebGL của MapLibre, nên viewer 3D là canvas
-**thứ hai duy nhất** được phép tồn tại, và trên điện thoại hai canvas cạnh nhau là quá nhiều. Cách làm đúng — đã
-viết ra để lần sau không phải nghĩ lại:
+Trước đây mục này ghi "chưa làm" kèm cách làm đúng; nay nó đã được làm đúng theo ba điểm đó:
 
-1. Viewer mount **chỉ khi bấm**, `next/dynamic` + `ssr: false`, và `dispose()` khi đóng (đã có sẵn từ mục 4);
-2. Trên màn hình nhỏ, mở viewer thì **unmount bản đồ** (không phải che bằng CSS) để không bao giờ có hai context;
-3. Trên desktop thì cạnh nhau được, nhưng chỉ một viewer, và không tự mount theo hover.
+1. **Viewer mount chỉ khi bấm** — nút "View this species in 3D" trong panel loài, `aria-expanded`/`aria-controls`,
+   `next/dynamic` + `ssr: false`; không hover, không tự mount khi chọn loài;
+2. **Trên màn hình nhỏ thì bản đồ bị unmount**, không phải che bằng CSS: `lib/hybrid-view.ts` là hàm thuần
+   (`shouldKeepMapMounted`, `hybridPlacement`) và `MapExperience` gate cả bản đồ lẫn hai overlay của nó theo hàm đó;
+3. **Một viewer duy nhất**, và đóng là unmount canvas — cũng là lúc `lib/three-dispose.ts` trả geometry/material/
+   texture về GPU.
 
-Hiện `/map` đã có lối vào 3D đúng tinh thần đó: panel loài có nút mở trang chi tiết, nơi model 3D thật sự sống.
+Hai chi tiết đáng ghi lại vì chúng là bài học chứ không phải lựa chọn thẩm mỹ:
+
+- **`check:bundle` bắt được một rò rỉ thật ngay lần build đầu**: panel mượn `CanvasFallback` từ
+  `components/3d/CanvasShell`, mà module đó import `@react-three/fiber` ở đầu file — thế là three.js vào thẳng
+  chunk khởi đầu của `/map`: **377,5 kB** so với ngân sách 150. Marker `WebGLRenderer` trong `FORBIDDEN` là thứ
+  phát hiện. Panel nay tự viết placeholder của mình, `/map` về **140,5 kB**.
+- **Dữ liệu loài được lấy khi mở, không nhét sẵn**: `/map` chỉ gửi bản ghi rút gọn (`MapSpecies`), nên panel gọi
+  `/api/animals/[slug]` khi thật sự mở. Nếu nhét 24 hồ sơ đầy đủ vào payload của bản đồ thì mọi khách phải tải
+  chúng để phục vụ một viewer mà phần lớn không mở.
+
+**Bằng chứng**: `npm run audit:hybrid` (Chrome headless, hai viewport, chọn loài qua URL `?species=lion` vì máy này
+không có WebGL để click lên bản đồ) — laptop 1280×900: viewer nằm ở cột phải, **map slot giữ nguyên 2 phần tử**
+(bản đồ vẫn mount); điện thoại 420×860: viewer **chiếm chỗ bản đồ**, slot còn 1 phần tử, không có panel cột phải, và
+câu ghi chú đúng là "The map is unmounted while this is open…". 7 test trong `npm run check:hybrid` khoá cả hàm
+thuần lẫn luật "không file nào trong `components/map` được import three".
 
 ### 6. Bằng chứng
 

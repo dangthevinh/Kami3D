@@ -1,11 +1,13 @@
 "use client";
 
-import { ExternalLink, Info, MousePointerClick, Search } from "lucide-react";
+import { Box, ExternalLink, Info, MousePointerClick, Search } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { HybridModelPanel } from "@/components/map/HybridModelPanel";
 import { LayerPanel } from "@/components/map/LayerPanel";
 import { LazyMap } from "@/components/map/LazyMap";
+import { useMediaQuery } from "@/components/map/useMediaQuery";
 import { RiskBreakdownList, RiskLegend, RiskPanel, type RiskRow } from "@/components/map/RiskPanel";
 import { PathPlayer, RangeTimeline } from "@/components/map/TimelinePanel";
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -13,6 +15,7 @@ import { describeGap, formatYear, frameForYear, yearsWithRanges, type TimelineEv
 import type { MigrationRoute } from "@/types/migration";
 import { Badge } from "@/components/ui/badge";
 import { boundsOf, expandBounds, type Bounds } from "@/lib/geo";
+import { HYBRID_BREAKPOINT_PX, hybridPlacement, shouldKeepMapMounted } from "@/lib/hybrid-view";
 import { creditFor } from "@/lib/geodata-credits";
 import {
   MAP_LAYER_IDS,
@@ -386,6 +389,18 @@ export function MapExperience({
   const panelClass = (name: typeof mobilePanel) =>
     cn(mobilePanel === name ? "block" : "hidden", "lg:block");
 
+  /**
+   * The hybrid view: one species, in three dimensions, next to the map it was selected on.
+   *
+   * `mapMounted` is the constraint, not a layout tweak. A map is a WebGL context and a model viewer
+   * is a second one, and this page refuses to hold two of them on a screen that cannot show both -
+   * so on a phone the map is **unmounted** (not hidden) while the model is open.
+   */
+  const [hybridOpen, setHybridOpen] = React.useState(false);
+  const wideEnough = useMediaQuery("(min-width: " + HYBRID_BREAKPOINT_PX + "px)");
+  const mapMounted = shouldKeepMapMounted({ hybridOpen, wideEnough });
+  const placement = hybridPlacement({ hybridOpen, wideEnough });
+
   const matches = React.useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length < 2) return [];
@@ -423,7 +438,25 @@ export function MapExperience({
       </header>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="relative h-[420px] overflow-hidden rounded-[var(--radius-card)] ring-1 ring-white/10 sm:h-[540px] lg:h-[620px]">
+        <div
+          // A stable handle for the browser audit: what this slot contains is the whole point of the
+          // hybrid rule, and counting canvases is not the same question when WebGL is unavailable.
+          data-map-slot=""
+          className="relative h-[420px] overflow-hidden rounded-[var(--radius-card)] ring-1 ring-white/10 sm:h-[540px] lg:h-[620px]"
+        >
+          {placement === "map" && selected ? (
+            <div className="h-full w-full p-1.5">
+              <HybridModelPanel
+                slug={selected.slug}
+                name={selected.name}
+                emoji={selected.emoji}
+                note="The map is unmounted while this is open: two WebGL contexts on a phone is one too many, and hiding one with CSS would still be two. Close this to bring the map back."
+                onClose={() => setHybridOpen(false)}
+              />
+            </div>
+          ) : null}
+
+          {mapMounted ? (
           <LazyMap
             className="h-full w-full"
             features={features}
@@ -439,13 +472,16 @@ export function MapExperience({
             speciesCount={species.length}
             regionCount={regionsWithData.length}
           />
+          ) : null}
 
+          {mapMounted ? (
           <p className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center gap-1.5 rounded-full bg-void/70 px-3 py-1.5 text-[10px] text-white/55 backdrop-blur">
             <MousePointerClick className="size-3" aria-hidden />
             Click a shape to open the species
           </p>
+          ) : null}
 
-          {visible.occurrence && observation ? (
+          {mapMounted && visible.occurrence && observation ? (
             <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-xs rounded-2xl bg-void/75 p-3 text-[10px] leading-relaxed text-white/60 backdrop-blur ring-1 ring-white/10">
               <p className="text-[11px] font-semibold text-white/85">Observation density</p>
               <p className="mt-1">
@@ -731,13 +767,42 @@ export function MapExperience({
                 {creditFor(credits, String(selectedFeature?.properties.source ?? ""))}
               </p>
 
-              <Link
-                href={`/animal/${selected.slug}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-neon hover:text-white"
-              >
-                Open the 3D model
-                <ExternalLink className="size-3" aria-hidden />
-              </Link>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setHybridOpen((open) => !open)}
+                  aria-expanded={hybridOpen}
+                  aria-controls="hybrid-3d"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-neon/15 px-3 py-1.5 text-xs font-medium text-neon ring-1 ring-neon/40 transition-colors hover:bg-neon/25"
+                >
+                  <Box className="size-3" aria-hidden />
+                  {hybridOpen ? "Close the 3D view" : "View this species in 3D"}
+                </button>
+
+                <Link
+                  href={`/animal/${selected.slug}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-white/55 hover:text-white"
+                >
+                  Open the page
+                  <ExternalLink className="size-3" aria-hidden />
+                </Link>
+              </div>
+            </div>
+          ) : null}
+
+          {selected && placement === "aside" ? (
+            <div id="hybrid-3d">
+              <HybridModelPanel
+                slug={selected.slug}
+                name={selected.name}
+                emoji={selected.emoji}
+                note={
+                  mapMounted
+                    ? "The map keeps running behind this panel: it is the one other WebGL context the page is allowed, and closing this returns the model's geometry and textures to the GPU."
+                    : "The map is unmounted while this is open. Two WebGL contexts side by side is what this page refuses to do on a small screen, and hidden-by-CSS would still be two."
+                }
+                onClose={() => setHybridOpen(false)}
+              />
             </div>
           ) : null}
         </aside>
