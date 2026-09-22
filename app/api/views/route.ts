@@ -1,9 +1,39 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { clientKey, createRateLimiter, sameOriginVerdict } from "@/lib/request-guard";
 import { TABLES, getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * The two guards, and why they are here rather than in a proxy.
+ *
+ * A six-hour cookie stops a refresh from counting twice; it does not stop a loop. This is the only
+ * endpoint an anonymous visitor can write to, and docs/REVIEW.md listed it as risk R2, so:
+ *
+ *   - a **cross-site** POST is refused before anything else happens. `Sec-Fetch-Site` is set by the
+ *     browser and cannot be forged by page script, which is what makes it worth reading;
+ *   - a **sliding window per address** caps how many views one client can record. Forty a minute is
+ *     far more than a reader following links needs and far less than a script wants.
+ *
+ * The limiter lives in the module, so it is shared by every request this instance serves - and it is
+ * per instance, which is the honest limit of an in-memory counter. A multi-instance deployment needs
+ * a shared store; the README says so rather than pretending otherwise.
+ */
+const limiter = createRateLimiter();
+
+const VIEW_LIMIT = { limit: 40, windowMs: 60_000 };
+
+/**
+ * The bucket for requests with no client address at all.
+ *
+ * A deployment behind a proxy always has one (`x-forwarded-for`, `cf-connecting-ip`, `x-real-ip`);
+ * a bare `next start` does not. Keying those on the same string would put every visitor in one
+ * bucket, so the fallback gets its own, much larger allowance: still a ceiling on a flood, and no
+ * chance of a reader's view going uncounted because somebody else was busy.
+ */
+const SHARED_LIMIT = { limit: 600, windowMs: 60_000 };
 
 /**
  * Counts one view of a species.
@@ -34,6 +64,20 @@ function readViewed(raw: string | undefined): string[] {
 }
 
 export async function POST(request: Request) {
+  const verdict = sameOriginVerdict(request.headers, new URL(request.url).host);
+  if (verdict === "cross-site") {
+    return NextResponse.json({ error: "Cross-site requests are not counted." }, { status: 403 });
+  }
+
+  const address = clientKey(request.headers);
+  const allowed = limiter.check("views:" + (address ?? "shared"), address ? VIEW_LIMIT : SHARED_LIMIT);
+  if (!allowed.allowed) {
+    return NextResponse.json(
+      { error: "Too many views from this address. Try again in a moment." },
+      { status: 429, headers: { "retry-after": String(allowed.retryAfterSeconds) } },
+    );
+  }
+
   let slug: unknown;
   try {
     ({ slug } = (await request.json()) as { slug?: unknown });

@@ -2647,6 +2647,63 @@ Dashboard dùng lại `components/stats/*` (Sparkline cho nhịp mẫu, DailyBar
 
 ---
 
+## ✅ P0.2–P0.4 — Kết quả: ba việc còn lại của review Phase 10
+
+**Trạng thái: đã giao.** Ba việc rủi ro được review xếp P0 nay đã xong, mỗi việc có test và một phép kiểm thật.
+P0.1 (Clerk ↔ Supabase Third-Party Auth) vẫn mở vì nó **cần bạn** bật tích hợp trong dashboard Supabase.
+
+### 1. P0.2 — chặn bơm lượt xem (`/api/views`, rủi ro R2)
+
+`lib/request-guard.ts` (hàm thuần, 7 test trong `npm run check:guard`):
+
+- **cửa sổ trượt** 40 request/phút cho mỗi địa chỉ, khoá theo `x-forwarded-for`/`cf-connecting-ip`/`x-real-ip`;
+  request không có địa chỉ (chạy `next start` trần) rơi vào một xô riêng 600/phút — đủ chặt để chặn script, đủ
+  rộng để không làm khách nào bị mất lượt vì người khác;
+- **`Sec-Fetch-Site`** là thứ trang JavaScript không đặt được, nên `cross-site` bị từ chối thẳng; thiếu header thì
+  so `Origin` rồi `Referer` với host thật; không có gì thì ghi nhận là `unknown` và để rate limit lo;
+- **bộ nhớ có trần**: bản đồ khoá bị giới hạn (`maxKeys`), nên chính cái guard không thể trở thành lỗ hổng DoS.
+
+**Kiểm thật** (server production, port 9100): POST `cross-site` → **403**; 40 request same-origin → 200, request
+thứ 41 → **429** kèm `retry-after: 50`.
+
+### 2. P0.3 — tầng lỗi và tầng đang tải (rủi ro R3)
+
+- `app/error.tsx`: bắt lỗi server component, in `error.digest` làm mã tra cứu, có nút thử lại và đường về nhà.
+  Viết bằng phần tử thuần — **không** import icon set hay Button — vì boundary nằm trong chunk dùng chung của mọi route;
+- `app/global-error.tsx`: tầng cuối, thay cả root layout, nên dùng **inline style** và không import gì (một trang
+  phụ thuộc vào thứ vừa hỏng thì không phải là phương án dự phòng);
+- **đang tải**: đặt `PageSkeleton` ở đúng 4 route **động** (`/map`, `/settings`, `/profile`, `/admin`) thay vì
+  `app/loading.tsx` ở gốc. Đây là số đo chứ không phải sở thích: boundary ở gốc vào chunk dùng chung của **mọi**
+  route — kể cả 24 trang loài tĩnh không bao giờ hiện nó — và làm mọi route tăng ~5 kB; sau khi chuyển về đúng chỗ,
+  `/quiz` từ **164,2 kB** (sát trần 165) xuống **160,4 kB**.
+
+**Kiểm thật**: thêm tạm một route ném lỗi, build, chạy production rồi **render bằng Chrome headless**
+(`--dump-dom`): DOM chứa đúng "Something went wrong on this page", "Try again", "Back home" và dòng "Reference:".
+curl **không** thấy được — boundary là client component, server chỉ gửi shell + payload lỗi — nên đây là phép kiểm
+bắt buộc phải có trình duyệt. Route tạm đã được xoá trước khi commit.
+
+### 3. P0.4 — trả bộ nhớ GPU của GLB (rủi ro R6)
+
+`lib/three-dispose.ts` thay đoạn traverse chép tay trong `ModelScene`, và **bịt lỗ rò thật còn lại ở quiz**:
+`SilhouetteStage` clone scene mỗi lần lộ đáp án và không bao giờ trả lại — một vòng 10 câu giữ 10 bộ geometry +
+material + texture trong VRAM. Hàm mới:
+
+- nhận diện object theo đúng cờ three dùng (`isBufferGeometry`, `isMaterial`, `isTexture`), nên **test được mà
+  không cần WebGL**;
+- mỗi geometry/material/texture được giải phóng **đúng một lần** dù nhiều mesh dùng chung (clone là shallow copy);
+- duyệt bằng stack (chuỗi 5 000 node không tràn stack), chịu được chu trình, scene dở dang không ném lỗi.
+
+6 test trong `npm run check:dispose`, kể cả test "hai chỗ clone GLB đều phải gọi nó".
+
+### 4. Bằng chứng tổng
+
+- `npm run check:suites`: **392 test / 34 suite** (thêm 7 guard + 6 dispose so với 379).
+- `npm run check:bundle`: mọi route trong ngân sách, và **`/quiz` xuống 160,4 kB** sau khi đặt tầng đang tải đúng chỗ.
+- Ba phép kiểm trên server production: 403 cross-site, 429 + `retry-after` khi vượt hạn, và DOM lỗi render đúng
+  trong Chrome thật.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -2655,9 +2712,9 @@ Dashboard dùng lại `components/stats/*` (Sparkline cho nhịp mẫu, DailyBar
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm — mọi bước còn lại đã verify bằng session thật qua API. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
 | 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | Hiện Clerk đi vòng qua RLS bằng service role; bật Clerk làm Third-Party Auth trong Supabase rồi áp SQL ở `docs/REVIEW.md` §3.1–3.3 |
-| 5 | **P0.2 — chống bơm lượt xem** | `/api/views` chỉ có cookie 6 giờ; thêm rate limit + kiểm `Sec-Fetch-Site` |
-| 6 | **P0.3 — `app/error.tsx` + `global-error.tsx` + `loading.tsx`** | Thiếu tầng lỗi/đang tải ở route: một lỗi server component hiện ra trang trắng mặc định |
-| 7 | **P0.4 — `dispose()` geometry/material của GLB** | Đoạn code sẵn ở `docs/REVIEW.md` §4.2; kiểm bằng `renderer.info.memory` |
+| 5 | ~~**P0.2 — chống bơm lượt xem**~~ | ✅ **Xong** — cửa sổ trượt 40/phút mỗi địa chỉ + chặn `Sec-Fetch-Site: cross-site`; đã kiểm trên server thật (403 và 429 kèm `retry-after`) |
+| 6 | ~~**P0.3 — tầng lỗi/đang tải**~~ | ✅ **Xong** — `app/error.tsx`, `app/global-error.tsx`, `PageSkeleton` cho 4 route động; đã render lại bằng Chrome headless |
+| 7 | ~~**P0.4 — `dispose()` GLB**~~ | ✅ **Xong** — `lib/three-dispose.ts` dùng chung cho trang loài và quiz, 6 test; lỗ rò ở quiz (mỗi câu reveal một model) đã bịt |
 | 8 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
 | 5 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
 | 6 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |

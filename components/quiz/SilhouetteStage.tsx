@@ -6,6 +6,7 @@ import * as React from "react";
 import { CanvasShell } from "@/components/3d/CanvasShell";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { publicEnv } from "@/lib/env";
+import { disposeClone } from "@/lib/three-dispose";
 import { seededRandom } from "@/lib/utils";
 import type { Animal } from "@/types/animal";
 
@@ -23,6 +24,14 @@ import type { Animal } from "@/types/animal";
 function RevealedModel({ url }: { url: string }) {
   const { scene } = useGLTF(url, publicEnv.dracoDecoderPath);
   const model = React.useMemo(() => scene.clone(true), [scene]);
+
+  /**
+   * A quiz round reveals up to ten species, and each reveal was cloning a scene nothing released:
+   * ten sets of geometry, materials and textures stayed on the GPU until the tab closed
+   * (docs/REVIEW.md, R6). Handing them back on unmount costs one line and re-uploads from the
+   * cache if the same species comes round again.
+   */
+  React.useEffect(() => () => void disposeClone(model), [model]);
 
   return (
     <Bounds fit clip observe margin={1.3}>

@@ -28,6 +28,7 @@ import {
   type CameraPresetId,
 } from "@/lib/camera-presets";
 import { publicEnv } from "@/lib/env";
+import { disposeClone } from "@/lib/three-dispose";
 import { dataUrlToBytes, formatHeight, formatLength, isPngBytes, pngFileName } from "@/lib/utils";
 import type { Animal } from "@/types/animal";
 
@@ -133,32 +134,7 @@ function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onRe
    * Only this component's own clone is touched; the cached `gltf` stays usable, which is
    * what keeps a second visit to the same species instant.
    */
-  React.useEffect(() => {
-    return () => {
-      const freed = new Set<THREE.BufferGeometry>();
-      const freedMaterials = new Set<THREE.Material>();
-
-      model.traverse((object) => {
-        if (!(object instanceof THREE.Mesh)) return;
-        const geometry = object.geometry as THREE.BufferGeometry | undefined;
-        if (geometry && !freed.has(geometry)) {
-          freed.add(geometry);
-          geometry.dispose();
-        }
-
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        for (const material of materials) {
-          if (!material || freedMaterials.has(material)) continue;
-          freedMaterials.add(material);
-          // Textures belong to the material, and a texture is the expensive half.
-          for (const value of Object.values(material as unknown as Record<string, unknown>)) {
-            if (value instanceof THREE.Texture) value.dispose();
-          }
-          material.dispose();
-        }
-      });
-    };
-  }, [model]);
+  React.useEffect(() => () => void disposeClone(model), [model]);
 
   React.useEffect(() => {
     model.traverse((object) => {

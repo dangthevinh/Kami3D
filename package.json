@@ -48,6 +48,8 @@
     "check:ndvi": "node --test scripts/check-ndvi.mjs",
     "check:agriculture": "node --test scripts/check-agriculture.mjs",
     "check:twin": "node --test scripts/check-twin.mjs",
+    "check:dispose": "node --test scripts/check-dispose.mjs",
+    "check:guard": "node --test scripts/check-guard.mjs",
     "fleet:seed": "node scripts/seed-fleet.mjs",
     "fleet:simulate": "node scripts/simulate-fleet.mjs",
     "fleet:verify": "node scripts/verify-realtime.mjs",
