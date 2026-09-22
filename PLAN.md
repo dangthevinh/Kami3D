@@ -36,6 +36,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D5** | Cultural & Story Maps (kết hợp 3D) | ✅ Hoàn thành — 8 story + ảnh Commons có credit; chỗ 3D để trống có lý do |
 | **D6** | Agri Geo-Analytics Dashboard | ✅ Hoàn thành — NDVI + mưa **thật** từ NASA GIBS (public domain, không cần tile pipeline), mẫu thửa mô phỏng có nhãn |
 | **D7** | Digital Twin 3D & Realtime (GIS 3D + hạ tầng đẩy dữ liệu) | ✅ Hoàn thành — thành phố 3D **thật** (OSM + terrain), fleet stream qua Supabase Realtime; HT for Web bị từ chối, thay bằng bộ OSS |
+| **D8** | Ẩn Data2Map với người dùng (chỉ admin xem) | ✅ Hoàn thành — middleware trả **404** cho khách, allow-list + bảng `app_admins`; `NEXT_PUBLIC_DATA2MAP_PUBLIC=1` để mở lại |
 
 **Số liệu hiện tại**
 

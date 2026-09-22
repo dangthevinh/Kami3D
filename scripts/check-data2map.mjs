@@ -18,6 +18,14 @@ import { fileURLToPath } from "node:url";
 
 import { validateRegistry } from "../scripts/seed-data2map.mjs";
 import {
+  DATA2MAP_API_PREFIX,
+  DATA2MAP_PREFIX,
+  data2mapIsPublic,
+  identityListed,
+  isData2MapPath,
+  parseIdentityList,
+} from "../lib/data2map-access.ts";
+import {
   DATA2MAP_BASE,
   DATA2MAP_PRODUCTS,
   isProductId,
@@ -146,3 +154,110 @@ test("the sitemap lists the module and every live product", () => {
   assert.ok(sitemap.includes("${siteUrl}/map"), "the animal map belongs in the sitemap too");
 });
 
+/**
+ * The module is built but not launched, and that is a rule with two halves: the middleware hides it
+ * from visitors, and the navigation does not advertise it. Neither half can be checked by opening a
+ * page, so they are pinned here - the path matcher as a pure function, the middleware and the sitemap
+ * as text, because the alternative is discovering the gate was removed by finding the module in a
+ * search result.
+ */
+
+test("the module is hidden unless it is public, a development build, or an admin", () => {
+  // The suite runs without .env.local, so this is the default a fresh clone gets: hidden.
+  const previousPublic = process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC;
+  const previousNodeEnv = process.env.NODE_ENV;
+
+  try {
+    delete process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC;
+    process.env.NODE_ENV = "production";
+    assert.equal(data2mapIsPublic(), false, "the module must not be public by accident");
+
+    process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC = "1";
+    assert.equal(data2mapIsPublic(), true, "the launch switch turns it on");
+
+    delete process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC;
+    process.env.NODE_ENV = "development";
+    assert.equal(data2mapIsPublic(), true, "npm run dev is where the module is written");
+  } finally {
+    if (previousPublic === undefined) delete process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC;
+    else process.env.NEXT_PUBLIC_DATA2MAP_PUBLIC = previousPublic;
+    process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
+test("the gate matches the module and its API, and nothing that merely looks like them", () => {
+  for (const path of [DATA2MAP_PREFIX, "/data2map", "/data2map/", "/data2map/twin", "/api/data2map/pois"]) {
+    assert.equal(isData2MapPath(path), true, path + " must be inside the gate");
+  }
+
+  for (const path of ["/", "/map", "/data2mapx", "/api/data2map-access", "/api/data2mapish", "/maps/data2map"]) {
+    assert.equal(isData2MapPath(path), false, path + " must not be gated by string luck");
+  }
+
+  assert.equal(DATA2MAP_API_PREFIX, "/api/data2map");
+});
+
+test("the allow-lists are parsed, and compared without case or spaces", () => {
+  assert.deepEqual(parseIdentityList(" a@B.com , user_1 ,, "), ["a@b.com", "user_1"]);
+  assert.deepEqual(parseIdentityList(undefined), []);
+  assert.deepEqual(parseIdentityList(""), []);
+
+  const previousIds = process.env.DATA2MAP_ADMIN_IDS;
+  const previousEmails = process.env.DATA2MAP_ADMIN_EMAILS;
+
+  try {
+    process.env.DATA2MAP_ADMIN_IDS = "user_3Ja1siqFIUisqvpNzeflv0tkkA6";
+    process.env.DATA2MAP_ADMIN_EMAILS = "Kaiovinh@Gmail.com";
+
+    assert.equal(identityListed({ userId: "user_3Ja1siqFIUisqvpNzeflv0tkkA6" }), true);
+    assert.equal(identityListed({ email: "kaiovinh@gmail.com" }), true, "email comparison is case-blind");
+    assert.equal(identityListed({ userId: "user_somebody_else" }), false);
+    assert.equal(identityListed({}), false, "an empty session is not an admin");
+
+    delete process.env.DATA2MAP_ADMIN_IDS;
+    delete process.env.DATA2MAP_ADMIN_EMAILS;
+    assert.equal(identityListed({ userId: "user_3Ja1siqFIUisqvpNzeflv0tkkA6" }), false, "no list, no admins");
+  } finally {
+    if (previousIds === undefined) delete process.env.DATA2MAP_ADMIN_IDS;
+    else process.env.DATA2MAP_ADMIN_IDS = previousIds;
+    if (previousEmails === undefined) delete process.env.DATA2MAP_ADMIN_EMAILS;
+    else process.env.DATA2MAP_ADMIN_EMAILS = previousEmails;
+  }
+});
+
+test("the gate lives in the middleware, because the module's pages are static", () => {
+  const middleware = readFileSync(join(root, "middleware.ts"), "utf8");
+
+  assert.ok(middleware.includes("isData2MapPath"), "the middleware does not know about the module");
+  assert.ok(middleware.includes("canSeeData2Map"), "and does not ask who may see it");
+  assert.ok(middleware.includes("isDatabaseAdmin"), "nor checks the admin table");
+  assert.ok(/status: 404/.test(middleware), "a hidden section answers 404, not 403");
+  assert.ok(middleware.includes("x-robots-tag"), "and tells crawlers to stay out");
+
+  // Every branch of the provider switch must apply the gate: Supabase, Clerk and Demo Mode.
+  assert.equal((middleware.match(/hiddenResponse\(\)/g) ?? []).length >= 3, true, "each provider path needs the gate");
+
+  // And no page in the module reads a session: that would make all seven dynamic and cost the
+  // prerendered HTML that check:bundle measures.
+  for (const page of ["page.tsx", "real-estate/page.tsx", "trends/page.tsx", "logistics/page.tsx", "agriculture/page.tsx", "twin/page.tsx"]) {
+    const source = readFileSync(join(root, "app", "data2map", page), "utf8");
+    assert.ok(!source.includes("getCurrentUserId"), page + " reads a session; the gate belongs in the middleware");
+    assert.ok(!source.includes("data2MapAccess"), page + " asks who may see it; the middleware already answered");
+  }
+});
+
+test("the sitemap and the navbar do not advertise an unpublished module", () => {
+  const sitemap = readFileSync(join(root, "app", "sitemap.ts"), "utf8");
+  assert.ok(sitemap.includes("data2mapIsPublic()"), "the sitemap must ask before listing the module");
+  assert.ok(/data2mapIsPublic\(\)\s*\n?\s*\?/.test(sitemap), "and list the routes only when it is public");
+
+  const navbar = readFileSync(join(root, "components", "layout", "Navbar.tsx"), "utf8");
+  assert.ok(navbar.includes("/api/data2map-access"), "the navbar must ask before drawing the entry");
+  assert.ok(navbar.includes("data2mapIsPublic()"), "and draw it unconditionally when the module is public");
+  // The entry may exist as its own constant - what it must not do is sit inside the list that is
+  // rendered for everyone.
+  const listStart = navbar.indexOf("const NAV_LINKS");
+  const listEnd = navbar.indexOf("] as const;", listStart);
+  assert.ok(listStart >= 0 && listEnd > listStart, "NAV_LINKS is not where it used to be");
+  assert.ok(!navbar.slice(listStart, listEnd).includes("/data2map"), "the entry sits in the unconditional list");
+});

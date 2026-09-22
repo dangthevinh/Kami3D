@@ -95,6 +95,8 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 | `NEXT_PUBLIC_SITE_URL` | app | Canonical URLs, sitemap, OG images — must match the public origin. Falls back to the Vercel/Netlify production URL, then to `http://localhost:9000` (which the build warns about) |
 | `NEXT_PUBLIC_DRACO_DECODER_PATH` | browser | Empty uses the self-hosted decoder |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | browser | Empty renders ad placeholders |
+| `NEXT_PUBLIC_DATA2MAP_PUBLIC` | app | `1` publishes Data2Map to everyone. Empty (the default) keeps the module behind the admin gate: the middleware answers 404 and the sitemap leaves it out. `npm run dev` shows it regardless |
+| `DATA2MAP_ADMIN_IDS`, `DATA2MAP_ADMIN_EMAILS` | server | Comma-separated allow-lists for the module while it is unpublished — provider user ids (Clerk `user_…`) or the verified email. Read by the middleware at runtime; a row in `public.app_admins` works too and needs no rebuild |
 
 > A tracked `.env.example` was removed deliberately: a template that looks like a place to paste real keys is
 > how credentials end up in a public repository. The table above is the template instead.

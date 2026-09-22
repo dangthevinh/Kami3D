@@ -9,6 +9,8 @@ import { KamiLogo } from "@/components/brand/KamiLogo";
 import { SettingsMenu } from "@/components/layout/SettingsMenu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { readSessionHint } from "@/lib/auth-hint";
+import { data2mapIsPublic } from "@/lib/data2map-access";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -17,11 +19,72 @@ const NAV_LINKS = [
   { href: "/map", label: "Map", icon: MapPinned },
   { href: "/quiz", label: "Quiz", icon: Gamepad2 },
   { href: "/leaderboard", label: "Most viewed", icon: Trophy },
-  // Data2Map is a second product surface, not another encyclopedia page: one navbar entry,
-  // and its own five sub-links live in the module layout.
-  { href: "/data2map", label: "Data2Map", icon: Boxes },
   { href: "/profile", label: "Collection", icon: Heart },
 ] as const;
+
+/**
+ * Data2Map is a second product surface, not another encyclopedia page: one navbar entry, and its own
+ * five sub-links live in the module layout.
+ *
+ * It is also **built but not launched**, so the entry is hidden from visitors and drawn only for the
+ * people working on it. The question is asked once per tab, from a small route, and only when the
+ * session hint says somebody might be signed in - a guest never pays for it. The answer decides
+ * whether a link is drawn; the middleware decides whether a request is served, and it decides again
+ * on every request. `NEXT_PUBLIC_DATA2MAP_PUBLIC=1` (or `npm run dev`) shows it to everybody.
+ */
+const DATA2MAP_LINK = { href: "/data2map", label: "Data2Map", icon: Boxes } as const;
+
+const DATA2MAP_CACHE_KEY = "kami3d:data2map-visible";
+
+function useData2MapVisible(): boolean {
+  const [visible, setVisible] = React.useState(() => data2mapIsPublic());
+
+  React.useEffect(() => {
+    if (data2mapIsPublic()) return;
+
+    try {
+      const cached = window.sessionStorage.getItem(DATA2MAP_CACHE_KEY);
+      if (cached === "1") {
+        setVisible(true);
+        return;
+      }
+      if (cached === "0") return;
+    } catch {
+      // Private mode, or storage disabled: fall through and ask the server.
+    }
+
+    // Nobody signed in means nobody who could be an admin, so there is nothing to ask.
+    if (readSessionHint(document.cookie) === "out") {
+      try {
+        window.sessionStorage.setItem(DATA2MAP_CACHE_KEY, "0");
+      } catch {
+        // Ignored: the answer is only a cache.
+      }
+      return;
+    }
+
+    let cancelled = false;
+    fetch("/api/data2map-access", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : { visible: false }))
+      .then((data: { visible?: boolean }) => {
+        if (cancelled) return;
+        const allowed = data.visible === true;
+        setVisible(allowed);
+        try {
+          window.sessionStorage.setItem(DATA2MAP_CACHE_KEY, allowed ? "1" : "0");
+        } catch {
+          // Ignored.
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return visible;
+}
 
 export interface NavbarProps {
   /** Clerk `<UserButton />` when auth is configured, otherwise sign-in links. */
@@ -47,6 +110,13 @@ export function Navbar({ authSlot }: NavbarProps) {
   const [scrolled, setScrolled] = React.useState(false);
   const listRef = React.useRef<HTMLUListElement>(null);
   const [pill, setPill] = React.useState<{ left: number; width: number } | null>(null);
+  const showData2Map = useData2MapVisible();
+
+  // The module's entry appears and disappears with that answer, so the pill is measured again.
+  const links = React.useMemo(
+    () => (showData2Map ? [...NAV_LINKS, DATA2MAP_LINK] : NAV_LINKS),
+    [showData2Map],
+  );
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -72,7 +142,7 @@ export function Navbar({ authSlot }: NavbarProps) {
     void document.fonts?.ready.then(measure).catch(() => undefined);
 
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [pathname, links]);
 
   React.useEffect(() => {
     setMobileOpen(false);
@@ -102,7 +172,7 @@ export function Navbar({ authSlot }: NavbarProps) {
               style={{ transform: `translateX(${pill.left}px)`, width: pill.width }}
             />
           ) : null}
-          {NAV_LINKS.map((link) => {
+          {links.map((link) => {
             const active = isActive(link.href, pathname);
             return (
               <li key={link.href}>
@@ -176,7 +246,7 @@ export function Navbar({ authSlot }: NavbarProps) {
               />
             </form>
             <ul className="grid gap-1">
-              {NAV_LINKS.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
