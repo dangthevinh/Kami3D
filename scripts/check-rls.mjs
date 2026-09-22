@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import {
   CLERK_SUPABASE_TEMPLATE_ENV,
   DEFAULT_CLERK_SUPABASE_TEMPLATE,
+  SESSION_TOKEN_MARKER,
   clerkSupabaseTemplate,
   personalDataMode,
   rlsIsEnforcing,
@@ -51,6 +52,12 @@ test("a template name is configuration, and a blank one is not a template", () =
   assert.equal(clerkSupabaseTemplate(null), null);
   assert.equal(DEFAULT_CLERK_SUPABASE_TEMPLATE, "supabase");
   assert.equal(CLERK_SUPABASE_TEMPLATE_ENV, "CLERK_SUPABASE_JWT_TEMPLATE");
+
+  // The marker for the modern path: Clerk's "Connect with Supabase" customizes the **session** token
+  // rather than a JWT template, so this value must be read as "no template, use the session token".
+  assert.equal(SESSION_TOKEN_MARKER, "session");
+  assert.equal(clerkSupabaseTemplate(SESSION_TOKEN_MARKER), "session");
+  assert.equal(personalDataMode({ provider: "clerk", template: SESSION_TOKEN_MARKER }), "clerk-token");
 });
 
 test("the identity helper speaks both providers", () => {
@@ -102,6 +109,10 @@ test("the Clerk token path exists, is per-request, and cannot silently become th
   assert.ok(
     /getToken\(\{ template \}\)/.test(personalData),
     "and minted from the configured JWT template, not a hand-rolled claim",
+  );
+  assert.ok(
+    /template === SESSION_TOKEN_MARKER \? await getToken\(\)/.test(personalData),
+    "the session-token path - what Clerk's Connect with Supabase sets up - must be honoured too",
   );
   assert.ok(/return null;/.test(personalData), "a token that cannot be minted must come back empty, not as the admin");
   assert.ok(

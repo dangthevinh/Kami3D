@@ -18,9 +18,26 @@
  * the service role and say so - a deployment must not break because a prerequisite is missing.
  */
 
-/** The Clerk JWT template Supabase should be told to trust. Created in the Clerk dashboard. */
+/**
+ * How the Clerk token Supabase should be told to trust is minted.
+ *
+ * Two shapes exist, and both are supported because the integration moved:
+ *
+ *   - `CLERK_SUPABASE_JWT_TEMPLATE=supabase` mints a token from a Clerk **JWT template** named
+ *     `supabase`. This is the older path (Supabase deprecated the JWT-template integration in April
+ *     2025, and the instance's own session tokens are what the current one uses);
+ *   - `CLERK_SUPABASE_JWT_TEMPLATE=session` mints the **session token** itself, which is what Clerk's
+ *     "Connect with Supabase" integration configures - the session token is customized in the Clerk
+ *     dashboard to carry `"role": "authenticated"`, which is the claim Postgres needs.
+ *
+ * Unset means "not configured": personal rows keep going through the service role, and the fallback
+ * is announced rather than hidden.
+ */
 export const CLERK_SUPABASE_TEMPLATE_ENV = "CLERK_SUPABASE_JWT_TEMPLATE";
 export const DEFAULT_CLERK_SUPABASE_TEMPLATE = "supabase";
+
+/** The value that means "use the session token", not a template. */
+export const SESSION_TOKEN_MARKER = "session";
 
 /**
  * The providers this decision knows about.

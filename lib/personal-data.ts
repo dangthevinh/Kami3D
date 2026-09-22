@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { activeAuthProvider } from "@/lib/auth-provider";
 import { publicEnv } from "@/lib/env";
-import { clerkSupabaseTemplate, personalDataMode } from "@/lib/personal-data-mode";
+import { SESSION_TOKEN_MARKER, clerkSupabaseTemplate, personalDataMode } from "@/lib/personal-data-mode";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getSupabaseServer } from "@/lib/supabase-server";
 
@@ -61,7 +61,9 @@ async function getClerkTokenClient(): Promise<SupabaseClient | null> {
     accessToken: async () => {
       try {
         const { getToken } = await auth();
-        return await getToken({ template });
+        // "session" means the customized session token - the path Clerk's Connect with Supabase sets
+        // up. Anything else is a JWT template name.
+        return template === SESSION_TOKEN_MARKER ? await getToken() : await getToken({ template });
       } catch {
         return null;
       }

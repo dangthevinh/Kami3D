@@ -2973,15 +2973,44 @@ Hai câu hỏi, hỏi bằng hai cách khác nhau:
 
 (`PATCH` trả 200/204 với 0 dòng cũng là "bị từ chối"; script so giá trị trước/sau nên không bị lừa bởi status code.)
 
-### 4. Còn lại đúng một bước, và nó thuộc về bạn
+### 4. Tôi đã tự động hoá được 2/3 bước — và bước còn lại thì không
 
-1. Supabase Dashboard → **Authentication → Third-Party Auth** → thêm **Clerk** (dán domain/issuer của Clerk);
-2. Clerk Dashboard → **JWT Templates** → tạo template tên **`supabase`**;
-3. thêm `CLERK_SUPABASE_JWT_TEMPLATE=supabase` vào `.env.local`.
+Vòng này tôi thử làm nốt phần cấu hình bằng API thay vì chờ dashboard, và kết quả là:
 
-Sau ba bước đó không phải sửa code: `getPersonalDataClient()` tự chuyển sang token Clerk và quyền sở hữu do
-RLS thi hành. `npm run verify:rls` là phép kiểm để xác nhận (cùng `select public.current_user_id() is not null`
-trong SQL editor khi đã đăng nhập).
+| Bước | Cách làm | Kết quả |
+| --- | --- | --- |
+| Đăng ký Clerk làm Third-Party Auth provider của Supabase | Management API **có** endpoint này (`POST /v1/projects/{ref}/config/auth/third-party-auth`) — không phải chỉ dashboard | ✅ đã tạo: `type: clerk-development`, issuer `https://musical-tortoise-8876.clerk.accounts.dev`, **JWKS đã resolve** |
+| Tạo JWT template `supabase` trong Clerk | Clerk Backend API `POST /v1/jwt_templates` | ✅ đã tạo: `jtmp_3JgfQXdRJrtFEmJZ7eRi6hfDdnH`, claims `{"role":"authenticated"}`, RS256, lifetime 60s |
+| Làm cho Supabase **chấp nhận** token Clerk | — | ❌ **không làm được từ đây** |
+
+Bằng chứng của lần thất bại đó (token Clerk thật, mint qua Backend API, gửi thẳng vào project):
+
+```
+GoTrue    /auth/v1/user        403 bad_jwt: unable to parse or verify signature,
+                                    token signature is invalid: signing method RS256 is invalid
+PostgREST /rest/v1/user_favorites  401 PGRST301: No suitable key was found to decode the JWT
+```
+
+Và đây là lý do, đọc từ chính tài liệu Supabase hôm nay: **tích hợp JWT-template với Clerk đã bị deprecate
+từ 1/4/2025**. Đường hiện hành là **Clerk → Integrations → "Connect with Supabase"**, và nó **customize session
+token** của Clerk (thêm claim `role: authenticated`) chứ không dùng JWT template. Bước đó nằm trong dashboard
+Clerk, không có API tương ứng.
+
+### 5. Còn lại: hai thao tác trong Clerk dashboard (không sửa code)
+
+1. Clerk Dashboard → **Integrations** → **Connect with Supabase** (chạy wizard; nó cấu hình instance cho
+   Supabase);
+2. Clerk Dashboard → **Sessions** → **Customize session token** → thêm `{ "role": "authenticated" }`;
+3. thêm `CLERK_SUPABASE_JWT_TEMPLATE=session` vào `.env.local` — giá trị `session` nghĩa là "dùng session token",
+   và code đã hỗ trợ cả hai đường (template hoặc session token).
+
+Rồi chạy `npm run verify:clerk-rls`: script này tự tạo một session ngắn hạn cho tài khoản admin, mint token,
+kiểm ba điều (**Supabase chấp nhận token Clerk** → **`current_user_id()` phân giải `sub`** → **policy từ chối
+ghi dữ liệu của người khác**) và **revoke session đó** khi xong. Nó in ra đúng hai dòng lỗi ở bảng trên nếu bước
+1–2 chưa xong, nên đây là phép kiểm để biết mình đã làm đúng chưa, không phải để tin.
+
+Cho tới lúc đó hành vi của app **không đổi**: biến môi trường chưa được đặt nên dữ liệu cá nhân vẫn đi qua service
+role như cũ — nghĩa là việc bật provider không làm hỏng gì, và cũng chưa cải thiện gì cho tới bước 3.
 
 ### 5. Bằng chứng
 
@@ -3000,7 +3029,7 @@ trong SQL editor khi đã đăng nhập).
 | 1 | ~~**Cập nhật `CLERK_SECRET_KEY`**~~ | ✅ **Không còn là vấn đề** — kiểm lại trong phiên này: key trong `.env.local` trả **HTTP 200** cho `GET https://api.clerk.com/v1/users`, và tìm được đúng tài khoản `kaiovinh@gmail.com` (Clerk user `user_3Ja1siqFIUisqvpNzeflv0tkkA6`). Việc còn lại là **bạn đăng nhập thử trên trình duyệt** (bước 2). |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm (Google sign-in qua Clerk). Kiểm tra được từ phía tôi: Clerk API xanh, `AUTH_PROVIDER=clerk`, và `app_admins` đã có dòng cho user của bạn. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | 🟡 **SQL + code + kiểm chứng đã xong; còn đúng 1 bước phía bạn**: Supabase Dashboard → Authentication → Third-Party Auth → thêm Clerk; tạo Clerk JWT template tên `supabase`; rồi đặt `CLERK_SUPABASE_JWT_TEMPLATE=supabase` trong `.env.local`. Sau đó app tự chuyển từ service role sang token Clerk và RLS là thứ thi hành quyền sở hữu (không cần sửa code nữa) |
+| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | 🟡 SQL + code + kiểm chứng xong; provider Clerk đã đăng ký ở Supabase và JWT template đã tạo **bằng API**. Còn **2 thao tác trong Clerk dashboard** (Connect with Supabase + customize session token thêm `role: authenticated`) rồi đặt `CLERK_SUPABASE_JWT_TEMPLATE=session` — xem mục "P0.1 — Kết quả" phần 4–5 để có bằng chứng lỗi cụ thể |
 | 5 | ~~**P0.2 — chống bơm lượt xem**~~ | ✅ **Xong** — cửa sổ trượt 40/phút mỗi địa chỉ + chặn `Sec-Fetch-Site: cross-site`; đã kiểm trên server thật (403 và 429 kèm `retry-after`) |
 | 6 | ~~**P0.3 — tầng lỗi/đang tải**~~ | ✅ **Xong** — `app/error.tsx`, `app/global-error.tsx`, `PageSkeleton` cho 4 route động; đã render lại bằng Chrome headless |
 | 7 | ~~**P0.4 — `dispose()` GLB**~~ | ✅ **Xong** — `lib/three-dispose.ts` dùng chung cho trang loài và quiz, 6 test; lỗ rò ở quiz (mỗi câu reveal một model) đã bịt |
