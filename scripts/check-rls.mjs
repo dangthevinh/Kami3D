@@ -21,6 +21,7 @@ import {
   DEFAULT_CLERK_SUPABASE_TEMPLATE,
   SESSION_TOKEN_MARKER,
   clerkSupabaseTemplate,
+  templateKind,
   personalDataMode,
   rlsIsEnforcing,
 } from "../lib/personal-data-mode.ts";
@@ -58,6 +59,16 @@ test("a template name is configuration, and a blank one is not a template", () =
   assert.equal(SESSION_TOKEN_MARKER, "session");
   assert.equal(clerkSupabaseTemplate(SESSION_TOKEN_MARKER), "session");
   assert.equal(personalDataMode({ provider: "clerk", template: SESSION_TOKEN_MARKER }), "clerk-token");
+
+  // Three shapes arrive in .env files, and telling them apart is the difference between a working
+  // integration and a 401 nobody can explain.
+  assert.equal(templateKind("session"), "session");
+  assert.equal(templateKind("supabase"), "name");
+  assert.equal(templateKind("jtmp_3JgfQXdRJrtFEmJZ7eRi6hfDdnH"), "id");
+  assert.equal(templateKind("  jtmp_abc123  "), "id");
+  assert.equal(templateKind(""), null);
+  assert.equal(templateKind(undefined), null);
+  assert.equal(templateKind("jtmp-abc"), "name", "an id-shaped value with the wrong separator is a name");
 });
 
 test("the identity helper speaks both providers", () => {
@@ -107,12 +118,16 @@ test("the Clerk token path exists, is per-request, and cannot silently become th
   assert.ok(personalData.includes("getClerkTokenClient"), "there is no Clerk token client");
   assert.ok(/accessToken: async \(\)/.test(personalData), "the token must be minted per request");
   assert.ok(
-    /getToken\(\{ template \}\)/.test(personalData),
+    /getToken\(\{ template: resolved \}\)/.test(personalData),
     "and minted from the configured JWT template, not a hand-rolled claim",
   );
   assert.ok(
-    /template === SESSION_TOKEN_MARKER \? await getToken\(\)/.test(personalData),
+    /resolved === SESSION_TOKEN_MARKER \? await getToken\(\)/.test(personalData),
     "the session-token path - what Clerk's Connect with Supabase sets up - must be honoured too",
+  );
+  assert.ok(
+    /templateKind\(template\) === "id"/.test(personalData) && /resolveTemplateName/.test(personalData),
+    "a template id from the dashboard must be resolved to its name, not passed through",
   );
   assert.ok(/return null;/.test(personalData), "a token that cannot be minted must come back empty, not as the admin");
   assert.ok(

@@ -68,7 +68,12 @@ try {
   sessionId = session.id;
   if (!sessionId) throw new Error("no session: " + JSON.stringify(session).slice(0, 200));
 
-  const minted = await clerk(`/sessions/${sessionId}/tokens/${template}`, { method: "POST" });
+  // "session" means the customized session token - the path Clerk's Connect with Supabase sets up,
+  // and the only one Supabase currently accepts. Anything else names a JWT template.
+  const minted = await clerk(
+    template === "session" ? `/sessions/${sessionId}/tokens` : `/sessions/${sessionId}/tokens/${template}`,
+    { method: "POST" },
+  );
   const { jwt } = await minted.json();
   if (!jwt) {
     console.error(`The Clerk account has no JWT template called "${template}". Create it with the claim { "role": "authenticated" }.`);

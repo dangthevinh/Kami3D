@@ -40,6 +40,24 @@ export const DEFAULT_CLERK_SUPABASE_TEMPLATE = "supabase";
 export const SESSION_TOKEN_MARKER = "session";
 
 /**
+ * What the configured value actually is.
+ *
+ * Three shapes are accepted because arriving at the wrong one is easy: Clerk's `getToken({ template })`
+ * wants a template **name**, the Clerk dashboard and the Backend API show the template **id**
+ * (`jtmp_…`) first - which is how an id ends up in an `.env` file - and `session` is this project's
+ * marker for the customized session token, the shape Supabase's current Clerk integration uses.
+ * Nothing is guessed silently: an id is resolved to its name, and anything else is treated as a name.
+ */
+export type TemplateKind = "session" | "id" | "name";
+
+export function templateKind(value: string | null | undefined): TemplateKind | null {
+  const trimmed = (value ?? "").trim();
+  if (trimmed.length === 0) return null;
+  if (trimmed === SESSION_TOKEN_MARKER) return "session";
+  return /^jtmp_[A-Za-z0-9]+$/.test(trimmed) ? "id" : "name";
+}
+
+/**
  * The providers this decision knows about.
  *
  * Declared here rather than imported from `lib/auth-provider.ts` so the module stays dependency-free:
