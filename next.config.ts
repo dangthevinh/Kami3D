@@ -44,7 +44,8 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "@react-three/drei"],
   },
-  eslint: { ignoreDuringBuilds: true },
+  // Next 16 removed both the `eslint` config key and `next lint` itself: linting is now the project's
+  // own ESLint CLI (`npm run lint`), so there is nothing to ignore during a build.
   async headers() {
     return [
       {
