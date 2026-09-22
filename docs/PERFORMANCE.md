@@ -24,6 +24,54 @@ For comparison, the same audit on the pre-optimisation build reported **777 kB o
 transfer** for `/` and **596 kB of JavaScript** for `/about` — of which 239 kB was Clerk's UI, fetched from
 Clerk's CDN for visitors who were not signed in.
 
+## Next 16: measured, and not adopted yet
+
+`next` 15.5.25 → 16.3.5 was proposed by Dependabot. It was built, served and audited on
+`chore/next-16`; this section is the result, because the upgrade is not free and the numbers decide.
+
+**It compiles.** After removing the `eslint` key from `next.config.ts` (Next 16 dropped it, along with
+`next lint`) the typecheck, the 416-check suites and a production build all pass, and `middleware.ts` still
+runs — Next 16 reports it as `ƒ Proxy (Middleware)`.
+
+**It costs JavaScript on every route.** Same machine, same audit, cold cache:
+
+| Route | JS before `load` on 15.5.25 | On 16.3.5 | Difference |
+| --- | --- | --- | --- |
+| `/` | 142 kB | **177.8 kB** | +35.8 kB |
+| `/explore` | 146 kB | **184.0 kB** | +38.0 kB |
+| `/quiz` | 150 kB | **192.4 kB** | +42.4 kB |
+| `/about` | 127 kB | **164.1 kB** | +37.1 kB |
+
+The growth is uniform, so it is the framework chunk rather than anything this project added: under webpack the two
+shared chunks go from 46.1 + 54.2 kB to 63.4 + 65.7 kB. `react` and `react-dom` stayed pinned at 19.2.8.
+
+**Turbopack, the new default, is worse here**: measured from the served HTML, `/` goes from 146.4 kB (15.5.25) to
+**213.3 kB**, against **173.4 kB** with `next build --webpack`.
+
+**The budget script loses a leg.** Next 16 no longer writes `app-build-manifest.json`, which is how
+`scripts/bundle-budget.mjs` measures the two routes that are not prerendered (`/map`, `/admin/analytics`). Every
+route it can still measure is over budget by 8–28 kB, so `npm run check:bundle` fails on this branch — by design,
+as the evidence for this decision. Measuring those two routes again would mean driving a browser against a running
+server (`npm run audit:perf` already does exactly that, and reports transferred bytes, which is the more honest
+number anyway).
+
+**And the linter's rule set grew.** `eslint-config-next@16` uses flat config and enables the newer
+`react-hooks` rules: `npm run lint` reports **30 errors** on existing, working code
+(23 × `react-hooks/set-state-in-effect`, 3 × `react/no-unescaped-entities`, 3 × `react-hooks/immutability`,
+2 × `react-hooks/exhaustive-deps`, 1 × `react-hooks/refs`). CI does not run a linter, so this is work rather
+than a gate — but it is work.
+
+**What adopting it would take**, in the order worth doing:
+
+1. decide that ~38 kB of JavaScript per visit is worth what 16 buys this project (nothing user-visible today);
+2. raise the budgets to the measured numbers plus a margin, and record the delta in this file as the price;
+3. replace the manifest-based measurement for the two dynamic routes with the browser audit, so the gate keeps
+   covering every route;
+4. pay down the 30 lint errors, or scope the new rules off with a written reason.
+
+Until then the upgrade stays on its branch. `scripts/bundle-budget.mjs` is the gate that made this visible, which
+is what it is for.
+
 ## The core rule: content first, WebGL second
 
 A species page must be readable before a single triangle is drawn. `three`, `@react-three/fiber` and
