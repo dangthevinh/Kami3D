@@ -29,6 +29,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | ✅ Hoàn thành — pipeline + vai trò admin + chế độ hybrid 3D (một WebGL context, có audit bằng Chrome thật) |
+| **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | 📝 Đã ghi prompt, chưa triển khai |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -1629,6 +1630,209 @@ thuần lẫn luật "không file nào trong `components/map` được import th
 - `POST /api/admin/geodata` trả **403** cho mọi tài khoản không nằm trong `app_admins`, kể cả khi đã đăng nhập —
   cùng một câu trả lời cho "chưa đăng nhập" và "đăng nhập nhưng không phải admin", để endpoint không thành chỗ
   liệt kê ai có quyền.
+
+---
+
+## 🛠️ Phase 18 — Admin Console: kênh & phân tích người dùng + tự động tìm/tải model 3D có hạn mức
+
+**Mục tiêu**: hai trang quản trị mới — `/admin/analytics` (kênh truy cập và hành vi người dùng, đo bằng
+first-party, không SDK bên thứ ba) và `/admin/models` (tìm – duyệt – tải model 3D từ nhiều nguồn free, với
+**hạn mức tải do admin đặt** và một sổ nhật ký không thể vượt qua bằng CLI).
+
+Phase này gồm hai nửa làm được độc lập (18A analytics, 18B model sourcing). Nó nối tiếp ba việc đã có: pipeline
+model Phase 12 (CLI), cổng admin `app_admins`/`is_admin()` Phase 17, và bảng `animal_views_daily` Phase 4 —
+**không dựng lại cái nào trong số đó**.
+
+### Hiện trạng, để không làm lại
+
+| Đã có | Ở đâu | Phase 18 dùng thế nào |
+| --- | --- | --- |
+| Pipeline tải model (sketchfab / smithsonian / polypizza), allow-list **CC0 + CC-BY**, ngân sách 12 MB/model, DRACO, `scoreModelQuality`, `FACE_BUDGET` | `scripts/fetch-models.mjs`, `lib/model-quality.ts` | **Mở rộng**, không fork: thêm provider + hạn mức + UI |
+| `model_assets` (licence CHECK 'CC0'/'CC-BY', attribution bắt buộc, dedupe theo source_url) + `data/model-attribution.json` | `supabase/schema.sql`, `data/` | Ghi vào đúng chỗ đó, không thêm bảng song song |
+| Cổng admin: `app_admins`, `is_admin()`, `/admin/geodata` | Phase 17 | Hai trang mới dùng **cùng** cổng, cộng thêm gate ở middleware như D8 |
+| Đếm lượt xem theo loài/ngày, chống bơm | `animal_views_daily`, `increment_animal_view`, P0.2 | Giữ nguyên; analytics mới là chuyện **kênh**, không phải chuyện lượt xem loài |
+| Chart tự viết | `components/stats/*` | Dùng lại `DailyBars`/`Sparkline`, không thêm thư viện chart |
+
+**Chưa có gì về kênh truy cập**: không có referrer, không có UTM, không có phân loại bot — `grep` cho
+`referer|channel|utm_` trong repo chỉ ra vài chỗ không liên quan. Đây là phần mới thật sự của 18A.
+
+### Nguồn model free — đã kiểm licence và **đã thử API** trong phiên này
+
+| Provider | Cần key? | Licence | Ghi chú (đã kiểm) |
+| --- | --- | --- | --- |
+| **Poly Haven** | **Không** | **CC0** | API keyless trả **521 model** (`api.polyhaven.com/assets?t=models`, HTTP 200); API không kèm field licence nên phải ghi nguồn licence ở cấp site |
+| **NASA 3D Resources** | **Không** | **Public domain** | repo `nasa/NASA-3D-Resources`, thư mục `3D Models` có **227 mục** qua GitHub API (keyless) |
+| **Khronos glTF Sample Assets** | **Không** | CC0 / CC BY (theo từng model) | repo `KhronosGroup/glTF-Sample-Assets` — dùng làm bộ kiểm tra pipeline |
+| Sketchfab | OAuth token | CC0 / CC BY (allow-list) | "free download" **không** đồng nghĩa licence mở; đã có sẵn trong pipeline |
+| Smithsonian Open Access (3D) | `api.data.gov` key | CC0 | 3D API `3d-api.si.edu` |
+| Poly Pizza | key | CC0 / CC BY | archive của Google Poly |
+| ~~Thingiverse / MyMiniFactory / CGTrader~~ | — | **CC BY-NC / ToS cấm tải tự động** | **từ chối** |
+| ~~Google Poly~~ | — | đã đóng | ghi lại, không dùng |
+
+Điểm đáng giá: **ba nguồn đầu không cần key nào**, nên luật "clone mới chạy được không cần cấu hình" vẫn giữ —
+một bản clone sạch vẫn tìm và tải được model CC0/public-domain, còn Sketchfab/Smithsonian/Poly Pizza là tuỳ chọn
+khi admin có token.
+
+**Prompt để triển khai Phase 18A — Kênh & phân tích người dùng (admin)**:
+
+````markdown
+Triển khai Phase 18A – Admin Analytics (kênh truy cập & hành vi người dùng) cho Kami3D.
+
+Tạo trang: /admin/analytics (chỉ admin; cùng cổng với /admin/geodata)
+
+1. Phân loại kênh — hàm thuần, có test
+   - lib/channel.ts: classifyChannel({ referer, secFetchSite, userAgent, host, campaign }) trả về đúng một
+     nhãn: direct | internal | search | social | referral | campaign | bot.
+   - Nguồn sự thật theo thứ tự: Sec-Fetch-Site (trình duyệt tự đặt, JS trang không sửa được) → host của
+     Referer → không có gì thì direct. Danh sách host tìm kiếm/mạng xã hội đặt trong hằng số có nguồn.
+   - Bot: theo UA (bot|crawler|spider|preview|headless|monitor) VÀ theo Sec-Fetch-Mode; bot có hàng riêng,
+     không bao giờ bị trộn vào "người dùng".
+   - campaign: chỉ lấy utm_source/utm_campaign khi có, chuẩn hoá về [a-z0-9-_] và cắt 40 ký tự; KHÔNG lưu
+     query string đầy đủ của người dùng.
+
+2. Ghi nhận — tổng hợp, first-party, không SDK
+   - Bảng traffic_daily(day date, channel text, hits integer, primary key(day, channel)) và
+     page_daily(day date, route text, hits integer, primary key(day, route)). "route" là lớp route đã chuẩn
+     hoá (/animal/[slug], /explore, /data2map/*, …), không phải URL kèm query.
+   - Không lưu IP, không lưu UA thô, không cookie theo dõi mặc định, không SDK bên thứ ba, không fingerprint.
+   - Ghi từ middleware (nơi đã có request + session), một upsert tăng hits; hỏng ghi thì không được làm hỏng
+     trang (bọc try/catch, log một dòng).
+   - Tôn trọng DNT: 1 và Sec-GPC: 1 → không ghi.
+   - Tuỳ chọn "phiên" phải TẮT mặc định; nếu bật thì dùng cookie first-party 30 phút, nhãn UI ghi rõ
+     "phiên (ước lượng theo cookie trình duyệt)".
+   - Tìm kiếm: chỉ ghi phân loại (matched | no_match) + slug khớp; KHÔNG lưu chữ người dùng gõ (ô tìm kiếm có
+     thể chứa tên người).
+
+3. Trang admin
+   - Bộ lọc khoảng ngày (7/30/90 ngày), bảng kênh (hits, % , sparkline mỗi kênh), top route, top loài,
+     hàng bot tách riêng, và tổng hợp từ bảng đã có: quiz hoàn thành (quiz_scores), yêu thích
+     (user_favorites), settings đã lưu (user_settings).
+   - Mọi chỉ số in công thức ngay cạnh số (giống D2/D3/D4): "hits = số lần routerequest được ghi",
+     "% kênh = hits kênh / tổng hits không tính bot".
+   - Nút xuất CSV (chỉ admin) và khối "Đây không phải là gì": không dữ liệu từng người, không theo dõi
+     xuyên site, không IP.
+   - Dùng lại components/stats/*; không thêm thư viện chart.
+
+4. Quyền, lưu trữ, retention
+   - RLS: bảng chỉ admin đọc (policy using (public.is_admin())), revoke all rồi grant select cho
+     authenticated; không có policy ghi cho anon/authenticated (chỉ service role ghi).
+   - prune_traffic(retain_days integer default 400): xoá theo ngày, từ chối tham số <= 0; pg_cron hằng ngày
+     (có guard như D7 nếu thiếu pg_cron).
+   - Gate /admin/* ở middleware như đã làm cho /data2map ở D8: chưa đăng nhập → 404, không phải 403.
+
+5. Trung thực
+   - /about thêm một mục ngắn: đếm cái gì, không đếm cái gì, giữ bao lâu, và câu "chúng tôi đếm lượt, không
+     đếm người".
+   - docs/ANALYTICS.md ghi: định nghĩa từng kênh, vì sao bot tách riêng, vì sao không lưu IP, và những gì
+     bị từ chối (GA4/Plausible cloud/heatmap SDK) kèm lý do.
+````
+
+**Ràng buộc riêng của 18A**:
+
+1. **Không SDK analytics bên thứ ba** (GA4, Plausible cloud, PostHog, heatmap). Lý do không phải "thích tự làm"
+   mà là: một script bên thứ ba trên mọi trang là thứ docs/REVIEW.md đã đo và loại (Clerk từng làm đúng như vậy),
+   và nó biến dữ liệu người dùng thành dữ liệu của người khác. Đo bằng first-party, tổng hợp, đủ trả lời "kênh nào
+   đang mang người đến".
+2. **Không lưu IP, không UA thô, không fingerprint, không theo dõi xuyên site.** Nếu một chỉ số cần định danh
+   (phiên) thì phải TẮT mặc định và nói rõ nó dựa trên cookie first-party 30 phút.
+3. **Bot không phải người dùng.** Hàng riêng, nhãn riêng, và mọi % trên trang đều tính trên phần không phải bot.
+4. **Ô tìm kiếm không được ghi nguyên văn.** Chỉ ghi khớp/không khớp + slug khớp.
+5. **Schema phải tự cấm dữ liệu cá nhân**: không cột nào tên kiểu `ip`/`user_agent`/`visitor_id`; có test đọc
+   schema và fail nếu ai đó thêm.
+6. **Đo được**: test thuần cho classifier (referer đủ kiểu, thiếu header, host lạ, UTM rác, bot), test SQL cho
+   RLS admin-only + retention có sàn, và gate /admin ở middleware.
+
+---
+
+**Prompt để triển khai Phase 18B — Tự động tìm & tải model 3D, có hạn mức do admin đặt**:
+
+````markdown
+Triển khai Phase 18B – Model Sourcing Console cho Kami3D.
+
+Tạo trang: /admin/models (chỉ admin; cùng cổng với /admin/geodata)
+
+1. Provider registry — mở rộng scripts/fetch-models.mjs, không viết lại
+   - Mỗi provider là một object có: id, homepage, license mặc định (hoặc hàm đọc licence từng model),
+     needsKey (tên biến môi trường), search(query) → Candidate[], resolve(candidate) → file + metadata.
+   - Thêm provider KHÔNG cần key: polyhaven (CC0), nasa (public domain, GitHub repo), khronos (glTF Sample
+     Assets). Giữ sketchfab / smithsonian / polypizza như cũ.
+   - Danh sách này là dữ liệu, không phải if/else rải rác, và có test khẳng định: mọi provider mặc định đều
+     nằm trong allow-list licence, provider cần key phải khai đúng tên biến, provider bị từ chối phải có lý do
+     ghi kèm.
+   - Từ chối và ghi rõ lý do: thingiverse, myminifactory, cgtrader (CC BY-NC / ToS cấm tải tự động), Google Poly
+     (đã đóng).
+
+2. Hạn mức tải — admin kiểm soát số lượng, và không thể vượt bằng CLI
+   - Bảng model_download_policy (một dòng, id = 'default'): enabled boolean, max_per_day integer,
+     max_per_month integer, max_total integer, max_bytes_total bigint, max_bytes_per_model bigint,
+     providers_allowed text[], require_approval boolean, updated_by text, updated_at timestamptz.
+   - Bảng model_download_log(id, at, actor, provider, provider_id, title, license, bytes, animal_slug,
+     storage_path, outcome text check (outcome in ('downloaded','refused','failed')), reason text).
+   - lib/model-budget.ts: evaluateBudget({ policy, usage, candidate }) → { allowed, reason, remainingToday,
+     remainingBytesTotal, … } — hàm THUẦN, có test cho: hết lượt trong ngày, hết lượt trong tháng, hết tổng,
+     vượt dung lượng, provider không nằm trong providers_allowed, require_approval mà chưa duyệt, enabled=false,
+     dữ liệu thiếu (usage null) thì từ chối chứ không cho qua.
+   - Chốt hạn mức ở MỘT chỗ phía server: hàm SQL reserve_model_download(...) (SECURITY DEFINER, kiểm tra rồi
+     ghi log trong cùng transaction) trả về decision. Cả CLI lẫn UI đều gọi nó; không có đường thứ hai.
+   - Mọi lần thử — kể cả bị từ chối — đều vào log kèm lý do. Admin thấy "hôm nay còn N lượt / M MB", "tháng này
+     còn …", và lịch sử tải.
+
+3. UI /admin/models
+   - Ô tìm kiếm (một ô, tìm song song các provider đang bật), bảng ứng viên: tiêu đề, provider, licence (nhãn +
+     link), face count, dung lượng, điểm chất lượng (scoreModelQuality), attribution sẽ phải hiển thị.
+   - Nút "Tải về" chỉ sáng khi evaluateBudget cho phép, kèm lý do khi bị chặn; nút "Gán cho loài" và "Đặt làm
+     model chính" (is_primary) sau khi tải.
+   - Sau khi tải: DRACO hoá, upload Storage, ghi model_assets + data/model-attribution.json — dùng đúng pipeline
+     Phase 12, không có bước riêng cho UI.
+   - Khối cấu hình hạn mức (chỉ admin): sửa policy, có xác nhận, và ghi actor vào updated_by.
+   - Trang nói rõ provider nào đang dùng được với cấu hình hiện tại: "không có token → vẫn tìm được Poly Haven,
+     NASA, Khronos; Sketchfab/Smithsonian/Poly Pizza cần key".
+
+4. An toàn và licence
+   - Licence là điều kiện tiên quyết: model không nằm trong allow-list (CC0/CC-BY) bị loại TRƯỚC khi tải, và lý do
+     được ghi vào log. "Free download" trên Sketchfab không đồng nghĩa licence mở — UI ghi đúng nhãn licence.
+   - Attribution bắt buộc trước khi bật is_primary; thiếu attribution thì chặn, không phải cảnh báo.
+   - Giới hạn dung lượng mỗi model (mặc định 12 MB, đã có) vẫn áp dụng; vượt thì từ chối kèm lý do.
+   - Token chỉ nằm ở server (không NEXT_PUBLIC), không bao giờ trả về browser.
+
+5. Kiểm thử & đo
+   - scripts/check-model-budget.mjs: toán hạn mức (mọi nhánh ở mục 2), ranh giới ngày/tháng theo UTC, và
+     khẳng định provider registry không chứa licence ngoài allow-list.
+   - check-sql: RLS hai bảng mới (admin đọc, service role ghi), constraint outcome, retention/cron nếu có.
+   - Ngân sách bundle cho /admin/models và /admin/analytics (dynamic, three.js vẫn lazy, không rò WebGLRenderer).
+   - docs/MODELS.md: bảng provider + licence + key, cách hạn mức được ép, và những gì bị từ chối.
+````
+
+**Ràng buộc riêng của 18B**:
+
+1. **Hạn mức là ngân sách, không phải gợi ý.** Một chỗ duy nhất phía server quyết định (hàm SQL
+   `reserve_model_download`), cả UI lẫn CLI đi qua nó; log ghi cả lần bị từ chối. Không có biến môi trường nào
+   tắt được hạn mức ngoài việc admin sửa policy.
+2. **Licence trước, tải sau.** Allow-list hiện có (CC0/CC-BY) áp dụng cho **mọi** provider mới; NC/ND và
+   "all rights reserved" bị loại trước khi tải, có lý do trong log. Ba nguồn keyless (Poly Haven, NASA, Khronos)
+   là mặc định để bản clone sạch vẫn dùng được tính năng này.
+3. **Attribution là điều kiện của `is_primary`**, không phải phụ lục: thiếu credit thì không được đặt làm model
+   chính, và trang hiện trước đoạn credit sẽ được phát hành.
+4. **Token chỉ ở server.** `SKETCHFAB_API_TOKEN`, `SI_API_KEY`, `POLY_PIZZA_API_KEY` không bao giờ vào bundle;
+   trang phải nói được provider nào đang bật với cấu hình hiện tại thay vì hiện nút hỏng.
+5. **Không tự động tải hàng loạt không có người duyệt.** Mặc định `require_approval = true`: pipeline có thể
+   *đề xuất*, nhưng mỗi model vào repo phải có một lần admin bấm duyệt, và log ghi ai duyệt.
+6. **Tái dùng, không fork**: `lib/model-quality.ts`, DRACO, `model_assets`, `data/model-attribution.json`,
+   `/admin/geodata`'s gate — Phase 18B chỉ thêm provider, hạn mức và UI.
+7. **Kết quả phải đo được**: số model tải về, dung lượng, số lần bị chặn vì hạn mức, thời gian tìm kiếm mỗi
+   provider — in trên trang (không phải "cảm giác nhanh hơn").
+
+### Cách chia việc và thứ tự làm
+
+18A và 18B độc lập, mỗi nửa một commit:
+
+1. **18A trước** — schema + `lib/channel.ts` + middleware ghi nhận + `/admin/analytics`. Rẻ hơn, và cho dữ liệu
+   nền để đánh giá 18B sau này (ví dụ: có ai vào `/admin/models` không, kênh nào mang admin tới).
+2. **18B sau** — provider registry + hai bảng hạn mức + `reserve_model_download` + `/admin/models`. Đây là phần
+   chạm tới tiền và licence, nên làm sau khi có log và test.
+
+Cả hai đều phải giữ: CI xanh, mọi route trong ngân sách, `tsc` sạch, và "một WebGL context" — trang admin không
+được nạp three.js vào first paint.
 
 ---
 
