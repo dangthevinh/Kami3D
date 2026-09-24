@@ -29,7 +29,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **15** | Conservation Threat & Risk Maps | ✅ Hoàn thành — Natural Earth + risk index có test, WDPA bị từ chối |
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | ✅ Hoàn thành — pipeline + vai trò admin + chế độ hybrid 3D (một WebGL context, có audit bằng Chrome thật) |
-| **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | 🟡 **18A xong** — 3 bảng tổng hợp + classifier thuần + middleware đếm + `/admin/analytics`; 18B chưa triển khai |
+| **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | ✅ **18A xong** + ✅ **18B xong** — registry 7 provider, `model_download_policy`/`model_download_log`, `reserve_model_download()`, worker lệnh và `/admin/models` |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -3352,6 +3352,55 @@ chỉ admin xem. Trang mới trả lời câu hỏi của **chính người dùn
    nhau, và 5 vùng còn trống.
 - `check:suites`, build production + `check:bundle` (route `/analytics` được khai ngân sách 165 kB như các route nội
    dung khác) — số liệu ở phần dưới.
+
+---
+## ✅ Phase 18B — Model Sourcing Console (`/admin/models`)
+
+### 1. Đã làm gì
+
+| Việc | Ở đâu |
+| --- | --- |
+| Provider registry 7 nguồn (3 keyless: Poly Haven / NASA / Khronos; 4 còn lại cần key hoặc URL admin ghim) + danh sách **từ chối kèm lý do** | `data/model-providers.json`, `scripts/fetch-models.mjs` |
+| Hạn mức: `model_download_policy` + nhật ký `model_download_log` (mọi lần thử, kể cả bị từ chối, kèm lý do) | `supabase/schema.sql` |
+| **Một chốt duy nhất**: `reserve_model_download()` (SECURITY DEFINER, advisory lock, kiểm rồi ghi log trong cùng transaction) và `settle_model_download()` trả lại lượt khi tải lỗi | `supabase/schema.sql` |
+| Toán hạn mức thuần cho UI và worker: `evaluateBudget`, `planBatch`, đọc policy/usage từ jsonb | `lib/model-budget.ts` |
+| Lệnh (order) + hệ thống tự động: bảng `model_source_orders` và worker `npm run models:work`, nhận lệnh rồi chạy CLI cho từng loài, ghi tiến độ sau mỗi loài | `scripts/model-orders.mjs` |
+| CLI **buộc** đi qua hạn mức: giữ chỗ trước khi tải, chốt sổ sau khi tải, trả lại lượt nếu lỗi; không có cờ nào tắt được | `scripts/fetch-models.mjs` |
+| Trang admin: hạn mức, số còn lại, form ra lệnh, nút "Ra lệnh và chạy ngay", bảng lệnh, nhật ký tải, bảng provider (nguồn nào bật được với cấu hình hiện tại), danh sách nguồn bị từ chối | `app/admin/models/page.tsx`, `components/admin/ModelSourcingControls.tsx` |
+| API admin (trả 404 với người không phải admin, giống cổng D8): đổi hạn mức, tạo và huỷ lệnh, chạy worker | `app/api/admin/models/*` |
+| Test: 10 bài khoá toán hạn mức, ranh giới ngày/tháng theo UTC, registry khớp giữa JSON và code, CLI giữ chỗ **trước** khi tải, và không có cờ vòng tránh | `scripts/check-model-budget.mjs` |
+
+### 2. Bằng chứng đo được (trên Supabase thật)
+
+Gọi thẳng các hàm bằng service role, đúng những gì CLI và UI gọi:
+
+| Tình huống | Kết quả |
+| --- | --- |
+| chưa duyệt (`require_approval`) | `refused` — "the policy requires an admin approval for each model" |
+| licence `CC-BY-NC` | `refused` — "licence CC-BY-NC is not on the allow-list (CC0 or CC-BY)" |
+| provider `thingiverse` | `refused` — "provider thingiverse is not in providers_allowed" |
+| model 20 MB | `refused` — "over the 12.0 MB per-model cap" |
+| hợp lệ | `allowed`, giữ chỗ 1 lượt và 120.000 byte |
+| tải lỗi rồi `settle(failed)` | lượt được **trả lại**: today 1 xuống 0, `failed` 1 |
+| `settle` lần thứ hai | bị từ chối — "no open reservation with that id" |
+
+Rồi chạy **end-to-end một lệnh thật**: tạo order qua REST (provider `direct`, loài `weddell-seal`), chạy
+`npm run models:work` → nhận lệnh → CLI tìm ứng viên → **giữ chỗ qua SQL** → tải → DRACO 118 KB xuống 34 KB →
+ghi `data/model-attribution.json` → chốt sổ → order `done, 1 downloaded`. Toàn bộ dấu vết của bài thử đã được
+revert (file model, manifest, chỉ mục preview) và order thử đã xoá; các dòng nhật ký thì giữ lại, vì chúng là sổ
+và trang admin hiện đúng chúng.
+
+Đường vòng cũng đã kiểm: lệnh dùng provider `direct` lúc đầu **bị DB từ chối** vì `direct` chưa nằm trong
+`providers_allowed`. Chốt hạn mức hoạt động đúng thiết kế; tôi đã bổ sung `direct` vào mặc định kèm chú thích vì
+sao nó an toàn (licence vẫn bị kiểm, hạn mức vẫn bị tính).
+
+### 3. Còn lại, nói thẳng
+
+- Nút tải cho **một ứng viên cụ thể** sau khi tìm kiếm (bảng ứng viên với điểm chất lượng, face count, dung lượng,
+  attribution sẽ phát hành) **chưa làm**: hiện admin ra lệnh theo **loài + provider**, còn việc chọn ứng viên do
+  chính pipeline xếp hạng của Phase 12 quyết định. Đây là phần duy nhất của prompt 18B chưa có.
+- Nút "Chạy ngay" chạy worker bằng tiến trình con; trên host không có tiến trình con thì phải chạy
+  `npm run models:work` theo lịch, và trang nói rõ điều đó thay vì báo thành công giả.
 
 ---
 ## 🚧 Việc còn lại

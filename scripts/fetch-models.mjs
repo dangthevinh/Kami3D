@@ -34,8 +34,9 @@
 
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -71,7 +72,7 @@ const CONFIG = {
  * exported in the shell. Existing environment variables always win, and nothing
  * is ever printed, so a token cannot leak into logs.
  */
-async function loadEnvFiles() {
+export async function loadEnvFiles() {
   for (const name of [".env.local", ".env"]) {
     const file = join(ROOT, name);
     if (!existsSync(file)) continue;
@@ -468,7 +469,291 @@ const direct = {
   },
 };
 
-export const PROVIDERS = { sketchfab, smithsonian, polypizza: polyPizza, direct };
+
+/* -------------------------------------------------------------------------- */
+/* Phase 18B: the keyless providers                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Poly Haven, NASA and the Khronos sample assets need no token, which is why they are the default:
+ * a fresh clone with no .env.local can still find and fetch a redistributable model. The other
+ * three providers stay exactly as they were and are simply switches that are off without a key.
+ *
+ * All three are *catalogues* rather than search engines — Poly Haven publishes 521 models, NASA 227
+ * folders, Khronos 162 samples — so search is a cached listing filtered by name, and the lists are
+ * fetched once per run rather than per species.
+ */
+const CATALOGUE_TTL_MS = 10 * 60 * 1000;
+const catalogueCache = new Map();
+
+async function cachedListing(key, load) {
+  const hit = catalogueCache.get(key);
+  if (hit && Date.now() - hit.at < CATALOGUE_TTL_MS) return hit.value;
+  const value = await load();
+  catalogueCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+/** Every word of the query must appear somewhere in the haystack. Cheap, and predictable to a user. */
+function matchesAll(haystack, query) {
+  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const target = haystack.toLowerCase();
+  return words.length > 0 && words.every((word) => target.includes(word));
+}
+
+async function githubContents(repo, path) {
+  const url = "https://api.github.com/repos/" + repo + "/contents/" + encodeURIComponent(path).replace(/%2F/g, "/");
+  const response = await request(url, { headers: { accept: "application/vnd.github+json" } });
+  if (response.status === 403) throw new Error("GitHub rate limit reached (60 requests/hour without a token)");
+  if (!response.ok) throw new Error(response.status + " for " + path);
+  return response.json();
+}
+
+/**
+ * The licence of one Khronos sample, read from its own LICENSE.md.
+ *
+ * The repository mixes CC0 and CC BY models and states which is which per model, so guessing from
+ * the repository would be exactly the kind of assumption this project refuses. Anything that does
+ * not clearly say CC0 or CC BY is returned as null, and the pipeline then refuses to download it
+ * with that reason.
+ */
+export function classifySampleLicense(text) {
+  if (!text) return null;
+  const hasCC0 = /\bCC0\b|Creative Commons Zero|public domain/i.test(text);
+  const hasBy = /CC[- ]BY|Attribution 4\.0|CC Attribution/i.test(text);
+  if (hasBy && !hasCC0) return "CC-BY";
+  if (hasCC0 && !hasBy) return "CC0";
+  if (hasCC0 && hasBy) return "CC-BY";
+  return null;
+}
+
+const polyHaven = {
+  id: "polyhaven",
+  label: "Poly Haven",
+  homepage: "https://polyhaven.com",
+  /** No token: this provider is always available, which is the point of the keyless three. */
+  tokenEnv: null,
+  keyless: true,
+  /** Site-wide CC0: the API does not carry a licence field per model (docs/MODELS.md). */
+  defaultLicense: "CC0",
+  licenceNote: "CC0 for the whole library, declared at the site level",
+
+  async search(query, { limit = 24 } = {}) {
+    const assets = await cachedListing("polyhaven", () =>
+      fetchJson("https://api.polyhaven.com/assets?t=models"),
+    );
+
+    return Object.entries(assets)
+      .filter(([slug, entry]) =>
+        matchesAll(slug + " " + (entry.name ?? "") + " " + (entry.tags ?? []).join(" ") + " " + (entry.categories ?? []).join(" "), query),
+      )
+      .slice(0, limit)
+      .map(([slug, entry]) => ({
+        provider: "polyhaven",
+        id: slug,
+        title: entry.name ?? slug,
+        author: (entry.authors ?? {})[Object.keys(entry.authors ?? {})[0]] ?? "Poly Haven",
+        authorUrl: "https://polyhaven.com/a/" + slug,
+        downloadable: true,
+        licenseLabel: "CC0",
+        licenseUrl: "https://polyhaven.com/license",
+        sourceUrl: "https://polyhaven.com/a/" + slug,
+        faceCount: typeof entry.polycount === "number" ? entry.polycount : null,
+        downloadCount: typeof entry.download_count === "number" ? entry.download_count : null,
+        likeCount: null,
+        thumbnail: entry.thumbnail_url ?? null,
+      }));
+  },
+
+  /**
+   * Poly Haven publishes .gltf plus its textures as separate files, at four resolutions. 1k keeps a
+   * model inside the per-model budget (the same asset at 8k is tens of megabytes), and
+   * \`gltf-transform copy\` packs the pair into the single .glb everything else in this project expects.
+   */
+  async download(candidate, destination) {
+    const files = await fetchJson("https://api.polyhaven.com/files/" + encodeURIComponent(candidate.id));
+    const resolution = Object.prototype.hasOwnProperty.call(files.gltf ?? {}, "1k") ? "1k" : Object.keys(files.gltf ?? {})[0];
+    if (!resolution) throw new Error("no glTF published for this model");
+
+    const variant = Object.values(files.gltf[resolution])[0];
+    const includes = Object.entries(variant.include ?? {});
+
+    const workdir = await mkdtemp(join(tmpdir(), "kami3d-polyhaven-"));
+    try {
+      const localGltf = join(workdir, basename(new URL(variant.url).pathname));
+      await writeFile(localGltf, Buffer.from(await (await request(variant.url)).arrayBuffer()));
+
+      for (const [relative, file] of includes) {
+        const target = join(workdir, relative);
+        await mkdir(dirname(target), { recursive: true });
+        await writeFile(target, Buffer.from(await (await request(file.url)).arrayBuffer()));
+      }
+
+      if (!existsSync(GLTF_TRANSFORM)) {
+        throw new Error("packing a Poly Haven model needs @gltf-transform/cli — run: npm install --save-dev @gltf-transform/cli");
+      }
+      // .gltf plus its textures in, one .glb out: the format the rest of the pipeline expects.
+      await run(GLTF_TRANSFORM, ["copy", localGltf, destination], { timeout: 180_000, maxBuffer: 8 * 1024 * 1024 });
+      const bytes = (await readFile(destination)).length;
+      return { file: destination, bytes, format: "glb", resolution };
+    } finally {
+      await rm(workdir, { recursive: true, force: true });
+    }
+  },
+};
+
+/**
+ * NASA 3D Resources: a GitHub repository of 227 folders, public domain.
+ *
+ * The folders hold one .glb each next to its preview image, and the repository's README states the
+ * terms, so the licence is the provider's, not the model's: public domain, recorded here as CC0
+ * because the two carry the same obligation.
+ */
+const nasa = {
+  id: "nasa",
+  label: "NASA 3D Resources",
+  homepage: "https://nasa3d.arc.nasa.gov/models",
+  tokenEnv: null,
+  keyless: true,
+  defaultLicense: "CC0",
+  licenceNote: "public domain (NASA media usage guidelines)",
+  repo: "nasa/NASA-3D-Resources",
+  folder: "3D Models",
+
+  async search(query, { limit = 24 } = {}) {
+    const listing = await cachedListing("nasa", () => githubContents(this.repo, this.folder));
+
+    return listing
+      .filter((entry) => entry.type === "dir" && matchesAll(entry.name, query))
+      .slice(0, limit)
+      .map((entry) => ({
+        provider: "nasa",
+        id: entry.name,
+        title: entry.name,
+        author: "NASA",
+        authorUrl: "https://www.nasa.gov/",
+        downloadable: true,
+        licenseLabel: "Public Domain",
+        licenseUrl: "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+        sourceUrl: entry.html_url,
+        faceCount: null,
+        downloadCount: null,
+        likeCount: null,
+        thumbnail: null,
+      }));
+  },
+
+  /** The folder's .glb, straight from raw.githubusercontent.com. */
+  async download(candidate, destination) {
+    const files = await githubContents(this.repo, this.folder + "/" + candidate.id);
+    const model = files.find((entry) => /\.glb$/i.test(entry.name));
+    if (!model) throw new Error("this NASA folder has no .glb (the repository also holds .obj/.stl, which this pipeline does not convert)");
+
+    const buffer = Buffer.from(await (await request(model.download_url)).arrayBuffer());
+    await writeFile(destination, buffer);
+    return { file: destination, bytes: buffer.length, format: "glb", sourceBytes: model.size };
+  },
+};
+
+/**
+ * The Khronos glTF Sample Assets: 162 models that exist to test renderers, which makes them the
+ * pipeline's own smoke test as much as a source of content.
+ */
+const khronos = {
+  id: "khronos",
+  label: "Khronos glTF Sample Assets",
+  homepage: "https://github.com/KhronosGroup/glTF-Sample-Assets",
+  tokenEnv: null,
+  keyless: true,
+  defaultLicense: null,
+  licenceNote: "per model, read from that model's LICENSE.md (the repository mixes CC0 and CC BY)",
+  repo: "KhronosGroup/glTF-Sample-Assets",
+  folder: "Models",
+
+  async search(query, { limit = 24 } = {}) {
+    const listing = await cachedListing("khronos", () => githubContents(this.repo, this.folder));
+
+    return listing
+      .filter((entry) => entry.type === "dir" && matchesAll(entry.name, query))
+      .slice(0, limit)
+      .map((entry) => ({
+        provider: "khronos",
+        id: entry.name,
+        title: entry.name.replace(/([a-z])([A-Z])/g, "$1 $2"),
+        author: "Khronos Group",
+        authorUrl: "https://www.khronos.org/",
+        downloadable: true,
+        // Filled in by `download`, which reads the model's own licence before deciding.
+        licenseLabel: null,
+        licenseUrl: null,
+        sourceUrl: entry.html_url,
+        faceCount: null,
+        downloadCount: null,
+        likeCount: null,
+        thumbnail:
+          "https://raw.githubusercontent.com/" + this.repo + "/main/" + this.folder + "/" + entry.name + "/screenshot/screenshot.png",
+      }));
+  },
+
+  /** Read the model's licence first: a sample whose terms are unclear is not downloaded. */
+  async licenseFor(candidate) {
+    const files = await githubContents(this.repo, this.folder + "/" + candidate.id);
+    const licenseFile = files.find((entry) => /^LICENSE(\.md|\.txt)?$/i.test(entry.name));
+    if (!licenseFile) return { license: null, reason: "the sample has no LICENSE file, so its terms are unknown" };
+
+    const text = await (await request(licenseFile.download_url)).text();
+    const license = classifySampleLicense(text);
+    if (!license) return { license: null, reason: "the sample's LICENSE file does not state CC0 or CC BY" };
+    return { license, url: licenseFile.html_url };
+  },
+
+  async download(candidate, destination) {
+    const info = await this.licenseFor(candidate);
+    if (!info.license) throw new Error(info.reason);
+
+    const files = await githubContents(this.repo, this.folder + "/" + candidate.id + "/glTF-Binary");
+    const model = files.find((entry) => /\.glb$/i.test(entry.name));
+    if (!model) throw new Error("this sample has no glTF-Binary build");
+
+    const buffer = Buffer.from(await (await request(model.download_url)).arrayBuffer());
+    await writeFile(destination, buffer);
+    return { file: destination, bytes: buffer.length, format: "glb", license: info.license, licenseUrl: info.url };
+  },
+};
+
+/**
+ * The registry as data, so the console can print it, the tests can assert it and nobody has to read
+ * three implementations to find out which providers need a token.
+ */
+export const PROVIDER_REGISTRY = [
+  { id: "polyhaven", label: "Poly Haven", homepage: "https://polyhaven.com", keyless: true, needsKey: null, license: "CC0", kind: "catalogue" },
+  { id: "nasa", label: "NASA 3D Resources", homepage: "https://nasa3d.arc.nasa.gov/models", keyless: true, needsKey: null, license: "CC0", kind: "catalogue" },
+  { id: "khronos", label: "Khronos glTF Sample Assets", homepage: "https://github.com/KhronosGroup/glTF-Sample-Assets", keyless: true, needsKey: null, license: "per model", kind: "catalogue" },
+  { id: "sketchfab", label: "Sketchfab", homepage: "https://sketchfab.com", keyless: false, needsKey: "SKETCHFAB_API_TOKEN", license: "per model", kind: "search" },
+  { id: "smithsonian", label: "Smithsonian Open Access", homepage: "https://3d.si.edu", keyless: false, needsKey: "SI_API_KEY", license: "CC0", kind: "search" },
+  { id: "polypizza", label: "Poly Pizza", homepage: "https://poly.pizza", keyless: false, needsKey: "POLY_PIZZA_API_KEY", license: "per model", kind: "search" },
+  // The one provider that is not a service: an admin pinned this URL in data/model-sources.json.
+  // Its licence is declared per entry, checked like any other, and the download still goes through
+  // the budget — which is why it can be allowed by default without weakening anything.
+  { id: "direct", label: "Direct URL", homepage: "https://github.com/dangthevinh/Kami3D", keyless: true, needsKey: null, license: "declared per entry", kind: "catalogue" },
+];
+
+/**
+ * Providers this project will not fetch from, with the reason written down.
+ *
+ * Kept as data rather than as an omission: "we did not implement it" and "we decided against it"
+ * look identical in a codebase, and only one of them is true here.
+ */
+export const REFUSED_PROVIDERS = [
+  { id: "thingiverse", reason: "terms forbid automated downloading, and most models are CC BY-NC" },
+  { id: "myminifactory", reason: "CC BY-NC and terms forbid scripted downloads" },
+  { id: "cgtrader", reason: "marketplace terms forbid scraping; licences are per purchase" },
+  { id: "googlepoly", reason: "the service closed in 2021; Poly Pizza carries what was archived" },
+  { id: "sketchfab-standard", reason: "Sketchfab's default licence is all rights reserved" },
+];
+
+export const PROVIDERS = { sketchfab, smithsonian, polypizza: polyPizza, direct, polyhaven: polyHaven, nasa, khronos };
+
 
 /* -------------------------------------------------------------------------- */
 /* Attribution store                                                          */
@@ -624,7 +909,7 @@ async function compressGlb(file) {
 /* Supabase Storage + `model_assets`                                          */
 /* -------------------------------------------------------------------------- */
 
-function supabaseConfig() {
+export function supabaseConfig() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
   return { url, key, ready: Boolean(url && key) };
@@ -656,7 +941,7 @@ async function uploadToStorage(supabase, path, bytes) {
   return `${supabase.url}/storage/v1/object/public/${ASSET_BUCKET}/${path}`;
 }
 
-async function rest(supabase, path, init = {}) {
+export async function rest(supabase, path, init = {}) {
   const response = await fetch(`${supabase.url}/rest/v1/${path}`, {
     ...init,
     headers: {
@@ -734,6 +1019,14 @@ function parseArgs(argv) {
     upload: false,
     /** How many models to keep per species. The first is the primary. */
     count: 1,
+    /** The admin who approved this run: written to the download log. */
+    actor: null,
+    /** Set by an admin, per order. Without it a policy with require_approval refuses everything. */
+    approve: false,
+    /** The model_source_orders row this run belongs to, if any. */
+    order: null,
+    /** Machine-readable candidate list on stdout, for the console. */
+    json: false,
   };
   for (const arg of argv) {
     if (arg === "--all") flags.all = true;
@@ -751,6 +1044,10 @@ function parseArgs(argv) {
     else if (arg === "--refresh-quality") flags.refreshQuality = true;
     else if (arg.startsWith("--max-mb=")) CONFIG.maxBytes = Number(arg.split("=")[1]) * 1024 * 1024;
     else if (arg === "--report") flags.report = true;
+    else if (arg.startsWith("--actor=")) flags.actor = arg.split("=")[1];
+    else if (arg === "--approve") flags.approve = true;
+    else if (arg.startsWith("--order=")) flags.order = arg.split("=")[1];
+    else if (arg === "--json") flags.json = true;
     else if (arg.startsWith("--species=")) flags.species.push(arg.split("=")[1]);
     else if (arg.startsWith("--provider=")) flags.providers = arg.split("=")[1].split(",");
     else if (arg === "--help" || arg === "-h") flags.help = true;
@@ -949,6 +1246,87 @@ async function storeModel({ supabase, animal, file, entry, index }) {
   return publicUrl;
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* The download budget - the one place a download is allowed                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Ask the database whether this download may happen, and record the attempt.
+ *
+ * This is the choke point. The worker, the console route and this CLI all end up in
+ * `public.reserve_model_download()`, which holds an advisory lock, counts the log and writes the
+ * attempt in one transaction - so a second process racing for the last slot of the day loses, and
+ * there is no flag here that turns the budget off. Without a database there is no policy, and no
+ * policy means no download: the honest refusal is cheaper than an unlogged one.
+ *
+ * The reservation is made at the *largest* size the policy allows rather than at a guess, so the
+ * storage budget cannot be overspent by discovering afterwards that a model was bigger than the
+ * search result suggested. `settle` then writes the real number.
+ */
+async function reserveDownload({ candidate, licence, animal, flags }) {
+  const supabase = supabaseConfig();
+  if (!supabase) {
+    return {
+      allowed: false,
+      reason: "no Supabase configured, so the download policy cannot be read - set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY",
+    };
+  }
+
+  try {
+    // `rest` throws on a non-2xx, so an unreachable policy is a refusal rather than an exception:
+    // the download must not happen either way, and the reason has to reach the operator.
+    return await rest(supabase, "rpc/reserve_model_download", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        p_provider: candidate.provider,
+        p_provider_id: candidate.id ?? null,
+        p_title: candidate.title ?? null,
+        p_license: modelLicenseFromSpdx(licence.spdx) ?? null,
+        // Worst case on purpose: the policy caps the model, and the settle records the truth.
+        p_bytes: policyCeiling.current ?? CONFIG.maxBytes,
+        p_animal_slug: animal.slug,
+        p_actor: flags.actor ?? null,
+        p_order_id: flags.order ?? null,
+        p_approved: Boolean(flags.approve),
+      }),
+    });
+  } catch (error) {
+    return { allowed: false, reason: "the budget could not be read: " + String(error.message).split("\n")[0] };
+  }
+}
+
+/** Close the attempt: a failure hands its slot back instead of spending it. */
+async function settleDownload(id, outcome, bytes, reason) {
+  const supabase = supabaseConfig();
+  if (!supabase || !id) return;
+  try {
+    await rest(supabase, "rpc/settle_model_download", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ p_id: id, p_outcome: outcome, p_bytes: bytes ?? null, p_reason: reason ?? null }),
+    });
+  } catch (error) {
+    console.warn(`   (could not settle the download log: ${error.message})`);
+  }
+}
+
+/** The per-model ceiling the policy currently allows, cached for the run. */
+const policyCeiling = { current: null };
+
+async function loadPolicyCeiling() {
+  const supabase = supabaseConfig();
+  if (!supabase) return;
+  try {
+    const usage = await rest(supabase, "rpc/model_download_usage", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+    const ceiling = usage?.policy?.max_bytes_per_model;
+    if (typeof ceiling === "number" && ceiling > 0) policyCeiling.current = ceiling;
+  } catch {
+    // The reserve call will refuse with a readable reason if the policy is unreachable.
+  }
+}
+
 async function fetchModels(flags) {
   if (!flags.all && flags.species.length === 0) {
     console.error("Nothing to do: pass --all or --species=<slug> (add --apply to download).");
@@ -983,6 +1361,8 @@ async function fetchModels(flags) {
   let downloaded = 0;
   let stored = 0;
   let skipped = 0;
+  /** Refused by the download budget. Counted separately so the summary cannot hide them. */
+  let refused = 0;
   // Upload-only runs never touch the manifest; rewriting it would reorder the file
   // and add noise to a diff that changed nothing.
   let manifestDirty = false;
@@ -1059,6 +1439,9 @@ async function fetchModels(flags) {
 
     await mkdir(MODEL_DIR, { recursive: true });
 
+    // One read of the policy per run: the per-model ceiling the reservation is made at.
+    await loadPolicyCeiling();
+
     /** Key for an alternate model: the manifest already owns the plain slug. */
     const manifestKey = (index) => (index === 0 ? animal.slug : `${animal.slug}-alt${index + 1}`);
 
@@ -1066,6 +1449,15 @@ async function fetchModels(flags) {
       const { candidate, licence, quality } = entry;
       const destination = join(MODEL_DIR, modelFileName(animal.slug, index));
       const provider = PROVIDERS[providerKeyFor(candidate.provider)];
+
+      // Nothing is downloaded before the database says it may be. This is the only
+      // path to a file: the worker and the console both end up here too.
+      const reservation = await reserveDownload({ candidate, licence, animal, flags });
+      if (!reservation.allowed) {
+        console.log(`   ✘ refused by the download budget: ${reservation.reason}`);
+        refused += 1;
+        continue;
+      }
 
       try {
         const result = await provider.download(candidate, destination);
@@ -1127,7 +1519,12 @@ async function fetchModels(flags) {
           stored += 1;
           console.log(`   stored ${file} and recorded it in model_assets${index === 0 ? " (primary)" : ""}`);
         }
+
+        // The real size, not the ceiling the reservation was made at.
+        await settleDownload(reservation.id, "downloaded", bytes);
       } catch (error) {
+        // Hand the slot back: a failed download must not spend the budget.
+        await settleDownload(reservation.id, "failed", null, error.message);
         console.error(`   failed: ${error.message}`);
         skipped += 1;
       }
@@ -1144,7 +1541,7 @@ async function fetchModels(flags) {
     if (!flags.compress) console.log("Compress before shipping — pass --compress, or see docs/MODELS.md.");
   }
 
-  console.log(`\n${downloaded} downloaded, ${stored} stored, ${skipped} skipped.`);
+  console.log(`\n${downloaded} downloaded, ${stored} stored, ${skipped} skipped, ${refused} refused by the download budget.`);
   if (flags.upload) console.log("Re-run \"npm run db:seed\" only before this: seeding rewrites animals.model_url from the dataset.");
 }
 

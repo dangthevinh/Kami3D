@@ -355,3 +355,83 @@ a third party in the critical path of a page that needs neither, are costs with 
 
 Sketchfab remains the **provider** most of these models came from (scripts/fetch-models.mjs), and its credits
 still render on every species page.
+
+## The sourcing console (/admin/models) — Phase 18B
+
+`scripts/fetch-models.mjs` is still the only thing that fetches a model. What Phase 18B adds is a
+provider registry, a budget, and an order queue on top of it, so an admin can say "fetch up to five
+models for the species that have none" and have it happen — without any of the licence or size rules
+being re-implemented for the console.
+
+### Providers
+
+| Provider | Key | Licence | Kind |
+| --- | --- | --- | --- |
+| Poly Haven | **none** | CC0 (site-wide) | catalogue of 521 models |
+| NASA 3D Resources | **none** | public domain (recorded as CC0) | 227 folders in the NASA GitHub repo |
+| Khronos glTF Sample Assets | **none** | per model, read from its own `LICENSE.md` | 162 samples |
+| Sketchfab | `SKETCHFAB_API_TOKEN` | per model, allow-list enforced | search API |
+| Smithsonian Open Access | `SI_API_KEY` | CC0 | search API |
+| Poly Pizza | `POLY_PIZZA_API_KEY` | per model | search API |
+| Direct URL | none | declared per entry in `data/model-sources.json` | an admin pinned one URL |
+
+The three keyless providers are the point of the registry: a fresh clone with no `.env.local` can
+still find and fetch a redistributable model, and the console says which providers are usable with
+the configuration it has rather than showing buttons that fail. Tokens are read on the server and
+never leave it.
+
+Refused, with the reason recorded in `data/model-providers.json`: Thingiverse and MyMiniFactory
+(CC BY-NC, and their terms forbid scripted downloads), CGTrader (marketplace terms, licences per
+purchase), Google Poly (closed in 2021), and Sketchfab's default "Standard" licence.
+
+Poly Haven publishes `.gltf` plus its textures at four resolutions; the pipeline takes 1k (the same
+asset at 8k is tens of megabytes) and packs the pair into a single `.glb` with `gltf-transform copy`,
+which is the format everything else expects.
+
+### The budget, and why the CLI cannot go around it
+
+`public.model_download_policy` holds one row: enabled, per day, per month, in total, total bytes,
+bytes per model, which providers are allowed, and whether every model needs an approval. The console
+edits it; nothing else can widen it.
+
+`public.reserve_model_download(...)` is the **only** thing that can spend it. It takes an advisory
+lock, counts `public.model_download_log`, checks the policy and writes the attempt — allowed or
+refused, with the reason — in one transaction. Every path goes through it:
+
+- the worker (`npm run models:work`) runs the CLI, and the CLI calls it before `provider.download`;
+- the console route creates orders, which the worker then executes through the same CLI;
+- a hand-run `--apply` is refused exactly like a button, with the same reason.
+
+There is no flag that turns it off, and a failed download hands its slot back: `settle_model_download`
+turns the reservation into `downloaded` or back into `failed`, so a broken fetch does not quietly
+consume budget. A refusal is a log row, not an exception — "why did nothing download today" is a
+query.
+
+Two details worth stating because they were decisions:
+
+- **the reservation is made at the largest size the policy allows**, not at a guess, so the storage
+  budget cannot be overspent by a model turning out bigger than its search result suggested; the
+  settle writes the real number;
+- **the licence allow-list is repeated inside the function**. The CLI, the worker and the console each
+  filter earlier, and this is the one place where "CC0 or CC BY only" is a property of the database
+  rather than of a good intention.
+
+### Orders
+
+An order is a row in `public.model_source_orders`: how many models, from which providers, optionally
+which species, and who asked. `npm run models:work` claims the oldest queued row (optimistically, by
+updating it while it is still queued, so two workers cannot run the same one), runs the CLI once per
+species, and writes its counters after each species so an interrupted run leaves an honest partial
+order. An order that names species may replace them; an order that names none only ever picks species
+with no model at all.
+
+"Run now" in the console starts that worker as a child process. On a host without one, queue the order
+and run the command on a schedule — the budget is what makes a cron safe.
+
+### What the console cannot do
+
+- fetch a model whose licence is not CC0 or CC BY;
+- publish without a credit (attribution is written before a model can be wired to a species);
+- outrun the budget from the command line;
+- batch-fetch without a person while `require_approval` is on: an order carries the admin who placed
+  it, and every attempt is logged against them.

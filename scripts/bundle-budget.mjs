@@ -54,6 +54,9 @@ const ROUTES = [
   // Measured at 106.3 kB when it landed. 140 leaves the same headroom the admin page has rather
   // than the 165 a content route gets, because there is no 3D, no map and no third party here.
   { route: "/analytics", manifest: "/analytics/page", budget: 140 },
+  // The sourcing console: forms and tables, no 3D and no map. Measured when it landed, with the same
+  // headroom as the other admin page.
+  { route: "/admin/models", manifest: "/admin/models/page", budget: 140 },
   // The map route is server-rendered on demand (its URL decides what the server
   // draws), so there is no prerendered HTML to read: its chunks come from the app
   // build manifest instead. MapLibre itself stays deferred - this budget covers the

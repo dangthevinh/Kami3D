@@ -1651,3 +1651,339 @@ create policy "animal sounds are publicly readable"
   on storage.objects for select
   to anon, authenticated
   using (bucket_id = 'animal-sounds');
+
+/* ==========================================================================
+   Phase 18B - Model sourcing: the download budget, the log, and the single
+   decision function.
+   ==========================================================================
+
+   The console at /admin/models lets an admin order models to be fetched from a
+   provider registry. What may be fetched is a *budget*, and a budget that the CLI
+   could ignore would not be one, so the decision lives here rather than in the UI:
+
+     reserve_model_download()  checks the policy against the log and writes the
+                               attempt in the same transaction. Everything that
+                               downloads anything calls it - the worker, the admin
+                               route, the CLI - and it is the only function that
+                               counts a slot.
+     settle_model_download()   closes the attempt: 'downloaded' keeps the slot,
+                               'failed' gives it back. A failed download must not
+                               consume budget, and it must not silently vanish.
+
+   Two properties make this hard to bypass rather than merely discouraged:
+
+     1. the reservation takes an advisory lock, so two workers racing for the last
+        slot of the day cannot both win;
+     2. every attempt - including every refusal - is a row in model_download_log
+        with its reason, so "why did nothing download today" is a query, not a
+        guess.
+
+   Refusals are not errors: the function returns a decision object and the caller
+   decides what to tell the operator.
+   ========================================================================== */
+
+create table if not exists public.model_download_policy (
+  id                  text primary key default 'default',
+  enabled             boolean not null default true,
+  max_per_day         integer not null default 5,
+  max_per_month       integer not null default 40,
+  max_total           integer not null default 400,
+  max_bytes_total     bigint  not null default 1073741824,
+  max_bytes_per_model bigint  not null default 12582912,
+  providers_allowed   text[]  not null default array['polyhaven','nasa','khronos','sketchfab','smithsonian','polypizza','direct'],
+  require_approval    boolean not null default true,
+  updated_by          text,
+  updated_at          timestamptz not null default now(),
+  constraint model_download_policy_singleton check (id = 'default'),
+  constraint model_download_policy_counts check (
+    max_per_day >= 0 and max_per_month >= 0 and max_total >= 0
+  ),
+  constraint model_download_policy_bytes check (
+    max_bytes_total > 0 and max_bytes_per_model > 0
+  )
+);
+
+comment on table public.model_download_policy is
+  'One row (id = default). The download budget an admin sets in /admin/models; enforced by public.reserve_model_download(), not by the UI.';
+
+insert into public.model_download_policy (id) values ('default') on conflict (id) do nothing;
+
+create table if not exists public.model_download_log (
+  id           uuid primary key default gen_random_uuid(),
+  at           timestamptz not null default now(),
+  actor        text,
+  provider     text not null,
+  provider_id  text,
+  title        text,
+  license      text,
+  bytes        bigint,
+  animal_slug  text,
+  storage_path text,
+  outcome      text not null check (outcome in ('downloaded','refused','failed')),
+  reason       text,
+  order_id     uuid
+);
+
+comment on table public.model_download_log is
+  'One row per download attempt, including refusals, with the reason. Counted by reserve_model_download() to enforce the policy in model_download_policy.';
+
+create index if not exists model_download_log_at_idx on public.model_download_log (at desc);
+create index if not exists model_download_log_provider_idx on public.model_download_log (provider, at desc);
+create index if not exists model_download_log_outcome_idx on public.model_download_log (outcome, at desc);
+
+create table if not exists public.model_source_orders (
+  id           uuid primary key default gen_random_uuid(),
+  created_at   timestamptz not null default now(),
+  created_by   text not null,
+  status       text not null default 'queued'
+                 check (status in ('queued','running','done','cancelled','failed')),
+  providers    text[] not null default '{}',
+  slugs        text[] not null default '{}',
+  requested    integer not null default 1 check (requested between 1 and 200),
+  note         text,
+  started_at   timestamptz,
+  finished_at  timestamptz,
+  downloaded   integer not null default 0,
+  refused      integer not null default 0,
+  failed       integer not null default 0,
+  last_error   text,
+  constraint model_source_orders_slugs_are_slugs check (
+    array_length(slugs, 1) is null or array_to_string(slugs, ',') ~ '^[a-z0-9,-]+$'
+  )
+);
+
+comment on table public.model_source_orders is
+  'An admin order: "fetch up to N models for these species (or for every species missing one)". The worker claims the oldest queued row, and every model it fetches still has to pass reserve_model_download().';
+
+create index if not exists model_source_orders_status_idx on public.model_source_orders (status, created_at);
+
+/**
+ * The download budget, as counts. Used by the console and by the reserve function.
+ *
+ * "Used" counts rows whose outcome is 'downloaded': a refusal never spends budget,
+ * and a failed attempt is settled back to 'failed' so it does not either.
+ */
+create or replace function public.model_download_usage()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'today',      coalesce(count(*) filter (where outcome = 'downloaded' and at >= date_trunc('day', now())), 0),
+    'thisMonth',  coalesce(count(*) filter (where outcome = 'downloaded' and at >= date_trunc('month', now())), 0),
+    'total',      coalesce(count(*) filter (where outcome = 'downloaded'), 0),
+    'bytesTotal', coalesce(sum(bytes) filter (where outcome = 'downloaded'), 0),
+    'refused',    coalesce(count(*) filter (where outcome = 'refused'), 0),
+    'failed',     coalesce(count(*) filter (where outcome = 'failed'), 0),
+    'policy',     coalesce((select to_jsonb(p) from public.model_download_policy p where p.id = 'default'), '{}'::jsonb)
+  )
+  from public.model_download_log;
+$$;
+
+/**
+ * Ask to spend one download. Returns a decision and records the attempt.
+ *
+ * Everything that downloads passes through here. The licence check is repeated in
+ * SQL on purpose: the CLI, the worker and the console each filter earlier, and this
+ * is the one place where "CC0 or CC BY only" is a property of the database rather
+ * than of a good intention.
+ */
+create or replace function public.reserve_model_download(
+  p_provider      text,
+  p_provider_id   text default null,
+  p_title         text default null,
+  p_license       text default null,
+  p_bytes         bigint default null,
+  p_animal_slug   text default null,
+  p_actor         text default null,
+  p_order_id      uuid default null,
+  p_approved      boolean default false
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pol          public.model_download_policy;
+  used_today   integer;
+  used_month   integer;
+  used_total   integer;
+  used_bytes   bigint;
+  decision     text := 'allowed';
+  why          text := null;
+  attempt_id   uuid;
+begin
+  -- One reservation at a time, across every process. Without this, two workers can
+  -- both read "3 of 5 used" and both spend the fourth and fifth slot.
+  perform pg_advisory_xact_lock(hashtext('kami3d:model_download'));
+
+  select * into pol from public.model_download_policy where id = 'default';
+
+  if not found then
+    decision := 'refused';
+    why := 'no policy row: apply the schema (npm run db:schema)';
+  else
+    select
+      count(*) filter (where outcome = 'downloaded' and at >= date_trunc('day', now())),
+      count(*) filter (where outcome = 'downloaded' and at >= date_trunc('month', now())),
+      count(*) filter (where outcome = 'downloaded'),
+      coalesce(sum(bytes) filter (where outcome = 'downloaded'), 0)
+    into used_today, used_month, used_total, used_bytes
+    from public.model_download_log;
+
+    if not pol.enabled then
+      decision := 'refused'; why := 'downloading is switched off in the policy';
+    elsif pol.require_approval and not p_approved then
+      decision := 'refused'; why := 'the policy requires an admin approval for each model';
+    elsif p_provider is null or not (p_provider = any (pol.providers_allowed)) then
+      decision := 'refused';
+      why := format('provider %s is not in providers_allowed', coalesce(p_provider, '(none)'));
+    elsif p_license is null or p_license not in ('CC0', 'CC-BY') then
+      decision := 'refused';
+      why := format('licence %s is not on the allow-list (CC0 or CC-BY)', coalesce(p_license, '(none)'));
+    elsif p_bytes is null or p_bytes <= 0 then
+      decision := 'refused'; why := 'the model reports no usable size';
+    elsif p_bytes > pol.max_bytes_per_model then
+      decision := 'refused';
+      why := format('model is %s MB, over the %s MB per-model cap',
+                    round(p_bytes / 1048576.0, 1), round(pol.max_bytes_per_model / 1048576.0, 1));
+    elsif used_today >= pol.max_per_day then
+      decision := 'refused';
+      why := format('daily budget spent (%s of %s)', used_today, pol.max_per_day);
+    elsif used_month >= pol.max_per_month then
+      decision := 'refused';
+      why := format('monthly budget spent (%s of %s)', used_month, pol.max_per_month);
+    elsif used_total >= pol.max_total then
+      decision := 'refused';
+      why := format('total budget spent (%s of %s)', used_total, pol.max_total);
+    elsif used_bytes + p_bytes > pol.max_bytes_total then
+      decision := 'refused';
+      why := format('storage budget spent (%s of %s MB)',
+                    round(used_bytes / 1048576.0), round(pol.max_bytes_total / 1048576.0));
+    end if;
+  end if;
+
+  insert into public.model_download_log (
+    actor, provider, provider_id, title, license, bytes, animal_slug, outcome, reason, order_id
+  ) values (
+    p_actor,
+    coalesce(p_provider, 'unknown'),
+    p_provider_id,
+    p_title,
+    p_license,
+    p_bytes,
+    p_animal_slug,
+    case when decision = 'allowed' then 'downloaded' else 'refused' end,
+    why,
+    p_order_id
+  )
+  returning id into attempt_id;
+
+  return jsonb_build_object(
+    'id', attempt_id,
+    'allowed', decision = 'allowed',
+    'reason', why,
+    'usage', jsonb_build_object(
+      'today', used_today, 'thisMonth', used_month, 'total', used_total, 'bytesTotal', used_bytes
+    ),
+    'policy', to_jsonb(pol)
+  );
+end;
+$$;
+
+/**
+ * Close an attempt.
+ *
+ * 'downloaded' keeps the slot it reserved; 'failed' hands it back. Called with the
+ * id the reserve function returned, so an attempt cannot be closed twice into two
+ * different outcomes by accident - the second call is a no-op.
+ */
+create or replace function public.settle_model_download(
+  p_id           uuid,
+  p_outcome      text,
+  p_bytes        bigint default null,
+  p_storage_path text default null,
+  p_reason       text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  settled public.model_download_log;
+begin
+  if p_outcome not in ('downloaded', 'failed') then
+    return jsonb_build_object('ok', false, 'reason', 'outcome must be downloaded or failed');
+  end if;
+
+  update public.model_download_log
+     set outcome      = p_outcome,
+         bytes        = coalesce(p_bytes, bytes),
+         storage_path = coalesce(p_storage_path, storage_path),
+         reason       = coalesce(p_reason, reason)
+   where id = p_id
+     and outcome = 'downloaded'
+     and reason is null            -- a reservation, not a refusal
+  returning * into settled;
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'no open reservation with that id');
+  end if;
+
+  return jsonb_build_object('ok', true, 'id', settled.id, 'outcome', settled.outcome);
+end;
+$$;
+
+/** Retention for the log: the attempts are kept so the budget can be audited, but not forever. */
+create or replace function public.prune_model_download_log(retain_days integer default 730)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  removed integer;
+begin
+  if retain_days is null or retain_days <= 0 then
+    raise exception 'retain_days must be positive';
+  end if;
+
+  delete from public.model_download_log where at < now() - make_interval(days => retain_days);
+  get diagnostics removed = row_count;
+  return removed;
+end;
+$$;
+
+alter table public.model_download_policy enable row level security;
+alter table public.model_download_log    enable row level security;
+alter table public.model_source_orders   enable row level security;
+
+-- Admins read; nobody writes through the API at all. The worker and the admin
+-- routes write with the service role, after checking is_admin() themselves.
+drop policy if exists "model_download_policy_admin_read" on public.model_download_policy;
+create policy "model_download_policy_admin_read" on public.model_download_policy
+  for select to authenticated using (public.is_admin());
+
+drop policy if exists "model_download_log_admin_read" on public.model_download_log;
+create policy "model_download_log_admin_read" on public.model_download_log
+  for select to authenticated using (public.is_admin());
+
+drop policy if exists "model_source_orders_admin_read" on public.model_source_orders;
+create policy "model_source_orders_admin_read" on public.model_source_orders
+  for select to authenticated using (public.is_admin());
+
+revoke all on public.model_download_policy from anon, authenticated;
+revoke all on public.model_download_log from anon, authenticated;
+revoke all on public.model_source_orders from anon, authenticated;
+grant select on public.model_download_policy to authenticated;
+grant select on public.model_download_log to authenticated;
+grant select on public.model_source_orders to authenticated;
+
+revoke all on function public.model_download_usage() from anon;
+revoke all on function public.reserve_model_download(text, text, text, text, bigint, text, text, uuid, boolean) from anon, authenticated;
+revoke all on function public.settle_model_download(uuid, text, bigint, text, text) from anon, authenticated;
+revoke all on function public.prune_model_download_log(integer) from anon, authenticated;

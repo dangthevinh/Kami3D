@@ -1,0 +1,97 @@
+{
+  "note": "The provider registry the console, the worker and the CLI all read. Written by hand and asserted against the implementations in scripts/fetch-models.mjs by npm run check:model-budget, so the two cannot drift. Poly Haven, NASA and the Khronos sample assets need no token at all: that is what keeps a fresh clone able to fetch a redistributable model. The others are switches that are simply off without a key.",
+  "providers": [
+    {
+      "id": "polyhaven",
+      "label": "Poly Haven",
+      "homepage": "https://polyhaven.com",
+      "keyless": true,
+      "needsKey": null,
+      "license": "CC0",
+      "kind": "catalogue",
+      "note": "521 models, CC0 for the whole library, published as .gltf plus textures and packed to .glb at 1k."
+    },
+    {
+      "id": "nasa",
+      "label": "NASA 3D Resources",
+      "homepage": "https://nasa3d.arc.nasa.gov/models",
+      "keyless": true,
+      "needsKey": null,
+      "license": "CC0",
+      "kind": "catalogue",
+      "note": "227 folders in the nasa/NASA-3D-Resources repository; public domain, recorded as CC0 because the obligations are the same."
+    },
+    {
+      "id": "khronos",
+      "label": "Khronos glTF Sample Assets",
+      "homepage": "https://github.com/KhronosGroup/glTF-Sample-Assets",
+      "keyless": true,
+      "needsKey": null,
+      "license": "per model",
+      "kind": "catalogue",
+      "note": "162 samples; the licence is read from each model's own LICENSE.md, and anything that is not CC0 or CC BY is refused."
+    },
+    {
+      "id": "sketchfab",
+      "label": "Sketchfab",
+      "homepage": "https://sketchfab.com",
+      "keyless": false,
+      "needsKey": "SKETCHFAB_API_TOKEN",
+      "license": "per model",
+      "kind": "search",
+      "note": "The catalogue's own models came from here. 'Free download' is not 'open licence': the licence label decides."
+    },
+    {
+      "id": "smithsonian",
+      "label": "Smithsonian Open Access",
+      "homepage": "https://3d.si.edu",
+      "keyless": false,
+      "needsKey": "SI_API_KEY",
+      "license": "CC0",
+      "kind": "search",
+      "note": "Open Access 3D, CC0, needs an api.data.gov key."
+    },
+    {
+      "id": "polypizza",
+      "label": "Poly Pizza",
+      "homepage": "https://poly.pizza",
+      "keyless": false,
+      "needsKey": "POLY_PIZZA_API_KEY",
+      "license": "per model",
+      "kind": "search",
+      "note": "The archived remains of Google Poly."
+    },
+    {
+      "id": "direct",
+      "label": "Direct URL",
+      "homepage": "https://github.com/dangthevinh/Kami3D",
+      "keyless": true,
+      "needsKey": null,
+      "license": "declared per entry",
+      "kind": "catalogue",
+      "note": "An admin pinned this URL in data/model-sources.json. The declared licence is checked like any other, and the download still goes through the budget."
+    }
+  ],
+  "refused": [
+    {
+      "id": "thingiverse",
+      "reason": "terms forbid automated downloading, and most models are CC BY-NC"
+    },
+    {
+      "id": "myminifactory",
+      "reason": "CC BY-NC, and the terms forbid scripted downloads"
+    },
+    {
+      "id": "cgtrader",
+      "reason": "marketplace terms forbid scraping; licences are per purchase"
+    },
+    {
+      "id": "googlepoly",
+      "reason": "the service closed in 2021; Poly Pizza carries what was archived"
+    },
+    {
+      "id": "sketchfab-standard",
+      "reason": "Sketchfab's default licence is all rights reserved"
+    }
+  ]
+}
