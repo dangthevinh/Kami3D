@@ -3311,6 +3311,49 @@ test dựng một skinned mesh tổng hợp trong Node để khẳng định c�
 `clone(true)` thì vẫn dính xương gốc.
 
 ---
+## ✅ Trang analytics cho người dùng — `/analytics`
+
+### 1. Nó là gì, và nó khác trang admin ở đâu
+
+Trước đây chỉ có `/admin/analytics` (Phase 18A) — trang đó trả lời "kênh nào mang người đọc tới", dữ liệu tổng hợp,
+chỉ admin xem. Trang mới trả lời câu hỏi của **chính người dùng**: "các lượt chơi và các loài tôi lưu nói lên điều gì".
+
+| | Admin | Người dùng |
+| --- | --- | --- |
+| Đọc | `traffic_daily`, `page_daily`, `search_daily` | `quiz_scores`, `user_favorites` (hoặc cookie của trình duyệt này) |
+| Phạm vi | mọi người, tổng hợp | một người, chỉ các dòng của họ |
+| Thu thập thêm | không (chỉ header của request) | **không có gì cả** — chỉ đếm thứ đã lưu sẵn |
+
+### 2. Trang hiện gì
+
+- **Quiz**: số lượt, số câu, độ chính xác, lượt tốt nhất, chuỗi hiện tại; biểu đồ độ chính xác từng lượt (trục cố định
+  0–100% kèm đường ngưỡng), phân bố 5 dải, tách theo chế độ chơi (hình bóng / âm thanh), và 12 cửa sổ 7 ngày gần nhất.
+- **Bộ sưu tập**: bao nhiêu loài trên tổng danh mục, phân bố theo lớp, vùng, thức ăn, tình trạng bảo tồn; danh sách
+  **vùng chưa có loài nào**; và bao nhiêu loài đang bị đe doạ theo IUCN.
+- **Nguồn số liệu**: ghi rõ từng bảng, số dòng đã đọc, để người đọc kiểm tra được phép tính thay vì tin.
+
+### 3. Ba luật nó tuân theo (và được test khoá)
+
+1. **Không bịa số.** Chưa chơi lượt nào thì mọi tỉ lệ là `—` và biểu đồ rỗng, **không bao giờ là 0%** — số 0 mà người
+   dùng không tự tạo ra là một lời nói dối, và đó đúng là kiểu nói dối mặc định của mọi dashboard.
+2. **Nói rõ định nghĩa.** "Chuỗi" = số lượt liên tiếp đạt **≥ 60%** (`ROUND_GOOD_PERCENT`, cùng ngưỡng mà huy hiệu
+   quiz dùng), vì bảng chỉ lưu điểm mỗi lượt chứ không lưu câu nào đúng câu nào sai. Biểu đồ tuần đếm **lùi từ lượt
+   gần nhất**, không phải từ hôm nay, để một tháng im lặng không thành 11 cột rỗng.
+3. **Kết quả tất định.** Mọi danh sách sắp theo số lượng rồi theo tên; cả trang là hàm thuần của dữ liệu vào —
+   `check:insights` chạy hai lần trên cùng đầu vào và khẳng định hai kết quả bằng nhau.
+
+### 4. Bằng chứng
+
+- `npm run check:insights` (mới): **10 bài** — làm tròn và kẹp biên, thứ tự thời gian, 5 dải không chồng nhau và cộng
+   lại đúng bằng số lượt, định nghĩa chuỗi, tách theo chế độ, cửa sổ tuần (kể cả lượt nằm ngoài cửa sổ vẫn được tính
+   vào tổng đời), các phép chia phần trăm, và tính tất định.
+- Kiểm trên trình duyệt thật với cookie 6 lượt chơi + 3 loài yêu thích: trang ra đúng 6 lượt / 60 câu / **63,3%**
+   (38/60) / lượt tốt nhất 10/10 / chuỗi hiện tại 0 & tốt nhất 2; bộ sưu tập ra Mammal 2, Amphibian 1, ba vùng khác
+   nhau, và 5 vùng còn trống.
+- `check:suites`, build production + `check:bundle` (route `/analytics` được khai ngân sách 165 kB như các route nội
+   dung khác) — số liệu ở phần dưới.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

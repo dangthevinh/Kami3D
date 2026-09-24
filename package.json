@@ -38,6 +38,7 @@
     "check:models": "node --test scripts/check-models.mjs",
     "check:preview": "node --test scripts/check-preview.mjs",
     "check:materials": "node --test scripts/check-materials.mjs",
+    "check:insights": "node --test scripts/check-insights.mjs",
     "check:map": "node --test scripts/check-map.mjs",
     "check:risk": "node --test scripts/check-risk.mjs",
     "check:timeline": "node --test scripts/check-timeline.mjs",

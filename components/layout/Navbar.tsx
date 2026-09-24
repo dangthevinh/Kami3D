@@ -1,6 +1,6 @@
 "use client";
 
-import { Boxes, Compass, Gamepad2, Heart, MapPinned, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
+import { Activity, Boxes, Compass, Gamepad2, Heart, MapPinned, Menu, Search, Sparkles, Trophy, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { href: "/quiz", label: "Quiz", icon: Gamepad2 },
   { href: "/leaderboard", label: "Most viewed", icon: Trophy },
   { href: "/profile", label: "Collection", icon: Heart },
+  { href: "/analytics", label: "Insights", icon: Activity },
 ] as const;
 
 /**

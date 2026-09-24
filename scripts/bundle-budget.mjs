@@ -48,6 +48,12 @@ const ROUTES = [
   { route: "/leaderboard", html: "server/app/leaderboard.html", budget: 165 },
   { route: "/about", html: "server/app/about.html", budget: 165 },
   { route: "/animal/[slug]", html: "server/app/animal/lion.html", budget: 165 },
+  // The visitor's own analytics: server-rendered numbers and inline SVG, so there is nothing to
+  // load beyond the shared layout — but it is rendered on demand (it reads the visitor's own rows),
+  // so like /map it is measured from the app build manifest rather than from prerendered HTML.
+  // Measured at 106.3 kB when it landed. 140 leaves the same headroom the admin page has rather
+  // than the 165 a content route gets, because there is no 3D, no map and no third party here.
+  { route: "/analytics", manifest: "/analytics/page", budget: 140 },
   // The map route is server-rendered on demand (its URL decides what the server
   // draws), so there is no prerendered HTML to read: its chunks come from the app
   // build manifest instead. MapLibre itself stays deferred - this budget covers the

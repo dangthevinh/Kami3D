@@ -53,6 +53,42 @@ Only admins: the three tables have row level security on, a `select` policy that
 `service_role` alone. The page itself repeats the check with the same `is_admin()` call `/admin/geodata` uses, so
 a non-admin sees an explanation rather than a table.
 
+## Personal analytics, for the visitor themselves
+
+`/analytics` is the other half of this document's subject, and its opposite in every design decision. The admin page
+answers "which channels bring readers" from aggregate first-party counts; this one answers "what do my own rounds
+and favourites add up to" from rows the visitor already owns, and it can only ever describe the person reading it.
+
+| | Admin (`/admin/analytics`) | Visitor (`/analytics`) |
+| --- | --- | --- |
+| Reads | `traffic_daily`, `page_daily`, `search_daily` | `quiz_scores`, `user_favorites`, or this browser's cookie |
+| Scope | every visitor, in aggregate | one visitor, and only their own rows |
+| Access | `is_admin()` (RLS) plus an env allow-list | whoever is signed in — or the browser that holds the cookie |
+| Indexed | no | no (`robots: index: false`) |
+| New collection | none (request headers only) | **none at all** — it counts what is already stored |
+
+### What it shows
+
+- **Quiz**: rounds, questions, accuracy, best round, current run, accuracy per round as a fixed 0–100% line with the
+  run threshold drawn on it, the five accuracy bands, the split by mode, and the last twelve seven-day windows.
+- **Favourites**: how many of the catalogue, and breakdowns by class, region, diet and conservation status, plus the
+  regions with nothing in them yet and how many of the picks are IUCN-threatened.
+- **Provenance**: a footer naming the exact sources and row counts, so a reader can check the arithmetic rather than
+  trust it.
+
+### The three rules it follows
+
+1. **No invented numbers.** Nothing played means `—` for every rate and an empty series, never "0%". A zero the
+   visitor did not earn is a lie, and it is the specific lie a dashboard tells by default.
+2. **Stated definitions.** "Run" is rounds in a row at or above `ROUND_GOOD_PERCENT` (60, the same line the quiz
+   badges use), because the table stores a score per round and not which question was missed. The weekly chart counts
+   back from the most recent round, not from today, so a quiet month is not eleven empty bars.
+3. **Deterministic output.** Every list is sorted by count and then by label, and the whole page is a pure function of
+   the rows — `npm run check:insights` runs it twice on the same input and asserts the two are deep-equal.
+
+All of the maths lives in `lib/insights.ts` and is pinned by `npm run check:insights` (10 tests); the page itself is a
+server component that renders inline SVG, so it adds no client JavaScript beyond the shared layout.
+
 ## Verifying it
 
 ```bash
