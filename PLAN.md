@@ -3201,6 +3201,40 @@ Mô hình hiển thị **tối** trên nền studio tối — đó là chủ ý 
 theme để không mất rim light), không phải lỗi render.
 
 ---
+## 🐞 Sửa lỗi — model hiện lên tối mờ, không thấy gì
+
+### 1. Không phải một lỗi, mà ba lỗi chồng nhau
+
+| # | Nguyên nhân | Bằng chứng |
+| --- | --- | --- |
+| 1 | **Không có environment map.** Vật liệu của chính file `lion.glb` là `metallicFactor 0.52`, `roughnessFactor 0` — một cái gương — mà cảnh chỉ có đèn chiếu, không có môi trường. Bề mặt kim loại chỉ hiện thứ nó phản chiếu, nên `envMapIntensity` mà trình xem vẫn đặt từ lâu là con số áp vào hư không | đọc trực tiếp JSON trong GLB |
+| 2 | **Sương mù cố định theo đơn vị thế giới.** Sương bắt đầu ở 9 đơn vị, nhưng hộp bao của Lion rộng **81 đơn vị**, nên `<Bounds fit>` đẩy camera ra ~100 đơn vị — vượt xa mặt phẳng xa của sương. Model bị vẽ xuyên qua sương ở cường độ tối đa và ra đúng màu nền | đo trong Chrome: model nằm trong cảnh, 4.413 đỉnh, nhưng canvas gần như phẳng |
+| 3 | **Chế độ hoà trộn trên vật liệu không có gì trong suốt.** GLB khai `alphaMode: "BLEND"` mà không có alpha map, opacity = 1 → three tắt ghi độ sâu, các mặt của chính model tự sắp xếp sai và nó trông "mờ như ma" | cùng file GLB |
+
+### 2. Cách sửa
+
+- `components/3d/StudioEnvironment.tsx` — ánh sáng studio dựng bằng `Lightformer` (không tải HDRI từ CDN, không thêm asset), nền cube **sáng** vì gương phản chiếu chính cái nền đó.
+- `lib/model-materials.ts` + `components/3d/apply-model-materials.ts` — luật thuần, dùng chung cho cả trang loài và card: (a) bỏ blend khi vật liệu không thể trong suốt, (b) `envMapIntensity` tỉ lệ với độ kim loại (điện môi 1,15 → kim loại 5,0).
+- `components/3d/ModelScene.tsx` — sương mù tính theo **khoảng cách camera thật** (`FOG_NEAR_RATIO 1.7`, `FOG_FAR_RATIO 6`) thay vì hằng số, nên đúng với mọi model ở mọi tỉ lệ xuất file.
+- Card: khung hình 1,9 đơn vị, camera gần hơn một chút để model rõ trong ô 211×158.
+
+### 3. Bằng chứng (đo trên canvas thật, Chrome headless)
+
+| | số màu phân biệt | p90 độ sáng | pixel sáng > 60/255 |
+| --- | --- | --- | --- |
+| Trang loài trước | 4.727 | 13 | 1,1% |
+| Trang loài sau | **~50.000** | **83** | **13,8%** |
+| Card trước | 1.353 | 26 | 1,9% |
+| Card sau | **3.794** | **37** | **5,5%** |
+
+- `npm run check:materials` (mới): **5 bài** — luật vật liệu, mức tăng theo độ kim loại, điều kiện bỏ blend, cả hai bề mặt dùng chung một bản, studio phải sáng và không dùng preset tải từ CDN, sương mù phải suy ra từ camera.
+- `npm run check:suites`: **449 bài** đạt. Build production + `npm run check:bundle`: mọi route trong ngân sách.
+
+### 4. Một cách làm đã thử và thất bại (ghi lại để không thử lại)
+
+Cách đầu tiên tôi thử là **chuẩn hoá tỉ lệ model** về 2,6 đơn vị. Nó phá khung ngắm: `<Bounds>` và `<Center>` đã đo hộp bao trước đó, kết quả là model bị đẩy xuống **-38,9 đơn vị** và ra khỏi khung — số màu trên canvas còn *giảm* (4.727 → 858). Sửa sương mù theo khoảng cách camera là cách đúng: không đụng vào phép biến đổi của model, và đúng cho mọi tỉ lệ xuất file.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

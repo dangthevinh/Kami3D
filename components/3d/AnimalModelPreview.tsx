@@ -4,7 +4,9 @@ import { ContactShadows, OrbitControls, useGLTF } from "@react-three/drei";
 import * as React from "react";
 import * as THREE from "three";
 
+import { applyMaterialFix } from "@/components/3d/apply-model-materials";
 import { CanvasShell } from "@/components/3d/CanvasShell";
+import { StudioEnvironment } from "@/components/3d/StudioEnvironment";
 import { useQuality } from "@/components/3d/useQuality";
 import { useSettings } from "@/components/settings/SettingsProvider";
 import { publicEnv } from "@/lib/env";
@@ -54,11 +56,13 @@ export function AnimalModelPreview({
   return (
     <CanvasShell
       className={className}
-      camera={{ position: [2.3, 1.5, 2.9], fov: 38, near: 0.05, far: 200 }}
+      camera={{ position: [2.1, 1.4, 2.7], fov: 40, near: 0.05, far: 200 }}
       label={label}
       dpr={[1, 1.5]}
       shadows={false}
     >
+      {/* Metals show only what they reflect, so the studio matters more than the lamps. */}
+      <StudioEnvironment keyColor="#eaf7ff" fillColor="#a97bff" />
       <ambientLight intensity={1.15} />
       <directionalLight position={[3, 4, 3]} intensity={2.6} color="#eaf7ff" />
       <pointLight position={[-2.5, -1, -2]} intensity={5} distance={9} color="#a97bff" />
@@ -106,9 +110,8 @@ function FramedModel({
       object.castShadow = shadows;
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       for (const material of materials) {
-        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshPhysicalMaterial) {
-          material.envMapIntensity = 0.9;
-        }
+        if (!(material instanceof THREE.MeshStandardMaterial)) continue;
+        applyMaterialFix(material);
       }
     });
   }, [model, shadows]);
@@ -118,7 +121,9 @@ function FramedModel({
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     const centre = box.getCenter(new THREE.Vector3());
-    const scale = box.isEmpty() ? 1 : 1.55 / (Math.max(size.x, size.y, size.z) || 1);
+    // 1.9 rather than a snug 1.55: the tile is 211x158 on a phone-sized grid, and a model
+    // that fills it edge to edge reads as clipped rather than framed.
+    const scale = box.isEmpty() ? 1 : 1.9 / (Math.max(size.x, size.y, size.z) || 1);
     const offset: [number, number, number] = [-centre.x * scale, -box.min.y * scale, -centre.z * scale];
     return { scale, offset };
   }, [model]);

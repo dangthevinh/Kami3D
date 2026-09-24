@@ -245,6 +245,38 @@ Attribution is complete and every licence is redistributable, but a few models a
 the exact taxon: `gooty-tarantula` is a Mexican red-knee tarantula, and `weddell-seal` is a generic seal. Replace
 them through `data/model-sources.json` when you find better ones.
 
+## Why a model can look black
+
+A visitor reported that the lion was "dark and hazy, I cannot see anything", and asked for it to look like the
+Sketchfab viewer. It was not one bug. Three, stacked, each of which alone would have made the model hard to see:
+
+| # | Cause | Where it lives |
+| --- | --- | --- |
+| 1 | **No environment to reflect.** The lion is `metallicFactor 0.52, roughnessFactor 0` — a mirror. A metallic
+      surface shows what surrounds it; the scene had lamps and no environment, so the `envMapIntensity` the viewer
+      had always set applied to nothing | `components/3d/StudioEnvironment.tsx` |
+| 2 | **A fog fixed in world units.** The fog started at 9 units; the lion is **81 units** across, so `<Bounds fit>`
+      put the camera ~100 units out — past the fog far plane. The model was drawn through fog at full strength and
+      came out the colour of the background | `components/3d/ModelScene.tsx` (`FOG_NEAR_RATIO`) |
+| 3 | **A blend mode on a material nothing can blend.** `alphaMode: "BLEND"` with no alpha map and an opacity of 1
+      buys no depth writes, so the model's own faces sorted against each other and it read as a ghost | `components/3d/apply-model-materials.ts` |
+
+Measured on the species canvas for `lion`, before and after. The model auto-rotates, so repeated runs land
+between 49,900 and 57,400 colours and between 13.8% and 14.4% bright pixels; the figures below are one run:
+
+| | distinct colours | p90 luminance | pixels above 60/255 |
+| --- | --- | --- | --- |
+| Before | 4,727 | 13 | 1.1% |
+| After | **~50,000** | **83** | **13.8%** |
+
+Two rules keep it from coming back. `npm run check:materials` pins the material maths and the shape of the fix, and
+asserts that both surfaces mount the studio, that its base colour is bright, and that the fog is still derived from
+the camera distance rather than being a constant. The studio itself downloads nothing: it is `Lightformer` panels
+rendered into a cube map, so the "no third-party asset on the critical path" rule holds.
+
+The card preview is smaller and brighter for the same three reasons plus its own framing — it scales the asset to
+1.9 units and looks from ~3.6 units, which is why it now reports a p95 of 65/255 rather than 36/255.
+
 ## The card draws the real model
 
 The species card used to show a procedural silhouette and the real model was reserved for the species page. That

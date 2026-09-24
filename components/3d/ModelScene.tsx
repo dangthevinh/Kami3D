@@ -16,7 +16,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as React from "react";
 import * as THREE from "three";
 
+import { applyMaterialFix } from "@/components/3d/apply-model-materials";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
+import { StudioEnvironment } from "@/components/3d/StudioEnvironment";
 import type { QualityProfile } from "@/lib/quality";
 import {
   approach,
@@ -44,6 +46,17 @@ import type { Animal } from "@/types/animal";
  */
 
 /** What the DOM half can ask the scene half to do. */
+/**
+ * Where the fog sits, as a multiple of the distance from the camera to what it is looking at.
+ *
+ * 1.7 puts the model itself entirely inside the clear zone — the near plane is behind it
+ * whatever its size — and 6 lets the grid and the mirror floor fade out at the edge of the
+ * frame instead of ending in a hard line.
+ */
+const FOG_NEAR_RATIO = 1.7;
+const FOG_FAR_RATIO = 6;
+const ORIGIN = new THREE.Vector3(0, 0, 0);
+
 export interface ModelViewerApi {
   /** Swing the camera to a preset heading, keeping the current distance. */
   flyTo(preset: CameraPresetId): void;
@@ -144,9 +157,11 @@ function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onRe
 
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       for (const material of materials) {
-        if (material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshPhysicalMaterial) {
+        if (material instanceof THREE.MeshStandardMaterial) {
           material.wireframe = wireframe;
-          material.envMapIntensity = 0.8;
+          // Opaque when nothing can blend, and env strength proportional to how metallic the
+          // surface is — see lib/model-materials.ts for the lion's numbers.
+          applyMaterialFix(material);
         }
       }
     });
@@ -401,6 +416,34 @@ function SceneRig({
     flyTo(cameraRequest.preset);
   }, [cameraRequest, flyTo]);
 
+  /**
+   * Fog, measured against the framing rather than assumed.
+   *
+   * The scene's fog starts at a fixed 9 world units, but a .glb carries no unit: the lion's
+   * bounding box is **81 units** across, so `<Bounds fit>` puts the camera about a hundred
+   * units away — past the fog's far plane, which meant the lion was rendered *through* the fog
+   * at full strength and came out the colour of the background. Measured before this change:
+   * the species page canvas' 95th-percentile luminance was 24/255, and the model was there the
+   * whole time.
+   *
+   * Its job is a depth cue for the grid and the floor, so it belongs at a multiple of how far
+   * away the model actually is. Tying it to the camera makes it correct for every asset, at any
+   * export scale, without rescaling the model — which was tried first and fought `<Bounds>` and
+   * `<Center>`, leaving the model 39 units below the frame.
+   */
+  useFrame(() => {
+    const fog = scene.fog;
+    if (!(fog instanceof THREE.Fog)) return;
+
+    const distance = camera.position.distanceTo(controls?.target ?? ORIGIN);
+    const near = distance * FOG_NEAR_RATIO;
+    const far = distance * FOG_FAR_RATIO;
+    if (Math.abs(fog.near - near) > 0.5) {
+      fog.near = near;
+      fog.far = far;
+    }
+  });
+
   useFrame((_, delta) => {
     const current = flight.current;
 
@@ -500,7 +543,14 @@ export function ModelScene({
   return (
     <>
       <color attach="background" args={[light.fog]} />
-      <fog attach="fog" args={[light.fog, 9, 34]} />
+      {/* Starting values only: SceneRig re-derives them from the real camera distance every
+          frame, because a .glb carries no unit and the model may be 2 units or 80 across. */}
+      <fog attach="fog" args={[light.fog, FOG_NEAR_RATIO * 5, FOG_FAR_RATIO * 5]} />
+
+      {/* The studio every model is lit by, tinted by the preset in use. See
+          StudioEnvironment: without an environment a metallic asset has nothing to
+          reflect, and the lion's material is metalness 0.52. */}
+      <StudioEnvironment intensity={0.9} keyColor={light.keyColor} fillColor={light.fillColor} />
 
       <ambientLight intensity={light.ambient} />
       <hemisphereLight args={[light.keyColor, light.fog, 0.55]} />
