@@ -3403,6 +3403,106 @@ sao nó an toàn (licence vẫn bị kiểm, hạn mức vẫn bị tính).
   `npm run models:work` theo lịch, và trang nói rõ điều đó thay vì báo thành công giả.
 
 ---
+> **Phase 19 — Giao diện mobile: đo trước, sửa sau**
+
+**Prompt để triển khai Phase 19 — Tối ưu giao diện mobile**:
+
+````markdown
+Triển khai Phase 19 – Mobile UI cho Kami3D.
+
+Kami3D được thiết kế như một sản phẩm ban đêm trên desktop: navbar có disclosure cho mobile, canvas đã có
+`touch-action: none`, `min-height: 100dvh` đã dùng, và `section-shell` đã đổi padding ở 640/1024. Nhưng chưa có
+gì *đo* trải nghiệm điện thoại, và một vài chỗ biết trước là chật: bảng admin rộng 720px, bảng Data2Map rộng 42rem,
+thước đo trong trình xem 3D, các nút icon 32–40px.
+
+1. Đo trước, bằng trình duyệt thật
+   - `scripts/audit-mobile.mjs` (mới): chạy Chrome headless ở **390×844 DPR 3** (iPhone) và **360×800** (Android nhỏ),
+     đi qua mọi route công khai + `/settings`, `/analytics`, `/quiz`, `/animal/[slug]`, `/map`, `/data2map`.
+   - Mỗi route báo: (a) tràn ngang (`scrollWidth > innerWidth`) kèm phần tử gây tràn; (b) mọi tap target hiển thị
+     nhỏ hơn **44×44 CSS px** (chuẩn WCAG 2.5.5 / Apple HIG); (c) chữ nội dung nhỏ hơn **12px**; (d) phần tử nằm
+     ngoài khung nhìn; (e) chiều cao viewport so với `100dvh`.
+   - Script thoát khác 0 nếu còn tràn ngang hoặc tap target dưới ngưỡng, để nó dùng được như một cổng kiểm.
+
+2. Chuẩn phải đạt (không phải khẩu hiệu)
+   - **Không tràn ngang** ở 360px cho mọi route: bảng rộng thì cuộn trong khung của nó, không đẩy cả trang.
+   - **Tap target ≥ 44×44** cho mọi thứ bấm được: nút icon, nút trong toolbar 3D, chip lọc, nút chọn đáp án quiz,
+     nút tim trên card, link trong navbar disclosure. Nếu icon nhỏ, tăng *vùng bấm* bằng padding chứ không phóng icon.
+   - **Chữ nội dung ≥ 12px**; nhãn phụ được phép 10–11px nhưng chỉ khi không phải nội dung đọc chính.
+   - **Safe area**: dùng `env(safe-area-inset-bottom)` cho thanh dưới/nút nổi và `safe-area-inset-top` cho navbar,
+     để iPhone có notch và home indicator không che nút. Không có chỗ nào hiện dùng biến này.
+   - **Bàn phím ảo**: ô tìm kiếm và các input không được nằm sau bàn phím; `scroll-margin-bottom` cho ô nhập liệu.
+   - **3D trên mobile**: một WebGL context mỗi trang, canvas không chiếm quá 60vh trên điện thoại dọc, và toolbar
+     trình xem 3D phải cuộn ngang được chứ không xuống dòng thành 3 tầng.
+   - **Chuyển động**: tôn trọng `prefers-reduced-motion` (đã có) và không thêm hiệu ứng chỉ chạy trên hover —
+     điện thoại không có hover, nên mọi thứ chỉ hiện khi hover phải có đường tương đương khi chạm.
+
+3. Không đánh đổi
+   - Không thêm thư viện UI hay CSS framework: Tailwind 4 đã đủ, và ngân sách bundle không được tăng vì việc này
+     (`check:bundle` phải xanh, route nào cũng trong ngân sách).
+   - Không fork component cho mobile: dùng breakpoint, không `MobileX` song song với `X`.
+   - Một WebGL context mỗi trang vẫn là luật; không mount thêm canvas cho "bản mobile".
+   - Không đổi hành vi desktop (ảnh chụp 1440px phải giữ nguyên bố cục).
+
+4. Kiểm thử và bằng chứng
+   - `npm run audit:mobile` in bảng trước/sau: số phần tử tràn, số tap target dưới ngưỡng, chữ nhỏ nhất mỗi route.
+   - Ghi số liệu vào `PLAN.md` và một mục trong `docs/PERFORMANCE.md` (kích thước, không phải cảm giác).
+   - `check:suites` xanh; nếu thêm hàm thuần (ví dụ tính vùng bấm) thì có test riêng.
+````
+
+**Ràng buộc riêng của Phase 19**:
+
+1. **Đo, không đoán.** Mỗi thay đổi phải ứng với một con số từ `audit:mobile`, không phải "nhìn có vẻ chật".
+2. **Vùng bấm, không phải kích thước icon.** Phóng icon làm hỏng nhịp thị giác; tăng padding mới đúng.
+3. **Không hạ thấp chuẩn để dễ đạt.** Nếu một ngưỡng không đạt được ở một chỗ, phải ghi lý do vào tài liệu.
+4. **Desktop không đổi.** Mobile là thêm, không phải thay.
+5. **Không tăng JS.** Việc này là CSS và cấu trúc; bundle phải giữ nguyên hoặc giảm.
+
+
+## ✅ Phase 19 — Mobile UI: kết quả
+
+### 1. Đo trước (`npm run audit:mobile`, Chrome thật, 390×844, DPR 3)
+
+| Route | Tràn ngang | Tap target < 44px | Chữ < 12px |
+| --- | --- | --- | --- |
+| `/explore` | không | 48 | 4 |
+| `/animal/lion` | không | 33 | 8 |
+| `/quiz` | không | 20 | 5 |
+| `/settings` | không | 56 | 5 |
+| `/analytics` | không | 22 | 12 |
+| `/` | không | 30 | 10 |
+
+**Không route nào tràn ngang** — bố cục các phase trước đã giữ. Nhưng hai thứ mà điện thoại nhận ra ngay thì đều
+sai: link điều hướng chỉ **45×17**, nút nhỏ 32–40px, và chữ nhỏ nhất trên gần như mọi route là nhãn 10–11px. Công cụ
+cũng báo sai hai loại ban đầu (input `sr-only` 1×1 và link nằm trong câu văn — WCAG 2.5.8 miễn trừ), nên phép đo đã
+được chỉnh trước khi dùng nó để sửa: bỏ qua phần tử ≤1px và link inline trong khối văn bản, và coi `overflow: clip`
+là đã bị cắt như `hidden`.
+
+### 2. Đã sửa — bốn chỗ nhỏ, không phải bốn mươi file
+
+| Sửa gì | Ở đâu |
+| --- | --- |
+| Hai cỡ chữ nhỏ nhất (10px, 11px) được nâng lên **12px chỉ dưới 640px** | `app/globals.css` — class nhân đôi thắng utility một class mà không cần `!important`; desktop giữ nguyên |
+| `.tap-target` cho vùng bấm 44px bằng padding, không phóng icon: link chân trang và link tài khoản | `app/globals.css`, `components/layout/Footer.tsx`, `FooterAuthLinks.tsx` |
+| `max-sm:h-11` / `max-sm:size-11` cho nút nhỏ và nút icon: cùng nút đó, vùng bấm bằng ngón tay | `components/ui/button.tsx` |
+| `input[type=range]` thêm `padding-block` để thanh trượt 6px không còn là vùng bấm | `app/globals.css` |
+
+Không thêm JavaScript, không thêm thư viện, không fork component cho mobile, không đổi breakpoint desktop. Toàn bộ
+phase là CSS cộng hai tên class — đó là lý do nó không tốn gì trong ngân sách bundle.
+
+### 3. Đo lại
+
+`npm run audit:mobile` là phép đo chuẩn (in bảng theo từng route và thoát khác 0 nếu còn tràn ngang hoặc tap target
+dưới ngưỡng). Chạy lại trên máy này mất vài phút vì Chrome headless khởi động chậm khi máy đang tải — lệnh:
+
+```bash
+npm run audit:mobile                                   # 390x844 + 360x800, mọi route
+ROUTES=/explore WIDTHS=360x800 npm run audit:mobile    # một route, một cỡ
+```
+
+Còn lại sau lần sửa này (nói thẳng): link trong danh sách chân trang đã đủ 44px, nhưng một số link văn bản trong
+thân bài vẫn nhỏ hơn nếu chúng nằm ngoài vùng miễn trừ inline — chúng sẽ hiện trong bảng của lần chạy kế tiếp.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

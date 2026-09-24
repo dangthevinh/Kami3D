@@ -17,11 +17,14 @@ const buttonVariants = cva(
         danger: "bg-coral/90 text-on-accent hover:bg-coral",
         iris: "bg-iris text-on-accent font-semibold hover:bg-iris/90 shadow-[0_10px_30px_-10px_rgba(169,123,255,0.75)]",
       },
+      // `max-sm:` raises the hit area to 44px on a phone and changes nothing on a desktop: the audit
+      // (`npm run audit:mobile`) measured the small and icon buttons at 32-40px, which is comfortable
+      // with a mouse and not with a thumb. Height, not glyph size — the icons keep their scale.
       size: {
-        sm: "h-8 px-3 text-xs",
-        default: "h-10 px-4",
+        sm: "h-8 px-3 text-xs max-sm:h-11 max-sm:px-3.5",
+        default: "h-10 px-4 max-sm:h-11",
         lg: "h-12 px-6 text-base",
-        icon: "size-10",
+        icon: "size-10 max-sm:size-11",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

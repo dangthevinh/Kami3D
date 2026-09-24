@@ -221,3 +221,37 @@ it reads the HTML the build produced, takes the exact `<script src>` list out of
 fetches), gzips those files and fails when a route exceeds its budget, when `three`/Clerk/Supabase/`framer-motion`
 appear in the first paint, or when three.js has vanished from the build altogether. It runs after the build in CI, so
 a bundle regression is a red check rather than a discovery six weeks later.
+
+## On a phone (Phase 19)
+
+Six routes at **390×844 with mobile emulation**, measured by `npm run audit:mobile` (headless Chrome, DPR 3).
+It reports horizontal overflow and names the element that causes it, tap targets under 44×44 CSS px
+(WCAG 2.5.5, Apple HIG), text under 12px, and the real visual viewport height. It needs Chrome and a server,
+so it is not part of `npm run check`.
+
+Measured at the start of the phase, at 390px:
+
+| Route | Horizontal overflow | Tap targets under 44px | Text under 12px |
+| --- | --- | --- | --- |
+| `/explore` | none | 48 | 4 |
+| `/animal/lion` | none | 33 | 8 |
+| `/quiz` | none | 20 | 5 |
+| `/settings` | none | 56 | 5 |
+| `/analytics` | none | 22 | 12 |
+| `/` | none | 30 | 10 |
+
+Nothing overflowed the page — the layout work of the earlier phases held — but the two things a phone
+notices were both wrong: navigation links were 45×17, small buttons 32–40px, and the smallest readable text
+on almost every route was a 10–11px label.
+
+### What changed, and why it is four small edits rather than forty
+
+| Fix | Where |
+| --- | --- |
+| The two smallest type utilities (`.text-[10px]`, `.text-[11px]`) are raised to **12px on screens under 640px only** | `app/globals.css` — a doubled class outranks the single-class utility without `!important`, and a desktop keeps exactly the type it had |
+| `.tap-target`: a 44px hit area by padding rather than a bigger glyph, applied to footer and account links | `app/globals.css`, `components/layout/Footer.tsx`, `FooterAuthLinks.tsx` |
+| `max-sm:h-11` / `max-sm:size-11` on the small and icon button sizes: the same buttons with a thumb-sized target | `components/ui/button.tsx` |
+| `input[type="range"]` gets `padding-block`, so the 6px track is not the touch area | `app/globals.css` |
+
+No new JavaScript, no new dependency, no component forked for mobile, and the desktop breakpoints are untouched:
+the whole phase is CSS plus two class names, which is what keeps it from costing anything in the bundle.

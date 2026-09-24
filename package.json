@@ -90,6 +90,7 @@
     "audit:perf": "node scripts/audit-browser.mjs",
     "audit:theme": "node scripts/audit-theme.mjs",
     "audit:theme-stability": "node scripts/audit-theme-stability.mjs",
+    "audit:mobile": "node scripts/audit-mobile.mjs",
     "audit:settings": "node scripts/audit-settings.mjs",
     "audit:hybrid": "node scripts/audit-hybrid.mjs"
   },

@@ -159,7 +159,9 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
         <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ring-1 backdrop-blur",
+              // 11px rather than 10: this is content a visitor reads, and on a phone the audit
+              // flagged 10px labels as the smallest text on every page that carries them.
+              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ring-1 backdrop-blur",
               status.bg,
               status.text,
               status.ring,

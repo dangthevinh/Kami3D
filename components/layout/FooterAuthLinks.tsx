@@ -28,12 +28,12 @@ export function FooterAuthLinks() {
   return (
     <>
       <li>
-        <Link href="/sign-in" className="text-sm text-white/65 transition-colors hover:text-neon">
+        <Link href="/sign-in" className="tap-target text-sm text-white/65 transition-colors hover:text-neon">
           Sign in
         </Link>
       </li>
       <li>
-        <Link href="/sign-up" className="text-sm text-white/65 transition-colors hover:text-neon">
+        <Link href="/sign-up" className="tap-target text-sm text-white/65 transition-colors hover:text-neon">
           Create account
         </Link>
       </li>

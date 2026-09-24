@@ -92,12 +92,12 @@ export default async function AnalyticsPage() {
       <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <div key={card.label} className="glass rounded-[var(--radius-card)] p-4">
-            <p className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-white/40">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-white/45">
               <card.icon className="size-3.5 text-neon/70" aria-hidden />
               {card.label}
             </p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-white/90">{card.value}</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-white/35">{card.hint}</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-white/40">{card.hint}</p>
           </div>
         ))}
       </section>

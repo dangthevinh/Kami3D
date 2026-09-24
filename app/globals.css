@@ -451,3 +451,41 @@ html[data-motion="reduced"] *::after {
 .kami-canvas {
   background: var(--kami-stage);
 }
+
+
+/**
+ * Phase 19 — the phone floor for type.
+ *
+ * The audit (`npm run audit:mobile`) found the smallest readable text on almost every route was the
+ * 10–11px micro-label, and there are forty-odd of them across the product. Rather than edit forty
+ * files and change the desktop design, the two smallest utilities are raised **on small screens
+ * only**: a phone gets 12px, a desktop keeps exactly the type it had.
+ *
+ * The doubled class is deliberate: `\`.text-\\[11px\\].text-\\[11px\\]\` outranks the single-class
+ * utility without \`!important\`, so nothing else about the cascade changes.
+ */
+@media (max-width: 639px) {
+  .text-\[10px\].text-\[10px\],
+  .text-\[11px\].text-\[11px\] {
+    font-size: 0.75rem;
+  }
+
+  /**
+   * Tap targets.
+   *
+   * A finger is about 9mm; WCAG 2.5.5 and Apple's HIG both land on 44 CSS px for the smallest
+   * comfortable target, and the audit measured footer and menu links at 45x17. Padding rather than a
+   * bigger glyph: the hit area grows, the visual rhythm does not.
+   */
+  .tap-target {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* A range input is a 6px track with a much larger thumb: the touch area has to be the track. */
+  input[type="range"] {
+    padding-block: 1.25rem;
+    background-clip: content-box;
+  }
+}

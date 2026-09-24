@@ -67,7 +67,7 @@ export function Footer() {
             <ul className="space-y-2">
               {group.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-white/65 transition-colors hover:text-neon">
+                  <Link href={link.href} className="tap-target text-sm text-white/65 transition-colors hover:text-neon">
                     {link.label}
                   </Link>
                 </li>
@@ -87,7 +87,7 @@ export function Footer() {
             </span>
             <a
               href="https://github.com"
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-neon"
+              className="tap-target gap-1.5 transition-colors hover:text-neon"
               rel="noreferrer noopener"
               target="_blank"
             >
