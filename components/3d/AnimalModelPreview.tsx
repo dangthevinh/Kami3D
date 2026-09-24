@@ -6,6 +6,7 @@ import * as THREE from "three";
 
 import { applyMaterialFix } from "@/components/3d/apply-model-materials";
 import { CanvasShell } from "@/components/3d/CanvasShell";
+import { anchorOffset, cloneModel, posedBounds } from "@/components/3d/clone-model";
 import { StudioEnvironment } from "@/components/3d/StudioEnvironment";
 import { useQuality } from "@/components/3d/useQuality";
 import { useSettings } from "@/components/settings/SettingsProvider";
@@ -96,7 +97,7 @@ function FramedModel({
   onReady?: () => void;
 }) {
   const gltf = useGLTF(url, publicEnv.dracoDecoderPath);
-  const model = React.useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  const model = React.useMemo(() => cloneModel(gltf.scene), [gltf.scene]);
 
   React.useEffect(() => () => void disposeClone(model), [model]);
 
@@ -118,13 +119,13 @@ function FramedModel({
 
   /** Centre on the origin, scale the longest side to a constant, sit the feet on the floor. */
   const framing = React.useMemo(() => {
-    const box = new THREE.Box3().setFromObject(model);
+    const box = posedBounds(model);
     const size = box.getSize(new THREE.Vector3());
-    const centre = box.getCenter(new THREE.Vector3());
     // 1.9 rather than a snug 1.55: the tile is 211x158 on a phone-sized grid, and a model
     // that fills it edge to edge reads as clipped rather than framed.
     const scale = box.isEmpty() ? 1 : 1.9 / (Math.max(size.x, size.y, size.z) || 1);
-    const offset: [number, number, number] = [-centre.x * scale, -box.min.y * scale, -centre.z * scale];
+    // The same arithmetic the species page uses, scaled with the model: see clone-model.ts.
+    const offset = anchorOffset(box).map((value) => value * scale) as [number, number, number];
     return { scale, offset };
   }, [model]);
 

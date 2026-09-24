@@ -105,3 +105,97 @@ test("fog is measured against the framing, not fixed in world units", () => {
   assert.ok(args, "the initial fog arguments must be visible");
   assert.ok(!/,\s*9\s*,\s*34\s*$/.test(args[1]), "9 and 34 were the fixed values that hid the lion");
 });
+
+test("a skinned model is cloned with its own bones", async () => {
+  // The blue whale is a SkinnedMesh driven by 49 joints, and it is the asset that showed the
+  // symptom: a flat slice across the body. `Object3D.clone(true)` copies a SkinnedMesh by
+  // reference to its skeleton, so the copy is deformed by the *original* bones - which live in
+  // the cached scene, are never rendered, and therefore never update their world matrices.
+  //
+  // This builds that situation without a GLB or a WebGL context and asserts both halves: the
+  // helper binds the clone to bones inside itself, and the plain clone does not (the control, so
+  // this test cannot quietly stop testing anything).
+  const THREE = await import("three");
+  const { cloneModel } = await import("../components/3d/clone-model.ts");
+
+  const root = new THREE.Bone();
+  root.name = "root";
+  const child = new THREE.Bone();
+  child.position.set(1, 0, 0);
+  root.add(child);
+
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const perVertex = (values) => new THREE.Float32BufferAttribute(new Array(24 * values).fill(0), values);
+  geometry.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(new Array(24).fill(0), 4));
+  geometry.setAttribute("skinWeight", perVertex(4).setX(0, 1));
+
+  const mesh = new THREE.SkinnedMesh(geometry, new THREE.MeshStandardMaterial());
+  mesh.name = "skinned";
+  mesh.add(root);
+  mesh.bind(new THREE.Skeleton([root, child]));
+
+  const group = new THREE.Group();
+  group.add(mesh);
+
+  const skinnedIn = (node) => {
+    let found = null;
+    node.traverse((object) => { if (object.isSkinnedMesh) found = object; });
+    return found;
+  };
+  const contains = (node, uuid) => {
+    let hit = false;
+    node.traverse((object) => { if (object.uuid === uuid) hit = true; });
+    return hit;
+  };
+
+  const clone = cloneModel(group);
+  const copied = skinnedIn(clone);
+  assert.ok(copied, "the helper must return the mesh");
+  assert.notEqual(copied.skeleton.bones[0], root, "the clone must not skin itself with the original bone");
+  assert.ok(
+    contains(clone, copied.skeleton.bones[0].uuid),
+    "the bones it uses must live inside the clone, which is what gets its matrices updated",
+  );
+  assert.equal(copied.skeleton.bones.length, 2, "and every joint must come across, not just the root");
+
+  const plain = skinnedIn(group.clone(true));
+  assert.equal(plain.skeleton.bones[0], root, "the control: a plain clone keeps the original bone");
+});
+
+test("a model is anchored by the box it is drawn with, not its bind pose", async () => {
+  const THREE = await import("three");
+  const { anchorOffset } = await import("../components/3d/clone-model.ts");
+
+  // The lion, measured in the running viewer: the bind box sits at y -30..-82 while the pose it is
+  // drawn in sits at y -68..-121. Centring by the first left the animal about 38 units under the
+  // floor, and the floor and its grid then sliced across it — which is what "a plane cutting through
+  // every model" was. This is the arithmetic that puts it back on the floor.
+  const posed = new THREE.Box3(new THREE.Vector3(-43.56, -120.81, -28.22), new THREE.Vector3(37.86, -68.36, 18.28));
+  const [x, y, z] = anchorOffset(posed);
+  assert.equal(Number(y.toFixed(2)), 120.81, "the posed bottom must land on y = 0");
+  assert.equal(Number(x.toFixed(2)), 2.85, "and its centre over the origin");
+  assert.equal(Number(z.toFixed(2)), 4.97, "in every axis");
+
+  const moved = posed.clone().translate(new THREE.Vector3(x, y, z));
+  assert.equal(Number(moved.min.y.toFixed(6)), 0, "after the offset the model stands on the floor");
+  assert.ok(Math.abs(moved.getCenter(new THREE.Vector3()).x) < 1e-6, "and is centred");
+
+  assert.deepEqual(anchorOffset(new THREE.Box3()), [0, 0, 0], "an empty box must not produce NaN offsets");
+});
+
+test("the species viewer no longer centres by the bind pose", () => {
+  // The name still appears in the comments that explain why it is not used; the tag is what must be gone.
+  assert.ok(
+    !/^\s*<Center[\s>]/m.test(scene),
+    "drei's Center measures the bind pose; ModelAnchor measures the pose actually drawn",
+  );
+  assert.ok(scene.includes("<ModelAnchor>"), "so the model is wrapped in the anchor instead");
+  const anchor = read("components/3d/ModelAnchor.tsx");
+  assert.ok(anchor.includes("posedBounds("), "and the anchor measures the posed box");
+  assert.ok(anchor.includes("anchorOffset("), "through the shared, tested arithmetic");
+
+  // Both names appear in the comments that explain the bug, so the assertions read the code only.
+  const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  assert.ok(!withoutComments(anchor).includes("setFromObject"), "never the bind-pose box");
+  assert.ok(!/^\s*<Center[\s>]/m.test(withoutComments(scene)), "and nothing centres by the bind pose any more");
+});

@@ -2,7 +2,6 @@
 
 import {
   Bounds,
-  Center,
   ContactShadows,
   Grid,
   Html,
@@ -17,6 +16,8 @@ import * as React from "react";
 import * as THREE from "three";
 
 import { applyMaterialFix } from "@/components/3d/apply-model-materials";
+import { cloneModel, posedBounds } from "@/components/3d/clone-model";
+import { ModelAnchor } from "@/components/3d/ModelAnchor";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { StudioEnvironment } from "@/components/3d/StudioEnvironment";
 import type { QualityProfile } from "@/lib/quality";
@@ -132,7 +133,9 @@ function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onRe
   // The second argument is the DRACO decoder location; vendor it into /public/draco
   // and set NEXT_PUBLIC_DRACO_DECODER_PATH for a fully offline deployment.
   const gltf = useGLTF(url, publicEnv.dracoDecoderPath);
-  const model = React.useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  // Not `clone(true)`: that shares the original skeleton, and a skinned asset drawn with stale
+  // bone matrices collapses into flat slices (see components/3d/clone-model.ts).
+  const model = React.useMemo(() => cloneModel(gltf.scene), [gltf.scene]);
   const { actions, names } = useAnimations(gltf.animations, model);
 
   /**
@@ -226,7 +229,9 @@ function MeasurementOverlay({
     const group = target.current;
     if (!group) return;
 
-    const bounds = new THREE.Box3().setFromObject(group);
+    // The posed box, the same one the model is anchored by: measuring the bind pose here drew the
+    // rulers around a box the model is not inside, which reads as a line crossing the animal.
+    const bounds = posedBounds(group);
     if (bounds.isEmpty()) return;
 
     const size = bounds.getSize(new THREE.Vector3());
@@ -540,6 +545,7 @@ export function ModelScene({
     <ProceduralAnimal kind={animal.silhouette} accent={animal.accent} wireframe={wireframe} silhouette={silhouette} phase={phase} />
   );
 
+
   return (
     <>
       <color attach="background" args={[light.fog]} />
@@ -568,7 +574,10 @@ export function ModelScene({
         <group ref={modelRef}>
           {animal.model_url ? (
             <ModelBoundary key={attempt} fallback={procedural} onFail={onModelFailed}>
-              <Center bottom>
+              {/* Not `<Center bottom>`: it centres by the **bind pose**, which for a rigged asset is
+                  a different box from the one on screen, and it left the model under the floor.
+                  See components/3d/ModelAnchor.tsx for the measurement. */}
+              <ModelAnchor>
                 <GltfModel
                   url={animal.model_url}
                   wireframe={wireframe}
@@ -577,7 +586,7 @@ export function ModelScene({
                   onClips={onClips}
                   onReady={onModelReady}
                 />
-              </Center>
+              </ModelAnchor>
             </ModelBoundary>
           ) : (
             procedural

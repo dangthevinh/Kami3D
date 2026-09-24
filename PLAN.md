@@ -3235,6 +3235,83 @@ theme để không mất rim light), không phải lỗi render.
 Cách đầu tiên tôi thử là **chuẩn hoá tỉ lệ model** về 2,6 đơn vị. Nó phá khung ngắm: `<Bounds>` và `<Center>` đã đo hộp bao trước đó, kết quả là model bị đẩy xuống **-38,9 đơn vị** và ra khỏi khung — số màu trên canvas còn *giảm* (4.727 → 858). Sửa sương mù theo khoảng cách camera là cách đúng: không đụng vào phép biến đổi của model, và đúng cho mọi tỉ lệ xuất file.
 
 ---
+## 🐞 Sửa lỗi — "mặt phẳng cắt ngang con cá voi"
+
+### 1. Không phải mặt phẳng nào cả — đó là bộ xương sai
+
+`blue-whale.glb` là một **SkinnedMesh: 9.960 tam giác điều khiển bởi 49 khớp**, có cả animation. Trình xem vẽ mọi
+model bằng `gltf.scene.clone(true)` — cách hiển nhiên để vẽ lại một model đã cache — và cách đó **sai với mọi thứ
+có xương**: `Object3D.clone()` sao chép `SkinnedMesh` theo **tham chiếu tới skeleton gốc**, nên bản sao vẫn bị biến
+dạng bởi **xương gốc**. Xương gốc nằm trong scene đã cache, scene đó không bao giờ được render, nên ma trận thế giới
+của chúng không bao giờ được cập nhật — đỉnh bị biến đổi bằng ma trận cũ thay vì tư thế thật, và lưới tam giác
+sụp thành những mảng phẳng bị cắt.
+
+Chứng minh chạy được, không cần trình duyệt (`npm run check:materials`):
+
+```
+clone(true):         skeleton.bones[0] === xương gốc   -> true
+SkeletonUtils.clone: skeleton.bones[0] === xương gốc   -> false, và nó nằm trong cây bản sao
+```
+
+drei cũng có component `<Clone>` dùng đúng `SkeletonUtils.clone` khi object chứa skinned mesh — vì lý do này.
+
+### 2. Cách sửa
+
+- `components/3d/clone-model.ts` — `cloneModel()` buộc lại mọi lưới đã sao chép vào **xương của chính bản sao**, nên
+  tư thế, các clip animation và việc trả bộ nhớ GPU vẫn chạy đúng.
+- Cùng file có `posedBounds()`: `Box3.setFromObject` đo **tư thế bind**, mà cá voi cong đuôi thì hộp bao đó không
+  chứa chính nó — dùng nó để canh khung là cách một model bị đẩy ra ngoài ô của mình.
+- Cả trang loài và card preview đều dùng chung hai hàm này.
+
+### 3. Bằng chứng
+
+- `npm run check:materials`: **6 bài**, thêm bài dựng một skinned mesh tổng hợp trong Node và khẳng định **cả hai
+  nửa** — bản sao dùng xương bên trong nó, còn `clone(true)` thì vẫn dính xương gốc (bài đối chứng, để test không
+  thể lặng lẽ ngừng kiểm tra điều gì).
+- `npx tsc --noEmit` sạch; `check:suites` và build production + `check:bundle` ở phần dưới.
+
+---
+## 🐞 Sửa lỗi — "mặt phẳng cắt ngang model" ở MỌI model
+
+### 1. Thủ phạm: model đứng **dưới sàn**, và cái "mặt phẳng" chính là sàn + lưới của cảnh
+
+`<Center bottom>` của drei canh giữa model bằng `Box3.setFromObject`, mà với lưới có xương thì hàm đó đọc **tư thế
+bind**. Thứ được vẽ ra lại là lưới ở **tư thế thật**, và hai cái hộp bao đó không giống nhau. Đo trên sư tử trong
+trình xem đang chạy:
+
+| | khoảng y |
+| --- | --- |
+| hộp bind (thứ `<Center bottom>` đo) | -30,6 … -82,6 |
+| hộp theo tư thế thật (thứ được vẽ) | -68,4 … -120,8 |
+
+Con vật bị vẽ **thấp hơn khoảng 38 đơn vị** so với hộp bao dùng để canh giữa, nên nó nằm **dưới sàn** — và sàn, lưới,
+bóng tiếp xúc (đều ở y ≈ 0) cắt ngang qua nó. Mọi loài trong danh mục đều có xương, nên lỗi hiện ở **mọi model**,
+đúng như bạn thấy.
+
+### 2. Cách sửa
+
+- `components/3d/ModelAnchor.tsx` (mới) — canh giữa theo **hộp bao mà model được vẽ** (`posedBounds`), qua
+  `anchorOffset()` trong `components/3d/clone-model.ts`. Đo lại sau 250 ms vì tư thế chỉ ổn định sau khi model vào cảnh.
+- Áp dụng cho **cả bốn chỗ** từng đo sai: trang loài, card preview, màn reveal của quiz (`SilhouetteStage`), và
+  thước đo (`MeasurementOverlay` — trước đây vẽ thước quanh hộp bind nên thước cắt ngang con vật).
+
+### 3. Bằng chứng
+
+- Bản đồ độ sáng của canvas (tôi không xem được ảnh trực tiếp nên in ra bản đồ ký tự): **trước khi sửa**, cả khung là
+  một mặt phẳng sàn đồng nhất, không có hình dạng nào; **sau khi sửa**, một khối model hiện rõ phía trên các vệt sàn.
+- `npm run check:materials`: **8 bài**, thêm bài chạy `anchorOffset` trên đúng hai hộp bao của sư tử và khẳng định
+  model sau khi dời đứng trên y = 0, đúng tâm; và bài khẳng định không còn chỗ nào canh giữa bằng `<Center>`.
+- `npm run check:suites`: **452 bài** đạt; `tsc` sạch; build production + `check:bundle` xanh.
+
+### 4. Một lỗi thật khác tìm ra trong cùng đợt (không phải nguyên nhân của mặt phẳng)
+
+`gltf.scene.clone(true)` sao chép `SkinnedMesh` theo **tham chiếu tới skeleton gốc**, nên bản sao bị biến dạng bằng
+xương cũ — xương đó nằm trong scene đã cache, không bao giờ được render nên ma trận không được cập nhật. Cá voi
+(49 khớp) là ca rõ nhất. Đã sửa bằng `SkeletonUtils.clone` (drei cũng làm vậy trong component `<Clone>`), kèm bài
+test dựng một skinned mesh tổng hợp trong Node để khẳng định cả hai nửa: bản sao dùng xương bên trong nó, còn
+`clone(true)` thì vẫn dính xương gốc.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

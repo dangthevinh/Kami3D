@@ -96,13 +96,19 @@ test("every species the manifest admits is still in the catalogue", () => {
 
 test("the preview draws the real file, and hands its GPU memory back", () => {
   assert.ok(component.includes("useGLTF(url, publicEnv.dracoDecoderPath)"), "it loads through the shared DRACO path");
-  assert.ok(component.includes("gltf.scene.clone(true)"), "via the cached scene's clone, like the full viewer");
+  // `cloneModel`, not `clone(true)`: a plain clone shares the original skeleton, so a rigged asset
+  // (the blue whale has 49 joints) is drawn with stale bone matrices. See check:materials.
+  // The old call is still named in the comment that explains it; only the code has to be clean.
+  const code = component.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  assert.ok(code.includes("cloneModel(gltf.scene)"), "via the shared skinned-safe clone");
+  assert.ok(!code.includes("clone(true)"), "never a plain clone of a model that may have bones");
   assert.ok(component.includes("disposeClone(model)"), "and releases its buffers on unmount (docs/REVIEW.md R6)");
   assert.ok(component.includes("React.Suspense"), "so a slow model does not block the tile from rendering");
 
   // One canvas per tile: the preview is an alternative to the silhouette, never a sibling.
   assert.equal((component.match(/<CanvasShell/g) ?? []).length, 1, "exactly one canvas belongs in this component");
-  assert.ok(component.includes("Box3"), "and it frames the asset itself, since units and origins differ per author");
+  assert.ok(component.includes("posedBounds("), "and it frames the asset by the box it is drawn with");
+  assert.ok(component.includes("anchorOffset"), "placed by the shared, tested arithmetic");
 });
 
 test("the index the card reads cannot drift from the manifest", () => {

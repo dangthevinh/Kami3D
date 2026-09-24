@@ -1,9 +1,11 @@
 "use client";
 
-import { Bounds, Center, OrbitControls, useGLTF } from "@react-three/drei";
+import { Bounds, OrbitControls, useGLTF } from "@react-three/drei";
 import * as React from "react";
 
 import { CanvasShell } from "@/components/3d/CanvasShell";
+import { cloneModel } from "@/components/3d/clone-model";
+import { ModelAnchor } from "@/components/3d/ModelAnchor";
 import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { publicEnv } from "@/lib/env";
 import { disposeClone } from "@/lib/three-dispose";
@@ -23,7 +25,9 @@ import type { Animal } from "@/types/animal";
 /** The real `.glb`, framed by `Bounds` so a 27 m whale and an axolotl both fit. */
 function RevealedModel({ url }: { url: string }) {
   const { scene } = useGLTF(url, publicEnv.dracoDecoderPath);
-  const model = React.useMemo(() => scene.clone(true), [scene]);
+  // Not `clone(true)` (shares the original skeleton) and not `<Center bottom>` (centres by the bind
+  // pose, which leaves a rigged model under the floor). See components/3d/clone-model.ts.
+  const model = React.useMemo(() => cloneModel(scene), [scene]);
 
   /**
    * A quiz round reveals up to ten species, and each reveal was cloning a scene nothing released:
@@ -35,9 +39,9 @@ function RevealedModel({ url }: { url: string }) {
 
   return (
     <Bounds fit clip observe margin={1.3}>
-      <Center bottom>
+      <ModelAnchor>
         <primitive object={model} />
-      </Center>
+      </ModelAnchor>
     </Bounds>
   );
 }

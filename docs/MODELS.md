@@ -277,6 +277,48 @@ rendered into a cube map, so the "no third-party asset on the critical path" rul
 The card preview is smaller and brighter for the same three reasons plus its own framing — it scales the asset to
 1.9 units and looks from ~3.6 units, which is why it now reports a p95 of 65/255 rather than 36/255.
 
+## Why a floor plane cut through every model
+
+A visitor reported "a plane cutting across the 3D model" — and on **every** species, not one. It was the studio
+floor. The models were standing underneath it.
+
+drei's `<Center bottom>` centres a model with `Box3.setFromObject`, which for a skinned mesh reads the geometry's
+**bind pose**. What is drawn is the *posed* mesh, and the two boxes are not the same one. Measured on the lion in
+the running viewer:
+
+| | y range |
+| --- | --- |
+| bind box (what `<Center bottom>` measured) | -30.6 … -82.6 |
+| posed box (what is actually drawn) | -68.4 … -120.8 |
+
+The animal is drawn about **38 units lower** than the box it was centred by, so it ended up under the floor — and
+the floor, its grid and its contact shadow (all at y ≈ 0) then sliced across it. Every species in the catalogue is
+rigged, which is why it was every species and not one.
+
+| | |
+| --- | --- |
+| Fix | `components/3d/ModelAnchor.tsx` centres by the box the model is **drawn** with (`posedBounds`), through `anchorOffset()` in `components/3d/clone-model.ts` |
+| Applied to | the species viewer, the card preview, the quiz reveal, and the measurement rulers — all four measured the bind pose before |
+| Evidence | a brightness map of the canvas: before the fix the whole frame was a uniform field of floor with no shape in it; after it, a model sits above the floor streaks |
+| Test | `check:materials` runs `anchorOffset` over the lion's own two boxes and asserts the translated model stands on y = 0, centred, and that nothing centres with `<Center>` any more |
+
+### The skinned clone underneath it
+
+The same investigation turned up a second, real bug that was not this symptom. `blue-whale.glb` is a **SkinnedMesh:
+9,960 triangles driven by 49 joints**, and the viewer drew every model with `gltf.scene.clone(true)` — the obvious
+way to draw a cached model more than once, and wrong for anything skinned. `Object3D.clone()` copies a `SkinnedMesh`
+by **reference to its skeleton**, so the copy keeps deforming itself with the *original* bones; those live in the
+cached scene, which is never rendered, so their world matrices are never updated. Reproduced without a browser:
+
+```
+clone(true):         skeleton.bones[0] === the original bone   -> true
+SkeletonUtils.clone: skeleton.bones[0] === the original bone   -> false, and it lives inside the clone
+```
+
+drei ships a `<Clone>` component that reaches for `SkeletonUtils.clone` as soon as an object contains a skinned
+mesh, for exactly this reason. `cloneModel()` in `components/3d/clone-model.ts` does the same, and the same file
+exports `posedBounds()` — the box a model is drawn with, which is what fixed the floor.
+
 ## The card draws the real model
 
 The species card used to show a procedural silhouette and the real model was reserved for the species page. That
