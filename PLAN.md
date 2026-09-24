@@ -3184,8 +3184,8 @@ mô phỏng, chưa dùng mô hình thật.
   Thiếu số tam giác là *chưa biết*, không phải *bị từ chối* — cùng cách đọc với `lib/model-quality.ts`.
 - `components/animal/AnimalCard.tsx` — chọn **một trong hai**, không bao giờ cả hai: một canvas cho mỗi ô, và
   ô vẫn giữ emoji cho tới khi mô hình thật sự vào scene.
-- Khung iframe Sketchfab **đã rời khỏi card** (vẫn còn ở trang loài như một mục "xem thêm"), vì trong cùng một
-  ô thì nó là WebGL context thứ hai mà không ai yêu cầu.
+- Khung iframe Sketchfab **đã gỡ hoàn toàn** (theo yêu cầu sau đó): chính model của loài, phục vụ từ repo này với cùng allow-list, đã là
+  câu trả lời tốt hơn ở mọi chỗ, và không dính tới bên thứ ba.
 
 ### 3. Bằng chứng
 
@@ -3194,7 +3194,6 @@ mô phỏng, chưa dùng mô hình thật.
 | Hover card Lion (Chrome thật, chuột thật) | tải `lion.glb` + decoder; canvas **211×158** nằm trong đúng ô 4:3 |
 | Canvas đó có vẽ gì không | 13,4% pixel khác nền trang khi ẩn canvas; **6,2% pixel có cạnh mạnh**, 1.353 màu — gradient trơn chỉ dưới 1% |
 | `npm run check:preview` (mới) | **9 bài**: ngân sách khớp tài liệu, lion (341 kB) được nhận, voi (2,8 MB) bị chặn, số tam giác cũng chặn, thiếu số tam giác không bị loại, dữ liệu rác bị loại, mọi file được nhận đều **có thật trong `public/`**, component dùng `disposeClone`, card chọn đúng một preview |
-| `npm run check:embeds` | 10 bài, trong đó có bài khẳng định **card không được mount iframe** nữa |
 | `npm run check:suites` | **442 bài** đạt |
 
 Mô hình hiển thị **tối** trên nền studio tối — đó là chủ ý của dự án (`.kami-canvas` giữ canvas tối ở cả hai

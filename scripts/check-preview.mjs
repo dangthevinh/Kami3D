@@ -146,7 +146,6 @@ test("the card chooses exactly one preview", () => {
   assert.ok(card.includes("isPreviewableModel(animal.slug)"), "the card asks the index before fetching");
   assert.ok(card.includes("const realModel ="), "and states the decision once");
   assert.ok(card.includes("showModel ?") && card.includes("showSilhouette ?"), "then mounts one of the two");
-  assert.ok(!card.includes("SketchfabEmbed"), "the third-party iframe is not the card's 3D surface");
 
   // The two previews must be mutually exclusive: two live contexts in one tile is the thing
   // every 3D surface in this project is arranged to avoid.

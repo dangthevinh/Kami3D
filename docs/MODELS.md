@@ -343,70 +343,15 @@ pushed `/quiz` past its 165 kB budget — so the card reads `data/model-preview.
 `scripts/fetch-models.mjs` from the same object it writes the manifest from. The two cannot drift, because
 `check:preview` compares them entry by entry, and `/explore` went back to **153.1 kB** (measured after the change,
 against 157.7 kB before it).
-## Embedded models: the Sketchfab iframe
 
-Some species have a second model that we do **not** host: it stays on Sketchfab and their viewer draws it inside an
-iframe. That is a different act from downloading — nothing is copied into this repository, so
-`data/model-attribution.json` is the wrong place for it, and the record lives in
-[`data/sketchfab-embeds.json`](../data/sketchfab-embeds.json) instead:
+## There is no iframe any more
 
-```json
-{
-  "slug": "lion",
-  "uid": "79d5e1173bba4f2b80661620a2eca9bc",
-  "title": "Lion",
-  "author": "doizy",
-  "license": "CC-BY",
-  "licenseLabel": "CC Attribution (CC BY 4.0)",
-  "sourceUrl": "https://sketchfab.com/3d-models/lion-79d5e1173bba4f2b80661620a2eca9bc",
-  "faceCount": 5497,
-  "checkedAt": "2026-09-22"
-}
-```
+An earlier version embedded a hand-picked Sketchfab model in a click-to-load iframe, with the credit above
+and below the frame, with a check suite pinning the licence, the deferral and the URL origin. It has been removed,
+and the record of why is worth keeping: it was a stopgap for a card that had nothing better to show, and the
+species' own model - served from this repository, under the same CC0/CC BY allow-list, drawn with three.js -
+turned out to be the better answer on every surface. A second WebGL context in a tile that already had one, and
+a third party in the critical path of a page that needs neither, are costs with no benefit left to buy.
 
-### The licence rule is the same one
-
-The embed allow-list is imported from `lib/model-quality.ts`, not retyped: **CC0 and CC BY only**. An iframe is not
-a loophole — the model still appears on a page that carries advertising, so a NonCommercial or "Standard"
-(all-rights-reserved) model is refused here exactly as it is refused for downloads. CC BY obliges us to name the
-author **wherever the work appears**, which is why the credit line is rendered above and below the frame, in both
-states of the component (`check:embeds` fails if it ever stops being).
-
-### Nothing loads until a visitor asks for it
-
-The iframe is never in the initial HTML. `components/animal/SketchfabEmbed.tsx` renders a poster first — what the
-model is, who made it, under which licence, and a button — and the frame appears only after that button is clicked.
-Three reasons, in order of how much they cost:
-
-1. **It is somebody else's application.** The viewer is megabytes of JavaScript, opens its own WebGL context and sets
-   Sketchfab's cookies. Dropped into a grid of species cards it would do all three two dozen times for visitors who
-   only scrolled past.
-2. **One live 3D context per surface.** The project arranges its 3D deliberately — hover previews are opt-in and the
-   map and viewer never coexist. A card that carries an embed stands its procedural hover preview down entirely
-   (`previewReady && !embed`), so a tile never runs two contexts.
-3. **Nothing third-party on arrival.** No request to `sketchfab.com` — not even their thumbnail, which is available
-   and tempting — before a click. The poster is drawn from our own CSS.
-
-### Where it appears
-
-| Surface | How |
-| --- | --- |
-| Species page | A "Community model on Sketchfab" block under our own viewer, anchored at `/animal/<slug>#sketchfab` |
-
-A species with no entry in the data file gains **no markup at all** — the lookup returns `null` and the page
-renders nothing.
-
-The **explore card is deliberately not on that list.** It used to be, while the card had nothing better to show;
-it now draws the species' own `.glb` (next section), so a third-party viewer in the same tile would be a WebGL
-context nobody asked for. `check:embeds` fails if the card ever mounts the iframe again.
-
-### Adding one
-
-Read the model page, confirm the licence is CC0 or CC BY, then add an entry and run the guard:
-
-```bash
-npm run check:embeds   # uid shape, licence, credit, deferral, URL origin, wiring
-```
-
-The uid is the only thing the frame URL is built from, so an entry cannot point the iframe at another origin, and the
-face count is checked against the same ceiling (`FACE_BUDGET.max`) a downloaded model has to pass.
+Sketchfab remains the **provider** most of these models came from (scripts/fetch-models.mjs), and its credits
+still render on every species page.
