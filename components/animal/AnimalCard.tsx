@@ -8,14 +8,20 @@ import * as React from "react";
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { useMeasurementUnit } from "@/components/animal/Measurement";
 import { Badge } from "@/components/ui/badge";
+import { isPreviewableModel } from "@/lib/model-preview-index";
 import { cn, formatCount, formatWeight } from "@/lib/utils";
 import { statusToTailwind, type Animal } from "@/types/animal";
 
-// The 3D preview is only pulled in when a card is actually hovered.
+// Both previews are pulled in only when a card is actually hovered.
 const AnimalPreview = dynamic(() => import("@/components/3d/AnimalPreview").then((mod) => mod.AnimalPreview), {
   ssr: false,
   loading: () => null,
 });
+
+const AnimalModelPreview = dynamic(
+  () => import("@/components/3d/AnimalModelPreview").then((mod) => mod.AnimalModelPreview),
+  { ssr: false, loading: () => null },
+);
 
 export interface AnimalCardProps {
   animal: Animal;
@@ -35,11 +41,24 @@ export interface AnimalCardProps {
  */
 export function AnimalCard({ animal, unlocked = true, onLockedActivate, className }: AnimalCardProps) {
   const unit = useMeasurementUnit();
-  const [previewReady, setPreviewReady] = React.useState(false);
+  const [previewRequested, setPreviewRequested] = React.useState(false);
+  const [modelReady, setModelReady] = React.useState(false);
   const [canHover, setCanHover] = React.useState(false);
   const timer = React.useRef<number | null>(null);
   const status = statusToTailwind(animal.conservation_status);
   const locked = animal.premium && !unlocked;
+
+  // The real model when the catalogue has one that is small enough to fetch on a hover
+  // (see isPreviewableModel), the procedural silhouette otherwise. One canvas either way:
+  // the two are alternatives, never siblings.
+  const realModel = Boolean(animal.model_url) && isPreviewableModel(animal.slug) && !locked;
+  const showModel = previewRequested && realModel;
+  const showSilhouette = previewRequested && !realModel;
+  // The plate keeps its emoji until there is something to look at: the silhouette appears
+  // at once, the model only once its file has arrived.
+  const covered = showModel ? modelReady : showSilhouette;
+
+  const onModelReady = React.useCallback(() => setModelReady(true), []);
 
   React.useEffect(() => {
     // Never mount 3D on touch-only devices; the detail page is the 3D surface there.
@@ -59,12 +78,13 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   function schedulePreview() {
     if (!canHover || locked) return;
     if (timer.current) window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setPreviewReady(true), 220);
+    timer.current = window.setTimeout(() => setPreviewRequested(true), 220);
   }
 
   function cancelPreview() {
     if (timer.current) window.clearTimeout(timer.current);
-    setPreviewReady(false);
+    setPreviewRequested(false);
+    setModelReady(false);
   }
 
   return (
@@ -103,7 +123,7 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
         <div
           className={cn(
             "absolute inset-0 grid place-items-center transition-all duration-500",
-            previewReady ? "scale-100 opacity-0" : "opacity-100",
+            covered ? "scale-100 opacity-0" : "opacity-100",
           )}
         >
           <span
@@ -114,7 +134,21 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
           </span>
         </div>
 
-        {previewReady ? (
+        {/* The species' own model, drawn from the catalogue's .glb — the same file the
+            species page loads, framed for a 4:3 tile. */}
+        {showModel ? (
+          <div className="absolute inset-0" aria-hidden>
+            <AnimalModelPreview
+              url={animal.model_url as string}
+              label={animal.name + " in 3D"}
+              className="h-full w-full"
+              onReady={onModelReady}
+            />
+          </div>
+        ) : null}
+
+        {/* Everything outside the shipping budget keeps the procedural silhouette. */}
+        {showSilhouette ? (
           <div className="absolute inset-0" aria-hidden>
             <AnimalPreview kind={animal.silhouette} accent={animal.accent} className="h-full w-full" />
           </div>
@@ -153,7 +187,7 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
 
         {/* Sits above the overlay link (z-20 > z-10) so hearting never navigates. */}
         {!locked ? (
-          <div className="absolute bottom-3 right-3 z-20 opacity-0 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
+          <div className="absolute bottom-3 right-3 z-40 opacity-0 transition-opacity duration-200 focus-within:opacity-100 group-hover:opacity-100 max-md:opacity-100">
             <FavoriteButton animalId={animal.id} animalName={animal.name} />
           </div>
         ) : null}

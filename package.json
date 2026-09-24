@@ -36,6 +36,8 @@
     "check:sounds": "node --test scripts/check-sounds.mjs",
     "check:settings": "node --test scripts/check-settings.mjs",
     "check:models": "node --test scripts/check-models.mjs",
+    "check:embeds": "node --test scripts/check-embeds.mjs",
+    "check:preview": "node --test scripts/check-preview.mjs",
     "check:map": "node --test scripts/check-map.mjs",
     "check:risk": "node --test scripts/check-risk.mjs",
     "check:timeline": "node --test scripts/check-timeline.mjs",

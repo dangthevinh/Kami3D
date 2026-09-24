@@ -3149,6 +3149,58 @@ Chi tiết đầy đủ: [docs/THEME.md](docs/THEME.md).
 
 ---
 
+## ✅ Mô hình Lion: đã có sẵn trong repo, và card giờ vẽ chính nó
+
+### 1. Phát hiện trước khi tải: không cần tải gì cả
+
+Yêu cầu là "tải mô hình Lion từ Sketchfab về và hiện bằng Three.js". Kiểm tra ra thì **mô hình đó đã nằm
+trong repo từ Phase 12**, đúng cùng một uid:
+
+| | |
+| --- | --- |
+| File | `public/models/lion.glb`, **341.076 byte**, sha256 `c1490f3e…9952c` |
+| Nguồn | Sketchfab uid `79d5e1173bba4f2b80661620a2eca9bc`, tác giả **doizy**, licence **CC BY 4.0** |
+| Đã nối vào đâu | `data/animals.ts` → `model_url: "/models/lion.glb"` |
+| Công nghệ | Three.js (react-three-fiber + drei), GLB nén **DRACO**, decoder wasm trong `public/draco` |
+
+Trang `/animal/lion` **đã render đúng mô hình này**. Đo trong Chrome thật (DevTools protocol):
+
+- tài nguyên tải về: `lion.glb` (200), `draco_wasm_wrapper.js`, `draco_decoder.wasm` (200);
+- canvas WebGL 2.0 kích thước 832×620, và **32% số pixel khác nền trang** khi ẩn canvas đi;
+- hai khung hình cách nhau 3 giây khác nhau **4,8%** — tức mô hình đang quay, không phải ảnh tĩnh;
+- dòng credit render đúng: *3D model: Lion by doizy — CC BY 4.0 via sketchfab*.
+
+Nên phần "tải về" không phải làm lại. Phần **còn thiếu** là chỗ khác: **card** ở `/explore` vẫn vẽ hình khối
+mô phỏng, chưa dùng mô hình thật.
+
+### 2. Đã làm: card vẽ chính file `.glb` đó
+
+- `components/3d/AnimalModelPreview.tsx` — nạp `animal.model_url` khi hover, dùng **chung đường DRACO** với
+  trình xem ở trang loài, và giữ đúng hai thói quen của dự án: vẽ bản `clone(true)` của scene đã cache rồi trả
+  bộ nhớ GPU bằng `disposeClone` khi tháo, và tự canh khung theo bounding box vì mỗi tác giả xuất file một kiểu.
+- `lib/model-preview.ts` — `PREVIEW_BUDGET`: **≤ 1,5 MB và ≤ 75k tam giác**, đúng ngân sách ship đã ghi trong
+  `public/models/README.md`. Trong ngân sách thì card vẽ mô hình thật; ngoài ngân sách (hiện chỉ có
+  `african-bush-elephant`, 2,8 MB) thì giữ hình khối mô phỏng, còn trang loài vẫn xem được đầy đủ.
+  Thiếu số tam giác là *chưa biết*, không phải *bị từ chối* — cùng cách đọc với `lib/model-quality.ts`.
+- `components/animal/AnimalCard.tsx` — chọn **một trong hai**, không bao giờ cả hai: một canvas cho mỗi ô, và
+  ô vẫn giữ emoji cho tới khi mô hình thật sự vào scene.
+- Khung iframe Sketchfab **đã rời khỏi card** (vẫn còn ở trang loài như một mục "xem thêm"), vì trong cùng một
+  ô thì nó là WebGL context thứ hai mà không ai yêu cầu.
+
+### 3. Bằng chứng
+
+| Đo | Kết quả |
+| --- | --- |
+| Hover card Lion (Chrome thật, chuột thật) | tải `lion.glb` + decoder; canvas **211×158** nằm trong đúng ô 4:3 |
+| Canvas đó có vẽ gì không | 13,4% pixel khác nền trang khi ẩn canvas; **6,2% pixel có cạnh mạnh**, 1.353 màu — gradient trơn chỉ dưới 1% |
+| `npm run check:preview` (mới) | **9 bài**: ngân sách khớp tài liệu, lion (341 kB) được nhận, voi (2,8 MB) bị chặn, số tam giác cũng chặn, thiếu số tam giác không bị loại, dữ liệu rác bị loại, mọi file được nhận đều **có thật trong `public/`**, component dùng `disposeClone`, card chọn đúng một preview |
+| `npm run check:embeds` | 10 bài, trong đó có bài khẳng định **card không được mount iframe** nữa |
+| `npm run check:suites` | **442 bài** đạt |
+
+Mô hình hiển thị **tối** trên nền studio tối — đó là chủ ý của dự án (`.kami-canvas` giữ canvas tối ở cả hai
+theme để không mất rim light), không phải lỗi render.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

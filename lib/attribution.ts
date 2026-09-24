@@ -28,6 +28,8 @@ export interface ModelAttribution {
   sha256: string;
   attributionRequired: boolean;
   fetchedAt: string;
+  /** Triangle count as the provider reported it; absent on entries fetched before it was recorded. */
+  faceCount?: number | null;
 }
 
 const manifest = rawManifest as Record<string, ModelAttribution>;
@@ -51,6 +53,13 @@ export function getModelAttribution(slug: string): ModelAttribution | null {
 export function getAllAttributions(): Array<{ slug: string; attribution: ModelAttribution }> {
   return Object.entries(manifest).map(([slug, attribution]) => ({ slug, attribution }));
 }
+
+/*
+ * The preview gate deliberately does **not** live here. Answering "may this card fetch its
+ * model?" in the browser from this module put both credit manifests into the client bundle
+ * of three routes (+5.6 kB gzip, enough to break the /quiz budget), so it reads
+ * data/model-preview.json through lib/model-preview-index.ts instead. Keep it that way.
+ */
 
 /* -------------------------------------------------------------------------- */
 /* Call recordings                                                            */

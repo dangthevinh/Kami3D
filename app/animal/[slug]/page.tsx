@@ -7,6 +7,7 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { AnimalCard } from "@/components/animal/AnimalCard";
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { InfoPanel } from "@/components/animal/InfoPanel";
+import { SketchfabEmbed } from "@/components/animal/SketchfabEmbed";
 import { SoundButton } from "@/components/animal/SoundButton";
 import { ViewTracker } from "@/components/animal/ViewTracker";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { getAllAnimals, getAnimalBySlug, getRelatedAnimals } from "@/lib/animals";
 import { describeLicense, describeSoundLicense, getModelAttribution, getSoundAttribution } from "@/lib/attribution";
 import { siteUrl } from "@/lib/env.server";
+import { embedForSlug } from "@/lib/sketchfab";
 import { breadcrumbJsonLd, graph, speciesJsonLd } from "@/lib/seo";
 import { cn, formatLength, formatWeight } from "@/lib/utils";
 import { REGION_ANCHORS, statusToTailwind } from "@/types/animal";
@@ -69,6 +71,8 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
   // Only credited when a recording is actually wired up: a credit for a sound the
   // visitor cannot play would be noise.
   const soundCredit = animal.sound_url ? getSoundAttribution(animal.slug) : null;
+  // A hand-picked community model on Sketchfab, when one exists for this species.
+  const sketchfab = embedForSlug(animal.slug);
 
   // Structured data: one graph per species page — the taxon, where it sits in the
   // site, and how a searcher got here. See lib/seo.ts.
@@ -230,6 +234,25 @@ export default async function AnimalPage({ params }: { params: Promise<{ slug: s
               </p>
             ) : null}
           </div>
+
+          {sketchfab ? (
+            <section id="sketchfab" className="glass scroll-mt-24 rounded-[var(--radius-card)] p-4">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="font-display text-base font-semibold text-white">
+                    Community model on Sketchfab
+                  </h2>
+                  <p className="text-xs text-white/55">
+                    A second, hand-picked model of the {animal.name.toLowerCase()} — streamed from
+                    sketchfab.com, so it loads only when you ask for it.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
+                <SketchfabEmbed embed={sketchfab} />
+              </div>
+            </section>
+          ) : null}
 
           <section className="glass rounded-[var(--radius-card)] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
