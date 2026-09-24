@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import * as React from "react";
 
 import { readSessionHint } from "@/lib/auth-hint";
+import { nextThemeSync, type ThemeValue } from "@/lib/theme-sync";
 import {
   DEFAULT_USER_SETTINGS,
   SETTINGS_STORAGE_KEY,
@@ -242,13 +243,35 @@ export function SettingsProvider({
     for (const [name, value] of Object.entries(settingsAttributes(settings))) element.setAttribute(name, value);
   }, [ready, settings]);
 
-  // Theme is the one preference with a second writer — next-themes' own inline
-  // script and the navbar menu. Both directions are reconciled here, so a change
-  // made on another device arrives and a change made in the menu is stored.
+  // Theme is the one preference with a second store — next-themes' own key, written by
+  // its inline script and by the navbar menu — and **both stores are shared between
+  // documents**. Reconciliation is therefore edge-triggered and asymmetric: this effect
+  // reacts to a change in one of the two values, applies at most one of them per step,
+  // and never pushes back a value another document just wrote. The level-triggered
+  // version that compared the two and re-imposed its own turned two open tabs into an
+  // infinite argument — the page blinked light and dark until one of them was closed.
+  // The rule itself lives in lib/theme-sync.ts, which `check:theme-sync` pins.
+  const themeSync = React.useRef<{ pushed: ThemeValue | null; seen: ThemeValue | null }>({
+    pushed: null,
+    seen: null,
+  });
+
   React.useEffect(() => {
-    if (!ready || !theme || theme === settings.theme) return;
-    setTheme(settings.theme);
-  }, [ready, theme, settings.theme, setTheme]);
+    const step = nextThemeSync({
+      ready,
+      theme: theme ?? null,
+      settingsTheme: settings.theme,
+      pushed: themeSync.current.pushed,
+      seen: themeSync.current.seen,
+    });
+    themeSync.current = { pushed: step.pushed, seen: step.seen };
+
+    // "system" is a real choice (the full panel offers it), so it is handed to
+    // next-themes as-is: with `enableSystem` it resolves to the OS value and follows
+    // a change of OS preference live, and the class on <html> stays light or dark.
+    if (step.push && step.push !== theme) setTheme(step.push);
+    if (step.adopt && step.adopt !== settings.theme) update({ theme: step.adopt });
+  }, [ready, theme, settings.theme, setTheme, update]);
 
   const value = React.useMemo<SettingsContextValue>(
     () => ({

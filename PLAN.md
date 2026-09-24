@@ -3085,6 +3085,68 @@ dữ liệu chứ không chỉ là ẩn trang.
 - `npm run check:bundle`: route admin khai riêng trong `scripts/bundle-budget.mjs` (đo theo manifest như `/map`).
 - Kết quả 5 request ở mục 4 là số liệu thật đọc từ Postgres, không phải mô tả.
 
+## 🐞 Sửa lỗi — nền sáng/tối nhấp nháy liên tục
+
+### 1. Triệu chứng và cách tái hiện
+
+Bấm sáng/tối thì cả trang nhấp nháy qua lại **liên tục**, không dừng. Tái hiện được 100%: mở **hai tab**
+của cùng một origin (đúng cảnh thường gặp khi đang thử web), mỗi tab chọn một kiểu — thế là `<html>` đổi
+class qua lại mãi.
+
+### 2. Nguyên nhân: bộ điều hoà so sánh *trạng thái* thay vì phản ứng theo *thay đổi*
+
+Theme có **hai kho** và **cả hai đều dùng chung giữa các tab**: khoá `kami-theme` của next-themes và đối
+tượng settings. Effect nối hai kho trong `SettingsProvider` cũ có dạng "nếu hai giá trị khác nhau thì áp
+giá trị của mình" — điều kiện *mức*, không phải *cạnh*. Mỗi tab giữ bản settings **riêng trong bộ nhớ**, nên:
+
+```
+tab A: settings = light     ->  ghi kami-theme = light
+tab B: nhận storage event   ->  theme = light, nhưng settings của nó vẫn là dark
+tab B: thấy lệch            ->  ghi kami-theme = dark
+tab A: nhận storage event   ->  theme = dark, settings của nó vẫn là light
+tab A: thấy lệch            ->  ghi kami-theme = light      ... lặp vô hạn
+```
+
+### 3. Cách sửa
+
+Luật mới nằm ở `lib/theme-sync.ts` (hàm thuần; component chỉ giữ hai ref):
+
+1. **Theo cạnh** — chỉ phản ứng khi một trong hai giá trị *đổi*; lệch mà không ai đổi thì không có gì phải sửa.
+2. **Không đối xứng** — giá trị đến từ bên ngoài thì **nhận** vào settings và **không ghi ngược** ra khoá dùng
+   chung. Nhận chỉ ghi settings cục bộ nên không sinh storage event ở tab kia, và cuộc trao đổi kết thúc sau
+   một vòng.
+3. **Một hướng mỗi bước** — `push` và `adopt` không bao giờ cùng bật, nên thứ tự effect không quyết định kết quả.
+
+### 4. Bằng chứng (hai tài liệu thật, một origin, một `localStorage`)
+
+| | số lần ghi class vào `<html>` trong 25 s | kết quả |
+| --- | --- | --- |
+| **Trước khi sửa** | **20 và vẫn tăng** | hai tab đá nhau, trang nhấp nháy liên tục |
+| **Sau khi sửa** | **4**, rồi im lặng | hai tab cùng một theme |
+
+- `npm run check:theme-sync`: **8 test**, trong đó có bài mô phỏng hai tài liệu và bài *đối chứng* chạy chính
+  luật cũ qua cùng bộ mô phỏng để khẳng định nó **không** hội tụ (test mà không thể fail thì không phải test).
+- `npm run audit:theme-stability` (Chrome thật, cần server đang chạy): mở trang + một iframe **cùng origin**
+  (iframe chứ không phải tab nền, vì tab nền bị throttle nên che mất hiện tượng), cho hai tài liệu chọn
+  Light/Dark khác nhau rồi đếm số lần ghi class. Đã kiểm ngược: khi tạm khôi phục luật cũ, script **FAIL**
+  đúng như thiết kế ("light vs dark", 12 lần ghi).
+- `npm run check:suites`: **432 test** (thêm 8), `npx tsc --noEmit` sạch, build production trong bản copy
+  riêng + `npm run check:bundle` vẫn xanh (mọi route trong ngân sách).
+
+### 5. Lỗi thứ hai tìm ra cùng lúc: mục "Theo hệ thống"
+
+`ThemeProvider` đặt `enableSystem={false}` nhưng `/settings` lại cho chọn **System**. next-themes coi chữ
+"system" là *tên palette*, nên nó ghi `class="system"` lên `<html>` — không rule nào trong `globals.css`
+khớp, trang lặng lẽ render tối; tệ hơn, nó chỉ xoá đúng những class nó sắp thêm, nên class `system` ở lại
+hết phiên. Đã bật `enableSystem`: "system" giờ phân giải theo OS và class luôn là `light`/`dark` (đổi OS
+thì đổi theo — đo bằng `Emulation.setEmulatedMedia`). `defaultTheme="dark"` giữ nguyên: khách mới vẫn vào
+giao diện tối.
+
+Ghi chú cho trình duyệt của bạn: class `system` cũ còn sót trong DOM sẽ mất sau **một lần tải lại trang**
+(markup SSR không có class theme nào; script của next-themes ghi lại `light`/`dark`).
+
+Chi tiết đầy đủ: [docs/THEME.md](docs/THEME.md).
+
 ---
 
 ## 🚧 Việc còn lại
