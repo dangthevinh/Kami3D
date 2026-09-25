@@ -32,6 +32,29 @@ export async function getCurrentUserId(): Promise<string | null> {
   return userId ?? null;
 }
 
+/**
+ * The signed-in visitor's email, when the provider can tell us.
+ *
+ * Only the admin gate asks for this. It is what lets "the owner is an admin by default" be expressed as
+ * an email rather than a provider-specific id: a Clerk id (\`user_…\`) and a Supabase id (a uuid) look
+ * nothing alike, so a default written as an id would be wrong for whichever provider the deployment
+ * happens to use. Neither provider requires the address to be verified for this to be useful — it is
+ * compared against a list the operator writes, not trusted as identity on its own.
+ */
+export async function getCurrentUserEmail(): Promise<string | null> {
+  const provider = activeAuthProvider();
+  if (provider === "none") return null;
+
+  if (provider === "supabase") {
+    const supabaseUser = await getSupabaseUser();
+    return supabaseUser?.email ?? null;
+  }
+
+  const { currentUser } = await import("@clerk/nextjs/server");
+  const user = await currentUser();
+  return user?.primaryEmailAddress?.emailAddress ?? null;
+}
+
 export async function getCurrentUser(): Promise<{ id: string; name: string | null; imageUrl: string | null } | null> {
   const provider = activeAuthProvider();
   if (provider === "none") return null;

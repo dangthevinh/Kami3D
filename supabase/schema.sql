@@ -1987,3 +1987,168 @@ revoke all on function public.model_download_usage() from anon;
 revoke all on function public.reserve_model_download(text, text, text, text, bigint, text, text, uuid, boolean) from anon, authenticated;
 revoke all on function public.settle_model_download(uuid, text, bigint, text, text) from anon, authenticated;
 revoke all on function public.prune_model_download_log(integer) from anon, authenticated;
+
+/* ==========================================================================
+   Admin by default - the owner's address, and checking by email
+   ==========================================================================
+
+   Until now an admin was a row in app_admins keyed by *user id*, and a fresh
+   deployment had none: the console was locked until somebody ran an INSERT with an
+   id they had to look up first. That id also differs per provider - a Clerk id looks
+   like \"user_…\" and a Supabase id is a uuid - so a default written as an id would be
+   wrong for whichever provider the deployment happens to use.
+
+   So the row can now be keyed by **email** as well, and one default row ships with
+   the schema: the project owner. It is not a backdoor - the console still requires a
+   signed-in account, every admin action is logged with the actor, and the row can be
+   edited or deleted for another deployment - it just means the console cannot be
+   locked out by a forgotten INSERT.
+
+   The email is read from the request's own JWT claims, which both providers set, and
+   it is only ever compared against a row an operator wrote.
+   ========================================================================== */
+
+alter table public.app_admins add column if not exists email text;
+
+comment on column public.app_admins.email is
+  'Optional. When set, the account with this address is an admin too, whatever provider issued its id. Combined with user_id by is_admin().';
+
+create unique index if not exists app_admins_email_idx
+  on public.app_admins (lower(email))
+  where email is not null;
+
+/**
+ * The email on the current request, from the JWT claims both providers set.
+ *
+ * Returns null rather than raising when the claim is absent or is not JSON: a missing claim is not an
+ * error, it is simply "this request does not say", and is_admin() then falls back to the id.
+ */
+create or replace function public.current_user_email()
+returns text
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  claims text;
+begin
+  claims := nullif(current_setting('request.jwt.claims', true), '');
+  if claims is not null then
+    begin
+      return lower(nullif(claims::jsonb ->> 'email', ''));
+    exception when others then
+      -- Not JSON: an older PostgREST, or a setting a test set by hand. Try the flat claim below.
+      null;
+    end;
+  end if;
+
+  return lower(nullif(current_setting('request.jwt.claim.email', true), ''));
+end;
+$$;
+
+comment on function public.current_user_email() is
+  'The request JWT email claim, lowercased, or null. Used only by is_admin().';
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.app_admins a
+    where a.user_id = public.current_user_id()
+       or (a.email is not null and lower(a.email) = public.current_user_email())
+  );
+$$;
+
+comment on function public.is_admin() is
+  'True when the current session belongs to an admin: a row in app_admins matching its user id, or its email. One default row ships with the schema (the project owner).';
+
+revoke all on function public.current_user_email() from public;
+grant execute on function public.current_user_email() to anon, authenticated;
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to anon, authenticated;
+
+-- The default admin. 'default-owner' is a placeholder id that no real session can have, so this row
+-- only ever matches on the address - which is the point: it works for Clerk, Supabase Auth, or
+-- whatever comes next. Change the address or delete the row for your own deployment.
+insert into public.app_admins (user_id, email, note)
+values (
+  'default-owner',
+  'kaiovinh@gmail.com',
+  'Default admin: the project owner. Kept in supabase/schema.sql so the console works on a fresh deployment.'
+)
+on conflict (user_id) do nothing;
+
+/* ==========================================================================
+   current_user_id() must not raise on a Clerk session, or on a bad claim
+   ==========================================================================
+
+   The P0.1 version was a SQL function whose body was:
+
+     select coalesce((select auth.uid())::text, nullif((select auth.jwt()) ->> 'sub', ''));
+
+   and Supabase's auth.uid() is defined as (jwt claims ->> 'sub')::uuid. Both halves
+   of that raise on inputs this project actually produces:
+
+     * a Clerk session's sub claim is "user_…", which is not a uuid  -> 22P02
+     * a claim that is not JSON (a hand-set setting, an older PostgREST) -> 22P02 on ::jsonb
+
+   A function that raises inside a policy does not deny the row, it fails the query,
+   and is_admin() calls it - so every admin check was one Clerk claim away from an
+   error instead of an answer. Measured before this change, with the claims set by hand:
+   '{"sub":"user_3Ja1siqFIUisqvpNzeflv0tkkA6"}' raised, and is_admin() with it.
+
+   The replacement reads the claim itself and guards the cast: a uuid is returned as
+   text exactly as before, anything else is returned as-is, and a claim it cannot parse
+   is simply "no identity" rather than an exception.
+   ========================================================================== */
+
+create or replace function public.current_user_id()
+returns text
+language plpgsql
+stable
+set search_path = ''
+as $$
+declare
+  claims text;
+  sub    text;
+begin
+  claims := nullif(current_setting('request.jwt.claims', true), '');
+
+  if claims is not null then
+    begin
+      sub := claims::jsonb ->> 'sub';
+    exception when others then
+      sub := null;
+    end;
+  end if;
+
+  if sub is null then
+    -- No JSON claims: try the flat claim an older PostgREST exposes.
+    sub := nullif(current_setting('request.jwt.claim.sub', true), '');
+  end if;
+
+  if sub is null then
+    return null;
+  end if;
+
+  begin
+    -- Supabase Auth: a uuid, and the id every policy was written for.
+    return (sub::uuid)::text;
+  exception when others then
+    -- Not a uuid: Clerk, or anything else with its own id shape. It is still an identity, and
+    -- user_id columns are TEXT precisely so both fit.
+    return sub;
+  end;
+end;
+$$;
+
+comment on function public.current_user_id() is
+  'The identity on the current request: Supabase Auth''s uid when the sub claim is a uuid, otherwise the sub claim itself (Clerk''s user_… ids), and null when there is no claim. Never raises.';
+
+revoke all on function public.current_user_id() from public;
+grant execute on function public.current_user_id() to anon, authenticated;

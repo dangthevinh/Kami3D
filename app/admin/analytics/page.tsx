@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Sparkline } from "@/components/stats/Sparkline";
-import { getCurrentUserId } from "@/lib/auth";
+import { adminStatus } from "@/lib/admin";
 import { CHANNELS, type Channel } from "@/lib/channel";
 import { getPersonalDataClient } from "@/lib/personal-data";
 import { cn } from "@/lib/utils";
@@ -58,17 +58,6 @@ interface SearchRow {
   hits: number;
 }
 
-async function adminStatus(): Promise<{ signedIn: boolean; admin: boolean }> {
-  const userId = await getCurrentUserId();
-  if (!userId) return { signedIn: false, admin: false };
-
-  const supabase = await getPersonalDataClient();
-  if (!supabase) return { signedIn: true, admin: false };
-
-  const { data, error } = await supabase.rpc("is_admin");
-  if (error) return { signedIn: true, admin: false };
-  return { signedIn: true, admin: data === true };
-}
 
 /** Days in the window, oldest first, so a chart with no gaps is a chart that cannot mislead. */
 function dayKeys(days: number): string[] {

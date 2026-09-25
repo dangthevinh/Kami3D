@@ -3503,6 +3503,48 @@ Còn lại sau lần sửa này (nói thẳng): link trong danh sách chân tran
 thân bài vẫn nhỏ hơn nếu chúng nằm ngoài vùng miễn trừ inline — chúng sẽ hiện trong bảng của lần chạy kế tiếp.
 
 ---
+## ✅ Admin mặc định: kaiovinh@gmail.com
+
+### 1. Trước đây admin chỉ là một dòng trong DB
+
+`app_admins(user_id)` khoá theo **user id**, và bản clone sạch thì bảng rỗng — nghĩa là console bị khoá cho tới khi
+có người tra ra id rồi chạy INSERT. Id đó lại khác nhau theo provider: Clerk là `user_…`, Supabase Auth là uuid, nên
+một giá trị mặc định viết bằng id sẽ sai với provider mà bản triển khai đang dùng.
+
+### 2. Đã làm: mặc định nằm ở **cả** code và DB
+
+| | |
+| --- | --- |
+| DB | `app_admins` có thêm cột `email`; `is_admin()` khớp theo **user id hoặc email**; email đọc từ chính JWT claim của request qua hàm mới `current_user_email()`; schema có sẵn **một dòng mặc định** `kaiovinh@gmail.com` |
+| Code | `lib/admin.ts` có `DEFAULT_ADMIN_EMAILS = ["kaiovinh@gmail.com"]`; `adminStatus()` trả lời **có** nếu DB nói có, **hoặc** email đang đăng nhập nằm trong danh sách mặc định + biến môi trường (`ADMIN_EMAILS`, vẫn đọc cả `DATA2MAP_ADMIN_EMAILS` cũ) |
+| Dùng chung | `/admin/geodata` và `/admin/analytics` trước đây tự viết lại hàm kiểm tra; nay cả ba trang admin dùng chung một cổng, nên mặc định áp dụng ở mọi nơi |
+
+Đây không phải backdoor: vẫn phải đăng nhập, mọi hành động admin đều ghi lại người thực hiện, và dòng mặc định sửa
+hoặc xoá được cho bản triển khai khác. Nó chỉ bảo đảm console không bị khoá vì một INSERT bị quên.
+
+### 3. Kiểm chứng trên DB thật (đặt claim bằng tay rồi gọi `is_admin()`)
+
+| Trường hợp | Kết quả |
+| --- | --- |
+| không có claim | `email = null`, `admin = false` — không lỗi |
+| claim đúng email chủ dự án | **`admin = true`** |
+| claim email khác | `admin = false` |
+| claim `sub` là id Clerk | **`admin = true`** |
+| claim JSON hỏng | `admin = false` — không lỗi |
+
+### 4. Một lỗi thật tìm ra trong lúc kiểm: `current_user_id()` ném exception
+
+Bản P0.1 viết `select coalesce((select auth.uid())::text, nullif((select auth.jwt()) ->> 'sub', ''))`, mà
+`auth.uid()` của Supabase chính là `(jwt claims ->> 'sub')::uuid`. Hai đầu vào **có thật** đều làm nó ném `22P02`:
+claim `sub` của Clerk (`user_…`, không phải uuid) và một claim không phải JSON. Hàm này được `is_admin()` gọi, và
+được **mọi policy RLS** gọi — mà một policy ném lỗi thì *fail cả query*, không phải từ chối dòng. Đo được: trước khi
+sửa, cả hai trường hợp trên đều lỗi; sau khi viết lại bằng plpgsql có bọc `exception`, cả hai trả về đúng kết quả.
+
+`scripts/check-sql.mjs` giờ có bài khẳng định: `app_admins` có cột email, dòng mặc định có trong schema, `is_admin()`
+khớp cả email, và định nghĩa **cuối cùng** của `current_user_id()` là plpgsql có bọc exception chứ không cast
+`auth.uid()` trần.
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

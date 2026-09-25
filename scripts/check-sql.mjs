@@ -429,3 +429,40 @@ test("model credits are public to read and impossible to write from a browser", 
   );
 });
 
+
+test("the owner is an admin by default, and the identity function never raises", () => {
+  // Two properties that a deployment depends on and that no runtime check would catch:
+  //
+  //  1. an admin by *email*. A Clerk id and a Supabase id look nothing alike, so a default written
+  //     as an id would be wrong for whichever provider the deployment uses. app_admins.email is
+  //     compared against the request's own JWT claim, and one default row ships with the schema so a
+  //     fresh deployment has a console instead of an INSERT to look up first.
+  //  2. current_user_id() must not raise. Supabase's auth.uid() casts the sub claim to uuid, so a
+  //     Clerk session ("user_…") or an unparseable claim made it throw - inside is_admin() and
+  //     inside every policy that uses it. A policy that raises fails the query rather than denying
+  //     the row. Measured against the real database before the fix: both inputs raised 22P02.
+  assert.ok(/alter table public\.app_admins add column if not exists email text/.test(schema), "app_admins can be keyed by email");
+
+  const insert = /insert into public\.app_admins \(user_id, email, note\)[\s\S]*?on conflict \(user_id\) do nothing/.exec(schema);
+  assert.ok(insert, "the default admin row ships with the schema");
+  assert.ok(insert[0].includes("kaiovinh@gmail.com"), "and it is the project owner's address");
+
+  // The file defines it twice (the P0.1 original, then the guarded replacement) and Postgres keeps
+  // the last one, so the test reads the last one too: a schema is a sequence, not a document.
+  const start = schema.lastIndexOf("create or replace function public.current_user_id()");
+  assert.ok(start > 0, "current_user_id() is defined");
+  const identity = [schema.slice(start, schema.indexOf("$$;", start))];
+  assert.ok(identity[0].includes("language plpgsql"), "the last definition is plpgsql, so a cast can be guarded");
+  assert.ok(!/select \(select auth\.uid\(\)\)::text/.test(identity[0]), "it must not cast auth.uid() unguarded");
+  assert.ok(/exception when others then[\s\S]*?sub := null/.test(identity[0]), "an unparseable claim is null, not an error");
+  assert.ok(/return \(sub::uuid\)::text/.test(identity[0]), "a uuid sub is still returned as text, exactly as before");
+
+  assert.ok(
+    /create or replace function public\.is_admin\(\)[\s\S]*?or \(a\.email is not null and lower\(a\.email\) = public\.current_user_email\(\)\)/.test(schema),
+    "is_admin() checks the email as well as the id",
+  );
+  assert.ok(
+    /create or replace function public\.current_user_email\(\)/.test(schema),
+    "and the email comes from a function of its own, so a bad claim cannot reach the policy",
+  );
+});

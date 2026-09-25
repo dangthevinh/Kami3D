@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { GeodataUploadForm } from "@/components/admin/GeodataUploadForm";
 import { getAllAnimals } from "@/lib/animals";
-import { getCurrentUserId } from "@/lib/auth";
+import { adminStatus } from "@/lib/admin";
 import { getPersonalDataClient } from "@/lib/personal-data";
 
 /**
@@ -26,17 +26,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-async function adminStatus(): Promise<{ signedIn: boolean; admin: boolean; checked: boolean }> {
-  const userId = await getCurrentUserId();
-  if (!userId) return { signedIn: false, admin: false, checked: true };
-
-  const supabase = await getPersonalDataClient();
-  if (!supabase) return { signedIn: true, admin: false, checked: false };
-
-  const { data, error } = await supabase.rpc("is_admin");
-  if (error) return { signedIn: true, admin: false, checked: false };
-  return { signedIn: true, admin: data === true, checked: true };
-}
 
 export default async function AdminGeodataPage() {
   const status = await adminStatus();
