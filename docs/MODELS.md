@@ -463,3 +463,76 @@ before anyone clicks.
 - outrun the budget from the command line;
 - batch-fetch without a person while `require_approval` is on: an order carries the admin who placed
   it, and every attempt is logged against them.
+
+## The auto-pilot (/admin/models) — Phase 21
+
+Phase 18B left one thing to a person: deciding when. An order sat in the database until someone ran
+`npm run models:work`, and "Run now" started a detached child process and returned before anything
+had happened, so the console could not say what a run had done. The auto-pilot closes that gap: an
+admin switches it on once, and from then on the application asks for the models that are missing and
+publishes them.
+
+### What "missing" means
+
+`public.model_gap_report()` returns one entry per species: whether the database has a row in
+`model_assets` for it, the best quality score recorded, and the URL the site currently loads. A
+species with no `model_assets` row is showing a file that came with the repository and whose licence
+nothing in the database can prove — that is the gap. The console prints the whole list, so the queue
+is visible before anything is switched on.
+
+| `scope` | Which species |
+| --- | --- |
+| `unsourced` | no `model_assets` row at all |
+| `weak` (default) | best recorded score below `min_score` (default 75) — this includes "no model at all", because that is the weakest case |
+| `named` | exactly the slugs an admin listed; naming a species is also how a model gets replaced |
+
+### What a round does
+
+`public.start_autopilot_round(p_actor, p_force, p_providers)` is the only way a round begins. It takes
+an advisory lock, returns "not due", "switched off" or "an order is still open" with that reason
+rather than an error, drops any provider the budget policy does not allow, picks the species in
+scope — skipping anything already in an open order, most popular first — and inserts **one** row into
+`model_source_orders` with `note = 'auto-pilot'`. `finish_autopilot_round()` stores the report the
+console then shows.
+
+The round itself is run by `scripts/model-orders.mjs --order=<id> --upload` — the same worker
+`npm run models:work` runs, with `--upload` being the half that puts a model on Kami3D: the file goes
+to the `animal-assets` bucket, a `model_assets` row records its licence and credit, and
+`animals.model_url` is pointed at the public URL. **The species page therefore serves the new model
+without a rebuild**, because the site reads `model_url` from the database at request time.
+
+An order the auto-pilot made is run with `--strict-match --min-score=<the admin's floor>`. That pair
+is the difference between automation and damage:
+
+- the candidate's **title must name the species**, so a round cannot hand a Weddell seal a duck;
+- its **score must clear the floor**, so a round cannot replace a 74-point tiger with a 68-point one.
+
+Neither flag is available to a hand-run by default: a human looking at the result may take a model the
+rules would refuse, and should be able to say so.
+
+### Three ways to start it, one function
+
+| Trigger | How | For |
+| --- | --- | --- |
+| the app's own clock | `instrumentation.ts` → `lib/autopilot-scheduler.ts`, a tick every 5 minutes (`MODEL_AUTOPILOT_TICK_MS`) | any long-running `next start`, which is how this project is run |
+| an external scheduler | `curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://host/api/cron/models` | serverless hosts, where no process outlives a request |
+| the button | `POST /api/admin/models/autopilot { action: "run" }` | an admin who wants one round now, and the numbers that came out of it |
+
+All three call `runAutopilotRound()`; the database's advisory lock means that two of them firing in
+the same second still produce exactly one order. With no `CRON_SECRET` set the cron endpoint refuses
+every unauthenticated call — an unset secret is not an open door.
+
+The clock is **off until the database row says otherwise**: `enabled` defaults to false, a fresh
+clone downloads nothing, and there is no environment variable that switches an auto-pilot on behind an
+admin's back. `MODEL_AUTOPILOT=off` only ever turns it further off.
+
+### What the auto-pilot cannot do
+
+- spend budget: it can only queue an order, and every model in that order still passes
+  `reserve_model_download()`;
+- download a model whose licence is not CC0 or CC BY;
+- publish without a credit, or onto a species whose name the model does not carry;
+- run twice at once, from any of the three triggers;
+- keep going when a round is already open: it moves its clock and waits, because the point of a queue
+  is that it is a queue.
+

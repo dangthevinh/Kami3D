@@ -127,7 +127,7 @@ function speciesFor(order) {
  * The child's output is parsed rather than trusted: the exit code says whether the process ran, the
  * lines say what the budget decided, and the log rows it wrote are the record of it.
  */
-async function fetchForSpecies({ order, slug, providers, upload }) {
+async function fetchForSpecies({ order, slug, providers, upload, unattended, minScore }) {
   const argv = [
     FETCH,
     "--species=" + slug,
@@ -141,6 +141,14 @@ async function fetchForSpecies({ order, slug, providers, upload }) {
   ];
   if (upload) argv.push("--upload");
   else argv.push("--wire");
+
+  // An order the auto-pilot made runs with nobody watching, so it is held to the higher standard:
+  // the candidate's title must name the species, and its quality score must clear the threshold the
+  // admin set. A hand-made order keeps the looser defaults, because a human is looking at the result.
+  if (unattended) {
+    argv.push("--strict-match");
+    if (minScore > 0) argv.push("--min-score=" + minScore);
+  }
 
   // An order that names species is also how an admin replaces a poor model, so those runs may
   // overwrite the file they name. A generic fill-the-gaps order never needs to: it only ever picks
@@ -189,6 +197,16 @@ async function runOrder(order, { upload }) {
   console.log("Order " + order.id.slice(0, 8) + ": up to " + order.requested + " model(s) from " + providers.join(", "));
   console.log("  " + species.length + " species still need a model");
 
+  // Who asked matters to how strict the run is: an auto-pilot round is unattended, so it may only
+  // take a candidate that names the species and scores at least what the admin's threshold says.
+  const unattended = order.note === "auto-pilot";
+  let minScore = 0;
+  if (unattended) {
+    const [autopilot] = await api("model_autopilot?select=min_score&id=eq.default");
+    minScore = typeof autopilot?.min_score === "number" ? autopilot.min_score : 0;
+    console.log("  unattended round: a candidate must name the species" + (minScore > 0 ? " and score at least " + minScore : ""));
+  }
+
   const counts = { downloaded: 0, refused: 0, failed: 0, skipped: 0 };
   let outOfBudget = false;
   let lastError = null;
@@ -198,7 +216,7 @@ async function runOrder(order, { upload }) {
     if (outOfBudget) break;
 
     console.log("→ " + animal.slug);
-    const outcome = await fetchForSpecies({ order, slug: animal.slug, providers, upload });
+    const outcome = await fetchForSpecies({ order, slug: animal.slug, providers, upload, unattended, minScore });
     counts[outcome] += 1;
 
     // Every further attempt would be refused for the same reason: stop, and record why.

@@ -1011,6 +1011,12 @@ function parseArgs(argv) {
     report: false,
     wire: false,
     strictMatch: false,
+    /**
+     * The lowest quality score a candidate may have and still be downloaded. 0 is "no floor", which is
+     * what every hand-run keeps; the auto-pilot passes its own threshold, so an unattended round can
+     * only take a model that is at least as good as the one it is replacing.
+     */
+    minScore: 0,
     rehash: false,
     refreshQuality: false,
     /** Compress every downloaded model with DRACO before it is stored. */
@@ -1057,6 +1063,10 @@ function parseArgs(argv) {
     else if (arg === "--force") flags.force = true;
     else if (arg === "--wire") flags.wire = true;
     else if (arg === "--strict-match") flags.strictMatch = true;
+    else if (arg.startsWith("--min-score=")) {
+      const score = Number.parseInt(arg.slice("--min-score=".length), 10);
+      flags.minScore = Number.isFinite(score) ? Math.min(Math.max(score, 0), 100) : 0;
+    }
     else if (arg === "--rehash") flags.rehash = true;
     else if (arg === "--refresh-quality") flags.refreshQuality = true;
     else if (arg.startsWith("--max-mb=")) CONFIG.maxBytes = Number(arg.split("=")[1]) * 1024 * 1024;
@@ -1462,7 +1472,10 @@ async function fetchModels(flags) {
     const gathered = await gatherCandidates(animal, flags.providers, searchOverrides);
     const candidates = flags.candidate ? filterToCandidate(gathered, flags.candidate) : gathered;
     const ranked = rankCandidates(candidates, animal).filter(
-      (entry) => entry.licence.ok && (!flags.strictMatch || entry.matched),
+      (entry) =>
+        entry.licence.ok &&
+        entry.score >= flags.minScore &&
+        (!flags.strictMatch || entry.matched),
     );
 
     // One model per source: two providers can return the same asset, and
@@ -1478,7 +1491,7 @@ async function fetchModels(flags) {
 
     if (chosen.length === 0) {
       console.log(
-        `✘ ${animal.slug}: no candidate with a redistributable licence${flags.strictMatch ? " AND a matching title" : ""}`,
+        `✘ ${animal.slug}: no candidate with a redistributable licence${flags.strictMatch ? " AND a matching title" : ""}${flags.minScore > 0 ? " AND a score of at least " + flags.minScore : ""}`,
       );
       skipped += 1;
       continue;
@@ -1756,6 +1769,9 @@ async function main() {
   --wire                  also set model_url in data/animals.ts to the local file
   --force                 replace an existing local model
   --strict-match          skip candidates whose title does not name the species
+  --min-score=<n>         skip candidates scoring below n (0-100, default 0 = no floor); the
+                          auto-pilot passes its own threshold so an unattended round cannot
+                          replace a model with a worse one
   --max-mb=<n>            refuse models larger than n megabytes (default 12)
   --count=<n>             keep up to n models per species (default 1; the first is
                           the primary one and is what model_url points at)

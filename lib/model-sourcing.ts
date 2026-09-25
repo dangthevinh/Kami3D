@@ -1,6 +1,7 @@
 import "server-only";
 
 import providerData from "@/data/model-providers.json";
+import { autopilotFromJson, type AutopilotPolicy, type SpeciesGap } from "@/lib/autopilot";
 import type { DownloadPolicy, DownloadUsage } from "@/lib/model-budget";
 import { policyFromJson, usageFromJson } from "@/lib/model-budget";
 import { getPersonalDataClient } from "@/lib/personal-data";
@@ -178,6 +179,39 @@ export function refusedProviders(): { id: string; reason: string }[] {
 export interface UsageWithCounts extends DownloadUsage {
   refused: number;
   failed: number;
+}
+
+/**
+ * The auto-pilot row (Phase 21), or null when the database has none.
+ *
+ * Null is the honest answer for "this project has not had the Phase 21 schema applied yet", and the
+ * console renders it as "off" rather than as an error, the same way every other optional integration
+ * in this project degrades.
+ */
+export async function readAutopilot(): Promise<AutopilotPolicy | null> {
+  const supabase = await client();
+  const { data, error } = await supabase.from("model_autopilot").select("*").eq("id", "default").maybeSingle();
+  if (error || !data) return null;
+  return autopilotFromJson(data);
+}
+
+/**
+ * What every species has, and what it lacks: the input to the auto-pilot's decision, printed in full
+ * on /admin/models so an admin sees the queue the rules produce before switching anything on.
+ */
+export async function readGapReport(): Promise<SpeciesGap[]> {
+  const supabase = await client();
+  const { data, error } = await supabase.rpc("model_gap_report");
+  if (error || !Array.isArray(data)) return [];
+
+  return (data as Record<string, unknown>[]).map((row) => ({
+    slug: String(row.slug),
+    name: typeof row.name === "string" ? row.name : String(row.slug),
+    hasAsset: row.hasAsset === true,
+    bestScore: typeof row.bestScore === "number" ? row.bestScore : row.bestScore === null ? null : Number(row.bestScore),
+    popularity: typeof row.popularity === "number" ? row.popularity : row.popularity === null ? null : Number(row.popularity),
+    modelUrl: typeof row.modelUrl === "string" ? row.modelUrl : null,
+  }));
 }
 
 export { TABLES };

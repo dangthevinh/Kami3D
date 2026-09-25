@@ -1989,6 +1989,276 @@ revoke all on function public.settle_model_download(uuid, text, bigint, text, te
 revoke all on function public.prune_model_download_log(integer) from anon, authenticated;
 
 /* ==========================================================================
+   Phase 21 - Auto-pilot: the database decides what is missing, and asks for it
+   ==========================================================================
+
+   Phase 18B put the *budget* in the database and left the *decision* to a human:
+   an admin created an order and someone ran the worker. This table is the other
+   half - one row saying "yes, keep going, this often, this much, for these
+   species" - and the two functions below are the only way a round starts or
+   closes. Nothing here can skip the budget: an order made by the auto-pilot is
+   an ordinary row in model_source_orders, and every model it fetches still goes
+   through reserve_model_download().
+   ========================================================================== */
+
+create table if not exists public.model_autopilot (
+  id               text primary key default 'default',
+  enabled          boolean not null default false,
+  cadence_minutes  integer not null default 360 check (cadence_minutes between 5 and 10080),
+  per_run          integer not null default 1 check (per_run between 1 and 5),
+  -- 'unsourced': the species has no model_assets row at all, so the file it shows is
+  -- one that came with the repository and whose licence the database cannot prove.
+  -- 'weak': its best recorded model scores below min_score (this includes unsourced,
+  -- because no model at all is the weakest case).
+  -- 'named': exactly the slugs an admin listed.
+  scope            text not null default 'weak' check (scope in ('unsourced', 'weak', 'named')),
+  slugs            text[] not null default '{}',
+  min_score        integer not null default 75 check (min_score between 0 and 100),
+  next_run_at      timestamptz not null default now(),
+  last_run_at      timestamptz,
+  -- The report of the last round, as the panel shows it: order id, species, counts.
+  last_result      jsonb,
+  updated_by       text,
+  updated_at       timestamptz not null default now(),
+  constraint model_autopilot_singleton check (id = 'default'),
+  constraint model_autopilot_named_needs_slugs check (
+    scope <> 'named' or coalesce(array_length(slugs, 1), 0) > 0
+  ),
+  constraint model_autopilot_slugs_are_slugs check (
+    array_to_string(slugs, ',') ~ '^[a-z0-9,-]*$'
+  )
+);
+
+-- `create table if not exists` leaves an older table's column defaults alone, so the
+-- two defaults this phase settled on are restated here: weak (a species with no model at
+-- all is the weakest case) and 75 (below the quality the catalogue's own models score).
+alter table public.model_autopilot alter column scope     set default 'weak';
+alter table public.model_autopilot alter column min_score set default 75;
+
+comment on table public.model_autopilot is
+  'One row (id = default). The auto-pilot an admin switches on in /admin/models: when it is on and due, the app asks for the models that are missing and publishes them itself. It cannot spend budget - it can only queue an order, which reserve_model_download() still polices.';
+
+-- Off by default: a fresh clone, or a project whose owner never asked for this,
+-- must not start downloading models because a page was opened.
+insert into public.model_autopilot (id) values ('default') on conflict (id) do nothing;
+
+/**
+ * Every species, and what the database knows about its models.
+ *
+ * This is what "missing" means here, and it is a fact rather than an opinion: a
+ * species with no model_assets row has a file in the repository and no record of
+ * where that file came from, which is exactly the gap the auto-pilot fills. The
+ * panel renders this list so an admin can see the queue before switching it on.
+ */
+create or replace function public.model_gap_report()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with best as (
+    select animal_id, count(*) as assets, max(quality_score) as score
+    from public.model_assets
+    group by animal_id
+  )
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'slug', a.slug,
+        'name', a.name,
+        'hasAsset', coalesce(b.assets, 0) > 0,
+        'bestScore', b.score,
+        'popularity', a.popularity,
+        'modelUrl', a.model_url
+      )
+      order by a.popularity desc nulls last, a.slug
+    ),
+    '[]'::jsonb
+  )
+  from public.animals a
+  left join best b on b.animal_id = a.id;
+$$;
+
+comment on function public.model_gap_report() is
+  'One entry per species: whether the database has a sourced model for it, the best quality score recorded, and the URL the site currently loads. Read by /admin/models to show what the auto-pilot would ask for.';
+
+/**
+ * Start one round: claim the clock, decide the species, queue one order.
+ *
+ * `p_force` is the "run now" button: it ignores the on/off switch and the cadence,
+ * and nothing else. Scope, the open-order check and - above all - the download
+ * budget still apply, so a forced round is an ordinary round that skipped the queue.
+ */
+-- The signature grew a parameter in Phase 21 (the providers this deployment has keys for), and
+-- `create or replace` would otherwise leave the old one callable with a stale body.
+drop function if exists public.start_autopilot_round(text, boolean);
+
+create or replace function public.start_autopilot_round(
+  p_actor     text default 'autopilot',
+  p_force     boolean default false,
+  p_providers text[] default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  aut        public.model_autopilot;
+  pol        public.model_download_policy;
+  open_count integer;
+  targets    text[];
+  chosen     text[] := '{}';
+  order_id   uuid;
+begin
+  -- One round at a time across every process: the scheduler inside the server, the cron
+  -- endpoint and the panel button can all fire within the same second.
+  perform pg_advisory_xact_lock(hashtext('kami3d:model_autopilot'));
+
+  select * into aut from public.model_autopilot where id = 'default' for update;
+  select * into pol from public.model_download_policy where id = 'default';
+
+  if pol.id is not null then
+    -- One provider outside the policy is dropped rather than failing the round; the log keeps the
+    -- reason for every download that is actually attempted.
+    select coalesce(array_agg(provider), '{}') into chosen
+    from unnest(coalesce(p_providers, '{}')) as provider
+    where provider = any (pol.providers_allowed);
+  end if;
+
+  if not found then
+    return jsonb_build_object('started', false, 'reason', 'no auto-pilot row: apply the schema (npm run db:schema)');
+  end if;
+
+  if not aut.enabled and not p_force then
+    return jsonb_build_object('started', false, 'reason', 'the auto-pilot is switched off');
+  end if;
+
+  if not p_force and aut.next_run_at > now() then
+    return jsonb_build_object(
+      'started', false,
+      'reason', format('not due until %s', to_char(aut.next_run_at, 'YYYY-MM-DD HH24:MI')),
+      'nextRunAt', aut.next_run_at
+    );
+  end if;
+
+  select count(*) into open_count
+  from public.model_source_orders
+  where status in ('queued', 'running');
+
+  if open_count > 0 then
+    -- Move the clock rather than the queue: the same order is already on its way.
+    update public.model_autopilot
+       set next_run_at = now() + make_interval(mins => aut.cadence_minutes),
+           updated_at = now()
+     where id = 'default';
+
+    return jsonb_build_object(
+      'started', false,
+      'reason', format('%s order(s) are still open', open_count)
+    );
+  end if;
+
+  with best as (
+    select animal_id, count(*) as assets, max(quality_score) as score
+    from public.model_assets
+    group by animal_id
+  ),
+  open_slugs as (
+    select distinct unnest(slugs) as slug
+    from public.model_source_orders
+    where status in ('queued', 'running')
+  ),
+  candidates as (
+    select a.slug, a.popularity
+    from public.animals a
+    left join best b on b.animal_id = a.id
+    where not exists (select 1 from open_slugs o where o.slug = a.slug)
+      and case aut.scope
+            when 'named' then a.slug = any (aut.slugs)
+            when 'weak'  then coalesce(b.score, -1) < aut.min_score
+            else coalesce(b.assets, 0) = 0
+          end
+    order by a.popularity desc nulls last, a.slug
+    limit aut.per_run
+  )
+  select coalesce(array_agg(slug), '{}') into targets from candidates;
+
+  -- The clock moves whatever the answer is, so a species with nothing to fetch does not
+  -- turn the scheduler into a busy loop.
+  update public.model_autopilot
+     set last_run_at = now(),
+         next_run_at = now() + make_interval(mins => aut.cadence_minutes),
+         updated_at = now()
+   where id = 'default';
+
+  if coalesce(array_length(targets, 1), 0) = 0 then
+    return jsonb_build_object(
+      'started', false,
+      'reason', 'every species in scope already has a sourced model',
+      'scope', aut.scope
+    );
+  end if;
+
+  -- An empty provider list means "whatever this deployment can reach": the worker then uses its
+  -- keyless default. The app passes the providers it actually has keys for, and the policy has the
+  -- last word on which of those may be used.
+  insert into public.model_source_orders (created_by, status, providers, slugs, requested, note)
+  values (p_actor, 'queued', chosen, targets, aut.per_run, 'auto-pilot')
+  returning id into order_id;
+
+  return jsonb_build_object(
+    'started', true,
+    'orderId', order_id,
+    'slugs', to_jsonb(targets),
+    'scope', aut.scope,
+    'perRun', aut.per_run,
+    'providers', to_jsonb(chosen)
+  );
+end;
+$$;
+
+comment on function public.start_autopilot_round(text, boolean, text[]) is
+  'Claims the auto-pilot clock and queues one order for the species in scope. Returns started = false with a reason when it is off, not due, or already busy - the app never guesses why nothing happened.';
+
+/** Close a round with its report, so the panel can show what the last one actually did. */
+create or replace function public.finish_autopilot_round(p_result jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtext('kami3d:model_autopilot'));
+
+  update public.model_autopilot
+     set last_result = p_result,
+         updated_at = now()
+   where id = 'default';
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'no auto-pilot row');
+  end if;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+alter table public.model_autopilot enable row level security;
+
+drop policy if exists "model_autopilot_admin_read" on public.model_autopilot;
+create policy "model_autopilot_admin_read" on public.model_autopilot
+  for select to authenticated using (public.is_admin());
+
+revoke all on public.model_autopilot from anon, authenticated;
+grant select on public.model_autopilot to authenticated;
+
+revoke all on function public.model_gap_report() from anon, authenticated;
+revoke all on function public.start_autopilot_round(text, boolean, text[]) from anon, authenticated;
+revoke all on function public.finish_autopilot_round(jsonb) from anon, authenticated;
+
+/* ==========================================================================
    Admin by default - the owner's address, and checking by email
    ==========================================================================
 

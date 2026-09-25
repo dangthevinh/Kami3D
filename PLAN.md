@@ -30,6 +30,9 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **16** | Timeline & Story Maps | ✅ Hoàn thành — 18 annotation có nguồn + seasonal path (kèm giới hạn đã đo) |
 | **17** | Admin Geospatial Pipeline & 3D-Map Hybrid | ✅ Hoàn thành — pipeline + vai trò admin + chế độ hybrid 3D (một WebGL context, có audit bằng Chrome thật) |
 | **18** | Admin Console: kênh & phân tích người dùng (18A) + tự động tìm/tải model 3D có hạn mức (18B) | ✅ **18A xong** + ✅ **18B xong** — registry 7 provider, `model_download_policy`/`model_download_log`, `reserve_model_download()`, worker lệnh và `/admin/models` |
+| **19** | Giao diện mobile: đo trước, sửa sau | ✅ Hoàn thành — audit Chrome thật: tap target <44px và chữ <12px về 0 ở các trang đã đo |
+| **20** | Bảo mật: đóng những khoảng trống đo được | ✅ Hoàn thành — 7 header (HSTS chỉ production), guard dùng chung cho **11 route ghi**, quét bí mật trong chunk client ở CI; RLS dưới Clerk vẫn là P0.1 đang mở |
+| **21** | Auto-pilot: admin bật một công tắc là model tự được tải và tự lên Kami3D | ✅ Hoàn thành — `model_autopilot` + `start_autopilot_round()`, đồng hồ trong tiến trình server + `/api/cron/models` + nút trong panel; lượt tự động chạy `--strict-match --min-score` nên không thể tải nhầm loài hay hạ cấp model |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -46,7 +49,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
-| Test tự động | **469** bài trong **44** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 20 thêm 4 bài của `check-security`. Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
+| Test tự động | **497** bài trong **45** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot`, trong đó 10 bài khoá SQL khớp với module. Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -3664,6 +3667,118 @@ trong `.gitignore`. `check:secrets` được móc vào CI **sau bước build**.
 Ghi chú đầy đủ: [docs/SECURITY.md](docs/SECURITY.md).
 
 ---
+
+> **Phase 21 — Auto-pilot: admin ra lệnh một lần, hệ thống tự tải và tự đưa model lên Kami3D**
+
+**Prompt để triển khai Phase 21 — Auto-pilot nạp model**:
+
+````markdown
+Triển khai Phase 21 – Auto-pilot nạp model cho Kami3D.
+
+Bối cảnh: Phase 18B đã dựng /admin/models với hạn mức nằm trong database, ô tìm kiếm ứng viên, nút tải cho
+từng ứng viên, bảng lệnh (order) và worker `npm run models:work`. Nhưng "tự động" mới đúng một nửa: lệnh nằm
+trong database mà việc chạy lệnh thì vẫn cần một terminal; nút "Chạy ngay" spawn tiến trình con rồi trả về
+ngay nên trang không biết kết quả; và **không có gì tự ra lệnh cả** — admin phải tạo lệnh bằng tay rồi chạy
+bằng tay. Với dữ liệu hiện tại thì lệnh "fill the gaps" còn không tìm được loài nào, vì cả 24 loài đều đã có
+`model_url` trong dataset.
+
+Yêu cầu: biến nó thành hệ thống mà admin chỉ cần bật một công tắc (hoặc bấm một nút) là model được tải về,
+đưa lên Kami3D và hiện trên web — không cần terminal.
+
+1. **Định nghĩa "thiếu model" bằng dữ liệu, không bằng cảm giác.** Một loài thiếu model khi nó không có dòng
+   nào trong `model_assets` (file đang hiển thị là file đi kèm repo, không chứng minh được nguồn/licence),
+   hoặc khi model tốt nhất được ghi nhận có `quality_score` dưới ngưỡng admin đặt. Viết hàm
+   `public.model_gap_report()` trả về đúng những gì trang admin cần in.
+2. **Bảng `model_autopilot` một dòng** (`id = 'default'`, có CHECK singleton): `enabled`, `cadence_minutes`,
+   `per_run`, `scope` (`unsourced`/`weak`/`named`), `slugs`, `min_score`, `next_run_at`, `last_run_at`,
+   `last_result jsonb`, `updated_by`. Mặc định **tắt**, để một bản clone mới không tự tải gì chỉ vì có người
+   mở trang.
+3. **SQL là chốt duy nhất, như 18B.** `start_autopilot_round(p_actor, p_force, p_providers)` giữ advisory
+   lock, chỉ nhận khi đã tới hạn (hoặc khi admin ép), từ chối nếu đang có lệnh mở, chọn loài theo `scope`,
+   bỏ qua loài đã nằm trong lệnh đang mở, giới hạn `per_run`, rồi tạo **một** order — và
+   `finish_autopilot_round(p_result)` ghi lại kết quả. Không có cờ nào tắt được hạn mức: mọi model vẫn phải
+   qua `reserve_model_download()`.
+4. **Một đường ống duy nhất.** Runner không tải gì cả: nó gọi `scripts/model-orders.mjs --order=<id> --upload`
+   — đúng thứ `npm run models:work` chạy. `--upload` là phần "up lên Kami3D": file lên Supabase Storage, ghi
+   `model_assets`, và trỏ `animals.model_url` vào URL công khai, nên model hiện trên web **không cần build lại**.
+5. **Ba cách kích hoạt, một hàm chạy**: (a) đồng hồ trong tiến trình server (`instrumentation.ts` +
+   `lib/autopilot-scheduler.ts`) chỉ chạy khi database nói đã tới hạn; (b) `POST /api/admin/models/autopilot`
+   cho nút trong panel — chạy và **chờ kết quả** để trang hiện đúng chuyện đã xảy ra; (c)
+   `GET /api/cron/models` với `Authorization: Bearer $CRON_SECRET` cho host cần scheduler ngoài.
+6. **Lượt không có người trông phải nghiêm hơn lượt làm bằng tay.** Worker nhận ra order `auto-pilot` và
+   truyền `--strict-match` cùng `--min-score=<ngưỡng của admin>`: ứng viên phải nêu đúng tên loài và phải
+   đạt điểm tối thiểu, nếu không thì **không tải** — thay một model 74 điểm bằng một con vịt 42 điểm là kiểu
+   hỏng mà tự động hoá hay mắc.
+7. **UI trong /admin/models**: bật/tắt, nhịp, số model mỗi lượt, phạm vi (kèm số loài mỗi phạm vi), ngưỡng
+   điểm, danh sách loài lượt sau sẽ nhắm tới, kết quả lượt vừa rồi, và nút "Chạy ngay" in ra số tải được +
+   output của worker.
+8. **Test**: toán auto-pilot (tới hạn/chưa tới hạn, kẹp tham số, chọn loài theo scope, thứ tự, giới hạn
+   `per_run`, so sánh secret theo thời gian hằng) và **test khoá SQL khớp với module** — vì quyết định này
+   được viết hai lần (TypeScript cho panel, SQL cho database).
+
+Ràng buộc: không thêm dịch vụ trả tiền, không thêm thư viện; `npm run check:suites` và `tsc` phải xanh; mọi
+con số trong tài liệu phải là số đo được; và `--upload` phải là mặc định của đường tự động, vì "tải về máy
+này" không phải là "đưa lên Kami3D".
+````
+
+
+---
+## ✅ Phase 21 — Auto-pilot: tự ra lệnh, tự tải, tự đưa lên Kami3D
+
+### 1. Đã làm gì
+
+| Việc | Ở đâu |
+| --- | --- |
+| Bảng `model_autopilot` một dòng: bật/tắt, nhịp, số model mỗi lượt, phạm vi, ngưỡng điểm, `next_run_at`, kết quả lượt cuối — **mặc định tắt** | `supabase/schema.sql` |
+| `public.model_gap_report()`: mỗi loài một dòng — có `model_assets` hay không, điểm tốt nhất, popularity, `model_url` hiện tại | `supabase/schema.sql` |
+| `public.start_autopilot_round(p_actor, p_force, p_providers)`: advisory lock, chỉ nhận khi tới hạn (hoặc khi admin ép), từ chối nếu có lệnh đang mở, lọc provider theo `providers_allowed`, chọn loài theo scope, bỏ qua loài đang nằm trong lệnh mở, giới hạn `per_run`, tạo **một** order `note = 'auto-pilot'`; `finish_autopilot_round(p_result)` ghi kết quả | `supabase/schema.sql` |
+| Toán auto-pilot thuần (kẹp tham số, scope, thứ tự theo popularity, giới hạn `per_run`, tới hạn/chưa tới hạn, so sánh secret theo thời gian hằng) | `lib/autopilot.ts` |
+| Runner: gọi SQL để quyết định, rồi chạy `scripts/model-orders.mjs --order=<id> --upload`, đọc lại order và ghi kết quả; chờ có giới hạn, hết thời gian thì **để worker chạy tiếp** chứ không giết giữa chừng | `lib/autopilot-runner.ts` |
+| Ba lối vào, một hàm chạy: đồng hồ trong tiến trình server, `/api/cron/models` (Bearer `CRON_SECRET`), nút trong panel | `instrumentation.ts`, `lib/autopilot-scheduler.ts`, `app/api/cron/models/route.ts`, `app/api/admin/models/autopilot/route.ts` |
+| Lượt không người trông nghiêm hơn lượt làm tay: worker nhận ra order `auto-pilot` và truyền `--strict-match` + `--min-score=<ngưỡng>`; CLI có thêm cờ `--min-score` (mặc định 0 = không sàn) | `scripts/model-orders.mjs`, `scripts/fetch-models.mjs` |
+| UI: công tắc, nhịp, số model/lượt, ngưỡng, phạm vi **kèm số loài mỗi phạm vi**, danh sách loài lượt sau sẽ nhắm tới, kết quả lượt trước, nút "Chạy ngay" in ra số tải được + output worker | `components/admin/AutopilotPanel.tsx`, `app/admin/models/page.tsx` |
+| 28 bài test, trong đó **10 bài khoá SQL khớp với module** (cùng scope, cùng thứ tự, cùng cách loại trừ, cùng giới hạn, và auto-pilot **không được** tải gì) | `scripts/check-autopilot.mjs` |
+| Tài liệu: mục auto-pilot (định nghĩa "thiếu", ba lối vào, hai cờ nghiêm ngặt, những gì nó không làm được) | `docs/MODELS.md` |
+
+### 2. Bằng chứng đo được
+
+`npm run check:suites`: **497 bài, 0 fail** (469 + 28). `npx tsc --noEmit` sạch.
+
+Route nói đúng sự thật với người không phải admin:
+
+| Gọi | Kết quả |
+| --- | --- |
+| `GET /api/admin/models/autopilot` (khách) | **404** — endpoint không tồn tại với người ngoài, như mọi route admin khác |
+| `GET /api/cron/models` (khách, chưa đặt `CRON_SECRET`) | **401** `CRON_SECRET is not set, so no scheduler can drive this endpoint` |
+
+Rồi chạy thật trên Supabase (service role, đúng hàm mà app gọi):
+
+| Tình huống | Kết quả đo |
+| --- | --- |
+| auto-pilot đang **tắt** | `started: false` — `"the auto-pilot is switched off"` |
+| scope `unsourced` (mặc định cũ) | `started: false` — `"every species in scope already has a sourced model"` (24/24 loài đều đã có dòng `model_assets` từ Phase 12) |
+| scope `weak`, ngưỡng 75, ép chạy | `started: true`, order cho `bengal-tiger` (74.8 — loài phổ biến nhất dưới ngưỡng), `providers` = 5 nguồn deployment chạm được |
+| worker chạy order đó (`--upload`) | **0 downloaded** — `"no candidate with a redistributable licence AND a matching title AND a score of at least 75"`. Quét lại bằng `--report`: ứng viên tốt nhất là 67.8 / 63.8 / 63.8, tức **cả ba đều tệ hơn model 74.8 đang có**. Nếu không có `--min-score`, lượt này đã hạ cấp một model thật |
+| scope `named` = `weddell-seal`, ngưỡng 50, ép chạy | `started: true` → worker: chọn "Seal" 55.3 → **DRACO 193 KB → 108 KB** → `stored /models/weddell-seal.glb and recorded it in model_assets (primary)` → ghi attribution → chốt sổ → `Order done: 1 downloaded` |
+| model có lên web không | `animals.model_url` trỏ vào URL Storage; `HEAD` **công khai, không cần khoá**: **200, 110.952 bytes, `model/gltf-binary`** → model hiện trên web **không cần build lại** |
+| `finish_autopilot_round` | **200** `{ok: true}`, `last_result` đọc lại đúng nội dung vừa ghi |
+
+Sau khi đo xong, toàn bộ hiện vật đã được hoàn tác: object Storage trả về **43.120 bytes** đúng bằng file trong repo (và `HEAD` xác nhận lại đúng con số đó), `model_assets` trả về điểm 69.6, **hai order thử và dòng nhật ký đã tiêu 1 lượt đã bị xoá** để hạn mức về đúng chỗ cũ, và dòng `model_autopilot` trở về mặc định (`enabled = false`, `weak`, 75).
+
+### 3. Một phát hiện đáng ghi
+
+Cùng **một** model Sketchfab (`0616281841b44983b1c113b578c0f0ce`) được chấm **69.6** khi Phase 12 tải nó và **55.3** hôm nay: điểm phụ thuộc popularity và thời điểm chấm, không phải một hằng số của model. Đó chính là lý do auto-pilot có hai rào: `--strict-match` (tên phải nêu đúng loài) và `--min-score` (điểm phải vượt ngưỡng admin đặt) — nếu chỉ có một trong hai, hoặc nó sẽ tải một con vật khác loài, hoặc nó sẽ hạ cấp model đang có. Và cũng vì thế mà **một lượt tự động "không tải được gì" là kết quả đúng**, không phải lỗi.
+
+### 4. Giới hạn — nói thẳng
+
+- **Đồng hồ nằm trong tiến trình server.** `next start` chạy lâu dài thì nó tick; host serverless thì không có tiến trình nào sống ngoài request, nên phải dùng `/api/cron/models` với `CRON_SECRET` và một scheduler ngoài. Cả hai đường đều gọi đúng một hàm, và database mới là chỗ quyết định lượt nào được chạy.
+- **Chưa bật auto-pilot cho dự án này.** Dòng trong database đang là mặc định: tắt. Bật là một cú bấm trong `/admin/models`.
+- **Với bộ provider hiện có, auto-pilot đang đúng khi không tải gì**: ba provider keyless (Poly Haven/NASA/Khronos) hầu như không có động vật, còn Sketchfab — nguồn duy nhất có key thật trong deployment này — không có ứng viên nào vừa nêu tên loài vừa ≥ 75 điểm. Muốn nó tải được nhiều hơn thì phải mở thêm nguồn có key (`SI_API_KEY`, `POLY_PIZZA_API_KEY`) hoặc hạ ngưỡng, và cả hai đều là quyết định của admin, có số đo để nhìn.
+- **Rate limit của nút "Chạy ngay" là 3 lượt / 5 phút** (mỗi lượt là một tiến trình con và một lượt hạn mức thật), cấu hình là 20/phút.
+- **Auto-pilot không thay đổi việc gì khác**: nó chỉ xếp lệnh; licence, dung lượng, hạn mức ngày/tháng/tổng vẫn do `reserve_model_download()` quyết định.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -3685,8 +3800,10 @@ Ghi chú đầy đủ: [docs/SECURITY.md](docs/SECURITY.md).
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 469 bài test trong 44 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
+npm run check        # typecheck + 497 bài test trong 45 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
 npm run check:secrets # quét bí mật trong mọi file git theo dõi + chunk client của bản build (không in giá trị)
+npm run check:autopilot # toán auto-pilot + khẳng định SQL trong schema.sql khớp với lib/autopilot.ts
+npm run models:work  # chạy một lệnh trong hàng đợi (--list để xem; --upload để đưa model lên Storage)
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 41 route
 npm run db:status    # database đang có bao nhiêu loài

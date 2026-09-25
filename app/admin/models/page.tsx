@@ -2,15 +2,19 @@ import { AlertTriangle, Check, Database, Download, ShieldCheck } from "lucide-re
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AutopilotPanel } from "@/components/admin/AutopilotPanel";
 import { CancelOrderButton, OrderForm, PolicyForm } from "@/components/admin/ModelSourcingControls";
 import { ModelSearch } from "@/components/admin/ModelSearch";
 import { Badge } from "@/components/ui/badge";
 import { adminStatus } from "@/lib/admin";
 import { getAllAnimals } from "@/lib/animals";
+import { AUTOPILOT_SCOPES, autopilotTargets, type AutopilotScope } from "@/lib/autopilot";
 import { ALLOWED_LICENSES, evaluateBudget } from "@/lib/model-budget";
 import {
   providersWithAvailability,
+  readAutopilot,
   readDownloadLog,
+  readGapReport,
   readOrders,
   readPolicy,
   readUsage,
@@ -60,12 +64,14 @@ export default async function AdminModelsPage() {
     );
   }
 
-  const [policy, usage, orders, log, animals] = await Promise.all([
+  const [policy, usage, orders, log, animals, autopilot, gaps] = await Promise.all([
     readPolicy(),
     readUsage(),
     readOrders(),
     readDownloadLog(),
     getAllAnimals(),
+    readAutopilot(),
+    readGapReport(),
   ]);
   const providers = providersWithAvailability();
   // Species with no model first: that is what an admin is usually here to fix.
@@ -73,6 +79,24 @@ export default async function AdminModelsPage() {
     .sort((a, b) => Number(Boolean(a.model_url)) - Number(Boolean(b.model_url)) || a.slug.localeCompare(b.slug))
     .map((animal) => animal.slug);
   const refused = refusedProviders();
+
+  // The auto-pilot's decision, computed here from the same rules the database applies, so the panel
+  // can show an admin what a round *would* ask for before they switch anything on.
+  const openSlugs = orders
+    .filter((order) => order.status === "queued" || order.status === "running")
+    .flatMap((order) => order.slugs);
+  const emptyCounts: Record<AutopilotScope, number> = { unsourced: 0, weak: 0, named: 0 };
+  let autopilotPlan: { targets: string[]; deferred: string[]; reason: string | null } = { targets: [], deferred: [], reason: null };
+  let scopeCounts = emptyCounts;
+
+  if (autopilot) {
+    autopilotPlan = autopilotTargets(autopilot, gaps, { openSlugs });
+    // How many species each scope would cover, so choosing one is informed rather than guessed.
+    scopeCounts = AUTOPILOT_SCOPES.reduce((counts, scope) => {
+      counts[scope] = autopilotTargets({ ...autopilot, scope, perRun: Math.max(1, gaps.length) }, gaps, { openSlugs }).targets.length;
+      return counts;
+    }, { ...emptyCounts });
+  }
 
   const decision = evaluateBudget({
     policy,
@@ -116,6 +140,32 @@ export default async function AdminModelsPage() {
           and the budget is enforced by the database — not by this page.
         </p>
       </header>
+
+      <section className="mt-8 glass rounded-[var(--radius-card)] p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-lg font-semibold text-white">Auto-pilot</h2>
+          <p className="text-[11px] text-white/40">
+            one switch: the app asks for the models that are missing and puts them on the site itself
+          </p>
+        </div>
+        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/50">
+          A round queues one order and runs the same worker <code className="text-white/70">npm run models:work</code> runs,
+          with <code className="text-white/70">--upload</code>: the file goes to Supabase Storage, a{" "}
+          <code className="text-white/70">model_assets</code> row records its licence and credit, and{" "}
+          <code className="text-white/70">animals.model_url</code> starts serving it — so a model that was missing from
+          the site appears without a rebuild. <strong className="text-white/70">The auto-pilot cannot spend budget</strong>:
+          it only queues an order, and every model in it still passes{" "}
+          <code className="text-white/70">reserve_model_download()</code>.
+        </p>
+        <div className="mt-4">
+          <AutopilotPanel
+            policy={autopilot}
+            plan={autopilotPlan}
+            scopeCounts={scopeCounts}
+            cronReady={Boolean(process.env.CRON_SECRET)}
+          />
+        </div>
+      </section>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
