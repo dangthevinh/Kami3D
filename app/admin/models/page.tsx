@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CancelOrderButton, OrderForm, PolicyForm } from "@/components/admin/ModelSourcingControls";
+import { ModelSearch } from "@/components/admin/ModelSearch";
 import { Badge } from "@/components/ui/badge";
 import { adminStatus } from "@/lib/admin";
+import { getAllAnimals } from "@/lib/animals";
 import { ALLOWED_LICENSES, evaluateBudget } from "@/lib/model-budget";
 import {
   providersWithAvailability,
@@ -58,8 +60,18 @@ export default async function AdminModelsPage() {
     );
   }
 
-  const [policy, usage, orders, log] = await Promise.all([readPolicy(), readUsage(), readOrders(), readDownloadLog()]);
+  const [policy, usage, orders, log, animals] = await Promise.all([
+    readPolicy(),
+    readUsage(),
+    readOrders(),
+    readDownloadLog(),
+    getAllAnimals(),
+  ]);
   const providers = providersWithAvailability();
+  // Species with no model first: that is what an admin is usually here to fix.
+  const slugs = [...animals]
+    .sort((a, b) => Number(Boolean(a.model_url)) - Number(Boolean(b.model_url)) || a.slug.localeCompare(b.slug))
+    .map((animal) => animal.slug);
   const refused = refusedProviders();
 
   const decision = evaluateBudget({
@@ -168,6 +180,19 @@ export default async function AdminModelsPage() {
           </p>
         </section>
       </div>
+
+      <section className="glass mt-10 rounded-[var(--radius-card)] p-5">
+        <h2 className="font-display text-lg font-semibold tracking-tight text-white">Search and pick a model</h2>
+        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/45">
+          An order names a species and lets the Phase 12 ranking choose; this is the other half — look at
+          what the catalogues actually have, with the quality score, face count, size and the credit that
+          would be published, and download the one you want. The button is enabled only when the database
+          would allow that download, and says why when it would not.
+        </p>
+        <div className="mt-4">
+          <ModelSearch providers={providers} slugs={slugs} />
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-lg font-semibold tracking-tight text-white">Orders</h2>

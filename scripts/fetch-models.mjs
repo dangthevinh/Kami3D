@@ -131,7 +131,7 @@ const LICENSE_DENYLIST = {
   "Standard": "Sketchfab's default licence is all-rights-reserved",
 };
 
-function evaluateLicense(label) {
+export function evaluateLicense(label) {
   if (!label) return { ok: false, reason: "no licence declared" };
   if (LICENSE_ALLOWLIST[label]) return { ok: true, ...LICENSE_ALLOWLIST[label] };
   if (LICENSE_DENYLIST[label]) return { ok: false, reason: LICENSE_DENYLIST[label] };
@@ -1027,6 +1027,23 @@ function parseArgs(argv) {
     order: null,
     /** Machine-readable candidate list on stdout, for the console. */
     json: false,
+    /**
+     * One exact candidate, as the console sends it: "provider:id".
+     *
+     * A human picked this model in the search results, so the ranking is skipped — but nothing else is:
+     * the licence check, the per-model size cap, the download budget and the attribution all still
+     * apply, because this is the same code path the CLI has always used.
+     */
+    candidate: null,
+    /**
+     * The query to use with --candidate: the title of the model the console showed the admin.
+     *
+     * Necessary because providers do not share an id shape. Khronos and NASA name their models (the id is
+     * "Duck"), Poly Haven uses a slug that its own search matches, but a Sketchfab id is an opaque uid
+     * that no search returns — so the console sends the title it displayed, and the run searches for that
+     * and then keeps only the exact id.
+     */
+    candidateQuery: null,
   };
   for (const arg of argv) {
     if (arg === "--all") flags.all = true;
@@ -1048,6 +1065,8 @@ function parseArgs(argv) {
     else if (arg === "--approve") flags.approve = true;
     else if (arg.startsWith("--order=")) flags.order = arg.split("=")[1];
     else if (arg === "--json") flags.json = true;
+    else if (arg.startsWith("--candidate=")) flags.candidate = arg.slice("--candidate=".length);
+    else if (arg.startsWith("--candidate-query=")) flags.candidateQuery = arg.slice("--candidate-query=".length);
     else if (arg.startsWith("--species=")) flags.species.push(arg.split("=")[1]);
     else if (arg.startsWith("--provider=")) flags.providers = arg.split("=")[1].split(",");
     else if (arg === "--help" || arg === "-h") flags.help = true;
@@ -1080,7 +1099,7 @@ async function loadQueryOverrides() {
 }
 
 /** Gather candidates for one species from every enabled provider. */
-async function gatherCandidates(animal, providers, overrides = {}) {
+export async function gatherCandidates(animal, providers, overrides = {}) {
   const results = [];
   const override = overrides[animal.slug] ?? {};
   const query = override.query ?? animal.name;
@@ -1099,6 +1118,26 @@ async function gatherCandidates(animal, providers, overrides = {}) {
         provider.id === "direct"
           ? await provider.searchFor(animal.slug)
           : await provider.search(query, { limit: 24 });
+
+      /**
+       * Some catalogues state the licence per model rather than per provider.
+       *
+       * Khronos is the one that does: each sample carries its own LICENSE.md, so a search result arrives
+       * with no licence label and every candidate is refused by the allow-list before a human ever sees
+       * it — including when the console asks for one *by id*, which is the whole point of picking a model
+       * by hand. Resolving it here, for the first few results, means the licence is known before the
+       * download: the ranking can score it, the report prints it, and the console shows it in the row.
+       */
+      if (typeof provider.licenseFor === "function") {
+        for (const candidate of found.slice(0, 8)) {
+          if (candidate.licenseLabel) continue;
+          const info = await provider.licenseFor(candidate);
+          if (info?.license) {
+            candidate.licenseLabel = info.license === "CC0" ? "CC0" : "CC Attribution";
+            candidate.licenseUrl = info.url ?? null;
+          }
+        }
+      }
 
       // Drop results whose title contains a rejected word ("fillet", "sashimi"…).
       const rejected = (override.reject ?? []).map((word) => word.toLowerCase());
@@ -1327,6 +1366,20 @@ async function loadPolicyCeiling() {
   }
 }
 
+/**
+ * Keep only the candidate the console asked for, by provider and id.
+ *
+ * Both halves are required: provider ids are only unique inside a provider, and the two catalogues this
+ * project reads from (NASA, Khronos) both have a model called "Duck".
+ */
+export function filterToCandidate(candidates, selector) {
+  const separator = selector.indexOf(":");
+  if (separator <= 0) return [];
+  const provider = selector.slice(0, separator);
+  const id = selector.slice(separator + 1);
+  return candidates.filter((candidate) => candidate.provider === provider && String(candidate.id) === id);
+}
+
 async function fetchModels(flags) {
   if (!flags.all && flags.species.length === 0) {
     console.error("Nothing to do: pass --all or --species=<slug> (add --apply to download).");
@@ -1400,7 +1453,14 @@ async function fetchModels(flags) {
       continue;
     }
 
-    const candidates = await gatherCandidates(animal, flags.providers, overrides);
+    // The console can name one model. Then the search is run for that model's title — an opaque id is
+    // not searchable — and only the exact id survives the filter, so the run can never substitute a
+    // different model for the one that was picked.
+    const searchOverrides = flags.candidate
+      ? { ...overrides, [animal.slug]: { ...(overrides[animal.slug] ?? {}), query: flags.candidateQuery ?? animal.name } }
+      : overrides;
+    const gathered = await gatherCandidates(animal, flags.providers, searchOverrides);
+    const candidates = flags.candidate ? filterToCandidate(gathered, flags.candidate) : gathered;
     const ranked = rankCandidates(candidates, animal).filter(
       (entry) => entry.licence.ok && (!flags.strictMatch || entry.matched),
     );

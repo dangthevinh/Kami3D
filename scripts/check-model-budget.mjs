@@ -196,3 +196,42 @@ test("the budget is enforced in one place, and both callers go through it", () =
     "the log is behind RLS as well as behind the function",
   );
 });
+
+test("picking a model by hand still goes through the budget", async () => {
+  // The console can name one exact candidate, which skips the ranking — and must skip nothing else. The
+  // way to check that without a database is to read the CLI: the reservation has to come before the
+  // download on every path, and the candidate selector has to be exact.
+  const cli = readFileSync(join(process.cwd(), "scripts", "fetch-models.mjs"), "utf8");
+  const { filterToCandidate } = await import("../scripts/fetch-models.mjs");
+
+  // Provider ids are only unique inside a provider: both NASA and Khronos have a model called "Duck".
+  const both = [
+    { provider: "nasa", id: "Duck" },
+    { provider: "khronos", id: "Duck" },
+  ];
+  assert.equal(filterToCandidate(both, "khronos:Duck").length, 1, "both halves of the selector are required");
+  assert.equal(filterToCandidate(both, "khronos:Duck")[0].provider, "khronos");
+  assert.deepEqual(filterToCandidate(both, "Duck"), [], "a bare id selects nothing");
+  assert.deepEqual(filterToCandidate(both, "khronos:Goose"), [], "an id the provider no longer returns selects nothing");
+
+  const order = cli.indexOf("reserveDownload({ candidate, licence, animal, flags })");
+  const download = cli.indexOf("await provider.download(candidate, destination)");
+  assert.ok(order > 0 && download > order, "the reservation still comes first on the candidate path");
+  assert.ok(cli.includes("filterToCandidate(gathered, flags.candidate)"), "and the run keeps only the chosen model");
+  assert.ok(
+    cli.includes("--candidate-query=") || cli.includes("candidateQuery"),
+    "a title is sent with the id, because an opaque uid is not searchable",
+  );
+
+  const search = readFileSync(join(process.cwd(), "scripts", "model-search.mjs"), "utf8");
+  for (const field of ["quality", "faceCount", "bytes", "credit", "licenseVerdict"]) {
+    assert.ok(search.includes(field), "the search result must carry " + field + " for the console to show it");
+  }
+  // The licence resolution lives in the shared gather step, not in the console path: a catalogue that
+  // states its licence per model (Khronos) must have it known *before* the download, or the allow-list
+  // refuses the candidate and the console shows a row nobody can act on.
+  assert.ok(
+    cli.includes("provider.licenseFor"),
+    "a per-model licence is read during the search, and both the CLI and the console go through that step",
+  );
+});

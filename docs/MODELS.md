@@ -428,6 +428,34 @@ with no model at all.
 "Run now" in the console starts that worker as a child process. On a host without one, queue the order
 and run the command on a schedule — the budget is what makes a cron safe.
 
+### Picking one model by hand
+
+An order names a species and a provider and lets the ranking of Phase 12 choose. The other half is the
+search box above the table: it queries every configured provider at once, and shows what is actually out
+there — title and link to the source, the provider, the licence with its link, the face count, the size, the
+quality score with its parts, and the credit line that would be published.
+
+Each row carries its own answer from the budget, asked per candidate by `POST /api/admin/models/search`,
+so the button is enabled only when that exact model may be downloaded **and** says why when it may not —
+"daily budget spent (5 of 5)", "licence CC-BY-NC is not on the allow-list", "over the 12 MB per-model cap".
+A disabled button with the database's own words is the honest version of a button that fails on click.
+
+Downloading goes through `POST /api/admin/models/download`, which runs the CLI with
+`--candidate=<provider>:<id>` — the same code path as everything else, so the licence allow-list, the size
+cap, the reservation, the DRACO step, the attribution and the `model_url` wiring are the ones that always
+apply. Two details are worth knowing:
+
+- a candidate whose size the provider does not publish is budgeted at the policy's per-model ceiling, which
+  is exactly what the CLI reserves for the same model, and the settle writes the real number;
+- providers do not share an id shape — Khronos names its models, a Sketchfab id is an opaque uid — so the
+  console sends the title it showed and the run searches for that, then keeps **only the exact id**. An id
+  the provider no longer returns leaves an empty list and the run says so, rather than downloading a
+  different model.
+
+Catalogs that state the licence per model (Khronos reads each sample's own LICENSE.md) have it resolved
+during the search, so a row can show the licence, the ranking can score it, and the allow-list can check it
+before anyone clicks.
+
 ### What the console cannot do
 
 - fetch a model whose licence is not CC0 or CC BY;

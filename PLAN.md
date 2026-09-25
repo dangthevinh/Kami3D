@@ -3396,9 +3396,12 @@ sao nó an toàn (licence vẫn bị kiểm, hạn mức vẫn bị tính).
 
 ### 3. Còn lại, nói thẳng
 
-- Nút tải cho **một ứng viên cụ thể** sau khi tìm kiếm (bảng ứng viên với điểm chất lượng, face count, dung lượng,
-  attribution sẽ phát hành) **chưa làm**: hiện admin ra lệnh theo **loài + provider**, còn việc chọn ứng viên do
-  chính pipeline xếp hạng của Phase 12 quyết định. Đây là phần duy nhất của prompt 18B chưa có.
+- ~~Nút tải cho **một ứng viên cụ thể**~~ ✅ **đã làm**: ô tìm kiếm chạy song song mọi provider đang bật, bảng ứng viên
+  có điểm chất lượng (kèm các phần), face count, dung lượng, licence kèm link, và dòng credit sẽ phát hành; mỗi dòng
+  hỏi chính sách hạn mức cho đúng ứng viên đó nên nút chỉ sáng khi được phép, và khi bị chặn thì hiện **lý do của
+  database**. Tải xuống đi qua CLI với `--candidate=<provider>:<id>` — cùng một đường ống, không có đường thứ hai.
+  Đo được: tìm "Duck" ở Khronos ra licence CC-BY + 118 KB + điểm 42; tải đúng ứng viên đó cho `weddell-seal` chạy
+  hết chuỗi giữ chỗ → tải → DRACO 118 KB xuống 34 KB → ghi attribution (dấu vết bài thử đã revert).
 - Nút "Chạy ngay" chạy worker bằng tiến trình con; trên host không có tiến trình con thì phải chạy
   `npm run models:work` theo lịch, và trang nói rõ điều đó thay vì báo thành công giả.
 
