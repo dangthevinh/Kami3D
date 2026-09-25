@@ -61,8 +61,15 @@ only evidence for "tokens stay on the server"; the claim is otherwise a comment.
 
 - **RLS under Clerk is not enforcing yet.** In Clerk mode the server writes personal data with the service
   role and filters by `user_id`, so ownership is enforced by the query rather than by the database. P0.1 is
-  the fix; the Supabase side is configured (provider registered, issuer and JWKS match) and PostgREST still
-  refuses the token, so the last mile is open — see PLAN.md.
+  the fix, and it is blocked on Supabase rather than on code: the Clerk session token carries
+  `role: authenticated`, its `kid` matches the live JWKS exactly, the third-party auth integration was
+  deleted and re-added through the Management API and the project restarted, and PostgREST still answers
+  `401 PGRST301 "No suitable key was found to decode the JWT"` — which means it holds no Clerk key at all
+  (a wrong key would fail signature verification instead). Two measured controls rule out the alternatives:
+  adding an `aud` claim changes nothing, and the anonymous key is accepted on the same endpoint (it fails
+  with `42501 permission denied for the anon role`, not `PGRST301`). The remaining steps are a Clerk
+  dashboard "Connect with Supabase" wizard and a manual re-add in the Supabase dashboard, then Supabase
+  support with that evidence; see PLAN.md, "P0.1 — Kết quả" section 6.
 - **The rate limiter is per process.** An in-memory sliding window bounds one instance; a deployment with
   several needs a shared store, which this project deliberately does not require. The README says so.
 - **The CSP is not enforcing**, so it stops nothing today — it reports.

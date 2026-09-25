@@ -3012,6 +3012,32 @@ ghi dữ liệu của người khác**) và **revoke session đó** khi xong. N�
 Cho tới lúc đó hành vi của app **không đổi**: biến môi trường chưa được đặt nên dữ liệu cá nhân vẫn đi qua service
 role như cũ — nghĩa là việc bật provider không làm hỏng gì, và cũng chưa cải thiện gì cho tới bước 3.
 
+### 6. Thử lại toàn bộ bằng API (2026-09-25): vẫn `PGRST301`, và đây là những gì đã bị loại trừ
+
+Vòng này không đoán nữa mà thử từng giả thuyết một, mỗi giả thuyết một phép đo:
+
+| Giả thuyết | Phép thử | Kết quả |
+| --- | --- | --- |
+| Provider đăng ký hỏng hoặc JWKS cũ | `DELETE` rồi `POST` lại integration (API **không có** `PATCH` — đó là lý do lần trước trả 404), sau đó `POST /restart`, chờ 60 s rồi chạy lại `verify:clerk-rls` | provider mới `04745456-5089-46b6-a94f-8f0d4f53ca0f`, `type: clerk-development`, JWKS resolve lại lúc `12:12:05Z` — **vẫn 401 PGRST301** |
+| Token được ký bằng khoá khác với JWKS | in `kid` trong header của token thật rồi so với JWKS sống | **khớp**: `ins_3JXyJtg1gZscsUZXX4dGZB8ibOB` / `RS256` ở cả hai |
+| Thiếu claim `aud` (token của Supabase Auth luôn có) | tạo 2 JWT template tạm (`aud: authenticated` và `aud: <project-ref>`), mint token từ mỗi template rồi gọi PostgREST, sau đó **xoá cả hai template** | cả ba biến thể (không `aud`, `aud=authenticated`, `aud=<ref>`) đều **401 PGRST301** |
+| Khoá anon định dạng mới gây lỗi | đối chứng: gọi cùng endpoint bằng `apikey` legacy-anon + bearer legacy-anon, và bằng `apikey` publishable + **không** bearer | cả hai trả **401 42501** ("permission denied for the anon role") — tức khoá anon **được chấp nhận**; lỗi nằm ở token Clerk, không ở `apikey` |
+
+Đọc kết quả: PostgREST **không có** khoá công khai nào của Clerk trong cấu hình của nó. Nếu có khoá mà chữ ký sai thì
+thông báo sẽ là lỗi xác minh chữ ký; còn "No suitable key was found" nghĩa là không có khoá nào để thử. Phía Supabase
+thì đúng: integration tồn tại, issuer khớp, JWKS resolve. Nên phần còn lại **không sửa được bằng Management API** —
+`GET /v1/projects/{ref}/postgrest` chỉ trả `jwt_secret` legacy, không có trường third-party nào để đặt.
+
+Việc còn lại, theo thứ tự:
+
+1. Clerk Dashboard → **Integrations → Connect with Supabase** — wizard này làm nhiều hơn phần API làm được;
+2. Supabase Dashboard → **Authentication → Third-Party Auth**: xoá và thêm lại integration **bằng tay** (đường dashboard,
+   không phải API). Nếu vẫn `PGRST301` thì đây là việc phải hỏi Supabase support, và bảng trên là bằng chứng để gửi kèm;
+3. đặt `CLERK_SUPABASE_JWT_TEMPLATE=session` (đã có sẵn trong `.env.local`) rồi chạy `npm run verify:clerk-rls`.
+
+Cho tới lúc đó [docs/SECURITY.md](docs/SECURITY.md) vẫn ghi thẳng: **RLS dưới Clerk chưa được database thi hành** —
+app tự lọc `user_id` trong truy vấn và ghi bằng service role.
+
 ### 5. Bằng chứng
 
 - `npm run check:suites`: **406 test / 36 suite** (thêm 7 của `check:rls`).
@@ -3645,7 +3671,7 @@ Ghi chú đầy đủ: [docs/SECURITY.md](docs/SECURITY.md).
 | 1 | ~~**Cập nhật `CLERK_SECRET_KEY`**~~ | ✅ **Không còn là vấn đề** — kiểm lại trong phiên này: key trong `.env.local` trả **HTTP 200** cho `GET https://api.clerk.com/v1/users`, và tìm được đúng tài khoản `kaiovinh@gmail.com` (Clerk user `user_3Ja1siqFIUisqvpNzeflv0tkkA6`). Việc còn lại là **bạn đăng nhập thử trên trình duyệt** (bước 2). |
 | 2 | Test đăng nhập trong trình duyệt | Cần bạn tự làm (Google sign-in qua Clerk). Kiểm tra được từ phía tôi: Clerk API xanh, `AUTH_PROVIDER=clerk`, và `app_admins` đã có dòng cho user của bạn. |
 | 3 | 3 model là "đại diện" | `gooty-tarantula` (tarantula Mexican red-knee), `weddell-seal` (seal chung), `emperor-penguin` (chim non) — thay bằng `data/model-sources.json`. |
-| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | 🟡 SQL + code + kiểm chứng xong; provider Clerk đã đăng ký ở Supabase và JWT template đã tạo **bằng API**. Còn **2 thao tác trong Clerk dashboard** (Connect with Supabase + customize session token thêm `role: authenticated`) rồi đặt `CLERK_SUPABASE_JWT_TEMPLATE=session` — xem mục "P0.1 — Kết quả" phần 4–5 để có bằng chứng lỗi cụ thể |
+| 4 | **P0.1 — Clerk Third-Party Auth + RLS thật** (từ review Phase 10) | 🔴 **Chặn ở phía Supabase, không phải ở code.** Session token của Clerk đã có `role: authenticated`, `kid` khớp JWKS sống, và integration đã được **xoá rồi thêm lại bằng API + restart project** — PostgREST vẫn trả `401 PGRST301 "No suitable key was found"`, tức nó không có khoá của Clerk trong cấu hình. Còn lại: (1) Clerk → Integrations → **Connect with Supabase**; (2) Supabase → Authentication → Third-Party Auth, thêm lại integration **bằng tay**; nếu vẫn lỗi thì gửi Supabase support bảng bằng chứng ở mục "P0.1 — Kết quả" phần 6. Không có thao tác nào trong số này sửa được bằng API hay bằng code |
 | 5 | ~~**P0.2 — chống bơm lượt xem**~~ | ✅ **Xong** — cửa sổ trượt 40/phút mỗi địa chỉ + chặn `Sec-Fetch-Site: cross-site`; đã kiểm trên server thật (403 và 429 kèm `retry-after`) |
 | 6 | ~~**P0.3 — tầng lỗi/đang tải**~~ | ✅ **Xong** — `app/error.tsx`, `app/global-error.tsx`, `PageSkeleton` cho 4 route động; đã render lại bằng Chrome headless |
 | 7 | ~~**P0.4 — `dispose()` GLB**~~ | ✅ **Xong** — `lib/three-dispose.ts` dùng chung cho trang loài và quiz, 6 test; lỗ rò ở quiz (mỗi câu reveal một model) đã bịt |
