@@ -68,6 +68,14 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://kami3d.example.com
 
+      # Reads the secret values from the environment CI provides, then looks for them in every
+      # tracked file and in the client chunks the build just produced. A service role key in a JS
+      # chunk is the whole database, so this runs on the artifacts rather than on the source.
+      - name: Secrets stay on the server
+        run: npm run check:secrets
+        env:
+          NEXT_PUBLIC_SITE_URL: https://kami3d.example.com
+
   model-pipeline:
     name: Model fetch pipeline (dry run)
     runs-on: ubuntu-latest

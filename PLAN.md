@@ -3548,6 +3548,96 @@ khớp cả email, và định nghĩa **cuối cùng** của `current_user_id()`
 `auth.uid()` trần.
 
 ---
+> **Phase 20 — Bảo mật: đóng những khoảng trống đo được**
+
+**Prompt để triển khai Phase 20 — Tối ưu bảo mật**:
+
+````markdown
+Triển khai Phase 20 – Security hardening cho Kami3D.
+
+Khảo sát trước khi viết phase này cho thấy ba khoảng trống cụ thể, không phải cảm giác:
+
+| Khoảng trống | Bằng chứng |
+| --- | --- |
+| Thiếu header bảo mật | `next.config.ts` mới chỉ có `X-Content-Type-Options` và `Referrer-Policy`; **không có** CSP, `frame-ancestors`/`X-Frame-Options`, `Permissions-Policy`, HSTS, `Cross-Origin-Opener-Policy` |
+| Route ghi không có guard | `/api/views` có kiểm same-origin + rate limit; **9 route ghi khác thì không** — kể cả `/api/settings`, `/api/favorites`, `/api/quiz` (dữ liệu cá nhân) và hai route admin mới của 18B **spawn tiến trình con** |
+| Chưa có gì chứng minh token không lọt vào bundle | 18B nói "token chỉ ở server"; chưa có phép đo nào kiểm điều đó trên bản build thật |
+
+1. Header, và một CSP chạy ở chế độ báo cáo
+   - Thêm vào `next.config.ts`: `X-Frame-Options: DENY`, `Permissions-Policy` (tắt camera/micro/geo/interest-cohort),
+     `Cross-Origin-Opener-Policy: same-origin`, `X-DNS-Prefetch-Control`, và `Strict-Transport-Security` **chỉ ở production**.
+   - **`Content-Security-Policy-Report-Only`** với danh sách cho phép viết rõ từng mục và lý do: Clerk, Supabase,
+     MapLibre (worker + `blob:`), ảnh từ `images.unsplash.com`, AdSense nếu được cấu hình. Chế độ report-only là chủ ý:
+     một CSP chặn sai làm hỏng trang 3D, còn report-only thì đo được trước khi bật.
+   - Kiểm bằng `curl -I` trên server thật, không phải bằng đọc code.
+
+2. Guard cho mọi route ghi
+   - `lib/write-guard.ts` (server-only): `guardWrite(request, { name, rule })` dùng lại đúng hai hàm thuần đã có trong
+     `lib/request-guard.ts` — `sameOriginVerdict` (đọc `Sec-Fetch-Site`, thứ JavaScript trang không giả được) và
+     `createRateLimiter` (cửa sổ trượt theo địa chỉ). Trả `null` nếu qua, hoặc `NextResponse` 403/429 kèm `retry-after`.
+   - Áp cho **mọi** route ghi chưa có: `/api/settings`, `/api/favorites`, `/api/quiz`, `/api/admin/geodata`, và bốn route
+     `/api/admin/models/*`. Route admin: kiểm admin (404) trước, rồi guard — để không tiết lộ sự tồn tại của route.
+   - Route spawn tiến trình con (`search`, `download`, `run`) có hạn mức **chặt hơn** vì mỗi request là một tiến trình.
+
+3. Chứng minh token chỉ ở server
+   - `scripts/check-secrets.mjs`: đọc các giá trị bí mật từ `.env.local`, rồi quét **mọi file được git theo dõi** và
+     (nếu có) `.next/static` + `public/`; fail nếu giá trị nào xuất hiện. **Không in giá trị**, chỉ in tên khoá và đường
+     dẫn file — một script bảo mật không được tự rò thứ nó đang bảo vệ.
+   - Chạy trong CI **sau bước build** (bundle là thứ cần kiểm), và bỏ qua kèm ghi chú nếu chưa có build.
+
+4. Kiểm thử và bằng chứng
+   - `scripts/check-security.mjs` (thuần, chạy trong `check:suites`): khẳng định bộ header bắt buộc còn nguyên, mọi route
+     có method ghi đều import guard, cookie demo là `httpOnly` + `secure` ở production + `sameSite`, và `.env*` nằm trong
+     `.gitignore`.
+   - `npm run audit:mobile`-style evidence: `curl -I` in ra các header thật; `check:secrets` in ra số file đã quét.
+   - Ghi kết quả vào `PLAN.md` và `docs/SECURITY.md` (mới): cái gì được bảo vệ, bằng cách nào, và cái gì **không**.
+
+**Ràng buộc**: không thêm dịch vụ/dependency; không phá trang 3D (CSP report-only); không hạ chuẩn nào đang có;
+và phần "không bảo vệ được gì" phải nói thẳng (ví dụ: rate limit trong bộ nhớ là giới hạn của **một** tiến trình).
+````
+
+**Ràng buộc riêng của Phase 20**:
+
+1. **Mỗi thay đổi ứng với một khoảng trống đo được**, không phải một danh sách hay ho.
+2. **CSP không được làm hỏng trang** — report-only trước, và ghi rõ mục nào sẽ phải siết khi bật thật.
+3. **Guard là một chỗ**: dùng lại hai hàm thuần đã có, không viết bản thứ hai của cùng một luật.
+4. **Không in bí mật** ở bất kỳ output nào, kể cả khi kiểm tra fail.
+5. **Nói rõ giới hạn**: rate limiter trong bộ nhớ chỉ giới hạn một process; đa instance cần store dùng chung (README đã ghi).
+
+
+## ✅ Phase 20 — Bảo mật: kết quả
+
+### 1. Ba khoảng trống đã đóng, mỗi cái một phép đo
+
+| Khoảng trống | Đã làm | Đo được |
+| --- | --- | --- |
+| Thiếu header bảo mật | `next.config.ts` thêm `X-Frame-Options: DENY`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-DNS-Prefetch-Control`, HSTS (**chỉ production**), và CSP **report-only** với danh sách cho phép viết rõ | `curl -I` trên server thật in ra đủ 7 header |
+| 9 route ghi không có guard | `lib/write-guard.ts` dùng lại đúng hai hàm thuần của `lib/request-guard.ts`; áp cho **11 route ghi** | `Sec-Fetch-Site: cross-site` → **403**; `Origin` lạ → **403**; cùng origin nhưng chưa đăng nhập → **401** (guard cho qua, route mới đòi phiên); request thứ **61** vào `/api/favorites` → **429** kèm `retry-after: 56` |
+| Chưa chứng minh token không lọt bundle | `scripts/check-secrets.mjs` đọc giá trị bí mật rồi quét mọi file git theo dõi **và** chunk client của bản build; **không in giá trị**, chỉ in tên khoá + đường dẫn | 405 file đã quét (gồm chunk client), 5 secret đã cấu hình, **PASS** |
+
+Route spawn tiến trình con có hạn mức chặt nhất: `/api/admin/models/run` 6/phút, `search` 10/phút, `download` 4/5 phút —
+vì mỗi request là một tiến trình chứ không phải một truy vấn.
+
+### 2. Kiểm thử
+
+`scripts/check-security.mjs` (mới, 4 bài, chạy trong `check:suites`): bộ header bắt buộc và HSTS chỉ ở production;
+CSP là report-only và có `frame-ancestors`/`object-src`/`base-uri`; **mọi** route có handler ghi đều đi qua guard dùng
+chung (quét cả cây `app/api`); cookie demo là `httpOnly` + `sameSite=lax` + `secure` khi production; và `.env*` nằm
+trong `.gitignore`. `check:secrets` được móc vào CI **sau bước build**.
+
+### 3. Giới hạn — nói thẳng
+
+- **RLS dưới Clerk vẫn chưa thi hành**: chế độ Clerk ghi bằng service role và tự lọc `user_id`, nên quyền sở hữu do
+  truy vấn chứ không phải database thi hành. Phía Supabase đã cấu hình đúng (provider đã đăng ký, issuer và JWKS
+  khớp) nhưng PostgREST vẫn từ chối token — xem mục P0.1 ở trên.
+- **Rate limiter nằm trong bộ nhớ**: giới hạn **một** process. Nhiều instance thì cần store dùng chung, thứ dự án này
+  cố ý không yêu cầu.
+- **CSP chưa thi hành**, nên hôm nay nó chưa chặn gì — nó báo cáo.
+- **Không có tự động xoay khoá**: nếu khoá từng bị commit thì việc phải làm là xoay, và đó là bước của con người.
+
+Ghi chú đầy đủ: [docs/SECURITY.md](docs/SECURITY.md).
+
+---
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

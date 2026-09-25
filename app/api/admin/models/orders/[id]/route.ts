@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/app/api/admin/_lib/guard";
 import { getPersonalDataClient } from "@/lib/personal-data";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,8 @@ export const dynamic = "force-dynamic";
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const gate = await requireAdmin();
   if (!gate.ok) return gate.response;
+  const blocked = guardWrite(_request, { name: "admin-order-cancel", rule: { limit: 30, windowMs: 60_000 }, expectedHost: hostOfRequest(_request) });
+  if (blocked) return blocked;
 
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) return NextResponse.json({ error: "bad id" }, { status: 400 });

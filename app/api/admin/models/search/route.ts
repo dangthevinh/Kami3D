@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import { requireAdmin, readJson } from "@/app/api/admin/_lib/guard";
 import { evaluateBudget } from "@/lib/model-budget";
 import { providersWithAvailability, readPolicy, readUsage } from "@/lib/model-sourcing";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,6 +27,8 @@ const run = promisify(execFile);
 export async function POST(request: Request) {
   const gate = await requireAdmin();
   if (!gate.ok) return gate.response;
+  const blocked = guardWrite(request, { name: "admin-search", rule: { limit: 10, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
 
   const body = await readJson(request);
   const query = typeof body?.query === "string" ? body.query.trim().slice(0, 80) : "";

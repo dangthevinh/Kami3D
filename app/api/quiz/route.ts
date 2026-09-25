@@ -6,6 +6,7 @@ import { badgesForScore, readQuizHistoryFor } from "@/lib/profile";
 import { TABLES } from "@/lib/supabase";
 import { getPersonalDataClient } from "@/lib/personal-data";
 import { QUIZ_MODES, type QuizMode } from "@/types/animal";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const blocked = guardWrite(request, { name: "quiz", rule: { limit: 30, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
+
   let payload: { score?: unknown; totalQuestions?: unknown; mode?: unknown };
   try {
     payload = (await request.json()) as typeof payload;

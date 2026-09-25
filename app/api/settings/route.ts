@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { deletePersonalDataFor, readSettingsFor, writeSettingsFor } from "@/lib/settings-store";
 import { DEFAULT_USER_SETTINGS, coerceUserSettings, type UserSettingsPatch } from "@/lib/user-settings";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const blocked = guardWrite(request, { name: "settings", rule: { limit: 30, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
+
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Sign in to save your settings." }, { status: 401 });
 

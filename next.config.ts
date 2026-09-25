@@ -52,6 +52,46 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Nothing in this product is meant to be framed. The species pages are the content, and a
+          // framed console is a clickjacking target.
+          { key: "X-Frame-Options", value: "DENY" },
+          // Every API this app calls is same-origin or a documented third party, so the browser
+          // capabilities it needs are the ones it already uses.
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "X-DNS-Prefetch-Control", value: "off" },
+          // Only over HTTPS, and only in production: a local http:// dev server sending HSTS would
+          // pin the developer's browser to a scheme it does not serve.
+          ...(process.env.NODE_ENV === "production"
+            ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" }]
+            : []),
+          // Report-only on purpose. A content policy that blocks the wrong thing takes the 3D viewer,
+          // the map or the sign-in down, and this project's rule is measure before enforce. The list
+          // below is what the app actually loads today; tightening it (dropping 'unsafe-inline',
+          // adding nonces) is a separate change with its own measurements.
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: [
+              "default-src 'self'",
+              // Next inlines its own bootstrap and Tailwind ships styles as a sheet; Clerk injects a
+              // script tag for its hosted components.
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.com https://pagead2.googlesyndication.com https://*.googlesyndication.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://*.clerk.com https://img.clerk.com https://media.sketchfab.com https://*.googlesyndication.com",
+              "font-src 'self' data:",
+              // MapLibre compiles its worker from a blob, and three fetches .glb plus the DRACO wasm.
+              "worker-src 'self' blob:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://api.clerk.com https://*.tile.openstreetmap.org https://api.open-meteo.com https://overpass-api.de https://nominatim.openstreetmap.org https://*.googlesyndication.com",
+              "media-src 'self' https://*.supabase.co",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
         ],
       },
       {

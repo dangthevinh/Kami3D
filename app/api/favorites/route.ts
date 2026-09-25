@@ -5,6 +5,7 @@ import { readFavoriteIds, writeFavoriteIds } from "@/lib/demo-store";
 import { readFavoriteIdsFor } from "@/lib/profile";
 import { TABLES } from "@/lib/supabase";
 import { getPersonalDataClient } from "@/lib/personal-data";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const blocked = guardWrite(request, { name: "favorites", rule: { limit: 60, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
+
   let animalId: unknown;
   try {
     ({ animalId } = (await request.json()) as { animalId?: unknown });

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { parseImport, validateOptions } from "@/lib/geodata-import";
 import { getCurrentUserId } from "@/lib/auth";
 import { getPersonalDataClient } from "@/lib/personal-data";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const blocked = guardWrite(request, { name: "admin-geodata", rule: { limit: 20, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
+
   if (!(await isAdmin())) {
     // Deliberately the same answer for "not signed in" and "signed in but not an admin": the
     // endpoint is not a place to enumerate who has rights.

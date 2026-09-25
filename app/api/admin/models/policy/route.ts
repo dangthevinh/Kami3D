@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin, readJson } from "@/app/api/admin/_lib/guard";
 import { providersWithAvailability } from "@/lib/model-sourcing";
 import { getPersonalDataClient } from "@/lib/personal-data";
+import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const gate = await requireAdmin();
   if (!gate.ok) return gate.response;
+  const blocked = guardWrite(request, { name: "admin-policy", rule: { limit: 20, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
+  if (blocked) return blocked;
 
   const body = await readJson(request);
   if (!body) return NextResponse.json({ error: "expected a JSON body" }, { status: 400 });
