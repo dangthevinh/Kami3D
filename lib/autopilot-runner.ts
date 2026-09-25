@@ -1,6 +1,6 @@
 import "server-only";
 
-import { spawn } from "node:child_process";
+import type { ChildProcess, spawn as SpawnFunction } from "node:child_process";
 
 import { roundResultFromJson, type AutopilotRoundResult } from "@/lib/autopilot";
 import { providersWithAvailability } from "@/lib/model-sourcing";
@@ -49,13 +49,39 @@ function tail(text: string, limit = OUTPUT_LIMIT): string {
 }
 
 /**
+ * Load `spawn` at call time, with the specifier left alone by the bundler.
+ *
+ * `instrumentation.ts` is bundled for **both** runtimes - this project has a middleware, so Next
+ * compiles a copy for the edge as well - and the edge build cannot resolve `node:child_process` at
+ * all. A static import here therefore fails the production build (measured: CI, "Reading from
+ * \"node:child_process\" is not handled by plugins"), even though the code that uses it only ever
+ * runs under `nodejs`. A type-only import above is erased, and this one is fetched when a round
+ * actually needs to start a process - which on an edge runtime never happens, and is answered
+ * honestly when it does.
+ */
+async function loadSpawn(): Promise<typeof SpawnFunction | null> {
+  try {
+    const specifier = "node:child_process";
+    const module = (await import(/* webpackIgnore: true */ specifier)) as { spawn: typeof SpawnFunction };
+    return module.spawn;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Run the worker and wait for it, but not forever.
  *
  * A download batch can take minutes; a request cannot. So the wait is bounded by the caller (the
  * panel waits longer than a cron endpoint) and a worker that outlives it is *left running*: killing
  * a download halfway would leave a half-written file, and the order row already carries the truth.
  */
-function waitForWorker(orderId: string, waitMs: number): Promise<{ finished: boolean; output: string; spawnError: string | null }> {
+async function waitForWorker(orderId: string, waitMs: number): Promise<{ finished: boolean; output: string; spawnError: string | null }> {
+  const spawn = await loadSpawn();
+  if (!spawn) {
+    return { finished: false, output: "", spawnError: "this runtime has no child processes" };
+  }
+
   return new Promise((resolve) => {
     let output = "";
     let settled = false;
@@ -66,7 +92,7 @@ function waitForWorker(orderId: string, waitMs: number): Promise<{ finished: boo
       resolve(value);
     };
 
-    let child;
+    let child: ChildProcess;
     try {
       child = spawn(process.execPath, [WORKER, "--order=" + orderId, "--upload"], {
         cwd: process.cwd(),
