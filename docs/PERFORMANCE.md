@@ -255,3 +255,19 @@ on almost every route was a 10–11px label.
 
 No new JavaScript, no new dependency, no component forked for mobile, and the desktop breakpoints are untouched:
 the whole phase is CSS plus two class names, which is what keeps it from costing anything in the bundle.
+
+### Đo lại sau khi sửa (ghi bổ sung)
+
+Chạy lại npm run audit:mobile ở 390×844:
+
+| Route | Tap target < 44px | Chữ < 12px |
+| --- | --- | --- |
+| /explore | 48 → **0** | 4 → **0** |
+| /settings | 56 → **0** | 5 → **0** |
+| / | 30 → **0** | 10 → **0** |
+
+Script kết luận: PASS - no horizontal overflow and every tap target is at least 44px.
+
+Hai điều nói thẳng: ba route còn lại của bộ mặc định (/animal/lion, /quiz, /analytics) dùng đúng các thành phần đã
+sửa nhưng chưa đo lại trong phiên này; và env(safe-area-inset-*) cho tai thỏ / thanh home của iPhone thì prompt có nêu
+nhưng **chưa làm**.
