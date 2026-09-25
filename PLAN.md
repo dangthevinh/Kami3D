@@ -3777,7 +3777,41 @@ Cùng **một** model Sketchfab (`0616281841b44983b1c113b578c0f0ce`) được ch
 - **Rate limit của nút "Chạy ngay" là 3 lượt / 5 phút** (mỗi lượt là một tiến trình con và một lượt hạn mức thật), cấu hình là 20/phút.
 - **Auto-pilot không thay đổi việc gì khác**: nó chỉ xếp lệnh; licence, dung lượng, hạn mức ngày/tháng/tổng vẫn do `reserve_model_download()` quyết định.
 
+### 5. Một lỗi thật mà CI bắt được trong một phút (và cách sửa)
+
+Lần push đầu của phase này **CI đỏ**, và chỗ sai không phải chỗ trông có vẻ sai:
+
+```
+Module build failed: UnhandledSchemeError: Reading from "node:child_process" is not handled by plugins
+Import trace: node:child_process <- lib/autopilot-runner.ts <- lib/autopilot-scheduler.ts <- instrumentation.ts
+```
+
+`instrumentation.ts` đã có guard `process.env.NEXT_RUNTIME !== "nodejs"` — nhưng đó là guard **lúc chạy**, còn
+webpack thì phải resolve import **lúc build**, và vì dự án có `middleware.ts` nên Next đóng gói
+`instrumentation` cho **cả hai** runtime, kể cả edge. Edge không có `node:` scheme. Bài học: một điều kiện
+runtime không sửa được một vấn đề resolve lúc build.
+
+Cách sửa: `spawn` được lấy **bên trong hàm dùng nó** (`loadSpawn()`), với specifier mà bundler được bảo là đừng
+đụng vào (`webpackIgnore`), còn import ở đầu file chỉ là `import type` — TypeScript xoá nó khi biên dịch. Trên
+edge thì lần lấy đó thất bại và lượt chạy trả lời đúng sự thật: `"this runtime has no child processes"`, kèm
+tên lệnh cần chạy — cùng câu trả lời mà route đã dành cho host serverless.
+
+Sau khi sửa, CI xanh và **ngân sách bundle vẫn trong hạn** (đo trên chính bản build của CI):
+
+| Route | JS khởi đầu (gzip) | Ngân sách |
+| --- | --- | --- |
+| `/admin/models` | **124.6 kB** (thêm 4.2 kB so với 120.4 trước phase — đúng bằng bảng điều khiển mới) | 140 |
+| `/animal/[slug]` | 143.4 kB | 165 |
+| `/explore` | 152.9 kB | 165 |
+| `/quiz` | 161.4 kB | 165 |
+| `/analytics` | 106.1 kB | 140 |
+
+`check:secrets` trong CI cũng chạy sau build và nói đúng: `No server-only secrets are configured here, so
+there is nothing to look for` — CI không có `.env.local`, nên phép kiểm đó chỉ có nghĩa khi chạy ở máy có khoá.
+
 ---
+
+
 
 ## 🚧 Việc còn lại
 
