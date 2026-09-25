@@ -46,14 +46,14 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
-| Test tự động | **374** bài trong **32** suite (`npm run check:suites`) — thêm 17 footfall · 9 trends · 7 overpass · 13 logistics · 7 ndvi · 6 agriculture · 17 twin |
+| Test tự động | **469** bài trong **44** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 20 thêm 4 bài của `check-security`. Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
-| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | `/` 146.5 · `/explore` 151.8 · `/quiz` 156.7 · `/animal/[slug]` 142.6 · `/settings` ~133 kB (ngân sách 165) — SettingsProvider thêm ~3–5 kB mỗi route |
+| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | Đo trong **bản build cách ly** (Phase 19–20): `/animal/[slug]` 143.7–145.0 · `/explore` 153.1 · `/quiz` 161.7 · `/analytics` 106.3 · `/admin/models` 120.4 — ngân sách 165 (riêng `/analytics` và `/admin/models` là 140) |
 | Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
-| CI | GitHub Actions xanh — typecheck → checks → build → bundle budget mỗi lần push |
-| **Rủi ro đang mở** | **R1** Clerk đi vòng qua RLS bằng service role (P0) · **R2** `/api/views` có thể bị bơm · **R3** thiếu `app/error.tsx`/`loading.tsx` · **R4** kiến trúc dữ liệu O(N) · **R5** không có giám sát lỗi · **R6** GLB không được `dispose` + chưa có KTX2 · **R7** chưa sẵn sàng i18n · **R8** egress chưa có trần. Chi tiết + SQL ở [docs/REVIEW.md](docs/REVIEW.md) |
+| CI | GitHub Actions xanh — typecheck → checks → build → bundle budget → **quét bí mật** mỗi lần push |
+| **Rủi ro đang mở** | **R1** Clerk đi vòng qua RLS bằng service role (P0 — P0.1) · **R4** kiến trúc dữ liệu O(N) · **R5** không có giám sát lỗi · **R6** chưa có KTX2 (`dispose()` đã xong ở P0.4) · **R7** chưa sẵn sàng i18n · **R8** egress chưa có trần · **R9** rate limiter chỉ giới hạn **một** process và CSP mới ở chế độ **report-only** (Phase 20). Đã đóng: ~~R2~~ (P0.2), ~~R3~~ (P0.3). Chi tiết + SQL ở [docs/REVIEW.md](docs/REVIEW.md) |
 | Bảo mật database | Supabase advisors: **0 phát hiện security**; 2 cảnh báo `anon_security_definer_function_executable` là **cố ý** và hẹp (`increment_animal_view`, `quiz_stats`) |
 
 **Tech stack đang chạy**: Next.js `15.5.25` (App Router) · React `19.2.8` · Tailwind CSS `4` ·
@@ -3649,18 +3649,20 @@ Ghi chú đầy đủ: [docs/SECURITY.md](docs/SECURITY.md).
 | 5 | ~~**P0.2 — chống bơm lượt xem**~~ | ✅ **Xong** — cửa sổ trượt 40/phút mỗi địa chỉ + chặn `Sec-Fetch-Site: cross-site`; đã kiểm trên server thật (403 và 429 kèm `retry-after`) |
 | 6 | ~~**P0.3 — tầng lỗi/đang tải**~~ | ✅ **Xong** — `app/error.tsx`, `app/global-error.tsx`, `PageSkeleton` cho 4 route động; đã render lại bằng Chrome headless |
 | 7 | ~~**P0.4 — `dispose()` GLB**~~ | ✅ **Xong** — `lib/three-dispose.ts` dùng chung cho trang loài và quiz, 6 test; lỗ rò ở quiz (mỗi câu reveal một model) đã bịt |
-| 8 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
-| 5 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
-| 6 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
+| 8 | **Giới hạn đã biết của Phase 20** | Rate limiter nằm trong bộ nhớ nên chỉ giới hạn **một** process (nhiều instance cần store dùng chung — dự án cố ý không yêu cầu); CSP đang **report-only** nên hôm nay chưa chặn gì; chưa có tự động xoay khoá. Ghi đủ ở [docs/SECURITY.md](docs/SECURITY.md) |
+| 9 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
+| 10 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
+| 11 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
 
 ---
 
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 267 bài test trong 23 suite (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata)
+npm run check        # typecheck + 469 bài test trong 44 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
+npm run check:secrets # quét bí mật trong mọi file git theo dõi + chunk client của bản build (không in giá trị)
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
-npm run build        # build production 37 route
+npm run build        # build production 41 route
 npm run db:status    # database đang có bao nhiêu loài
 npm run models:report # model nào tải được, kèm license
 npm run audit:perf   # Chrome thật: TTFB/FCP/LCP/CLS + byte tải trước và sau `load`
