@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AutopilotPanel } from "@/components/admin/AutopilotPanel";
+import { ModelUploadForm } from "@/components/admin/ModelUploadForm";
+import { UploadInbox } from "@/components/admin/UploadInbox";
 import { CancelOrderButton, OrderForm, PolicyForm } from "@/components/admin/ModelSourcingControls";
 import { ModelSearch } from "@/components/admin/ModelSearch";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +12,8 @@ import { adminStatus } from "@/lib/admin";
 import { getAllAnimals } from "@/lib/animals";
 import { AUTOPILOT_SCOPES, autopilotTargets, type AutopilotScope } from "@/lib/autopilot";
 import { ALLOWED_LICENSES, evaluateBudget } from "@/lib/model-budget";
+import { UPLOAD_PREFIXES } from "@/lib/model-upload";
+import { readInbox } from "@/lib/upload-ingest";
 import {
   providersWithAvailability,
   readAutopilot,
@@ -64,7 +68,7 @@ export default async function AdminModelsPage() {
     );
   }
 
-  const [policy, usage, orders, log, animals, autopilot, gaps] = await Promise.all([
+  const [policy, usage, orders, log, animals, autopilot, gaps, inbox] = await Promise.all([
     readPolicy(),
     readUsage(),
     readOrders(),
@@ -72,6 +76,7 @@ export default async function AdminModelsPage() {
     getAllAnimals(),
     readAutopilot(),
     readGapReport(),
+    readInbox(),
   ]);
   const providers = providersWithAvailability();
   // Species with no model first: that is what an admin is usually here to fix.
@@ -164,6 +169,45 @@ export default async function AdminModelsPage() {
             scopeCounts={scopeCounts}
             cronReady={Boolean(process.env.CRON_SECRET)}
           />
+        </div>
+      </section>
+
+      <section className="mt-8 glass rounded-[var(--radius-card)] p-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-lg font-semibold text-white">Bring your own model</h2>
+          <p className="text-[11px] text-white/40">a file the admin has, published to a species and its card</p>
+        </div>
+        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-white/50">
+          Both halves below end in the same function, and both go through{" "}
+          <code className="text-white/70">reserve_model_download(provider = &apos;upload&apos;)</code>: the per-model cap,
+          the storage ceiling and the <code className="text-white/70">CC0 / CC-BY</code> allow-list apply to an admin&apos;s
+          own file exactly as they apply to a download. The triangle count is read out of the GLB itself, the file is
+          compressed with the same DRACO step the pipeline uses, and the card decision is{" "}
+          <code className="text-white/70">animals.preview_eligible</code> — which is why an upload reaches a card
+          without a rebuild (the pages themselves revalidate every 5 minutes).
+        </p>
+
+        <div className="mt-4 grid gap-6 lg:grid-cols-2">
+          <div>
+            <h3 className="text-sm font-semibold text-white/85">Manual</h3>
+            <p className="mt-1 text-xs text-white/45">Pick a species and a .glb, and write the credit.</p>
+            <div className="mt-3">
+              <ModelUploadForm
+                slugs={slugs}
+                maxBytes={policy?.maxBytesPerModel ?? 0}
+                remainingToday={remainingToday}
+              />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-white/85">Automatic</h3>
+            <p className="mt-1 text-xs text-white/45">
+              Drop files in the inbox and let the app&apos;s clock publish them.
+            </p>
+            <div className="mt-3">
+              <UploadInbox items={inbox} folder={"animal-assets/" + UPLOAD_PREFIXES.inbox} />
+            </div>
+          </div>
         </div>
       </section>
 

@@ -49,6 +49,9 @@ function normaliseRow(row: Record<string, unknown>): Animal {
     description: String(row.description ?? ""),
     fun_facts: facts,
     model_url: (row.model_url as string | null) ?? null,
+    // Null means "the database has not decided", and the card falls back to the build-time index.
+    // Phase 22 sets it when a model is published, so an uploaded model reaches a card without a build.
+    preview_eligible: typeof row.preview_eligible === "boolean" ? row.preview_eligible : null,
     image_url: (row.image_url as string | null) ?? null,
     sound_url: (row.sound_url as string | null) ?? null,
     scale_ratio: Number(row.scale_ratio ?? Math.max(length_m, height_m)),

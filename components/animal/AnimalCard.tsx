@@ -51,7 +51,11 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   // The real model when the catalogue has one that is small enough to fetch on a hover
   // (see isPreviewableModel), the procedural silhouette otherwise. One canvas either way:
   // the two are alternatives, never siblings.
-  const realModel = Boolean(animal.model_url) && isPreviewableModel(animal.slug) && !locked;
+  // The database's own decision wins when there is one: a model published in Phase 22 carries the
+  // measurement it was published with, so an admin's upload reaches the card without a rebuild. The
+  // build-time index stays as the fallback for rows that predate it (and for the bundled dataset).
+  const previewAllowed = animal.preview_eligible ?? isPreviewableModel(animal.slug);
+  const realModel = Boolean(animal.model_url) && previewAllowed && !locked;
   const showModel = previewRequested && realModel;
   const showSilhouette = previewRequested && !realModel;
   // The plate keeps its emoji until there is something to look at: the silhouette appears

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { runAutopilotRound } from "@/lib/autopilot-runner";
+import { ingestInbox, readInbox } from "@/lib/upload-ingest";
 
 /**
  * The clock, inside the server process.
@@ -58,9 +59,27 @@ export function startAutopilotScheduler(): { started: boolean; reason: string } 
       }
     } catch (error) {
       console.error("[autopilot] the round failed: " + String(error).split("\n")[0]);
-    } finally {
-      state.running = false;
     }
+
+    // The upload inbox is the second thing that has to happen while nobody is asking (Phase 22):
+    // dropping a file into Storage is a request, and nothing else in this app would notice it.
+    // The list call is cheap and empty most of the time, which is why it runs on every tick.
+    if (process.env.MODEL_UPLOADS !== "off") {
+      try {
+        const waiting = await readInbox();
+        if (waiting.length > 0) {
+          const ingest = await ingestInbox({ actor: "scheduler" });
+          console.log(
+            "[uploads] " + ingest.published + " published, " + ingest.rejected + " rejected, " +
+              ingest.failed + " failed, out of " + ingest.seen + " file(s)",
+          );
+        }
+      } catch (error) {
+        console.error("[uploads] the inbox could not be processed: " + String(error).split("\n")[0]);
+      }
+    }
+
+    state.running = false;
   };
 
   state.timer = setInterval(tick, Math.max(60_000, TICK_MS));

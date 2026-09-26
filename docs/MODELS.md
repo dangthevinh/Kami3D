@@ -536,3 +536,82 @@ admin's back. `MODEL_AUTOPILOT=off` only ever turns it further off.
 - keep going when a round is already open: it moves its clock and waits, because the point of a queue
   is that it is a queue.
 
+
+## A model the admin brings — Phase 22
+
+Until this phase every model on the site arrived from a provider. This adds the other source: a file
+the admin already has — a better scan, a client's asset, a hand-fixed export. It is not a second
+pipeline. An upload reserves, is measured, is compressed, is stored, is recorded in `model_assets`
+and is wired to its species in the same order a fetched model is, and it reaches
+`public.reserve_model_download()` with `provider = 'upload'`.
+
+### The manual door
+
+`/admin/models` → **Bring your own model → Manual**: pick a species, pick a `.glb`, write the credit
+(title, author, licence, optional source URL), decide whether the card should draw it, press Upload.
+The form sends a multipart request to `POST /api/admin/models/upload`, which calls
+`publishUploadedModel()` and returns its report unchanged — including refusals, which answer **422**
+with the database's own words rather than a 500.
+
+The licence is a two-option list, not a text field. `CC0` or `CC-BY`, or the upload is refused; the
+same allow-list is repeated inside `reserve_model_download()`, which is where it is a property of the
+database rather than of a form.
+
+### The automatic door
+
+Drop `<slug>.glb` and `<slug>.json` into the `uploads/inbox/` folder of the `animal-assets` bucket:
+
+```json
+{ "title": "Bengal Tiger (photogrammetry)", "author": "A. Person", "license": "CC-BY", "sourceUrl": "https://…" }
+```
+
+The app checks that folder on the same tick that drives the auto-pilot (Phase 21), so an admin who
+drops a file and closes the tab still gets it published; the panel's **Process the inbox now** button
+runs the same function immediately. Per file:
+
+- no sidecar, unreadable sidecar, or a licence outside the allow-list → the file is moved to
+  `uploads/rejected/` with a `.reason.txt` beside it, because a silent refusal is the one outcome an
+  admin cannot act on;
+- otherwise it is published, then moved to `uploads/published/` — **moving is what stops a second run
+  from publishing it twice**, and the folder is the permission: only the service role can write there.
+
+`MODEL_UPLOADS=off` stops the clock from looking at the inbox at all.
+
+### What a publish does, in order
+
+| Step | What it decides |
+| --- | --- |
+| **reserve** | `reserve_model_download(provider => 'upload')`: the per-model byte cap, the total storage ceiling, the daily/monthly limits and the licence allow-list. No flag skips it, and every failure path settles the slot back as `failed` |
+| **measure** | the triangle count is read from the GLB's own header and JSON chunk (`lib/model-upload.ts`), never from a form field or a provider summary |
+| **compress** | the same DRACO step the pipeline uses, and only kept when it actually produces a smaller file |
+| **store** | `uploads/models/<slug>-<timestamp>.glb` — a timestamped path means replacing a model is never a stale CDN hit |
+| **record** | a `model_assets` row with `provider = 'upload'`, the licence, the credit line, the face count, the real byte count and the path, as the primary model |
+| **wire** | `animals.model_url` (the species page and the model viewer) and `animals.preview_eligible` (the card) |
+| **settle** | the reservation becomes `downloaded` with the real size, or `failed` and the slot comes back |
+
+### Why the card shows it without a rebuild
+
+The species card used to ask `data/model-preview.json` — a file written into the repository at build
+time — whether a species' model was small enough to fetch on a hover. That is fine for models the
+pipeline fetched before the build and useless for one uploaded five minutes ago.
+
+So the decision moved to the database: `animals.preview_eligible` is set by the publish step from the
+**measured** bytes and triangles against the same budget (`PREVIEW_BUDGET`: ≤1.5 MB and ≤75k
+triangles, `lib/model-preview.ts`), and the card reads `animal.preview_eligible` first, falling back
+to the build-time index when the column is `null` (every row that predates this phase, and the
+bundled dataset). Outside the budget the model still goes to the species page, and the panel says so
+in those words: *"card: no — the card keeps its silhouette"*.
+
+One honest correction to how the previous phase described this: "without a rebuild" is true, and the
+pages are revalidated every five minutes (`export const revalidate = 300`), so a freshly published
+model appears within that window rather than instantly.
+
+### What an upload cannot do
+
+- publish without a stated CC0 / CC-BY licence;
+- publish without a credit line;
+- exceed the per-model cap, the total storage ceiling or the day's remaining slots;
+- invent its own triangle count: the number that reaches `model_assets` and the card decision is read
+  out of the file;
+- reach a card when it is outside the card budget — that is a different decision from "is it allowed".
+

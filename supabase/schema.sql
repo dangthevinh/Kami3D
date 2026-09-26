@@ -1616,7 +1616,11 @@ values (
   array[
     'model/gltf-binary', 'model/gltf+json',
     'image/png', 'image/jpeg', 'image/webp', 'image/avif',
-    'audio/mpeg', 'audio/ogg', 'audio/wav'
+    'audio/mpeg', 'audio/ogg', 'audio/wav',
+    -- Phase 22: the upload inbox keeps a credit beside each model, and a refusal keeps its
+    -- reason. Measured: without these two the sidecar upload answers 400 and the automatic
+    -- path can never see a licence at all.
+    'application/json', 'text/plain'
   ]
 )
 on conflict (id) do update
@@ -2257,6 +2261,47 @@ grant select on public.model_autopilot to authenticated;
 revoke all on function public.model_gap_report() from anon, authenticated;
 revoke all on function public.start_autopilot_round(text, boolean, text[]) from anon, authenticated;
 revoke all on function public.finish_autopilot_round(jsonb) from anon, authenticated;
+
+
+/* ==========================================================================
+   Phase 22 - Models an admin brings themselves
+   ==========================================================================
+
+   Everything until now arrived from a provider. This adds the other source: a
+   file the admin already has. It is not a second pipeline - an upload reserves,
+   is measured, is stored, is recorded in `model_assets` and is wired to the
+   species, exactly like a fetched model, and it reaches `reserve_model_download()`
+   with `provider = 'upload'` so the storage ceilings and the licence allow-list
+   apply to it too.
+
+   Two columns do the work:
+
+   - `animals.preview_eligible` - whether the species card may fetch this model on
+     a hover. It used to be decided only by `data/model-preview.json`, a file in the
+     repository written at build time, which meant a model uploaded today could not
+     appear on a card until the site was rebuilt. NULL keeps the old behaviour (fall
+     back to the file); true/false is a decision the publish step made from the real
+     measurements.
+   - `'upload'` in `providers_allowed` - not a provider, but the same kind of thing to
+     the budget: a source of bytes that has to fit inside the caps.
+   ========================================================================== */
+
+alter table public.animals add column if not exists preview_eligible boolean;
+
+comment on column public.animals.preview_eligible is
+  'Whether the species card may fetch its model on hover, decided when the model was published (Phase 22) from the real byte size and triangle count against lib/model-preview.ts PREVIEW_BUDGET. NULL means "not decided here", and the card falls back to data/model-preview.json.';
+
+-- The default only applies to rows created from now on, so an existing project has to be
+-- widened explicitly. Idempotent on purpose: applying the schema twice is normal here.
+alter table public.model_download_policy
+  alter column providers_allowed set default array['polyhaven','nasa','khronos','sketchfab','smithsonian','polypizza','direct','upload'];
+
+update public.model_download_policy
+   set providers_allowed = array_append(providers_allowed, 'upload')
+ where not ('upload' = any (providers_allowed));
+
+comment on column public.model_download_policy.providers_allowed is
+  'Which sources may spend the budget. "upload" is not a provider: it is the admin''s own file, and it is in this list because the ceilings it has to respect are the same ones.';
 
 /* ==========================================================================
    Admin by default - the owner's address, and checking by email

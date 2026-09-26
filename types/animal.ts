@@ -112,6 +112,14 @@ export interface Animal {
   fun_facts: string[];
   /** Public URL of a DRACO-compressed .glb. `null` -> procedural mesh is used. */
   model_url: string | null;
+  /**
+   * Whether the card may fetch `model_url` on a hover (Phase 22).
+   *
+   * `null` means the database has not decided, and the card falls back to
+   * `data/model-preview.json`. `true`/`false` is a decision the publish step made from the
+   * file's own measurements, which is what lets an uploaded model appear on a card without a build.
+   */
+  preview_eligible?: boolean | null;
   image_url: string | null;
   /** Public URL of an .mp3/.ogg call. `null` -> the sound button is disabled. */
   sound_url: string | null;

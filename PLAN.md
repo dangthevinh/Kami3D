@@ -33,6 +33,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **19** | Giao diện mobile: đo trước, sửa sau | ✅ Hoàn thành — audit Chrome thật: tap target <44px và chữ <12px về 0 ở các trang đã đo |
 | **20** | Bảo mật: đóng những khoảng trống đo được | ✅ Hoàn thành — 7 header (HSTS chỉ production), guard dùng chung cho **11 route ghi**, quét bí mật trong chunk client ở CI; RLS dưới Clerk vẫn là P0.1 đang mở |
 | **21** | Auto-pilot: admin bật một công tắc là model tự được tải và tự lên Kami3D | ✅ Hoàn thành — `model_autopilot` + `start_autopilot_round()`, đồng hồ trong tiến trình server + `/api/cron/models` + nút trong panel; lượt tự động chạy `--strict-match --min-score` nên không thể tải nhầm loài hay hạ cấp model |
+| **22** | Admin tự đưa model lên card: thủ công và tự động | ✅ Hoàn thành — `publishUploadedModel()` dùng chung cho form và hộp thư Storage, upload đi qua `reserve_model_download(provider = 'upload')`, `animals.preview_eligible` do bước publish quyết định nên model lên card không cần build lại |
 | **D1** | Data2Map Foundation (menu riêng + layout + bảng `data2map_*`) | ✅ Hoàn thành — landing 104.6 kB, không nạp MapLibre, 3 bảng + registry |
 | **D2** | Real Estate & Zoning Overlay | ✅ Hoàn thành — 280 POI thật từ OSM + potential score có test |
 | **D3** | Footfall & Trend Map (F&B/Retail) | ✅ Hoàn thành — mật độ dân số **thật** (WorldPop 2020) + POI F&B **thật** (OSM), footfall theo giờ mô phỏng **có nhãn** |
@@ -49,7 +50,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
 | Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
-| Test tự động | **497** bài trong **45** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot`, trong đó 10 bài khoá SQL khớp với module. Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
+| Test tự động | **518** bài trong **46** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot` (10 bài khoá SQL khớp với module), Phase 22 thêm 21 bài của `check-model-upload` (chạy parser trên cả 24 file .glb thật). Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
 | First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
@@ -3813,6 +3814,106 @@ there is nothing to look for` — CI không có `.env.local`, nên phép kiểm 
 
 
 
+---
+
+> **Phase 22 — Admin đưa model lên card: thủ công và tự động**
+
+**Prompt để triển khai Phase 22 — Upload model lên card**:
+
+````markdown
+Triển khai Phase 22 – Admin tự đưa model lên card, theo hai chế độ.
+
+Bối cảnh: mọi model trên site hiện đến từ pipeline tự động (Phase 12/18B/21) — tìm ở provider, tải,
+DRACO, Storage, `model_assets`, `animals.model_url`. Nhưng admin không có cách nào đưa **file của
+chính mình** lên: một model đẹp hơn, một bản do khách hàng gửi, hay một bản đã sửa tay. Và card loài
+(`AnimalCard`) chỉ vẽ model thật khi loài đó nằm trong `data/model-preview.json` — một file trong repo,
+sinh lúc build — nên ngay cả khi upload được thì card vẫn không biết.
+
+Yêu cầu: thêm vào admin panel một mục upload model lên card, chạy được **thủ công** (admin chọn file,
+bấm một nút) và **tự động** (admin thả file vào một hộp thư, hệ thống tự xử lý), với **một** đường
+publish duy nhất dùng cho cả hai.
+
+1. **Một hàm publish, hai lối vào.** `publishUploadedModel({ actor, slug, bytes, filename, meta, drawOnCard })`
+   là chỗ duy nhất biến một file thành model đang chạy trên site: giữ chỗ hạn mức → nén DRACO (nếu có
+   công cụ) → đo lại số tam giác → đưa lên Storage → ghi `model_assets` (`provider = 'upload'`) → trỏ
+   `animals.model_url` → đặt `animals.preview_eligible` → chốt sổ. Cả form thủ công và bộ xử lý hộp thư
+   đều gọi đúng hàm này.
+2. **Hạn mức vẫn là database.** Upload đi qua `public.reserve_model_download()` với `p_provider = 'upload'`,
+   nên nó chịu đúng trần dung lượng mỗi model, trần tổng, và luật licence CC0/CC-BY — **không có cờ nào
+   bỏ qua**. Nói thẳng hệ quả: một lần upload tiêu một lượt trong hạn mức ngày, vì thứ hạn mức bảo vệ là
+   dung lượng. Thêm `upload` vào `providers_allowed` (kèm câu lệnh cập nhật idempotent cho database đã có).
+3. **Licence không được đoán.** Mỗi file phải kèm credit do admin khai (title, author, licence CC0/CC-BY,
+   source URL). Thiếu licence rõ ràng thì **từ chối**, không mặc định.
+4. **Card biết ngay, không cần build lại.** Thêm cột `animals.preview_eligible` (boolean, null = "chưa
+   quyết" → rơi về index tĩnh). Card dùng `animal.previewEligible ?? isPreviewableModel(slug)`, và giá trị
+   đó do chính hàm publish đặt, theo đúng ngân sách card đang có (`PREVIEW_BUDGET`: ≤1,5 MB và ≤75k tam
+   giác). Ngoài ngân sách thì model vẫn lên trang loài, nhưng card giữ silhouette — và panel nói rõ vì sao.
+5. **Đo bằng số thật, không tin lời khai.** Số tam giác đọc từ chính file GLB (header + JSON chunk +
+   accessor), không lấy từ form. File không phải GLB, file cụt, file rỗng đều bị từ chối kèm lý do.
+6. **Chế độ tự động: hộp thư trong Storage.** Admin thả `<slug>.glb` và `<slug>.json` (credit) vào
+   `animal-assets/uploads/inbox/`. Đồng hồ của Phase 21 (hoặc nút "Xử lý ngay") nhặt từng file: thiếu
+   sidecar hoặc licence không hợp lệ → chuyển sang `uploads/rejected/` kèm lý do; hợp lệ → publish rồi
+   chuyển sang `uploads/published/`. Không xử lý lại file đã xử lý, vì file đã rời hộp thư.
+7. **Panel**: mục "Upload a model" (chọn loài, file, credit, tuỳ chọn "vẽ lên card", nút Upload, báo cáo
+   kết quả thật), và mục "Storage inbox" (đang có gì, nút xử lý ngay, kết quả từng file). Mọi thứ qua
+   route admin (404 với người ngoài) + write-guard.
+8. **Test**: parse GLB thật trong repo (tam giác > 0), từ chối file rác/cụt, luật licence, ngân sách card,
+   chuỗi credit, slug từ tên file, sidecar, và khẳng định SQL/publish đi qua `reserve_model_download()`
+   chứ không có đường vòng.
+
+Ràng buộc: một đường publish duy nhất (không fork pipeline); `check:suites` + `tsc` xanh; ngân sách bundle
+không tăng ở route nào; tài liệu chỉ ghi số đo được.
+````
+
+## ✅ Phase 22 — Admin đưa model lên card: thủ công và tự động
+
+### 1. Đã làm gì
+
+| Việc | Ở đâu |
+| --- | --- |
+| `publishUploadedModel()` — **đường publish duy nhất** cho cả hai chế độ: giữ chỗ hạn mức → đo file → nén DRACO → lưu Storage (đường dẫn có timestamp) → ghi `model_assets` (`provider = 'upload'`) → trỏ `animals.model_url` + `animals.preview_eligible` → chốt sổ | `lib/model-publish.ts` |
+| Đọc file GLB thật: magic/version/độ dài khai báo, chunk JSON, và **đếm tam giác từ accessor của chính file**; luật credit (title/author/licence CC0–CC-BY, source URL http(s)); slug từ tên file; đường dẫn lưu; ngân sách card | `lib/model-upload.ts` |
+| Hộp thư tự động: `readInbox()` + `ingestInbox()` — thiếu sidecar/ licence không hợp lệ → chuyển sang `uploads/rejected/` kèm `.reason.txt`; hợp lệ → publish rồi chuyển sang `uploads/published/` (rời hộp thư nên không bao giờ xử lý hai lần) | `lib/upload-ingest.ts` |
+| Cột `animals.preview_eligible` (null = chưa quyết → rơi về index tĩnh), `'upload'` trong `providers_allowed` kèm câu lệnh cập nhật idempotent cho database đã tồn tại | `supabase/schema.sql` |
+| Hai route admin: `POST /api/admin/models/upload` (multipart, trả **422** kèm lý do khi bị từ chối) và `GET/POST /api/admin/models/inbox` (xem hộp thư, xử lý ngay) — đều qua `requireAdmin()` + write-guard | `app/api/admin/models/upload/route.ts`, `app/api/admin/models/inbox/route.ts` |
+| Mục "Bring your own model" trong panel: form thủ công (chọn loài, file, credit, tuỳ chọn vẽ lên card, in ra số đo thật) và hộp thư (đang có gì, nút xử lý, kết quả từng file) | `components/admin/ModelUploadForm.tsx`, `components/admin/UploadInbox.tsx`, `app/admin/models/page.tsx` |
+| Card đọc quyết định của database trước, rồi mới rơi về index build-time | `components/animal/AnimalCard.tsx`, `types/animal.ts`, `lib/animals.ts`, `lib/supabase.ts` |
+| Đồng hồ của Phase 21 kiểm hộp thư trong cùng nhịp (tắt được bằng `MODEL_UPLOADS=off`) | `lib/autopilot-scheduler.ts` |
+| `lib/child-process.ts`: chỗ duy nhất lấy `spawn`/`node:*`, với specifier mà bundler bỏ qua — lý do là lỗi build edge của Phase 21 | `lib/child-process.ts` |
+| 21 bài test: parser chạy trên **cả 24 file .glb thật trong repo**, từ chối file rác/cụt/sai version, luật credit, ngân sách card, đường dẫn, và 8 bài khoá SQL/route/publish khỏi trôi | `scripts/check-model-upload.mjs` |
+
+### 2. Bằng chứng đo được
+
+`npm run check:suites`: **518 bài, 0 fail** (497 + 21). `npx tsc --noEmit` sạch.
+
+| Phép đo | Kết quả |
+| --- | --- |
+| Parser trên model thật | parse **cả 24** file trong `public/models/`; ví dụ `lion.glb`: 341.076 bytes, **5.474 tam giác**, 1 mesh, 2 texture, generator `glTF-Transform v4.5.0` |
+| `GET` và `POST /api/admin/models/upload` khi chưa đăng nhập | **404** `{"error":"not found"}` — không lộ là route có thật (ban đầu GET trả 405 vì chỉ export POST; đã thêm GET trả 404 như mọi route admin khác) |
+| `GET /api/admin/models/inbox` khi chưa đăng nhập | **404** |
+| Giữ chỗ hạn mức với `provider = 'upload'` | **200**, `allowed: true` — tức upload đi đúng qua `reserve_model_download()` |
+| Chốt sổ bằng chữ ký thật | **200** `{ok: true, outcome: "downloaded"}`; dòng log ghi `provider: upload`, `bytes: 43120`, `storage_path`, `reason` |
+| Đưa file lên bucket + trỏ loài | `animals.model_url` → URL mới, `preview_eligible = true`; `HEAD` công khai **200, 43.120 bytes, model/gltf-binary** |
+| Sidecar trong hộp thư | sau khi mở `allowed_mime_types`: **200**, và `uploads/inbox` liệt kê đúng `weddell-seal.glb` + `weddell-seal.json` |
+
+Sau khi đo, mọi hiện vật đã hoàn tác: `animals.model_url` về `models/weddell-seal.glb`, `preview_eligible` về `null`, object thử bị xoá khỏi `uploads/models/`, **2 dòng log thử đã xoá** để hạn mức về đúng chỗ cũ, hộp thư trống trở lại.
+
+### 3. Hai lỗi thật mà lần chạy thật bắt được
+
+Cả hai đều **không thể** bị bắt bởi typecheck, và cả hai đều làm hỏng đúng thứ phase này hứa:
+
+1. **`settle_model_download` có chữ ký khác với thứ code gọi.** Hàm thật là `(p_id, p_outcome, p_bytes, p_storage_path, p_reason)`; `lib/model-publish.ts` gọi `p_reservation`/`p_public_url` và PostgREST trả **404**. Kiểu dữ liệu không giúp gì vì lời gọi chỉ là một chuỗi tên hàm và một object. Đã sửa và chạy lại: **200**, log ghi đúng bytes và đường dẫn.
+2. **Bucket `animal-assets` không cho `application/json`.** `allowed_mime_types` chỉ có model/ảnh/âm thanh, nên **sidecar credit bị trả 400** — nghĩa là đường tự động *không thể thấy licence nào cả*, và mọi file sẽ bị từ chối với lý do "no sidecar". Đã mở `application/json` + `text/plain` trong `supabase/schema.sql` (idempotent) và đo lại: 200. Kèm theo: giới hạn upload trong code sửa từ 64 MB về **25 MB**, đúng bằng `file_size_limit` của bucket.
+
+### 4. Giới hạn — nói thẳng
+
+- **Một lần upload tiêu một lượt hạn mức ngày** (mặc định 5). Đó là hệ quả có chủ ý của việc dùng chung một chốt: thứ hạn mức bảo vệ là dung lượng, và một file admin tự mang lên vẫn là dung lượng. Admin nâng `max_per_day` trong panel nếu muốn nhập nhiều file một lúc.
+- **Đường route-level chưa chạy bằng một phiên admin thật** trong phiên này (không có cách đăng nhập Google tự động). Đã kiểm được: test thuần, khách thấy 404, và **chạy trực tiếp đúng chuỗi bước mà hàm publish gọi** trên Supabase thật (giữ chỗ → bucket → `model_assets` → `animals` → chốt sổ). Việc còn lại là bạn bấm thử một lần trong trình duyệt — form và hộp thư đã render ở `/admin/models`.
+- **Đính chính Phase 21**: "không cần build lại" là đúng, nhưng các trang có `export const revalidate = 300`, nên model vừa publish hiện trong vòng **5 phút**, không phải tức thì.
+- Card chỉ vẽ model khi nằm trong ngân sách card (≤1,5 MB, ≤75k tam giác) **và** admin không bỏ tick "vẽ lên card"; ngoài ngân sách thì model vẫn lên trang loài và panel nói rõ lý do.
+
+---
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
@@ -3834,9 +3935,10 @@ there is nothing to look for` — CI không có `.env.local`, nên phép kiểm 
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 497 bài test trong 45 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
+npm run check        # typecheck + 518 bài test trong 46 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
 npm run check:secrets # quét bí mật trong mọi file git theo dõi + chunk client của bản build (không in giá trị)
 npm run check:autopilot # toán auto-pilot + khẳng định SQL trong schema.sql khớp với lib/autopilot.ts
+npm run check:model-upload # parser GLB trên model thật + luật credit + ngân sách card
 npm run models:work  # chạy một lệnh trong hàng đợi (--list để xem; --upload để đưa model lên Storage)
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 41 route

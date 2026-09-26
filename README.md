@@ -84,6 +84,7 @@ NEXT_PUBLIC_DRACO_DECODER_PATH=         # empty = the vendored copy in public/dr
 CRON_SECRET=                            # only for hosts without a long-running process: /api/cron/models
 # MODEL_AUTOPILOT=off                   # uncomment to forbid the in-process clock entirely
 # MODEL_AUTOPILOT_TICK_MS=300000        # how often it checks whether a round is due (min 60000)
+# MODEL_UPLOADS=off                     # uncomment to stop the clock from watching the upload inbox
 
 # --- Site and ads
 NEXT_PUBLIC_SITE_URL=http://localhost:9000
@@ -102,6 +103,7 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | browser | Empty renders ad placeholders |
 | `NEXT_PUBLIC_DATA2MAP_PUBLIC` | app | `1` publishes Data2Map to everyone. Empty (the default) keeps the module behind the admin gate: the middleware answers 404 and the sitemap leaves it out. `npm run dev` shows it regardless |
 | `CRON_SECRET` | `/api/cron/models` | Optional. With it set, an external scheduler (Vercel Cron, systemd, cron) can drive one auto-pilot round with `Authorization: Bearer $CRON_SECRET`. **Unset means the endpoint refuses every unauthenticated call** — an unset secret is never an open door |
+| `MODEL_UPLOADS` | server | Optional. `off` stops the app's clock from watching the Storage upload inbox (`uploads/inbox/`). Files still publish when an admin presses **Process the inbox now** |
 | `MODEL_AUTOPILOT`, `MODEL_AUTOPILOT_TICK_MS`, `MODEL_AUTOPILOT_WAIT_MS` | server | Optional. `off` disables the in-process clock; the other two tune its interval and how long one round may hold the process. None of them can switch an auto-pilot **on**: that is a row in `public.model_autopilot`, set from `/admin/models` |
 | `DATA2MAP_ADMIN_IDS`, `DATA2MAP_ADMIN_EMAILS` | server | Comma-separated allow-lists for the module while it is unpublished — provider user ids (Clerk `user_…`) or the verified email. Read by the middleware at runtime; a row in `public.app_admins` works too and needs no rebuild |
 
