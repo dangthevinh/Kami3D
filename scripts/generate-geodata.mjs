@@ -132,7 +132,24 @@ const check = process.argv.includes("--check");
 const { collection, attribution } = buildGeodata();
 // Minified on purpose: this file is generated, committed and checked into a client
 // payload - indentation here buys nobody anything.
-const geojson = `${JSON.stringify(collection)}\n`;
+// Coordinates are rounded to one decimal (~11 km) before they are written: this file ships
+// inside the map route, so its size is bundle weight, and the fourth decimal of a distribution
+// envelope is weight bought for nothing. The rounding lives here rather than in a script beside
+// this one so that regenerating the file is deterministic and CI can prove the committed copy
+// is current.
+const roundCoordinates = (node) => {
+  if (Array.isArray(node)) {
+    if (node.length === 2 && node.every((value) => typeof value === "number")) {
+      return [Number(node[0].toFixed(1)), Number(node[1].toFixed(1))];
+    }
+    return node.map(roundCoordinates);
+  }
+  if (node && typeof node === "object") {
+    return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, roundCoordinates(value)]));
+  }
+  return node;
+};
+const geojson = `${JSON.stringify(roundCoordinates(collection))}\n`;
 const credits = `${JSON.stringify(attribution, null, 2)}\n`;
 
 if (check) {
