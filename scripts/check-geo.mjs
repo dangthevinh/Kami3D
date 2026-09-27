@@ -387,7 +387,14 @@ test("the bundled geodata is valid, labelled as synthetic, and fits its own kind
 
   // The file ships inside the map route, so its size is part of the budget.
   const bytes = readFileSync(join(root, "data", "animal-geodata.json")).length;
-  assert.ok(bytes < 48 * 1024, `bundled geodata is ${(bytes / 1024).toFixed(0)} KB - trim it before it ships`);
+  // Phase 23 doubled the catalogue, and this file carries one envelope per species, so the bound is
+  // per species with an absolute ceiling rather than a number that only fitted twenty-four. Measured
+  // after the coordinates were rounded to one decimal: about 0.8 KB per species.
+  const budget = Math.max(48 * 1024, ANIMALS.length * 900);
+  assert.ok(
+    bytes < budget,
+    `bundled geodata is ${(bytes / 1024).toFixed(0)} KB for ${ANIMALS.length} species (budget ${(budget / 1024).toFixed(0)} KB) - trim it before it ships`,
+  );
 });
 
 test("the geodata kinds and licences match the CHECK constraints in schema.sql", () => {

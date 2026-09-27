@@ -2,6 +2,7 @@ import type { Animal } from "../../types/animal";
 
 import { BATCH_1 } from "./batch-1.ts";
 import { BATCH_2 } from "./batch-2.ts";
+import { BATCH_3 } from "./batch-3.ts";
 
 /**
  * The catalogue after Phase 23: the hundred species added to the original twenty-four, grouped by
@@ -11,4 +12,5 @@ import { BATCH_2 } from "./batch-2.ts";
 export const EXTRA_ANIMALS: Animal[] = [
   ...BATCH_1,
   ...BATCH_2,
+  ...BATCH_3,
 ];
