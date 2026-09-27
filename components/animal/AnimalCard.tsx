@@ -44,6 +44,8 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   const [previewRequested, setPreviewRequested] = React.useState(false);
   const [modelReady, setModelReady] = React.useState(false);
   const [canHover, setCanHover] = React.useState(false);
+  /** Set by the first tap on a touch screen: it previews the model instead of navigating. */
+  const [touchArmed, setTouchArmed] = React.useState(false);
   const timer = React.useRef<number | null>(null);
   const status = statusToTailwind(animal.conservation_status);
   const locked = animal.premium && !unlocked;
@@ -65,7 +67,9 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   const onModelReady = React.useCallback(() => setModelReady(true), []);
 
   React.useEffect(() => {
-    // Never mount 3D on touch-only devices; the detail page is the 3D surface there.
+    // Phase 23 removed the Phase 4 rule that a card never mounts 3D on a touch-only device: the
+    // first tap previews the model, the second opens the species page. It is still one canvas, still
+    // loaded on demand, and still inside the card budget - what changed is who gets to see it.
     const query = window.matchMedia("(hover: hover) and (pointer: fine)");
     setCanHover(query.matches);
     const listener = (event: MediaQueryListEvent) => setCanHover(event.matches);
@@ -86,9 +90,24 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   }
 
   function cancelPreview() {
+    // A touch pointer "leaves" the moment the finger lifts, which would cancel the preview the tap
+    // just asked for. Only a device that can actually hover gets to cancel by leaving.
+    if (!canHover) return;
     if (timer.current) window.clearTimeout(timer.current);
     setPreviewRequested(false);
     setModelReady(false);
+  }
+
+  /**
+   * On a touch screen the overlay opens the species page - unless the tap is the one that asks for
+   * the model. First tap previews, second tap follows the link, which is the same order a hover
+   * gives a mouse: look, then commit.
+   */
+  function onOverlayClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (canHover || locked || !realModel || touchArmed) return;
+    event.preventDefault();
+    setTouchArmed(true);
+    setPreviewRequested(true);
   }
 
   return (
@@ -114,6 +133,7 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
       ) : (
         <Link
           href={`/animal/${animal.slug}`}
+          onClick={onOverlayClick}
           className="absolute inset-0 z-10 rounded-[var(--radius-card)]"
           aria-label={`Open the ${animal.name} in 3D`}
         />
