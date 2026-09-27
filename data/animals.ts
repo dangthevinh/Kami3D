@@ -1,7 +1,14 @@
 import type { Animal } from "../types/animal";
 
-/** Bundled fallback dataset: powers Demo Mode when Supabase is not configured. */
-export const ANIMALS: Animal[] = [
+// Explicit extension: the check suite and the seed generator import this file straight from Node,
+// which resolves neither the "@/" " alias nor an extensionless directory import.
+import { EXTRA_ANIMALS } from "./species/index.ts";
+
+/**
+ * The species the project shipped with. Phase 23 added a hundred more in data/species/batch-*.ts;
+ * they are merged below so that everything reading the catalogue reads one list.
+ */
+const CORE_ANIMALS: Animal[] = [
   {
     id: "7c9e6b1a-1f2d-4a3b-8c4d-000000000001",
     slug: "african-bush-elephant",
@@ -795,3 +802,6 @@ export const ANIMALS: Animal[] = [
     popularity: 88,
   },
 ];
+
+/** The whole catalogue: what the seed SQL, the model pipeline and every page see. */
+export const ANIMALS: Animal[] = [...CORE_ANIMALS, ...EXTRA_ANIMALS];

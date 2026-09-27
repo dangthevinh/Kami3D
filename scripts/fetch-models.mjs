@@ -34,7 +34,7 @@
 
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -796,7 +796,26 @@ async function writePreviewIndex(sorted) {
 }
 
 /**
- * Point `data/animals.ts` at a locally fetched model.
+ * Every file a species' entry may live in.
+ *
+ * The catalogue outgrew one file in Phase 23: `data/animals.ts` keeps the species that shipped with
+ * the project, and `data/species/batch-*.ts` hold the 100 added after. Wiring has to find a slug
+ * wherever it lives, or a newly fetched model would silently fail to reach its species.
+ */
+async function catalogueFiles() {
+  const files = [join(ROOT, "data", "animals.ts")];
+  try {
+    for (const name of await readdir(join(ROOT, "data", "species"))) {
+      if (name.endsWith(".ts") && name.startsWith("batch")) files.push(join(ROOT, "data", "species", name));
+    }
+  } catch {
+    // No batches yet: the catalogue is the one file.
+  }
+  return files;
+}
+
+/**
+ * Point the dataset at a locally fetched model.
  *
  * `model_url` stays the single source of truth for "which model does this species
  * use" — the same column the SQL schema and Supabase storage rely on — so a local
@@ -804,11 +823,18 @@ async function writePreviewIndex(sorted) {
  * scoped to the species' own object literal and verified before it is written.
  */
 async function wireModelUrl(slug, url) {
-  const file = join(ROOT, "data", "animals.ts");
+  for (const candidate of await catalogueFiles()) {
+    const source = await readFile(candidate, "utf8");
+    if (source.includes(`slug: "${slug}"`)) return wireInFile(candidate, slug, url);
+  }
+  throw new Error(`could not find slug "${slug}" in data/animals.ts or data/species/batch-*.ts`);
+}
+
+async function wireInFile(file, slug, url) {
   const source = await readFile(file, "utf8");
 
   const slugIndex = source.indexOf(`slug: "${slug}"`);
-  if (slugIndex === -1) throw new Error(`could not find slug "${slug}" in data/animals.ts`);
+  if (slugIndex === -1) throw new Error(`could not find slug "${slug}" in ${file}`);
 
   const fieldIndex = source.indexOf("model_url:", slugIndex);
   if (fieldIndex === -1) throw new Error(`could not find model_url for "${slug}"`);

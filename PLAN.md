@@ -3914,6 +3914,57 @@ Cả hai đều **không thể** bị bắt bởi typecheck, và cả hai đều
 
 ---
 
+---
+
+> **Phase 23 — Model đúng loài trên từng card, và 100 loài mới**
+
+**Prompt để triển khai Phase 23**:
+
+````markdown
+Triển khai Phase 23 cho Kami3D: (a) card phải vẽ được model thật và đúng loài, (b) thêm 100 loài mới.
+
+Bối cảnh đo được trước khi viết phase (nguồn: `data/model-preview.json`, `model_assets`, HEAD trên Storage):
+- **23/24 loài đủ điều kiện vẽ lên card**; chỉ `african-bush-elephant` vượt ngân sách card (2,8 MB so với
+  1,5 MB) nên card của nó luôn là silhouette.
+- Card chỉ mount 3D trên thiết bị **có hover + con trỏ chính xác** (`matchMedia("(hover: hover) and
+  (pointer: fine)")`), nên trên điện thoại/máy tính bảng **không card nào vẽ model** — đó là quyết định
+  của Phase 4, không phải lỗi, nhưng nó trái với kỳ vọng "card hiện model".
+- Có **6 model không đúng loài hoặc là placeholder**: `bengal-tiger` = "Bengal Tiger **Voxel**" (10 KB),
+  `gooty-tarantula` = "**Mexican Red Knee** Tarantula" (sai loài), `emperor-penguin` = "Walking Emperor
+  Penguin **Chick**", `weddell-seal` = "Seal" (610 tam giác), `red-kangaroo` = "Red Kangaroo **Voxel**",
+  `common-octopus` = "Octopus" (3.852 tam giác).
+
+Yêu cầu:
+
+1. **Một công cụ audit trả lời được câu hỏi "loài nào đang có model không đúng loài".** Đọc
+   `model_assets` + tên loài, dùng chính bộ chấm điểm của dự án (`lib/model-quality.ts`, phần title match)
+   để phân loại: `matched` (tên model nêu đúng loài), `unmatched` (không nêu), `placeholder` (voxel/低
+   poly/score dưới ngưỡng), và in bảng kèm lý do. Chạy được bằng `npm run models:audit`.
+2. **Sửa cái card không vẽ được**: model nào vượt ngân sách card thì **nén cho vừa** (DRACO + resize
+   texture qua chính `gltf-transform` mà pipeline đang dùng), ghi lại file trong repo, đưa lên Storage,
+   cập nhật `model_assets` (bytes, face count) và `animals.preview_eligible` theo số đo thật. Không hạ
+   ngân sách card xuống cho vừa — ngân sách đó tồn tại vì một hover không phải là yêu cầu tải 3 MB.
+3. **Card trên thiết bị cảm ứng**: một lần chạm vào card **hiện model** (cùng ngân sách, cùng một canvas,
+   vẫn tải khi cần) thay vì không bao giờ hiện; chạm lần nữa mới mở trang loài. Không bật 3D cho mọi card
+   cùng lúc — chỉ card được chạm.
+4. **`animals.preview_eligible` phải được đặt cho cả 24 loài cũ** từ số đo thật (bytes + tam giác của
+   file đang phục vụ), không phải để NULL rồi phụ thuộc file index sinh lúc build.
+5. **Thêm 100 loài mới** vào catalogue (24 → 124), chia 5 batch theo nhóm:
+   - số liệu (cân nặng, chiều dài, tuổi thọ, tình trạng IUCN) **phải có nguồn** (Wikidata/Wikipedia);
+     không có nguồn thì ghi "Unknown", **không bịa**;
+   - mô tả và fun facts là **văn tự viết**, không sao chép Wikipedia (CC BY-SA);
+   - `model_url: null` — loài mới chưa có model, và điều đó là bình thường: rig thủ tục của
+     `lib/rigs.ts` vẽ chúng từ ngày đầu, còn pipeline model sẽ lấp dần (Phase 21/22);
+   - dữ liệu phải chạy được qua `npm run seed:generate` + `npm run db:seed`, và mọi test SQL hiện có
+     (đếm loài, enum, slug duy nhất) vẫn phải xanh.
+6. **Sau khi có 100 loài mới**: `/explore`, tìm kiếm, địa cầu, bản đồ, quiz và seed SQL đều phải chạy với
+   124 loài; đo lại ngân sách bundle (dataset đi kèm là file server, nhưng phải chứng minh nó không lọt
+   vào client) và đo lại thời gian seed.
+
+Ràng buộc: không bịa số liệu dưới bất kỳ hình thức nào; ngân sách card không đổi; mọi phase trước vẫn xanh
+(`npm run check:suites`, `tsc`, build + `check:bundle`).
+````
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |
