@@ -73,7 +73,7 @@ writeFileSync(indexPath, indexSource);
 
 const animalsPath = join(ROOT, "data", "animals.ts");
 let animals = readFileSync(animalsPath, "utf8");
-if (!animals.includes('from "./species"')) {
+if (!animals.includes("EXTRA_ANIMALS")) {
   animals = animals.replace(
     'import type { Animal } from "../types/animal";',
     'import type { Animal } from "../types/animal";\n\nimport { EXTRA_ANIMALS } from "./species/index.ts";',

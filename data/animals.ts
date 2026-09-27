@@ -2,6 +2,7 @@ import type { Animal } from "../types/animal";
 
 import { EXTRA_ANIMALS } from "./species/index.ts";
 
+
 // Explicit extension: the check suite and the seed generator import this file straight from Node,
 // which resolves neither the "@/" " alias nor an extensionless directory import.
 
@@ -806,5 +807,7 @@ const CORE_ANIMALS: Animal[] = [
 
 /** The whole catalogue: what the seed SQL, the model pipeline and every page see. */
 export const ANIMALS: Animal[] = [...CORE_ANIMALS, ...EXTRA_ANIMALS];
+
+/** The whole catalogue: what the seed SQL, the model pipeline and every page see. */
 
 /** The whole catalogue: what the seed SQL, the model pipeline and every page see. */
