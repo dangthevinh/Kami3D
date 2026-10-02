@@ -43,6 +43,7 @@ import { promisify } from "node:util";
 
 import { ANIMALS } from "../data/animals.ts";
 import { describeQuality, modelLicenseFromSpdx, scoreModelQuality } from "../lib/model-quality.ts";
+import { fetchWithRetry } from "../lib/net-retry.ts";
 
 const run = promisify(execFile);
 
@@ -968,7 +969,9 @@ async function uploadToStorage(supabase, path, bytes) {
 }
 
 export async function rest(supabase, path, init = {}) {
-  const response = await fetch(`${supabase.url}/rest/v1/${path}`, {
+  // A fill is hundreds of calls: one DNS blip must not end it. Measured once already
+  // (ENOTFOUND mid-run), which is what lib/net-retry.ts exists for.
+  const response = await fetchWithRetry(`${supabase.url}/rest/v1/${path}`, {
     ...init,
     headers: {
       apikey: supabase.key,
