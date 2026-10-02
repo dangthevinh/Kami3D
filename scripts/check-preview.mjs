@@ -15,7 +15,7 @@
  */
 
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 
@@ -25,7 +25,12 @@ const root = process.cwd();
 const read = (path) => readFileSync(join(root, path), "utf8");
 
 const manifest = JSON.parse(read("data/model-attribution.json"));
-const catalog = read("data/animals.ts");
+// Phase 23 split the catalogue: data/animals.ts holds the species the project shipped with, and
+// data/species/batch-*.ts hold the hundred added later. A model can belong to either, so the
+// check reads all of them rather than only the file that used to be the whole catalogue.
+const catalog = [  "data/animals.ts",
+  ...readdirSync("data/species").filter((name) => name.startsWith("batch") && name.endsWith(".ts")).map((name) => "data/species/" + name),
+].map(read).join("\n");
 const component = read("components/3d/AnimalModelPreview.tsx");
 const card = read("components/animal/AnimalCard.tsx");
 const assets = read("public/models/README.md");

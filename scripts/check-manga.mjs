@@ -120,10 +120,15 @@ test("export helpers produce names a comic reader can sort", () => {
 test("ownership in SQL goes through the identity helper every other table uses", () => {
   for (const table of ["manga_projects", "manga_chapters", "manga_panels", "manga_pages", "manga_bubbles", "manga_likes"]) {
     assert.ok(schema.includes("create table if not exists public." + table), table + " is missing");
-    assert.ok(schema.includes("alter table public." + table + " enable row level security"), table + " has no RLS");
+    const pattern = new RegExp("alter table public\." + table + "\\s+enable row level security");
+    assert.ok(pattern.test(schema), table + " has no RLS");
   }
   assert.ok(schema.includes("using (user_id = public.current_user_id())"), "ownership must use current_user_id()");
-  const manga = schema.slice(schema.indexOf("Phase 24 - Manga Studio"));
+  // Only the Phase 24 block: the schema goes on to other phases, and older tables still use
+  // auth.uid() in places this phase has nothing to do with.
+  const start = schema.indexOf("Phase 24 - Manga Studio");
+  const next = schema.indexOf("/* ======", start);
+  const manga = schema.slice(start, next === -1 ? undefined : next);
   // Legacy tables elsewhere in the schema still carry auth.uid(); what matters is that no
   // Phase 24 policy does, because under Clerk that function is always null.
   assert.ok(manga.length > 1000, "the Phase 24 block is missing");
