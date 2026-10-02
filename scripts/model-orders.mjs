@@ -182,6 +182,25 @@ async function fetchForSpecies({ order, slug, providers, upload, unattended, min
   }
 }
 
+/**
+ * Remember what happened to one species.
+ *
+ * A species with no usable candidate fails *before* the budget reservation, so it left no trace and
+ * every later round asked for it again - measured: thirty rounds, the same five species. One row per
+ * species is enough: the auto-pilot only needs to know when it last tried and how it went.
+ */
+async function recordAttempt(slug, outcome, orderId, reason) {
+  try {
+    await api('model_autopilot_attempts?on_conflict=animal_slug', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ animal_slug: slug, outcome, order_id: orderId, reason: reason ?? null, at: now() }),
+    });
+  } catch (error) {
+    console.warn('   (could not record the attempt for ' + slug + ': ' + String(error.message).split('\n')[0] + ')');
+  }
+}
+
 async function patchOrder(id, body) {
   await api("model_source_orders?id=eq." + id, {
     method: "PATCH",
@@ -221,6 +240,7 @@ async function runOrder(order, { upload }) {
 
     // Every further attempt would be refused for the same reason: stop, and record why.
     if (outcome === "refused") outOfBudget = true;
+    await recordAttempt(animal.slug, outcome === "failed" ? "failed" : outcome, order.id, outcome === "downloaded" ? null : lastError ?? null);
     if (outcome === "failed") lastError = lastError ?? animal.slug + ": the pipeline reported a failure";
 
     // Written after every species, so a crash leaves an honest partial order rather than a stuck one.

@@ -4015,6 +4015,21 @@ route mới phải được khai ngân sách trong `scripts/bundle-budget.mjs`; 
 build + `check:bundle` phải xanh; tài liệu chỉ ghi số đo được.
 ````
 
+### Quy tắc: rig thủ tục chỉ là chỗ giữ chỗ
+
+Ghi lại thành luật, vì đây là chỗ dễ tự lừa mình nhất:
+
+- Model thủ tục của lib/rigs.ts **không phải** model thật. Nó tồn tại để một loài mới vẫn có hình 3D
+  ngay ngày đầu, không phải để đứng thay model thật trong tài liệu hay trong báo cáo.
+- Mọi loài phải có model thật **có nguồn** (CC0 hoặc CC BY, ghi licence + credit trong model_assets).
+  Loài nào chưa có thì hệ thống phải **nói ra lý do** - qua npm run models:audit và qua panel admin -
+  chứ không im lặng để rig đóng vai.
+- Đo được, để làm mốc: coverage 43/124 loài có model có nguồn sau lượt nạp đầu tiên chạy trọn vẹn
+  (xem /tmp/fill.log và npm run db:status cho con số cuối).
+- Những loài không có ứng viên hợp lệ sẽ được thử lại sau retry_after_days (mặc định 14 ngày); ba
+  đường có thật để lấp chúng là: admin tự upload (Bring your own model), key thật cho Smithsonian hoặc
+  Poly Pizza, hoặc đặt làm model (cần bạn quyết về giấy phép trước).
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

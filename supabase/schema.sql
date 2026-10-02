@@ -2018,6 +2018,7 @@ create table if not exists public.model_autopilot (
   scope            text not null default 'weak' check (scope in ('unsourced', 'weak', 'named')),
   slugs            text[] not null default '{}',
   min_score        integer not null default 75 check (min_score between 0 and 100),
+  retry_after_days integer not null default 14 check (retry_after_days between 0 and 365),
   next_run_at      timestamptz not null default now(),
   last_run_at      timestamptz,
   -- The report of the last round, as the panel shows it: order id, species, counts.
@@ -2038,6 +2039,28 @@ create table if not exists public.model_autopilot (
 -- all is the weakest case) and 75 (below the quality the catalogue's own models score).
 alter table public.model_autopilot alter column scope     set default 'weak';
 alter table public.model_autopilot alter column min_score set default 75;
+
+
+create table if not exists public.model_autopilot_attempts (
+  animal_slug text primary key,
+  at          timestamptz not null default now(),
+  outcome     text not null check (outcome in ('downloaded', 'skipped', 'refused', 'failed')),
+  order_id    uuid,
+  reason      text
+);
+
+comment on table public.model_autopilot_attempts is
+  'One row per species: when the auto-pilot last tried it and how that went. start_autopilot_round skips species tried inside retry_after_days, which is what stops a round from asking for the same unwinnable five every tick.';
+
+alter table public.model_autopilot_attempts enable row level security;
+revoke all on public.model_autopilot_attempts from anon, authenticated;
+
+-- The column was added to the CREATE TABLE above, which does nothing to a table that already
+-- exists: an existing project needs the statement spelled out, exactly as Phase 22 did for
+-- animals.preview_eligible. Measured: without this the round function fails at runtime because it
+-- reads a column the database does not have.
+alter table public.model_autopilot
+  add column if not exists retry_after_days integer not null default 14 check (retry_after_days between 0 and 365);
 
 comment on table public.model_autopilot is
   'One row (id = default). The auto-pilot an admin switches on in /admin/models: when it is on and due, the app asks for the models that are missing and publishes them itself. It cannot spend budget - it can only queue an order, which reserve_model_download() still polices.';
@@ -2147,6 +2170,17 @@ begin
     );
   end if;
 
+  -- An order whose worker died mid-run used to block every later round forever: measured twice, and
+  -- both times the symptom was the same one line - "1 order(s) are still open". Two hours is far
+  -- longer than any order takes, so after that the order is presumed dead, closed with the reason, and
+  -- the queue moves on. The work already done stays in its counters; only the claim is released.
+  update public.model_source_orders
+     set status = 'failed',
+         finished_at = now(),
+         last_error = coalesce(last_error, 'the worker stopped mid-order; closed automatically so the queue can move')
+   where status in ('queued', 'running')
+     and coalesce(started_at, created_at) < now() - make_interval(hours => 2);
+
   select count(*) into open_count
   from public.model_source_orders
   where status in ('queued', 'running');
@@ -2179,6 +2213,11 @@ begin
     from public.animals a
     left join best b on b.animal_id = a.id
     where not exists (select 1 from open_slugs o where o.slug = a.slug)
+      and not exists (
+        select 1 from public.model_autopilot_attempts att
+        where att.animal_slug = a.slug
+          and att.at > now() - make_interval(days => aut.retry_after_days)
+      )
       and case aut.scope
             when 'named' then a.slug = any (aut.slugs)
             when 'weak'  then coalesce(b.score, -1) < aut.min_score
