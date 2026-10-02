@@ -48,7 +48,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Hạng mục | Giá trị |
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
-| Model 3D thật (đo được, xem ghi chú cuối PLAN) | **90/124 loài có model có nguồn**; trước đó | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
+| Model 3D thật (đo được, xem ghi chú cuối PLAN) | **93/124 loài có model có nguồn**; trước đó | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
 | Test tự động | **518** bài trong **46** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot` (10 bài khoá SQL khớp với module), Phase 22 thêm 21 bài của `check-model-upload` (chạy parser trên cả 24 file .glb thật). Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
@@ -4014,6 +4014,20 @@ Ràng buộc: TypeScript strict; UI dark + glassmorphism theo app/globals.css; e
 reader tốt trên mobile; mọi route ghi qua guardWrite; loading + error handling cho mọi lời gọi AI;
 check:suites, tsc, build + check:bundle phải xanh; tài liệu chỉ ghi số đo được.
 ````
+
+### Quy tắc: dò model trước, chọn loài sau
+
+Ghi thành luật, vì đây là sai lầm đã mắc một lần và trả giá bằng 31 loài:
+
+- Thứ tự cũ là chọn 100 loài đẹp rồi mới đi tìm model. Kết quả đo được: **31 loài không có model
+  CC0/CC BY nào nêu đúng tên loài** trên các nguồn dự án chấp nhận - không phải lỗi cấu hình, mà là
+  thứ không tồn tại. Chọn trước rồi mới dò là tự đặt mình vào thế phải hứa điều không làm được.
+- Thứ tự đúng, từ nay: **dò trước, tải sau, chọn loài cuối cùng**. Với mỗi loài ứng viên, chạy tìm
+  kiếm **không tốn hạn mức** trên các provider đang có key, và chỉ giữ những loài có ứng viên
+  CC0/CC BY **nêu đúng tên loài**. Chỉ những loài đó mới được viết vào catalogue.
+- Nếu dò được ít hơn số loài cần, **nói ra con số đó** thay vì thêm loài không có model cho đủ.
+- Đo lại sau mỗi lần: coverage hiện tại **93/124** loài có model có nguồn; danh sách loài còn thiếu
+  nằm trong ghi chú của Phase 23 và trong npm run models:audit.
 
 ## 🚧 Việc còn lại
 
