@@ -2053,6 +2053,80 @@ comment on table public.model_autopilot_attempts is
   'One row per species: when the auto-pilot last tried it and how that went. start_autopilot_round skips species tried inside retry_after_days, which is what stops a round from asking for the same unwinnable five every tick.';
 
 alter table public.model_autopilot_attempts enable row level security;
+
+/* --------------------------------------------------------------------------
+   Phase 24 (đầy đủ): webtoon, AI panel, và mạng xã hội
+   -------------------------------------------------------------------------- */
+
+alter table public.manga_projects add column if not exists is_webtoon boolean not null default false;
+alter table public.manga_panels   add column if not exists ai_prompt   text;
+alter table public.manga_panels   add column if not exists ai_provider text;
+alter table public.manga_panels   add column if not exists ai_model    text;
+
+comment on column public.manga_projects.is_webtoon is
+  'Webtoon mode: the composer stacks panels vertically and the reader scrolls, instead of turning pages.';
+comment on column public.manga_panels.ai_prompt is
+  'The prompt a generated panel came from. NULL means the panel was uploaded by hand.';
+
+create table if not exists public.manga_comments (
+  id         uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.manga_projects (id) on delete cascade,
+  user_id    text not null,
+  content    text not null check (length(btrim(content)) between 1 and 1000),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.manga_follows (
+  follower_id  text not null,
+  following_id text not null,
+  created_at   timestamptz not null default now(),
+  primary key (follower_id, following_id),
+  constraint manga_follows_not_self check (follower_id <> following_id)
+);
+
+create index if not exists manga_comments_project_idx on public.manga_comments (project_id, created_at desc);
+create index if not exists manga_follows_following_idx on public.manga_follows (following_id);
+
+alter table public.manga_comments enable row level security;
+alter table public.manga_follows  enable row level security;
+
+drop policy if exists "manga comments readable" on public.manga_comments;
+create policy "manga comments readable" on public.manga_comments
+  for select to anon, authenticated
+  using (exists (select 1 from public.manga_projects p where p.id = project_id and ((p.is_public and p.status = 'published') or p.user_id = public.current_user_id())));
+
+drop policy if exists "manga comments own" on public.manga_comments;
+create policy "manga comments own" on public.manga_comments
+  for all to authenticated
+  using (user_id = public.current_user_id())
+  with check (user_id = public.current_user_id());
+
+drop policy if exists "manga follows own" on public.manga_follows;
+create policy "manga follows own" on public.manga_follows
+  for all to authenticated
+  using (follower_id = public.current_user_id())
+  with check (follower_id = public.current_user_id());
+
+-- Follower counts are public: a profile page shows them.
+drop policy if exists "manga follows readable" on public.manga_follows;
+create policy "manga follows readable" on public.manga_follows
+  for select to anon, authenticated using (true);
+
+revoke all on public.manga_comments, public.manga_follows from anon;
+grant select on public.manga_comments, public.manga_follows to anon;
+grant select, insert, update, delete on public.manga_comments, public.manga_follows to authenticated;
+
+-- The bucket panels live in: public read, images only, 8 MB.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('manga-panels', 'manga-panels', true, 8388608, array['image/png', 'image/jpeg', 'image/webp', 'image/avif'])
+on conflict (id) do update
+  set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "manga panels are publicly readable" on storage.objects;
+create policy "manga panels are publicly readable"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'manga-panels');
+
 revoke all on public.model_autopilot_attempts from anon, authenticated;
 
 -- The column was added to the CREATE TABLE above, which does nothing to a table that already

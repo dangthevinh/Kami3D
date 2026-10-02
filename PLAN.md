@@ -3967,68 +3967,53 @@ Ràng buộc: không bịa số liệu dưới bất kỳ hình thức nào; ng�
 
 ---
 
-> **Phase 24 — Manga Studio: module sáng tạo manga (menu riêng)**
+---
 
-**Prompt để triển khai Phase 24**:
+> **Phase 24 — Manga Studio (spec đầy đủ: webtoon, AI panel, mạng xã hội)**
+
+**Prompt để triển khai Phase 24 — bản production-ready**:
 
 ````markdown
-Triển khai Phase 24 – Manga Studio cho Kami3D: một module sáng tạo manga, có mục menu riêng trong
-navbar, dữ liệu trên Supabase, bảo mật bằng Clerk user_id + RLS. Người dùng tạo dự án, viết kịch bản,
-tạo panel, dàn trang có bong bóng thoại, xem trước, xuất bản công khai hoặc giữ riêng tư, và tải về.
+Triển khai Manga Studio cho Kami3D: menu riêng trong Navbar; người dùng tạo manga/webtoon → viết
+chapter → tạo panel (upload hoặc AI) → dàn trang → xuất bản. Hỗ trợ mạnh **webtoon dọc**. Có
+**Follow / Like / Comment**. Dữ liệu trên Supabase, Clerk + RLS.
 
-Pipeline bắt buộc, đúng thứ tự:
+Pipeline bắt buộc: (1) Project (title, cover, genre, is_webtoon) → (2) Chapter + script → (3) Panel
+(upload, hoặc AI generate qua API bên thứ ba, lưu ảnh vào Storage, ghi ai_prompt) → (4) Page Composer
+(kéo thả, bubble speech/thought/narration/scream, layout ngang kiểu manga **và** dọc liên tục kiểu
+webtoon) → (5) Preview + Export (PDF / CBZ / ảnh) → (6) Publish → Gallery công khai.
 
-1. **Tạo project** — tên, mô tả, cover, thể loại (genres[]), độ tuổi, trạng thái draft/published/archived,
-   công khai hay riêng tư.
-2. **Script / Chapter** — tạo chapter, viết kịch bản dạng text, chia scene.
-3. **Panel** — tải ảnh panel lên Storage (hoặc chỗ trống chờ AI sau), gán vào chapter, sắp thứ tự.
-4. **Layout trang (Page Composer)** — kéo panel vào trang, thêm speech/thought/narration/scream bubble,
-   chỉnh vị trí–kích thước–font, và **có sẵn các mẫu layout manga** (classic Nhật, webtoon dọc).
-5. **Preview & Export** — đọc toàn chapter như reader; xuất **PDF, CBZ và chuỗi PNG**; xuất bản để hiện
-   trên Gallery của module.
-6. **Quản lý & thống kê** — danh sách project của user, lượt xem và like cho bài công khai, sửa sau khi
-   publish.
+Bảng: manga_projects (+is_webtoon), manga_chapters, manga_panels (+ai_prompt, ai_provider, ai_model),
+manga_pages (layout_data jsonb), manga_bubbles, manga_likes, manga_comments, manga_follows.
+RLS: chỉ chủ sở hữu sửa dữ liệu của mình; công chúng chỉ đọc project đã publish.
 
-Schema (5 bảng, RLS bắt buộc): `manga_projects`, `manga_chapters`, `manga_panels`, `manga_pages`,
-`manga_bubbles` — như bản spec đã đưa, với những điều chỉnh sau cho khớp luật của dự án:
+Điều chỉnh bắt buộc cho khớp luật dự án:
 
-- **RLS dùng `public.current_user_id()`**, không so sánh `user_id` trực tiếp: đó là hàm đã hợp nhất
-  danh tính Clerk ↔ Supabase (Phase 10/P0.1) và **không bao giờ ném exception** với token Clerk.
-  Policy: chủ sở hữu đọc/ghi mọi thứ của mình; **mọi người đọc được project `is_public = true`** cùng
-  chapter/page/panel/bubble của nó; không ai ghi được vào project của người khác.
-- **Lượt xem phải chống bơm** như `/api/views`: một hàm SECURITY DEFINER
-  `increment_manga_view(project_id)` + chặn theo cửa sổ trượt, không cho client tự PATCH `view_count`.
-- **Like** là bảng riêng `manga_likes (project_id, user_id)` với unique — không đếm bằng client.
-- **Storage**: bucket riêng cho ảnh manga (panel, cover) với `allowed_mime_types` chỉ ảnh; đọc công khai
-  cho project public, ghi bằng service role sau khi đã kiểm quyền sở hữu.
-- **Export không thêm thư viện**: PDF bằng **print stylesheet** của chính trang reader (trình duyệt in ra
-  PDF, không kéo thêm dependency), CBZ bằng **bộ ghi ZIP store-only tự viết** trong `lib/` (định dạng ZIP
-  cho phép không nén; có test đọc lại bằng chính bộ đọc của mình), PNG bằng canvas của panel.
-- **Toàn bộ toán dàn trang là hàm thuần có test**: lưới trang, vị trí/kích thước panel theo mẫu layout,
-  và **kẹp bong bóng trong khung panel** (bong bóng tràn ra ngoài khung là lỗi mắt thường khó thấy, đúng
-  loại việc mà dự án này luôn viết test cho).
-- **Không key vẫn phải chạy**: không Clerk/Supabase thì module ở chế độ Demo (dữ liệu trong trình duyệt),
-  như mọi module khác — không trắng trang.
+- RLS dùng public.current_user_id() (hàm hợp nhất Clerk ↔ Supabase, không ném exception với token
+  Clerk), **không** dùng auth.uid() — dưới Clerk hàm đó luôn null.
+- Like/Follow là bảng có khoá chính (user_id, …) nên bấm hai lần không đếm hai lần; comment giới hạn
+  độ dài; lượt xem chỉ tăng qua hàm SECURITY DEFINER (client không PATCH view_count).
+- AI generate **không thêm thư viện và không bịa**: đọc MANGA_AI_PROVIDER / MANGA_AI_API_KEY /
+  MANGA_AI_MODEL từ môi trường, gọi bằng fetch, tải ảnh về, lưu vào bucket manga-panels, ghi lại
+  prompt + provider + model. Thiếu key thì route trả 503 kèm câu giải thích và UI hiện nó — không im
+  lặng thất bại. Mọi lời gọi AI đi qua lib/net-retry.ts (transient thì thử lại, 4xx thì không).
+- Export không thêm thư viện: PDF bằng print stylesheet của reader, CBZ bằng bộ ghi ZIP store-only tự
+  viết trong lib/manga/export.ts (có test đọc lại), PNG bằng canvas từng panel.
+- Toán dàn trang là hàm thuần có test: lưới trang ngang, **danh sách panel dọc cho webtoon**, và kẹp
+  bong bóng trong khung panel.
+- Cấu trúc: app/manga-studio/ (dashboard, create, [projectId], gallery, reader),
+  components/manga-studio/ (ProjectCard, PanelUploader, AIGenerator, PageComposer, WebtoonEditor,
+  MangaReader, LikeButton, CommentSection), lib/manga/ (project, panel, ai, social, export), API routes
+  cho AI + like/comment/follow.
+- Bucket manga-panels: public read, chỉ ảnh, 8 MB/panel.
+- Không key vẫn chạy: không Clerk/Supabase thì module ở Demo Mode như mọi module khác.
+- Navbar thêm mục “Manga Studio” theo đúng cách các mục khác, không nạp 3D/Clerk vào first paint; mỗi
+  route mới khai ngân sách trong scripts/bundle-budget.mjs.
 
-Ràng buộc: không thêm thư viện mới; mọi route ghi đi qua `guardWrite` + cổng admin/quyền sở hữu; mỗi
-route mới phải được khai ngân sách trong `scripts/bundle-budget.mjs`; `npm run check:suites`, `tsc` và
-build + `check:bundle` phải xanh; tài liệu chỉ ghi số đo được.
+Ràng buộc: TypeScript strict; UI dark + glassmorphism theo app/globals.css; editor ưu tiên desktop,
+reader tốt trên mobile; mọi route ghi qua guardWrite; loading + error handling cho mọi lời gọi AI;
+check:suites, tsc, build + check:bundle phải xanh; tài liệu chỉ ghi số đo được.
 ````
-
-### Quy tắc: rig thủ tục chỉ là chỗ giữ chỗ
-
-Ghi lại thành luật, vì đây là chỗ dễ tự lừa mình nhất:
-
-- Model thủ tục của lib/rigs.ts **không phải** model thật. Nó tồn tại để một loài mới vẫn có hình 3D
-  ngay ngày đầu, không phải để đứng thay model thật trong tài liệu hay trong báo cáo.
-- Mọi loài phải có model thật **có nguồn** (CC0 hoặc CC BY, ghi licence + credit trong model_assets).
-  Loài nào chưa có thì hệ thống phải **nói ra lý do** - qua npm run models:audit và qua panel admin -
-  chứ không im lặng để rig đóng vai.
-- Đo được, để làm mốc: coverage 43/124 loài có model có nguồn sau lượt nạp đầu tiên chạy trọn vẹn
-  (xem /tmp/fill.log và npm run db:status cho con số cuối).
-- Những loài không có ứng viên hợp lệ sẽ được thử lại sau retry_after_days (mặc định 14 ngày); ba
-  đường có thật để lấp chúng là: admin tự upload (Bring your own model), key thật cho Smithsonian hoặc
-  Poly Pizza, hoặc đặt làm model (cần bạn quyết về giấy phép trước).
 
 ## 🚧 Việc còn lại
 
