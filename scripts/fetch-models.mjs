@@ -62,7 +62,7 @@ const REQUEST_DELAY_MS = 350;
 /** Mutable run configuration, populated from the CLI flags. */
 const CONFIG = {
   /** 12 MB: comfortably inside the documented per-model budget. */
-  maxBytes: 12 * 1024 * 1024,
+  maxBytes: 25 * 1024 * 1024,
 };
 
 /**
