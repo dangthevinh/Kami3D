@@ -268,6 +268,19 @@ test("one round at a time, across processes", () => {
   assert.match(schema.slice(schema.indexOf("create or replace function public.finish_autopilot_round")), /pg_advisory_xact_lock\(hashtext\('kami3d:model_autopilot'\)\)/);
 });
 
+test("a species that just failed is not asked again, and a dead worker cannot block the queue", () => {
+  // Before this rule: thirty rounds in a row targeted the same five species, because a
+  // "no candidate" failure happens before the budget reservation and left no trace anywhere.
+  const fn = schema.slice(schema.indexOf("create or replace function public.start_autopilot_round"));
+  const flat = fn.split(String.fromCharCode(10)).map((line) => line.trim()).join(" ");
+  assert.ok(flat.includes("from public.model_autopilot_attempts att"), "the round consults the attempt log");
+  assert.ok(flat.includes("att.at > now() - make_interval(days => aut.retry_after_days)"), "and skips species tried recently");
+  assert.ok(flat.includes("make_interval(hours => 2)"), "an order orphaned by a dead worker is closed, not left blocking");
+  assert.ok(schema.includes("create table if not exists public.model_autopilot_attempts"), "the attempt table exists");
+  assert.ok(schema.includes("add column if not exists retry_after_days integer not null default 14"), "and the column an existing project needs spelled out");
+  assert.ok(schema.includes("alter table public.model_autopilot_attempts enable row level security"), "the log has RLS");
+});
+
 test("the auto-pilot queues an order and cannot download anything itself", () => {
   const fn = schema.slice(schema.indexOf("create or replace function public.start_autopilot_round"));
   const body = fn.slice(0, fn.indexOf("comment on function public.start_autopilot_round"));

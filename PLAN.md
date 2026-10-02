@@ -48,7 +48,7 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | Hạng mục | Giá trị |
 | --- | --- |
 | Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
-| Model 3D thật | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
+| Model 3D thật (đo được, xem ghi chú cuối PLAN) | **90/124 loài có model có nguồn**; trước đó | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
 | Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
 | Test tự động | **518** bài trong **46** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot` (10 bài khoá SQL khớp với module), Phase 22 thêm 21 bài của `check-model-upload` (chạy parser trên cả 24 file .glb thật). Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
 | Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
