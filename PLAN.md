@@ -3965,6 +3965,56 @@ Ràng buộc: không bịa số liệu dưới bất kỳ hình thức nào; ng�
 (`npm run check:suites`, `tsc`, build + `check:bundle`).
 ````
 
+---
+
+> **Phase 24 — Manga Studio: module sáng tạo manga (menu riêng)**
+
+**Prompt để triển khai Phase 24**:
+
+````markdown
+Triển khai Phase 24 – Manga Studio cho Kami3D: một module sáng tạo manga, có mục menu riêng trong
+navbar, dữ liệu trên Supabase, bảo mật bằng Clerk user_id + RLS. Người dùng tạo dự án, viết kịch bản,
+tạo panel, dàn trang có bong bóng thoại, xem trước, xuất bản công khai hoặc giữ riêng tư, và tải về.
+
+Pipeline bắt buộc, đúng thứ tự:
+
+1. **Tạo project** — tên, mô tả, cover, thể loại (genres[]), độ tuổi, trạng thái draft/published/archived,
+   công khai hay riêng tư.
+2. **Script / Chapter** — tạo chapter, viết kịch bản dạng text, chia scene.
+3. **Panel** — tải ảnh panel lên Storage (hoặc chỗ trống chờ AI sau), gán vào chapter, sắp thứ tự.
+4. **Layout trang (Page Composer)** — kéo panel vào trang, thêm speech/thought/narration/scream bubble,
+   chỉnh vị trí–kích thước–font, và **có sẵn các mẫu layout manga** (classic Nhật, webtoon dọc).
+5. **Preview & Export** — đọc toàn chapter như reader; xuất **PDF, CBZ và chuỗi PNG**; xuất bản để hiện
+   trên Gallery của module.
+6. **Quản lý & thống kê** — danh sách project của user, lượt xem và like cho bài công khai, sửa sau khi
+   publish.
+
+Schema (5 bảng, RLS bắt buộc): `manga_projects`, `manga_chapters`, `manga_panels`, `manga_pages`,
+`manga_bubbles` — như bản spec đã đưa, với những điều chỉnh sau cho khớp luật của dự án:
+
+- **RLS dùng `public.current_user_id()`**, không so sánh `user_id` trực tiếp: đó là hàm đã hợp nhất
+  danh tính Clerk ↔ Supabase (Phase 10/P0.1) và **không bao giờ ném exception** với token Clerk.
+  Policy: chủ sở hữu đọc/ghi mọi thứ của mình; **mọi người đọc được project `is_public = true`** cùng
+  chapter/page/panel/bubble của nó; không ai ghi được vào project của người khác.
+- **Lượt xem phải chống bơm** như `/api/views`: một hàm SECURITY DEFINER
+  `increment_manga_view(project_id)` + chặn theo cửa sổ trượt, không cho client tự PATCH `view_count`.
+- **Like** là bảng riêng `manga_likes (project_id, user_id)` với unique — không đếm bằng client.
+- **Storage**: bucket riêng cho ảnh manga (panel, cover) với `allowed_mime_types` chỉ ảnh; đọc công khai
+  cho project public, ghi bằng service role sau khi đã kiểm quyền sở hữu.
+- **Export không thêm thư viện**: PDF bằng **print stylesheet** của chính trang reader (trình duyệt in ra
+  PDF, không kéo thêm dependency), CBZ bằng **bộ ghi ZIP store-only tự viết** trong `lib/` (định dạng ZIP
+  cho phép không nén; có test đọc lại bằng chính bộ đọc của mình), PNG bằng canvas của panel.
+- **Toàn bộ toán dàn trang là hàm thuần có test**: lưới trang, vị trí/kích thước panel theo mẫu layout,
+  và **kẹp bong bóng trong khung panel** (bong bóng tràn ra ngoài khung là lỗi mắt thường khó thấy, đúng
+  loại việc mà dự án này luôn viết test cho).
+- **Không key vẫn phải chạy**: không Clerk/Supabase thì module ở chế độ Demo (dữ liệu trong trình duyệt),
+  như mọi module khác — không trắng trang.
+
+Ràng buộc: không thêm thư viện mới; mọi route ghi đi qua `guardWrite` + cổng admin/quyền sở hữu; mỗi
+route mới phải được khai ngân sách trong `scripts/bundle-budget.mjs`; `npm run check:suites`, `tsc` và
+build + `check:bundle` phải xanh; tài liệu chỉ ghi số đo được.
+````
+
 ## 🚧 Việc còn lại
 
 | # | Việc | Ghi chú |

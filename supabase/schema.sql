@@ -2303,6 +2303,213 @@ update public.model_download_policy
 comment on column public.model_download_policy.providers_allowed is
   'Which sources may spend the budget. "upload" is not a provider: it is the admin''s own file, and it is in this list because the ceilings it has to respect are the same ones.';
 
+
+/* ==========================================================================
+   Phase 24 - Manga Studio
+   ==========================================================================
+
+   Five tables, one rule: a row belongs to the Clerk user who made it, and a
+   published row is readable by everybody. Ownership is expressed with
+   `public.current_user_id()` (Phase 10/P0.1) rather than a raw `user_id`
+   comparison, because that function is the one identity helper that resolves
+   Clerk and Supabase Auth alike and never raises on a Clerk token.
+   ========================================================================== */
+
+create table if not exists public.manga_projects (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     text not null,
+  title       text not null check (length(btrim(title)) between 1 and 160),
+  description text,
+  cover_url   text,
+  genres      text[] not null default '{}',
+  age_rating  text not null default 'all' check (age_rating in ('all', 'teen', 'mature')),
+  status      text not null default 'draft' check (status in ('draft', 'published', 'archived')),
+  is_public   boolean not null default false,
+  view_count  integer not null default 0 check (view_count >= 0),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.manga_projects is
+  'A manga the user is making (Phase 24). Owned by user_id = public.current_user_id(); readable by everyone once is_public and published. view_count is only ever changed by increment_manga_view(), never by a client.';
+
+create table if not exists public.manga_chapters (
+  id             uuid primary key default gen_random_uuid(),
+  project_id     uuid not null references public.manga_projects (id) on delete cascade,
+  title          text not null check (length(btrim(title)) between 1 and 160),
+  chapter_number integer not null check (chapter_number >= 1),
+  script         text,
+  status         text not null default 'draft' check (status in ('draft', 'published', 'archived')),
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  constraint manga_chapters_number_unique unique (project_id, chapter_number)
+);
+
+create table if not exists public.manga_panels (
+  id          uuid primary key default gen_random_uuid(),
+  chapter_id  uuid not null references public.manga_chapters (id) on delete cascade,
+  image_url   text not null,
+  order_index integer not null default 0 check (order_index >= 0),
+  width       integer check (width is null or width > 0),
+  height      integer check (height is null or height > 0),
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.manga_pages (
+  id          uuid primary key default gen_random_uuid(),
+  chapter_id  uuid not null references public.manga_chapters (id) on delete cascade,
+  page_number integer not null check (page_number >= 1),
+  -- The panel rectangles and the template they came from. The maths that fills it lives in
+  -- lib/manga-layout.ts, which is pure and tested; this column only stores the result.
+  layout_data jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now(),
+  constraint manga_pages_number_unique unique (chapter_id, page_number)
+);
+
+create table if not exists public.manga_bubbles (
+  id          uuid primary key default gen_random_uuid(),
+  page_id     uuid not null references public.manga_pages (id) on delete cascade,
+  panel_id    uuid references public.manga_panels (id) on delete set null,
+  content     text not null check (length(content) <= 400),
+  bubble_type text not null default 'speech' check (bubble_type in ('speech', 'thought', 'narration', 'scream')),
+  position    jsonb not null default '{}'::jsonb,
+  style       jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.manga_likes (
+  project_id uuid not null references public.manga_projects (id) on delete cascade,
+  user_id    text not null,
+  created_at timestamptz not null default now(),
+  primary key (project_id, user_id)
+);
+
+create index if not exists manga_projects_user_idx on public.manga_projects (user_id, updated_at desc);
+create index if not exists manga_projects_public_idx on public.manga_projects (is_public, status, updated_at desc);
+create index if not exists manga_chapters_project_idx on public.manga_chapters (project_id, chapter_number);
+create index if not exists manga_panels_chapter_idx on public.manga_panels (chapter_id, order_index);
+create index if not exists manga_pages_chapter_idx on public.manga_pages (chapter_id, page_number);
+
+/** `updated_at` follows the write, in the database rather than in the caller. */
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists manga_projects_touch on public.manga_projects;
+create trigger manga_projects_touch before update on public.manga_projects
+  for each row execute function public.touch_updated_at();
+
+drop trigger if exists manga_chapters_touch on public.manga_chapters;
+create trigger manga_chapters_touch before update on public.manga_chapters
+  for each row execute function public.touch_updated_at();
+
+/**
+ * Count a read of a public manga - the same shape as /api/views.
+ *
+ * A client cannot write view_count (no policy, no grant), so the only way the number moves is this
+ * function, which refuses anything that is not a published public project. The route above it adds
+ * the sliding window; this is the part a script cannot go around.
+ */
+create or replace function public.increment_manga_view(p_project uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  next_count integer;
+begin
+  update public.manga_projects
+     set view_count = view_count + 1
+   where id = p_project and is_public and status = 'published'
+  returning view_count into next_count;
+
+  return coalesce(next_count, -1);
+end;
+$$;
+
+comment on function public.increment_manga_view(uuid) is
+  'The only writer of manga_projects.view_count. Returns the new count, or -1 when the project is not public and published.';
+
+-- RLS: owner writes, everybody reads what is published.
+alter table public.manga_projects enable row level security;
+alter table public.manga_chapters enable row level security;
+alter table public.manga_panels   enable row level security;
+alter table public.manga_pages    enable row level security;
+alter table public.manga_bubbles  enable row level security;
+alter table public.manga_likes    enable row level security;
+
+drop policy if exists "manga projects owner" on public.manga_projects;
+create policy "manga projects owner" on public.manga_projects
+  for all to authenticated
+  using (user_id = public.current_user_id())
+  with check (user_id = public.current_user_id());
+
+drop policy if exists "manga projects public read" on public.manga_projects;
+create policy "manga projects public read" on public.manga_projects
+  for select to anon, authenticated
+  using (is_public and status = 'published');
+
+-- Children follow their project: the owner may do anything, everybody may read a published one.
+do $$
+declare
+  target text;
+  parent text;
+begin
+  foreach target in array array['manga_chapters', 'manga_panels', 'manga_pages', 'manga_bubbles'] loop
+    parent := case target
+      when 'manga_chapters' then 'p.id = project_id'
+      when 'manga_panels'   then 'p.id = (select project_id from public.manga_chapters where id = chapter_id)'
+      when 'manga_pages'    then 'p.id = (select project_id from public.manga_chapters where id = chapter_id)'
+      else 'p.id = (select project_id from public.manga_chapters where id = (select chapter_id from public.manga_pages where id = page_id))'
+    end;
+
+    execute format('drop policy if exists %I on public.%I', target || ' owner', target);
+    execute format(
+      'create policy %I on public.%I for all to authenticated using (exists (select 1 from public.manga_projects p where %s and p.user_id = public.current_user_id())) with check (exists (select 1 from public.manga_projects p where %s and p.user_id = public.current_user_id()))',
+      target || ' owner', target, parent, parent
+    );
+
+    execute format('drop policy if exists %I on public.%I', target || ' public read', target);
+    execute format(
+      'create policy %I on public.%I for select to anon, authenticated using (exists (select 1 from public.manga_projects p where %s and p.is_public and p.status = ''published''))',
+      target || ' public read', target, parent
+    );
+  end loop;
+end;
+$$;
+
+drop policy if exists "manga likes readable" on public.manga_likes;
+create policy "manga likes readable" on public.manga_likes
+  for select to anon, authenticated
+  using (
+    exists (
+      select 1 from public.manga_projects p
+      where p.id = project_id and ((p.is_public and p.status = 'published') or p.user_id = public.current_user_id())
+    )
+  );
+
+drop policy if exists "manga likes own" on public.manga_likes;
+create policy "manga likes own" on public.manga_likes
+  for all to authenticated
+  using (user_id = public.current_user_id())
+  with check (user_id = public.current_user_id());
+
+-- anon may read (the policies above restrict that to published public projects) but never write;
+-- authenticated may write, and the policies restrict that to rows they own.
+revoke all on public.manga_projects, public.manga_chapters, public.manga_panels, public.manga_pages, public.manga_bubbles, public.manga_likes from anon;
+grant select on public.manga_projects, public.manga_chapters, public.manga_panels, public.manga_pages, public.manga_bubbles, public.manga_likes to anon;
+grant select, insert, update, delete on public.manga_projects, public.manga_chapters, public.manga_panels, public.manga_pages, public.manga_bubbles, public.manga_likes to authenticated;
+
+revoke all on function public.increment_manga_view(uuid) from public;
+grant execute on function public.increment_manga_view(uuid) to anon, authenticated;
+
 /* ==========================================================================
    Admin by default - the owner's address, and checking by email
    ==========================================================================
