@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 
-import { TwinExperience } from "@/components/data2map/TwinExperience";
-import { readLogisticsSample } from "@/lib/data2map/logistics";
-import bundled from "@/data/data2map-logistics.json";
+import { TwinExperienceLoader } from "@/components/data2map/TwinExperienceLoader";
 
 /**
- * Read once, at build time.
+ * Static, and the sample is fetched rather than bundled.
  *
- * The page is a static route: the ships, the routes and the stops are bundled data, and the only
- * thing that moves is the stream, which the client subscribes to after the page has painted. See
- * `lib/supabase.ts` for why the registry read on the other Data2Map pages is uncached.
+ * The page is still a static route, and the only thing that moves is the stream, which the client
+ * subscribes to after the page has painted. What changed is where the depots, routes and stops come
+ * from: they are the D4 logistics sample, and it is now served by
+ * `/api/data2map/sample/logistics` and fetched once by the loader below rather than imported into
+ * this module and written into the prerendered HTML. `lib/data2map/sample-files.ts` has the numbers.
  */
 export const dynamic = "force-static";
 
@@ -51,7 +51,6 @@ const OMITTED = [
 ];
 
 export default function TwinPage() {
-  const sample = readLogisticsSample(bundled);
 
   return (
     <div className="section-shell py-8">
@@ -61,15 +60,14 @@ export default function TwinPage() {
           Digital twin
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-white/60">
-          The city in three dimensions — {sample.depots.length} depots, {sample.stops.length} stops and{" "}
-          {sample.vehicles.length} vans over real OpenStreetMap buildings and real elevation, with the fleet's
-          positions pushed into Postgres and streamed back through Supabase Realtime. The buildings are real; the
-          fleet is simulated, and says so on every row.
+          The city in three dimensions: depots, delivery stops and vans over real OpenStreetMap buildings and
+          real elevation, with the fleet's positions pushed into Postgres and streamed back through Supabase
+          Realtime. The buildings are real; the fleet is simulated, and says so on every row.
         </p>
       </header>
 
       <div className="mt-6">
-        <TwinExperience sample={sample} omittedLayers={OMITTED} />
+        <TwinExperienceLoader omittedLayers={OMITTED} />
       </div>
     </div>
   );

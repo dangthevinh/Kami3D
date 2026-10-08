@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
-import { LogisticsExperience } from "@/components/data2map/LogisticsExperience";
+import { LogisticsExperienceLoader } from "@/components/data2map/LogisticsExperienceLoader";
 import { datasetForLayer, getData2MapRegistry, layersForProduct } from "@/lib/data2map";
-import { readLogisticsSample } from "@/lib/data2map/logistics";
-import bundled from "@/data/data2map-logistics.json";
 
 /**
- * Read once, at build time.
+ * Static, and the sample is fetched rather than bundled.
  *
- * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
- * so a seed is always reflected) and the output is prerendered like every other content route. See
- * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ * The registry is still read during `next build` (uncached, so a seed is always reflected) and the
+ * output is prerendered like every other content route - see `lib/supabase.ts` for why the fetch
+ * itself is the part that must not be cached. The sample is no longer a static import:
+ * `data/data2map-logistics.json` was 103 kB that every build parsed, cached and wrote into the prerendered
+ * HTML, and it is now served by `/api/data2map/sample/logistics` and fetched once by the loader on this
+ * page. `lib/data2map/sample-files.ts` has the numbers and the rules this kept.
  */
 export const dynamic = "force-static";
 
@@ -51,7 +52,6 @@ export default async function LogisticsPage() {
   const sources = Object.fromEntries(
     layers.map((layer) => [layer.id, datasetForLayer(registry, layer)?.source ?? "no dataset yet"]),
   );
-  const sample = readLogisticsSample(bundled);
 
   return (
     <div className="section-shell py-8">
@@ -61,14 +61,14 @@ export default async function LogisticsPage() {
           Logistics &amp; Fleet
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-white/60">
-          {sample.depots.length} depots, {sample.stops.length} delivery stops and {sample.vehicles.length} vans across
-          Ho Chi Minh City — coverage bands by the hour, clustered drops, and a plan compared against the order the
-          work arrived in. Every feature is simulated and says so; the routing is real.
+          Depots, delivery stops and vans across Ho Chi Minh City — coverage bands by the hour, clustered
+          drops, and a plan compared against the order the work arrived in. Every feature is simulated and
+          says so; the routing is real.
         </p>
       </header>
 
       <div className="mt-6">
-        <LogisticsExperience sample={sample} layers={layers} sources={sources} omittedLayers={OMITTED} />
+        <LogisticsExperienceLoader layers={layers} sources={sources} omittedLayers={OMITTED} />
       </div>
     </div>
   );

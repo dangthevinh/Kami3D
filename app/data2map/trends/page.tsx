@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
-import { TrendsExperience } from "@/components/data2map/TrendsExperience";
+import { TrendsExperienceLoader } from "@/components/data2map/TrendsExperienceLoader";
 import { datasetForLayer, getData2MapRegistry, layersForProduct } from "@/lib/data2map";
-import { readTrendsSample } from "@/lib/data2map/trends";
-import bundled from "@/data/data2map-trends.json";
 
 /**
- * Read once, at build time.
+ * Static, and the sample is fetched rather than bundled.
  *
- * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
- * so a seed is always reflected) and the output is prerendered like every other content route. See
- * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ * The registry is still read during `next build` (uncached, so a seed is always reflected) and the
+ * output is prerendered like every other content route - see `lib/supabase.ts` for why the fetch
+ * itself is the part that must not be cached. The sample is no longer a static import:
+ * `data/data2map-trends.json` was 111 kB that every build parsed, cached and wrote into the prerendered
+ * HTML, and it is now served by `/api/data2map/sample/trends` and fetched once by the loader on this
+ * page. `lib/data2map/sample-files.ts` has the numbers and the rules this kept.
  */
 export const dynamic = "force-static";
 
@@ -51,7 +52,6 @@ export default async function TrendsPage() {
   const sources = Object.fromEntries(
     layers.map((layer) => [layer.id, datasetForLayer(registry, layer)?.source ?? "no dataset yet"]),
   );
-  const sample = readTrendsSample(bundled);
 
   return (
     <div className="section-shell py-8">
@@ -61,15 +61,14 @@ export default async function TrendsPage() {
           Footfall &amp; Trend Map
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-white/60">
-          {sample.collection.features.length} hexes over Ho Chi Minh City: real population counts from
-          WorldPop, food and drink places from OpenStreetMap, and a simulated hour-by-hour footfall index
-          over the top — with the clock, the category and the gap score all saying where their numbers
-          came from.
+          Hexes over Ho Chi Minh City: real population counts from WorldPop, food and drink places from
+          OpenStreetMap, and a simulated hour-by-hour footfall index over the top — with the clock, the
+          category and the gap score all saying where their numbers came from.
         </p>
       </header>
 
       <div className="mt-6">
-        <TrendsExperience sample={sample} layers={layers} sources={sources} omittedLayers={OMITTED} />
+        <TrendsExperienceLoader layers={layers} sources={sources} omittedLayers={OMITTED} />
       </div>
     </div>
   );

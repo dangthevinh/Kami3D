@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
-import { AgricultureExperience } from "@/components/data2map/AgricultureExperience";
+import { AgricultureExperienceLoader } from "@/components/data2map/AgricultureExperienceLoader";
 import { datasetForLayer, getData2MapRegistry, layersForProduct } from "@/lib/data2map";
-import { readAgricultureSample } from "@/lib/data2map/agriculture";
-import bundled from "@/data/data2map-agriculture.json";
 
 /**
- * Read once, at build time.
+ * Static, and the sample is fetched rather than bundled.
  *
- * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
- * so a seed is always reflected) and the output is prerendered like every other content route. See
- * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ * The registry is still read during `next build` (uncached, so a seed is always reflected) and the
+ * output is prerendered like every other content route - see `lib/supabase.ts` for why the fetch
+ * itself is the part that must not be cached. The sample is no longer a static import:
+ * `data/data2map-agriculture.json` was 152 kB that every build parsed, cached and wrote into the prerendered
+ * HTML, and it is now served by `/api/data2map/sample/agriculture` and fetched once by the loader on this
+ * page. `lib/data2map/sample-files.ts` has the numbers and the rules this kept.
  */
 export const dynamic = "force-static";
 
@@ -53,7 +54,6 @@ export default async function AgriculturePage() {
   const sources = Object.fromEntries(
     layers.map((layer) => [layer.id, datasetForLayer(registry, layer)?.source ?? "no dataset yet"]),
   );
-  const sample = readAgricultureSample(bundled);
 
   return (
     <div className="section-shell py-8">
@@ -63,13 +63,13 @@ export default async function AgriculturePage() {
           Agri Geo-Analytics
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-white/60">
-          {sample.periods.length} NASA composites of MODIS NDVI over the Mekong Delta, IMERG rainfall on the same
-          clock, and {sample.fields.length} simulated parcels scored by a yield model that prints its coefficients.
+          NASA composites of MODIS NDVI over the Mekong Delta, IMERG rainfall on the same clock, and simulated
+          parcels scored by a yield model that prints its coefficients.
         </p>
       </header>
 
       <div className="mt-6">
-        <AgricultureExperience sample={sample} layers={layers} sources={sources} omittedLayers={OMITTED} />
+        <AgricultureExperienceLoader layers={layers} sources={sources} omittedLayers={OMITTED} />
       </div>
     </div>
   );

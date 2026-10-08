@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { requireAdmin } from "@/app/api/admin/_lib/guard";
+import { adminStatus } from "@/lib/admin";
 import { parseImport, validateOptions } from "@/lib/geodata-import";
-import { getCurrentUserId } from "@/lib/auth";
 import { getPersonalDataClient } from "@/lib/personal-data";
 import { guardWrite, hostOfRequest } from "@/lib/write-guard";
 
@@ -27,36 +28,26 @@ export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
-async function isAdmin(): Promise<boolean> {
-  const userId = await getCurrentUserId();
-  if (!userId) return false;
-
-  const supabase = await getPersonalDataClient();
-  if (!supabase) return false;
-
-  const { data, error } = await supabase.rpc("is_admin");
-  if (error) {
-    console.warn("[kami3d] admin check failed:", error.message);
-    return false;
-  }
-
-  return data === true;
-}
-
-export async function GET() {
-  const userId = await getCurrentUserId();
-  return NextResponse.json({ signedIn: Boolean(userId), admin: await isAdmin() });
+/**
+ * The admin answer, for the page that draws the form.
+ *
+ * It reports rather than refuses - `GET` tells the console whether to show the import panel - and the
+ * decision itself is delegated to the one admin gate (`adminStatus`), so this route cannot drift into
+ * asking a different question than `/api/admin/_lib/guard.ts` asks. Measured drift is what Phase 31
+ * found here: this file used to carry its own `is_admin()` call and its own 403, which meant the shared
+ * guard's 404 convention, its logging and its default-owner rule did not apply.
+ */
+export async function GET(request: Request) {
+  const status = await adminStatus();
+  return NextResponse.json({ signedIn: status.signedIn, admin: status.admin });
 }
 
 export async function POST(request: Request) {
   const blocked = guardWrite(request, { name: "admin-geodata", rule: { limit: 20, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
   if (blocked) return blocked;
 
-  if (!(await isAdmin())) {
-    // Deliberately the same answer for "not signed in" and "signed in but not an admin": the
-    // endpoint is not a place to enumerate who has rights.
-    return NextResponse.json({ error: "Admin access is required." }, { status: 403 });
-  }
+  const admin = await requireAdmin(request);
+  if (!admin.ok) return admin.response;
 
   let body: {
     file?: unknown;

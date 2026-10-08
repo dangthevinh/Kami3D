@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 
-import { RealEstateExperience } from "@/components/data2map/RealEstateExperience";
+import { RealEstateExperienceLoader } from "@/components/data2map/RealEstateExperienceLoader";
 import { getData2MapRegistry, layersForProduct } from "@/lib/data2map";
-import sample from "@/data/data2map-real-estate.json";
-import type { FeatureCollection, Geometry } from "geojson";
 
 /**
- * Read once, at build time.
+ * Static, and the sample is fetched rather than bundled.
  *
- * The page is a static route and stays one: the registry is fetched during `next build` (uncached,
- * so a seed is always reflected) and the output is prerendered like every other content route. See
- * `lib/supabase.ts` for why the fetch itself is the part that must not be cached.
+ * The registry is still read during `next build` (uncached, so a seed is always reflected) and the
+ * output is prerendered like every other content route - see `lib/supabase.ts` for why the fetch
+ * itself is the part that must not be cached. The sample is no longer a static import:
+ * `data/data2map-real-estate.json` was 55 kB that every build parsed, cached and wrote into the prerendered
+ * HTML, and it is now served by `/api/data2map/sample/real-estate` and fetched once by the loader on this
+ * page. `lib/data2map/sample-files.ts` has the numbers and the rules this kept.
  */
 export const dynamic = "force-static";
 
@@ -49,9 +50,6 @@ const OMITTED = [
 export default async function RealEstatePage() {
   const registry = await getData2MapRegistry();
   const layers = layersForProduct(registry, "real_estate");
-  const collection = sample as unknown as FeatureCollection<Geometry> & {
-    properties: { area: { west: number; south: number; east: number; north: number }; attribution: string };
-  };
 
   return (
     <div className="section-shell py-8">
@@ -67,13 +65,7 @@ export default async function RealEstatePage() {
       </header>
 
       <div className="mt-6">
-        <RealEstateExperience
-          features={collection}
-          layers={layers}
-          attribution={collection.properties.attribution}
-          area={collection.properties.area}
-          omittedLayers={OMITTED}
-        />
+        <RealEstateExperienceLoader layers={layers} omittedLayers={OMITTED} />
       </div>
     </div>
   );

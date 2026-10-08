@@ -228,8 +228,11 @@ test("the allow-lists are parsed, and compared without case or spaces", () => {
 test("the gate lives in the middleware, because the module's pages are static", () => {
   const middleware = readFileSync(join(root, "middleware.ts"), "utf8");
 
-  assert.ok(middleware.includes("isData2MapPath"), "the middleware does not know about the module");
-  assert.ok(middleware.includes("canSeeData2Map"), "and does not ask who may see it");
+  // The module list moved to `lib/coming-soon.ts` when Manga Studio joined Data2Map behind the same
+  // gate. The middleware asks the registry which module a path belongs to, and then asks who may
+  // enter it - so a third unlaunched module would need no new branch here.
+  assert.ok(middleware.includes("comingSoonFor"), "the middleware does not ask which module a path is in");
+  assert.ok(middleware.includes("canEnter"), "and does not ask who may enter it");
   assert.ok(middleware.includes("isDatabaseAdmin"), "nor checks the admin table");
   assert.ok(/status: 404/.test(middleware), "a hidden section answers 404, not 403");
   assert.ok(middleware.includes("x-robots-tag"), "and tells crawlers to stay out");
@@ -246,18 +249,36 @@ test("the gate lives in the middleware, because the module's pages are static", 
   }
 });
 
-test("the sitemap and the navbar do not advertise an unpublished module", () => {
+test("the sitemap does not advertise an unlaunched module", () => {
   const sitemap = readFileSync(join(root, "app", "sitemap.ts"), "utf8");
   assert.ok(sitemap.includes("data2mapIsPublic()"), "the sitemap must ask before listing the module");
   assert.ok(/data2mapIsPublic\(\)\s*\n?\s*\?/.test(sitemap), "and list the routes only when it is public");
+});
 
+test("the navbar draws an unlaunched module and greys it out until the probe answers", () => {
   const navbar = readFileSync(join(root, "components", "layout", "Navbar.tsx"), "utf8");
-  assert.ok(navbar.includes("/api/data2map-access"), "the navbar must ask before drawing the entry");
-  assert.ok(navbar.includes("data2mapIsPublic()"), "and draw it unconditionally when the module is public");
-  // The entry may exist as its own constant - what it must not do is sit inside the list that is
-  // rendered for everyone.
+
+  // One probe answers for every unlaunched module, so a second one does not need a second request.
+  assert.ok(navbar.includes("/api/module-access"), "the navbar must ask which modules this session may open");
+  assert.ok(!navbar.includes("/api/data2map-access"), "and not one route per module");
+
+  // Both entries are **always** drawn - that is the change this test was rewritten for. A link that
+  // vanishes teaches a visitor nothing; a greyed-out "Coming soon" answers the question they were
+  // about to ask.
   const listStart = navbar.indexOf("const NAV_LINKS");
-  const listEnd = navbar.indexOf("] as const;", listStart);
+  const listEnd = navbar.indexOf("];", listStart);
   assert.ok(listStart >= 0 && listEnd > listStart, "NAV_LINKS is not where it used to be");
-  assert.ok(!navbar.slice(listStart, listEnd).includes("/data2map"), "the entry sits in the unconditional list");
+  assert.ok(navbar.slice(listStart, listEnd).includes("/manga-studio"), "Manga Studio is missing from the menu");
+  assert.ok(navbar.includes("/data2map"), "Data2Map is missing from the menu");
+
+  // A locked entry is a label, not a link: no href to follow, and it says so to a screen reader.
+  assert.ok(navbar.includes("aria-disabled=\"true\""), "a locked entry must announce that it is disabled");
+  assert.ok(navbar.includes("comingSoon === true && !openModules.has"), "and must be gated by the probe");
+  assert.ok(navbar.includes("cursor-not-allowed"), "and must not look clickable");
+  assert.ok(navbar.includes("data-coming-soon"), "and must be findable by an audit");
+  assert.equal(
+    (navbar.match(/<Link[\s\S]{0,120}?href=\{link\.href\}/g) ?? []).length,
+    2,
+    "both lists render a Link, and only inside the unlocked branch of each",
+  );
 });

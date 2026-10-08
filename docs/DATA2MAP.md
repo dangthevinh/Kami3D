@@ -308,6 +308,19 @@ a specific study, not calibrated to any province", because inventing a citation 
 demonstration. The advice strings never mention a chemical: this project has no soil test, no weather forecast
 and no agronomist, and advice is the part of a dashboard that can do real harm when it is confidently wrong.
 
+### Where the sample comes from now
+
+The four large samples — agriculture, trends, logistics and real-estate — are **served, not bundled**.
+`app/api/data2map/sample/[dataset]/route.ts` reads the file from `data/` when a request asks for one and
+validates it with the same pure reader the build used to use; the product pages stay static and fetch it
+once through the loader in `components/data2map/*ExperienceLoader.tsx`. `lib/data2map/sample-files.ts`
+holds the allow-list and the parsing, and `scripts/check-data2map-samples.mjs` fails if a page ever
+imports one of those JSON files again. The measured effect, and the honest limits of the change, are in
+PLAN.md under "đưa 4 dataset Data2Map ra khỏi module graph".
+
+`data2map-stories.json` (9.7 kB) is deliberately **still imported**: it is small, and the story text is
+worth having in the server-rendered HTML.
+
 ### What is drawn, and what is only described
 
 | Layer | Source | Real? |
