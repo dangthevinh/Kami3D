@@ -98,21 +98,59 @@ try {
 }
 
 console.log("2. what the anonymous key can do");
+
+/**
+ * Two shapes of "no", and this script has to tell them apart rather than guess.
+ *
+ *   - **401/42501** — the role has no privilege at all. That is what the Phase 31 revoke produced for
+ *     the security log, and for every write a guest might attempt.
+ *   - **200 with `[]`** — the role may ask, and row level security filters every row. This is the
+ *     normal answer on a per-user table, because part 1 of Phase 31 deliberately left `anon` its
+ *     SELECT: the policies, not the grants, are what keep a personal row out of a guest's hands.
+ *
+ * An earlier version of this file demanded 401 for the second case and therefore reported three false
+ * failures on a healthy database. A check that cries wolf is a check that gets ignored, so the
+ * expectation is now written per probe, and a `200` with rows in it is the failure.
+ */
 const probes = [
-  { label: "read the catalogue", init: undefined, path: "/rest/v1/animals?select=slug&limit=1", expect: [200] },
-  { label: "read sound credits", init: undefined, path: "/rest/v1/sound_assets?select=title&limit=1", expect: [200] },
-  { label: "read someone's favourites", init: undefined, path: "/rest/v1/user_favorites?select=animal_id&limit=1", expect: [401, 403] },
+  { label: "read the catalogue", init: undefined, path: "/rest/v1/animals?select=slug&limit=1", expect: [200], rows: "some" },
+  { label: "read sound credits", init: undefined, path: "/rest/v1/sound_assets?select=title&limit=1", expect: [200], rows: "some" },
+  { label: "read someone's favourites", init: undefined, path: "/rest/v1/user_favorites?select=animal_id&limit=1", expect: [200, 401, 403], rows: "none" },
   { label: "write a favourite", init: { method: "POST", body: JSON.stringify({ user_id: "x", animal_id: "00000000-0000-0000-0000-000000000000" }) }, path: "/rest/v1/user_favorites", expect: [401, 403] },
-  { label: "read quiz scores", init: undefined, path: "/rest/v1/quiz_scores?select=score&limit=1", expect: [401, 403] },
+  { label: "read quiz scores", init: undefined, path: "/rest/v1/quiz_scores?select=score&limit=1", expect: [200, 401, 403], rows: "none" },
   { label: "write a quiz score", init: { method: "POST", body: JSON.stringify({ user_id: "x", score: 10 }) }, path: "/rest/v1/quiz_scores", expect: [401, 403] },
-  { label: "read the admin list", init: undefined, path: "/rest/v1/app_admins?select=user_id", expect: [401, 403] },
+  { label: "read the settings of another visitor", init: undefined, path: "/rest/v1/user_settings?select=user_id&limit=1", expect: [200, 401, 403], rows: "none" },
+  { label: "read the saved items of another visitor", init: undefined, path: "/rest/v1/saved_items?select=user_id&limit=1", expect: [200, 401, 403], rows: "none" },
+  { label: "read the admin list", init: undefined, path: "/rest/v1/app_admins?select=user_id", expect: [200, 401, 403], rows: "none" },
+  { label: "read the security log", init: undefined, path: "/rest/v1/security_events?select=id&limit=1", expect: [401, 403] },
 ];
+
+/** How many rows came back: `[]` is the filtered answer, a JSON array with entries is a leak. */
+function rowCount(body) {
+  const text = body.trim();
+  if (text === "[]" || text === "") return 0;
+  try {
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed.length : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
 
 for (const probe of probes) {
   const result = await rest(probe.path, probe.init);
-  const ok = probe.expect.includes(result.status);
-  console.log(`   ${ok ? "ok  " : "FAIL"} ${probe.label}: HTTP ${result.status}`);
-  if (!ok) problems.push(`${probe.label} answered ${result.status}, expected ${probe.expect.join("/")}`);
+  const count = probe.rows ? rowCount(result.body) : "n/a";
+  const statusOk = probe.expect.includes(result.status);
+  const rowsOk = probe.rows === "none" ? count === 0 : probe.rows === "some" ? count !== 0 : true;
+  const ok = statusOk && rowsOk;
+
+  console.log(`   ${ok ? "ok  " : "FAIL"} ${probe.label}: HTTP ${result.status}${probe.rows ? ", rows " + count : ""}`);
+  if (!ok) {
+    problems.push(
+      `${probe.label} answered ${result.status} with ${count} rows, expected ${probe.expect.join("/")}` +
+        (probe.rows === "none" ? " and no rows" : ""),
+    );
+  }
 }
 
 // A refused PATCH answers 204 with nothing changed, and that is not the same message as 204 with a row

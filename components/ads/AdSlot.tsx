@@ -32,14 +32,33 @@ export interface AdSlotProps {
   className?: string;
   /** Shown under the placeholder in Demo Mode, e.g. "Funds new 3D scans". */
   note?: string;
+  /**
+   * Phase 33: the ad unit id, from the admin-controlled placement row.
+   *
+   * The format's own id is a fallback for the pages that predate the placement table. Passing the real
+   * one matters: an AdSense unit is identified by (client, slot), so a placeholder id would ask Google
+   * for a unit that does not exist and render an empty box with no explanation.
+   */
+  slotId?: string | null;
+  /** Phase 33: the client id, when the caller already has it (the slots route sends it). */
+  client?: string | null;
+  /** Phase 33: "placeholder" draws the labelled box on purpose; "adsense" asks the network. */
+  provider?: "placeholder" | "adsense";
 }
 
-export function AdSlot({ format = "in-article", className, note }: AdSlotProps) {
+export function AdSlot({ format = "in-article", className, note, slotId = null, client = null, provider }: AdSlotProps) {
   const config = FORMATS[format];
   const pushed = React.useRef(false);
 
+  // Which unit to ask for: what the placement said, else the format's own id. A caller that passes
+  // neither is the pre-Phase-33 behaviour, kept so those five pages keep working unchanged.
+  const resolvedClient = client ?? publicEnv.adsenseClient;
+  const resolvedSlot = slotId ?? config.slot;
+  const wantsNetwork = provider ? provider === "adsense" : isAdsEnabled;
+  const canAskNetwork = wantsNetwork && resolvedClient.length > 0 && resolvedSlot.length > 0;
+
   React.useEffect(() => {
-    if (!isAdsEnabled || pushed.current) return;
+    if (!canAskNetwork || pushed.current) return;
     pushed.current = true;
     try {
       // @ts-expect-error - injected by the AdSense script tag
@@ -47,7 +66,7 @@ export function AdSlot({ format = "in-article", className, note }: AdSlotProps) 
     } catch {
       // Blocked by an ad blocker: the reserved box simply stays empty.
     }
-  }, []);
+  }, [canAskNetwork]);
 
   return (
     <aside
@@ -60,13 +79,13 @@ export function AdSlot({ format = "in-article", className, note }: AdSlotProps) 
     >
       <span className="absolute left-2 top-2 text-[9px] uppercase tracking-[0.2em] text-white/25">Ad</span>
 
-      {isAdsEnabled ? (
+      {canAskNetwork ? (
         // --- Production: Google AdSense -------------------------------------
         <ins
           className="adsbygoogle block w-full"
           style={{ display: "block" }}
-          data-ad-client={publicEnv.adsenseClient}
-          data-ad-slot={config.slot}
+          data-ad-client={resolvedClient}
+          data-ad-slot={resolvedSlot}
           data-ad-format={format === "in-article" ? "fluid" : "auto"}
           data-full-width-responsive="true"
         />
@@ -76,7 +95,10 @@ export function AdSlot({ format = "in-article", className, note }: AdSlotProps) 
             {config.label} · {config.size}
           </p>
           <p className="mt-1 max-w-xs text-[11px] leading-relaxed text-white/25">
-            {note ?? "Placeholder — set NEXT_PUBLIC_ADSENSE_CLIENT to serve real ads."}
+            {note ??
+              (wantsNetwork
+                ? "AdSense is configured but this position has no usable unit id, so nothing is served."
+                : "Placeholder — an admin can switch a real position on in /admin/ads.")}
           </p>
         </div>
       )}
