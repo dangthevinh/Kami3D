@@ -10,8 +10,8 @@ An interactive encyclopedia where every species can be rotated, measured against
 identified by its silhouette. Built with Next.js App Router, React Three Fiber, Clerk and Supabase.
 
 **The app runs with zero configuration.** With no environment variables it boots in *Demo Mode*: a bundled
-24-species dataset, cookie-backed favourites and quiz scores, and procedural 3D models. Add keys and the same
-code paths switch to Clerk auth, Supabase persistence and real ad slots.
+74-species dataset, cookie-backed favourites and quiz scores, and the real `.glb` models the repository
+ships. Add keys and the same code paths switch to Clerk auth, Supabase persistence and real ad slots.
 
 ```bash
 npm install
@@ -48,8 +48,12 @@ Optional next step: `npm run models:report` lists downloadable 3D models for eve
   dimension rendered exactly (`npm run check:size` proves it).
 - **Silhouette quiz** — dark rotating models, three distractors chosen from the same class/region, server-side
   score validation.
-- **Procedural models** — 9 parametric creature rigs (quadruped, biped, theropod, bird, marine, whale, serpent,
-  insect, human) mean no species is ever missing a 3D view. Drop in a `.glb` and it takes over automatically.
+- **Every species has a real model** — 74 species, 74 credited CC0/CC BY `.glb` assets, DRACO-compressed. A
+  species only appears in the catalogue once a model for it exists: the site shows a real asset or says
+  plainly that there is none, and never a shape standing in for the animal.
+- **Procedural rigs, where a shape is honestly a shape** — 9 parametric creature rigs (quadruped, biped,
+  theropod, bird, marine, whale, serpent, insect, human) drive the silhouette quiz and the size chart. They
+  are never drawn under a species' name as its model.
 - **Ad-safe layout** — slots reserve fixed height, never cover a canvas, and render labelled placeholders until
   `NEXT_PUBLIC_ADSENSE_CLIENT` is set.
 
@@ -86,6 +90,14 @@ CRON_SECRET=                            # only for hosts without a long-running 
 # MODEL_AUTOPILOT_TICK_MS=300000        # how often it checks whether a round is due (min 60000)
 # MODEL_UPLOADS=off                     # uncomment to stop the clock from watching the upload inbox
 
+# --- Cloudflare R2 (Phase 34) — the CDN mirror of public/models/** and public/sounds/**
+R2_ACCOUNT_ID=                          # account id, for the S3 endpoint
+R2_ACCESS_KEY_ID=                       # object-scoped key: ListObjectsV2, PutObject, DeleteObject
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=                              # e.g. kami3d-storage
+NEXT_PUBLIC_R2_PUBLIC_URL=              # the bucket's public base, used by npm run r2:push
+# NEXT_PUBLIC_R2_ASSETS=on              # uncomment to SERVE from the CDN — read docs/ASSETS.md first
+
 # --- Site and ads
 NEXT_PUBLIC_SITE_URL=http://localhost:9000
 NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
@@ -101,6 +113,9 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 | `NEXT_PUBLIC_SITE_URL` | app | Canonical URLs, sitemap, OG images — must match the public origin. Falls back to the Vercel/Netlify production URL, then to `http://localhost:9000` (which the build warns about) |
 | `NEXT_PUBLIC_DRACO_DECODER_PATH` | browser | Empty uses the self-hosted decoder |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | browser | Empty renders ad placeholders |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | `scripts/r2*.mjs` | The S3 credentials `npm run r2:push` writes with. Never `NEXT_PUBLIC_`. Object-scoped is enough to push; a bucket CORS rule is a dashboard action, see `docs/ASSETS.md` |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | scripts | Where the bucket is. On its own it changes nothing the site serves |
+| `NEXT_PUBLIC_R2_ASSETS` | app | **The cutover switch.** Only the exact value `on` makes pages read models and recordings from the CDN; anything else (including unset) keeps `public/`. Requires a CORS rule on the bucket, or browsers will refuse the `.glb` — `npm run r2:probe` says which state you are in |
 | `NEXT_PUBLIC_DATA2MAP_PUBLIC` | app | `1` publishes Data2Map to everyone. Empty (the default) keeps the module behind the admin gate: the middleware answers 404 and the sitemap leaves it out. `npm run dev` shows it regardless |
 | `CRON_SECRET` | `/api/cron/models` | Optional. With it set, an external scheduler (Vercel Cron, systemd, cron) can drive one auto-pilot round with `Authorization: Bearer $CRON_SECRET`. **Unset means the endpoint refuses every unauthenticated call** — an unset secret is never an open door |
 | `MODEL_UPLOADS` | server | Optional. `off` stops the app's clock from watching the Storage upload inbox (`uploads/inbox/`). Files still publish when an admin presses **Process the inbox now** |
@@ -120,7 +135,7 @@ NEXT_PUBLIC_ADSENSE_CLIENT=             # empty renders labelled placeholders
 
    ```bash
    npm run db:status   # what the database currently holds
-   npm run db:seed     # load or update the 24 species, idempotently
+   npm run db:seed     # load or update the 74 species, idempotently
    ```
 
    `db:seed` needs one credential in `.env.local` (gitignored). It auto-detects either:
@@ -393,7 +408,7 @@ npm run start           # serve the production build
 npm run typecheck       # tsc --noEmit
 npm run check           # typecheck + all node check suites
 npm run check:rigs      # procedural rig geometry assertions
-npm run check:size      # size-comparison scale assertions for all 24 species
+npm run check:size      # size-comparison scale assertions for every species
 npm run check:sql       # schema.sql / seed.sql / dataset agreement
 npm run check:seo       # JSON-LD graph shape, absolute URLs, script-tag escaping
 npm run check:auth      # the session hint that keeps auth SDKs off anonymous pages

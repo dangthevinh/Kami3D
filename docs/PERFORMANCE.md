@@ -159,8 +159,8 @@ robots file and web app manifest are fully static.
 
 ## SEO
 
-- `generateStaticParams` pre-renders all 24 species; `generateMetadata` produces per-species title, description,
-  keywords, canonical URL, OpenGraph and Twitter card tags.
+- `generateStaticParams` pre-renders all 73 species and all 47 landmarks; `generateMetadata` produces a per-entry
+  title, description, keywords, canonical URL, OpenGraph and Twitter card.
 - Every page declares an absolute canonical (`metadataBase` plus `alternates.canonical`); `/` is the only route
   that inherits it from the layout.
 - Structured data is built as plain objects in `lib/seo.ts` and emitted through `components/seo/JsonLd.tsx`:
@@ -171,11 +171,11 @@ robots file and web app manifest are fully static.
   script tag.
 - `opengraph-image.tsx` renders a 1200×630 social card with Satori — one per species using its own accent colours
   and measurements, plus one site-wide default.
-- `app/sitemap.ts` emits 24 species URLs plus the five landing surfaces; `app/robots.ts` keeps `/api`,
-  `/profile`, `/sign-in` and `/sign-up` out of the index; `app/manifest.ts` provides the installable web app
-  metadata.
+- `app/sitemap.ts` emits 73 species URLs, 47 landmark URLs and the seven landing surfaces; `app/robots.ts`
+  keeps `/api`, `/profile`, `/sign-in` and `/sign-up` out of the index; `app/manifest.ts` provides the
+  installable web app metadata.
 - Filtering on `/explore` happens on the client, so the route is **static** and the prerendered HTML contains all
-  24 species links — the internal links a crawler should follow are in the first response, not behind hydration.
+  73 species links — the internal links a crawler should follow are in the first response, not behind hydration.
 
 ## Mobile and touch
 

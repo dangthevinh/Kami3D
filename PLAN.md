@@ -42,19 +42,20 @@ Repo: <https://github.com/dangthevinh/Kami3D> · Chạy local: `npm run dev` →
 | **D6** | Agri Geo-Analytics Dashboard | ✅ Hoàn thành — NDVI + mưa **thật** từ NASA GIBS (public domain, không cần tile pipeline), mẫu thửa mô phỏng có nhãn |
 | **D7** | Digital Twin 3D & Realtime (GIS 3D + hạ tầng đẩy dữ liệu) | ✅ Hoàn thành — thành phố 3D **thật** (OSM + terrain), fleet stream qua Supabase Realtime; HT for Web bị từ chối, thay bằng bộ OSS |
 | **D8** | Ẩn Data2Map với người dùng (chỉ admin xem) | ✅ Hoàn thành — middleware trả **404** cho khách, allow-list + bảng `app_admins`; `NEXT_PUBLIC_DATA2MAP_PUBLIC=1` để mở lại |
+| **24** | Manga Studio (webtoon, panel AI, mạng xã hội) | ⚠️ **Code xong, typecheck + 580 test xanh** — còn **một** mục chưa đo: ngân sách bundle của 6 route mới (cần một lần `next build` chạy xong; xem "Việc còn lại" #12 và `scripts/bundle-budget.mjs`) |
 
 **Số liệu hiện tại**
 
 | Hạng mục | Giá trị |
 | --- | --- |
-| Loài trong bách khoa | **24** (8 vùng, 8 lớp, 4 loài tiền sử) |
-| Model 3D thật (đo được, xem ghi chú cuối PLAN) | **108/108 loài có model có nguồn**; trước đó | **24** file `.glb`, DRACO, tổng **10 MB** (nén từ 61 MB) |
-| Route dựng sẵn | **41** (24 trang loài là SSG, `/explore` nay **tĩnh**, **7** trang Data2Map tĩnh, kể cả `/data2map/twin`) |
-| Test tự động | **518** bài trong **46** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`); Phase 21 thêm 28 bài của `check-autopilot` (10 bài khoá SQL khớp với module), Phase 22 thêm 21 bài của `check-model-upload` (chạy parser trên cả 24 file .glb thật). Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
-| Tiếng kêu động vật | **6/24 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
+| Loài trong bách khoa | **73** (8 vùng, 8 lớp, 4 loài tiền sử) — **mỗi loài còn lại đều có một model 3D thật, có màu**. 35 loài không có model (hoặc chỉ có một model sai loài) đã bị **xoá hẳn** khỏi catalogue, seed và database; xem mục "Chỉ giữ loài có model" và "Model trắng" |
+| Model 3D thật (**đo lại trong phiên này**) | **166 model** trong `public/models/` (**339 MB**): **73** loài · **47** công trình · **16** space · **16** plants · **14** vehicles — **mọi mục của mọi catalogue đều có một file thật, đã credit** (trước phiên này: 24/108 loài). DRACO toàn bộ, không model nào render trắng, không mục nào hiển thị mà không có model |
+| Route dựng sẵn | **199** trang ở lần build mới nhất, gồm **73 trang loài** · **47 trang công trình** · **46 trang mục catalogue** (`/catalog/[category]/[slug]`) · **6 trang chủ đề** (`/categories/[id]`) cộng `/landmarks`, `/categories` và `/search`; `/explore` tĩnh, **7** trang Data2Map tĩnh kể cả `/data2map/twin`; Phase 24 thêm **6** trang `/manga-studio/*` và **18** route API `/api/manga/*` |
+| Test tự động | **680** bài trong **60** tệp `scripts/check-*.mjs`, 0 fail (`npm run check:suites`), `tsc --noEmit` sạch, `next build` exit 0 với **0 cảnh báo**; Phase 21 thêm 28 bài của `check-autopilot` (10 bài khoá SQL khớp với module), Phase 22 thêm 21 bài của `check-model-upload` (chạy parser trên cả 24 file .glb thật), Phase 24 thêm 39 bài (`check-manga`, `check-manga-export`), luật skip của auto-pilot được khoá bằng `check-autopilot-clock` (7 bài), việc đưa dataset Data2Map ra khỏi trang bằng `check-data2map-samples` (7 bài) và bộ lọc log build bằng `check-build-log` (5 bài). Hai cổng riêng trong CI: `check:bundle` (ngân sách JS mỗi route) và `check:secrets` (quét bí mật, chạy sau build) |
+| Tiếng kêu động vật | **6/73 loài** (635 kB), CC0/CC-BY, đã credit + upload Storage + lưu `sound_assets` |
 | Tuỳ chọn người dùng | **17 cột** trong `user_settings`, 6 nhóm ở `/settings`; khách chưa đăng nhập vẫn dùng được (lưu trong trình duyệt) |
-| First Load JS | `/` 132 kB · `/explore` 133 kB · `/quiz` 126 kB · `/animal/[slug]` 129 kB |
-| JS khởi đầu mỗi route (gzip, `npm run check:bundle`) | Đo trong **bản build cách ly** (Phase 19–20): `/animal/[slug]` 143.7–145.0 · `/explore` 153.1 · `/quiz` 161.7 · `/analytics` 106.3 · `/admin/models` 120.4 — ngân sách 165 (riêng `/analytics` và `/admin/models` là 140) |
+| First Load JS (build `.next-build`, đo lại trong phiên này) | `/` **140 kB** · `/explore` **142 kB** · `/quiz` **135 kB** · `/animal/[slug]` **137 kB** · `/landmarks` **121 kB** · `/landmarks/[slug]` **126 kB** · `/categories` **108 kB** · `/categories/[id]` **120 kB** |
+| JS khởi đầu mỗi route (gzip, `npm run check:bundle NEXT_DIR=.next-build`) | Đo lại trên build `.next-build` trong phiên này: `/quiz` **165,0** · `/explore` **159,1** · `/landmarks` **158** · `/data2map/twin` **156,9** · `/data2map/trends` **155,3** · `/data2map/logistics` **155** · `/data2map/agriculture` **153,6** · `/` **153,4** · `/animal/[slug]` **149,6** · `/categories/[id]` **135,8** · `/categories` **134,4** · `/map` **140,9** · `/landmarks/[slug]` **139** · `/admin/models` **126,6** · `/analytics` **106,1** — ngân sách 140–172 tuỳ route, **mọi route đều trong hạn**, và không route nào còn chưa khai ngân sách ngoài 6 route manga (#12) |
 | Bundle 3D | tải **sau** khi trang đã dùng được (cổng CI chặn nếu quay lại first paint) |
 | CI | GitHub Actions xanh — typecheck → checks → build → bundle budget → **quét bí mật** mỗi lần push |
 | **Rủi ro đang mở** | **R1** Clerk đi vòng qua RLS bằng service role (P0 — P0.1) · **R4** kiến trúc dữ liệu O(N) · **R5** không có giám sát lỗi · **R6** chưa có KTX2 (`dispose()` đã xong ở P0.4) · **R7** chưa sẵn sàng i18n · **R8** egress chưa có trần · **R9** rate limiter chỉ giới hạn **một** process và CSP mới ở chế độ **report-only** (Phase 20). Đã đóng: ~~R2~~ (P0.2), ~~R3~~ (P0.3). Chi tiết + SQL ở [docs/REVIEW.md](docs/REVIEW.md) |
@@ -4015,6 +4016,30 @@ reader tốt trên mobile; mọi route ghi qua guardWrite; loading + error handl
 check:suites, tsc, build + check:bundle phải xanh; tài liệu chỉ ghi số đo được.
 ````
 
+### ✅ Phase 24 — đã giao (những gì có trong repo hôm nay)
+
+| Yêu cầu trong spec | Đã giao | Trạng thái |
+| --- | --- | --- |
+| Bảng + RLS + bucket + hàm đếm lượt xem | `supabase/schema.sql` (khối Phase 24: 8 bảng, policy chủ sở hữu đọc công khai, `increment_manga_view`, bucket `manga-panels` 8 MB chỉ ảnh) | ✅ (có từ trước phiên này) |
+| Toán dàn trang là hàm thuần có test | `lib/manga-layout.ts` — 5 template, thứ tự đọc phải→trái, `clampBubble`, `panelAt`, `nextPageNumber` | ✅ |
+| `lib/manga/` (project, panel, ai, social, export) | 7 file: `types`, `project`, `panel`, `social`, `ai`, `export`, `rules` (các con số SQL khai một lần, import được bằng Node thường) | ✅ |
+| API routes | **18 route** `/api/manga/**`; mọi route ghi đi qua `guardWrite` (một test khẳng định điều đó, và `check:security` nay **đi theo một mức gián tiếp** để thấy được guard chứ không chỉ so chuỗi) | ✅ |
+| AI panel: không thêm thư viện, không bịa, thiếu key thì 503 kèm câu giải thích | `lib/manga/ai.ts` đọc 3 biến môi trường, gọi bằng `fetch` qua `lib/net-retry.ts`, cắt tải ở 8 MB, ghi lại prompt + provider + model; 401/403 không retry (đếm số lần fetch trong test) | ✅ |
+| Export không thêm thư viện | ZIP store-only tự viết trong `lib/manga/export.ts`; test đọc lại archive bằng một parser ZIP **độc lập** và kiểm CRC bằng `node:zlib` | ✅ |
+| Component + app routes + Navbar | `components/manga-studio/` (17 file), `app/manga-studio/` (6 route + `loading` + `error`), một mục "Manga Studio" trong Navbar | ✅ |
+| Mỗi route mới khai ngân sách trong `bundle-budget.mjs` | — | 🔴 **Chưa làm** — xem "Việc còn lại" #12 |
+| `check:suites`, `tsc` xanh | **580 bài / 51 tệp, 0 fail**; `npx tsc --noEmit` sạch | ✅ |
+| build + `check:bundle` xanh | — | 🔴 **Chưa chạy được** — xem mục "Vì sao không có số thời gian build" |
+
+**Một lỗi tích hợp đã tìm ra và sửa trong phiên này.** Hai nửa được viết song song, và chỗ khớp giữa
+chúng là chỗ dễ sai nhất: `WebtoonEditor` đổi thứ tự truyện bằng cách gửi `{ pageNumber }` cho
+`PATCH /api/manga/pages/[pageId]`, còn API thì không đọc trường đó — nó trả **400 "Nothing to update"**
+và tính năng đổi thứ tự **không chạy**. Đã sửa: API nhận `pageNumber`, và vì
+`manga_pages` có `unique (chapter_id, page_number)` **không deferrable** nên một lần đổi chỗ không thể
+là hai lệnh update (lệnh đầu đụng khoá) — trang đang giữ số đó được **tạm gửi** ra ngoài dải
+(`highest + 1`), rồi cả hai mới hạ cánh; hỏng giữa chừng thì thứ tự sai chứ trang không mất. Luật này
+được khoá bằng một test trong `check-manga.mjs`.
+
 ### Quy tắc: dò model trước, chọn loài sau
 
 Ghi thành luật, vì đây là sai lầm đã mắc một lần và trả giá bằng 31 loài:
@@ -4028,6 +4053,1498 @@ Ghi thành luật, vì đây là sai lầm đã mắc một lần và trả giá
 - Nếu dò được ít hơn số loài cần, **nói ra con số đó** thay vì thêm loài không có model cho đủ.
 - Đo lại sau mỗi lần: coverage hiện tại **108/108** loài có model có nguồn; danh sách loài còn thiếu
   nằm trong ghi chú của Phase 23 và trong npm run models:audit.
+
+## 📦 Ngoài plan — đưa 4 dataset Data2Map ra khỏi module graph
+
+**Việc đã làm.** Bốn file GeoJSON của Data2Map từng được `import` thẳng trong page module. Một page
+module là một phần của module graph mà `next build` dựng, nên mỗi lần build phải parse 418 kB dữ liệu
+mà chỉ trình duyệt mới vẽ, nhét nó vào server chunk, serialize vào webpack persistent cache và **ghi
+nguyên vẹn vào HTML dựng sẵn**. Bốn file đó nay được đọc lúc chạy bởi
+`app/api/data2map/sample/[dataset]/route.ts` và được fetch một lần bởi loader của từng trang.
+
+**Đo được, cùng một máy, cùng một trạng thái máy (không có tiến trình nào khác chạy), cùng một pha
+build (`Creating an optimized production build` → hết webpack, trước khi sinh trang):**
+
+| Số đo | Trước (dataset nằm trong trang) | Sau (dataset do route phục vụ) | Chênh |
+| --- | --- | --- | --- |
+| Cảnh báo webpack `Serializing big strings` | **3** | **3** | **0** |
+| `server-production` cache (.pack) | 243.644.646 B (232,4 MiB) | 238.370.541 B (227,3 MiB) | **−5.274.105 B (−2,16 %)** |
+| `edge-server-production` cache (.pack) | 81.515.786 B | 81.515.265 B | −521 B |
+| **Tổng webpack persistent cache** | **325.160.432 B (310,1 MiB)** | **319.885.806 B (305,1 MiB)** | **−5.274.626 B (−5,03 MiB, −1,6 %)** |
+| `.next` (KB) | 329.736 | 324.188 | **−5.548 KB** |
+| `.next/cache` (KB) | 317.556 | 312.404 | −5.152 KB |
+| Payload sample nhúng vào HTML dựng sẵn | 533.613 B (4 trang + `twin` dùng lại file logistics) | 0 | **−533.613 B (−521 KiB)** |
+
+**Ba điều phải nói thẳng:**
+
+1. **Ba cảnh báo webpack không đến từ các dataset này** — và sau đó đã tìm ra chúng đến từ đâu, và
+   đã sửa. Đây là kết quả âm tính quan trọng: cảnh báo y hệt nhau — 277, 113 và 267 kiB — ở **cả hai**
+   trạng thái, trong khi file lớn nhất chỉ 152 kB, nên giả thuyết "dataset làm nặng webpack cache" là
+   **sai**. Con số 113 kiB chỉ tình cờ gần với `data2map-trends.json` (111,5 KiB). Truy tiếp bằng một
+   plugin webpack tạm in ra mọi module có source vượt đúng ngưỡng 100 KiB của webpack, theo từng
+   compilation: ba chuỗi đó là source của **`@clerk/backend` (277 KiB)** và
+   **`@supabase/{auth-js,storage-js}` (267 và 113 KiB)**. Xem mục "Sửa cảnh báo webpack" bên dưới.
+2. **Lợi ích thật là 5,03 MiB cache (−1,6 %) và 521 KiB HTML mỗi lần build**, cộng với việc 4 file dữ
+   liệu không còn là input của webpack. Đây là mức giảm vừa phải, không phải một thắng lợi lớn.
+3. **Thời gian build chưa đo được, và tôi không ghi một con số nào cho nó.** Lý do ở mục dưới.
+
+### Vì sao không có số thời gian build trong phiên này
+
+`next build` trong môi trường này **dừng hẳn** sau khi webpack biên dịch xong, và dừng một cách tái
+lập được — ba lần chạy, ba lần cùng một chỗ:
+
+| Lần | Bắt đầu | Viết xong cache webpack | Sau đó |
+| --- | --- | --- | --- |
+| 1 | 20:33 | 20:39 | không log, không file, bị dừng ở phút 32 |
+| 2 | ~21:02 | 21:08 | không log, không file, bị dừng ở phút 33 |
+| 3 (`--experimental-build-mode compile`) | ~21:47 | ~21:44 | không log, không file, bị dừng ở phút 18 |
+
+Đã loại trừ: **không phải mạng** (Clerk API 200 trong 0,73 s, Supabase REST 200 trong 1,14 s, Google
+Fonts và npm đều trả lời dưới 2 s), **không phải `npm run dev` đang chạy** (cổng 9000 không ai nghe),
+**không phải tranh CPU** (lần 3 chạy một mình trên máy), **không phải debug của tôi** (chạy
+`--experimental-build-mode compile` cũng dừng y hệt, và nó không in ra dòng `Compiled successfully`).
+Pha bị treo là pha **sau** webpack — `Collecting page data` / sinh trang tĩnh — nơi không có log nào
+được ghi cho tới khi xong.
+
+Nên: số **6,5 phút của CI là số duy nhất đang có**, và nó là số của **trước** thay đổi này. Việc cần
+làm là chạy `npm run build` ở CI (hoặc một máy build được) một lần cho mỗi trạng thái và ghi hai số
+vào bảng trên. Tôi cố ý **không** suy ra thời gian từ kích thước cache: 5 MiB trên 310 MiB có thể là vài
+giây, cũng có thể là không đo được, và đoán ở đây là đúng thứ tài liệu này cấm.
+
+---
+
+
+## 🔇 Sửa cảnh báo webpack `Serializing big strings`
+
+**Triệu chứng.** Mỗi `next build` in ra ba dòng:
+
+```
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (277kiB) ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (267kiB) ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (113kiB) ...
+```
+
+**Tìm nguyên nhân bằng đo, không bằng đoán.** `PackFileCacheStrategy` cảnh báo cho **bất kỳ** chuỗi nào
+dài hơn 100 KiB mà nó phải serialize (`v.length > 102400` trong serializer của webpack), và cảnh báo
+không in ra chuỗi nào. Nên đã cắm tạm một plugin webpack in ra mọi module có source vượt đúng ngưỡng
+đó, theo từng compilation. Kết quả — cả ba đều là source của thư viện bên thứ ba mà app **buộc phải**
+bundle:
+
+| Kích thước | Module | Vì sao nó ở trong module graph |
+| --- | --- | --- |
+| 277 KiB | `@clerk/backend/dist/chunk-R4AMSIE3.mjs` | SDK server của Clerk, đi vào từ `middleware.ts` |
+| 267 KiB | `@supabase/auth-js/dist/module/GoTrueClient.js` | đi vào từ `createServerClient` của `@supabase/ssr` |
+| 113 KiB | `@supabase/storage-js/dist/index.mjs` | cùng đường đó |
+
+**Không phải lỗi của code trong repo này.** Cảnh báo khuyên "consider using Buffer instead" là nói với
+**serializer của webpack**, không nói với ứng dụng: không có option nào bắt webpack lưu source của
+module dưới dạng Buffer, và chẻ một vendor bundle mình không sở hữu không phải việc của dự án. Chi phí
+thật của nó cũng đo được và nhỏ: **657 KiB chuỗi trên một persistent cache 310 MiB**, ở một bước chỉ
+chạy một lần mỗi cold build.
+
+**Cách sửa.** `lib/webpack-log-filter.ts` bọc console của infrastructure logger và bỏ **đúng** dòng đó.
+Ba điều được giữ:
+
+1. mọi log infrastructure khác vẫn in ra, kể cả mọi cảnh báo webpack khác;
+2. dấu `<w> ` mà console mặc định của webpack tự thêm được **đắp lại**, nên các dòng còn lại trông
+   y như cũ;
+3. `level` và bộ lọc `debug` **không bị đụng vào** — Next tự đặt chúng khi `NEXT_WEBPACK_LOGGING` yêu
+   cầu, và ghi đè chúng sẽ tắt cả một nhóm log chứ không phải một dòng.
+
+Bộ lọc khớp **hai** điều kiện — tên logger **và** câu thông báo — nên một dòng khác lỡ nhắc lại cụm từ
+đó vẫn đi qua. `npm run check:build-log` (5 bài) khoá cả hai nửa của lời hứa đó, kể cả trường hợp
+gần trúng, và khẳng định `next.config.ts` còn thật sự cài bộ lọc này.
+
+**Đo lại sau khi sửa:** `npx next build` → **0** dòng `Serializing big strings`, phần còn lại của
+output build không đổi. `tsc --noEmit` sạch, `npm run check:suites` **585 bài / 52 tệp, 0 fail**.
+
+## 🧟 Model giả: 84 loài đang được vẽ bằng hình cầu, hình trụ và hình nón
+
+**Triệu chứng bạn báo.** Nhiều loài có "model 3D" nhìn không phải thật — chỉ là hình tròn, hình trụ,
+hình nón ghép lại. Đúng, và đây là nguyên nhân đo được.
+
+### Nguyên nhân
+
+`components/3d/ModelScene.tsx` vẽ **rig thủ tục** (`lib/rigs.ts` → `ProceduralAnimal`: sphere,
+capsule, cone, cylinder, box) mỗi khi `animal.model_url` trống. Đo trong database:
+
+| | Số loài |
+| --- | --- |
+| Loài đang phục vụ | **108** |
+| Có `model_url` — tức được vẽ bằng file thật | **24** |
+| **Không có `model_url` — tức bị vẽ bằng rig** | **84** |
+
+Và đây là phần đắt giá nhất: **85 file `.glb` thật đã nằm sẵn trong `public/models/`** cho đúng
+những loài đó. Phase 23 đã tải model về, ghi provenance vào `data/model-attribution.json`, nhưng chỉ
+`data/animals.ts` được ghi `model_url`; 84 loài trong `data/species/batch-*.ts` bị bỏ quên ở `null`.
+**Không phải thiếu model — mà là model có sẵn nhưng không được nối vào loài.**
+
+### Đo chất lượng trước khi nối
+
+Không phải file nào có sẵn cũng đáng nối. Chính công cụ của dự án (`npm run models:audit`) nói:
+
+| Phán quyết | Số loài | Nghĩa |
+| --- | --- | --- |
+| `matched` | 66 | tên model nêu đúng tên loài |
+| `unmatched` | 35 | tên không nêu — và không phải cái nào cũng là con vật |
+| `placeholder` | 6 | voxel / low-poly / linh vật |
+
+Vì tên không đủ để kết luận, tôi đọc **chính file GLB** — tên node, mesh và material bên trong nó.
+Đây là bằng chứng quyết định, và nó xác nhận điều tệ nhất:
+
+| Loài | Tên model | Node bên trong file | Thực ra là |
+| --- | --- | --- | --- |
+| `three-toed-sloth` | 18th Century Musket Replica | **`GunMesh.obj`** | một khẩu súng |
+| `walrus` | Day 310: Walrus skull | **`Skull-4-Academy.obj`** | một cái sọ |
+| `southern-cassowary` | Casoar skull | **`Skull-5-Academy.obj`** | một cái sọ |
+| `leatherback-turtle` | Leather_Bag | **`bag_13.obj`** | một cái túi da |
+| `veiled-chameleon` | Teeth of a Stage 1 Chamaeleo calyptratus embryo | `3D_surface_reconstruction_tooth_germs…` | mẫu răng phôi |
+| `red-bellied-piranha` | Aquariumplants (Java Fern…) | `Vallisneri…` | cây thuỷ sinh |
+| `reticulated-python` | Cervical vertebra… | `UF_Herp_65624_200K` | đốt sống |
+| `thylacine` | Thylacine Cynocephalus jaw rights side | `Model_02.obj` | hàm dưới |
+| `common-octopus` | Octopus | **`Sphere_Color_0` + `Plane_Color_0`** | **đúng một hình cầu trên một mặt phẳng** |
+
+`common-octopus` đang được **nối sẵn** — nên "hình tròn" bạn nhìn thấy có thể chính là nó.
+`green-anaconda` (voxel MagicaVoxel), `bengal-tiger` ("Bengal Tiger Voxel"), `red-kangaroo` (voxel),
+`emperor-penguin` ("…Penguin Chick") và `gooty-tarantula` (model của loài tarantula **khác**) cũng
+đang được nối sẵn và đều sai.
+
+### Đã làm
+
+1. **Nối 56 loài** vào model thật bằng `scripts/wire-local-models.mjs` (mới, có `--apply`, mặc định
+   dry-run). Cổng kiểm là **luật chất lượng của chính dự án** (`lib/model-quality.ts`, 24 điểm tên) —
+   51 loài qua cổng đó — cộng **6 loài có bằng chứng nằm trong file GLB** dù tên không nêu loài
+   (`plains-zebra` → mesh `ZEBRA_L.3DS`; `common-ostrich` → node `ostrich_60`; `serval` →
+   `servaltest.fbx`; `saltwater-crocodile` → `Crocodile_Swim_01`; `gila-monster` → node `Gila monster`;
+   `hellbender` → `DitchDoggy.fbx`, "ditch dog" là tên dân gian của loài này).
+2. **Rút 6 loài** khỏi model sai (bảng trên), trả `model_url` về `null`.
+3. **Bỏ hẳn rig khỏi chỗ nó đóng vai model.** `ModelScene` không còn `ProceduralAnimal`,
+   `fallback={null}` khi file lỗi, và trang loài nói thẳng *"No 3D model for this species yet"* kèm lý
+   do. Card cũng vậy: hover không còn vẽ rig, chỉ còn emoji cho tới khi file thật tới;
+   `components/3d/AnimalPreview.tsx` đã bị xoá. Rig **vẫn còn** ở đúng hai chỗ mà hình dạng là hình
+   dạng: quiz silhouette (đoán hình là trò chơi) và bảng so sánh kích thước — có test khoá ranh giới này.
+4. Seed lại: `npm run seed:generate` → `npm run db:seed` (idempotent, không cần build lại).
+
+### Kết quả đo được
+
+| | Trước | Sau |
+| --- | --- | --- |
+| Loài có model thật trong DB | **24/108** | **74/108** |
+| Loài bị vẽ bằng rig thủ tục | **84** | **0** |
+| Model đang phục vụ bị sai loài/đồ vật | **6** | **0** (đã rút) |
+
+34 loài còn lại **không có model** và **không có rig thay thế** — chúng hiện một khung nói rõ vì sao.
+Danh sách đó nằm trong output của `node scripts/wire-local-models.mjs` và trong `npm run models:audit`.
+Đây là **quyết định có chủ ý**: một loài thật với dữ liệu thật (mô tả, bản đồ phân bố, tình trạng bảo
+tồn) không nên bị xoá khỏi bách khoa chỉ vì thiếu asset 3D — nhưng nó cũng không được phép giả vờ có.
+
+## 🗑️ Chỉ giữ loài có model — 108 loài còn 74
+
+**Quyết định.** Một card loài hứa có model 3D. Khi catalogue không có model nào cho loài đó — và không
+nguồn nào dự án chấp nhận có — thì card là một lời hứa không giữ được, và bách khoa tốt hơn khi không
+có nó. Nên 34 loài không có model đã bị **xoá hẳn**, không phải ẩn đi.
+
+**Phạm vi thật của một lần xoá.** Bỏ một loài khỏi catalogue không phải một sửa đổi: sáu file mô tả
+cùng một loài, và một dòng sót lại ở bất kỳ file nào cũng làm đổ một test chứ không bị bỏ qua. Nên việc
+này do một script làm, `scripts/drop-species-without-models.mjs` (mặc định dry-run, `--apply` mới ghi):
+
+| File | Đã làm |
+| --- | --- |
+| `data/animals.ts`, `data/species/batch-1..5.ts` | cắt 34 object loài (6 + 28) |
+| `data/model-attribution.json` | bỏ 34 credit — `check:preview` từ chối một slug không còn là loài |
+| `data/model-preview.json` | sinh lại y hệt cách `fetch-models.mjs` sinh |
+| `data/range-events.json` | bỏ 3/18 annotation |
+| `data/model-queries.json`, `sound-queries.json` | bỏ 9 từ khoá tìm kiếm cũ |
+| `data/animal-geodata.json` | sinh lại: `npm run geo:generate` → **78 feature** (trước: 112) |
+| `supabase/seed.sql` | sinh lại: **74 loài** |
+| database | **DELETE 34 dòng** — `db:seed` chỉ upsert, không bao giờ xoá |
+| `public/models/` | xoá **35 file .glb mồ côi, 82 MB** (219 MB → 137 MB) |
+
+35 file mồ côi chứ không phải 34: `giant-otter.glb` vốn đã không có loài và không có credit từ trước.
+Trong đó có khẩu súng, cái túi da và "model" octopus là một hình cầu trên một mặt phẳng — không có lý do
+gì để chúng nằm trong repo, và `check:model-upload` parse **mọi** file .glb nên bỏ chúng cũng làm suite
+chạy nhanh hơn.
+
+**Đo lại sau khi xoá:**
+
+| | Trước | Sau |
+| --- | --- | --- |
+| Loài trong catalogue và database | 108 | **74** |
+| Loài có model thật | 24 | **74 (100 %)** |
+| File `.glb` trong repo | 109 | **74** |
+| `public/models/` | 219 MB | **137 MB** |
+| Loài bị vẽ bằng rig thủ tục | 84 | **0** |
+
+8 vùng và 8 lớp sinh học vẫn còn đủ (Oceania chỉ còn **1 loài** — mỏng, nhưng không trống), 4 loài tiền
+sử và 7 loài premium vẫn còn. `npm run db:status`: *"Database holds 74 of 74 species."*
+`npm run check:suites` **586 bài, 0 fail**; `tsc` sạch; `geo:generate --check` báo up to date.
+
+**Một điều đã suýt hỏng, ghi lại vì nó suýt nữa thì im lặng.** Bản đầu của script cắt object bắt đầu
+quét từ ký tự xuống dòng thay vì từ dấu `{`, nên bộ đếm độ sâu lệch một và nó cắt quá tay — `data/animals.ts`
+hỏng cú pháp. Nó bị phát hiện ngay vì script in ra kết quả rồi tôi import lại catalogue. Từ đó bản cắt
+**tự kiểm trước khi dùng**: mảnh cắt ra phải mở bằng `{ id: "`, phải chứa đúng slug, và phải dài hơn 200
+ký tự, nếu không thì ném lỗi thay vì ghi. Xấu nhất là mất một phút; im lặng thì mất cả catalogue.
+
+**Còn nợ tài liệu:** `docs/MODELS.md` và `docs/PERFORMANCE.md` vẫn ghi "24 species" — đó là con số của
+phase chúng được viết ra (Phase 12 và Phase 6), không phải của hôm nay. `README.md` đã được sửa.
+
+## 🧪 Model sinh bằng AI (Meshy) — hạ tầng đã xong, chờ key
+
+**Yêu cầu.** Lấy thêm model cho ~20 loài từ meshy.ai và tripo3d.ai.
+
+**Hai điều tra trước khi tiêu tiền, và một trong hai đổi hẳn kế hoạch.**
+
+| | Licence output | Dùng được? |
+| --- | --- | --- |
+| **Meshy Free** | **CC BY 4.0**, cần attribution | ✅ đúng allow-list `CC0/CC-BY` của `lib/model-quality.ts` |
+| Meshy Pro | "Private", bạn sở hữu — không phải CC BY | ⚠️ phải đổi luật licence |
+| **Tripo Free** | **Tripo giữ toàn bộ quyền**, kể cả IP (ToS §5.2.1) | ❌ **không dùng được** |
+| Tripo Paid | Bạn sở hữu, dùng thương mại được | ⚠️ phải đổi luật licence, và cấm phân phối lại qua dịch vụ tương đương |
+
+Nguồn: bảng giá và điều khoản của chính họ (`docs.meshy.ai/en/webapp/pricing`,
+`developers.tripo3d.ai/en/terms`, help centre của Tripo). **Tripo Free bị loại vì pháp lý, không vì
+kỹ thuật** — họ giữ quyền, nên model sinh ra không thể đưa vào repo này dù muốn.
+
+**Đã chọn:** Meshy Free (CC BY 4.0), ghi rõ là model AI sinh, lấy trong 34 loài vừa xoá.
+
+### Nói thẳng về quota
+
+Free = **100 credit/tháng**. Text to 3D là hai bước và **cả hai đều tính tiền**: preview 20 + refine 10
+= **30 credit/model** trên meshy-7.1. Nên **~3 model/tháng**, không phải 20 trong một lần. Muốn đủ 20
+con ngay thì phải trả tiền — và gói trả tiền **mất** licence CC BY (xem bảng trên), tức là đánh đổi
+ngược với điều một người đọc sẽ tưởng.
+
+### Đã giao (chạy được ngay khi có key)
+
+| File | Việc |
+| --- | --- |
+| `scripts/generate-models.mjs` | sinh model qua Meshy: preview → refine → tải → DRACO → ghi credit. `--list`, `--species=`, `--max-credits` (mặc định bằng quota tháng), `--max=`. Không có key thì từ chối kèm câu chỉ chỗ dán key, không chạy nửa vời |
+| `scripts/restore-species.mjs` | lấy lại loài từ `git show HEAD:` — dữ liệu thật không phải gõ lại. Đã test vòng tròn 74 → 79 → 74 |
+| `lib/attribution.ts` | `ModelAttribution` có thêm `generated` (provider, model, prompt, taskId, thời điểm) |
+| `app/animal/[slug]/page.tsx` | dòng credit in: *"generated by Meshy from a text description — a reconstruction, not a scan of a real animal"* |
+| `scripts/check-models.mjs` | 2 test khoá luật: licence **hard-code, không phải cờ** (một cờ là cách một key trả tiền ghi sai licence), licence ghi ra phải nằm trong allow-list, và mọi entry phải mang `generated` + trang loài phải in nó |
+| `scripts/fetch-models.mjs` | `compressGlb` được export để bước DRACO chỉ có **một** bản cài đặt |
+
+### Model AI không phải model thật — và site nói đúng như vậy
+
+Meshy là máy sinh hình từ câu lệnh, không phải kho bản quét. Model nó trả về là **tái dựng hợp lý từ
+câu mô tả**, không phải một con vật có thật được chụp hay quét. Trang loài vốn phân biệt "file .glb
+thật" với "rig thủ tục"; model AI là loại thứ ba, nên nó được ghi thành loại thứ ba. Một con vật tổng
+hợp được trình bày như con vật thật đúng là kiểu sai mà dự án này từ chối ở mọi chỗ khác.
+
+### Việc còn lại của bạn, đúng một bước
+
+```bash
+echo 'MESHY_API_KEY=msy_...' >> .env.local     # https://www.meshy.ai/api
+node scripts/restore-species.mjs --species=walrus,mountain-gorilla,reindeer --apply
+node scripts/generate-models.mjs --species=walrus,mountain-gorilla,reindeer --apply
+node scripts/wire-local-models.mjs --apply
+npm run geo:generate && npm run seed:generate && npm run db:seed
+```
+
+Ba loài một tháng với quota free. Danh sách 34 loài ứng viên: `node scripts/generate-models.mjs --list`
+in ra những loài *đang* thiếu model (hiện là 0), nên muốn chọn thì chạy
+`node scripts/restore-species.mjs` trước.
+
+## 📐 Mặt sàn: 19/74 model đi xuyên qua nó
+
+**Triệu chứng bạn báo.** Vài con vật đứng dưới mặt cắt ngang của sàn studio. Đúng, và tôi đo được
+chính xác bao nhiêu con, vì sao, và sửa đến đâu.
+
+### Đo thế nào
+
+Số học của chính GPU, chạy trên CPU: từng đỉnh một qua `getVertexPosition` (đúng phép biến đổi
+skinning mà vertex shader làm) rồi qua `matrixWorld`. Cộng thêm một phép kiểm tra độc lập: render
+model vào canvas với `OrthographicCamera` đã biết, đọc hàng pixel thấp nhất còn vẽ. Không suy đoán
+bằng mắt, và không tin một hàm nào chỉ vì nó trông đúng.
+
+### Ba lỗi, không phải một
+
+| | Lỗi | Đo được |
+| --- | --- | --- |
+| 1 | drei `<Center bottom>` đo **bind pose**, không phải tư thế đang vẽ | đã sửa từ trước bằng `ModelAnchor` |
+| 2 | **Đo một lần, ở tư thế vừa mount** — đúng cho tới khi clip đầu tiên chạy | **19/74 model** đi dưới sàn; `peregrine-falcon` tới **−942** (18 % chiều cao của nó), `scarlet-macaw` −173 (42 %), `bald-eagle` −103 (35 %) |
+| 3 | `posedBounds` gọi `updateWorldMatrix()` — hàm này **không** làm mới `bindMatrixInverse` của `SkinnedMesh` (chỉ `updateMatrixWorld()` làm), mà `getVertexPosition` chia cho chính ma trận đó | đo được: dịch group lên 10 thì hộp báo lên **20** |
+
+### Sửa
+
+1. **Đo cho đúng** — `posedBounds` dùng `updateMatrixWorld(true)`, tức là làm mới `bindMatrixInverse`
+   đúng như renderer làm mỗi frame.
+2. **Neo theo cả clip, không theo một tư thế** — `lib/model-floor.ts` (thuần, có test) và
+   `ModelAnchor` lấy **hợp** của hộp lúc mount và 32 mẫu trải đều clip, rồi đặt `min.y = 0`. Quét một
+   lần cho mỗi (model, clip) và có cache, vì nó đi qua từng đỉnh skinned.
+3. **Một cái lưới dưới phép quét** — lấy mẫu **không bao giờ** là một lời hứa: một clip lặn xuống giữa
+   hai mốc lấy mẫu thì phép quét không thấy. Nên `ModelAnchor` còn canh `FLOOR_PROBES` đỉnh mỗi 6
+   frame, qua đúng phép skinning đó; thấy dưới sàn thì **nâng lên**, và **không bao giờ hạ xuống**
+   (`ratchet`). Đơn điệu là có chủ ý: nếu không, một clip lặn sẽ làm con vật nhấp nhô, mà một con vật
+   nhấp nhô còn là lời nói dối tệ hơn một con vật hơi bay.
+
+### Đo lại
+
+| | Trước | Sau |
+| --- | --- | --- |
+| Model đi dưới sàn khi clip chạy | **19/74** | **5/74** |
+| Giá trị sâu nhất | −1585 | **−1,01** (`blue-whale`, 18 % chiều cao) |
+| Trong 5 con còn lại, số dưới 0,4 % chiều cao | — | **4** (`lion` −0,0035 · `bottlenose-dolphin` −0,0045 · `megalodon` −0,0225 · `scarlet-macaw` −0,3948) |
+
+Phép kiểm tra độc lập dùng **64 mẫu** trong khi phép neo dùng 32, nên nó không phải cùng một phép đo
+đọc lại. 5 con còn lại là phần mà **lưới** phải bắt ở runtime — đó là lý do lưới tồn tại.
+
+**Nói thẳng phần chưa hoàn hảo:** phép quét là lấy mẫu, nên nó không chứng minh được gì; thứ chứng minh
+được là cái lưới, và cái lưới chỉ canh `FLOOR_PROBES` đỉnh chứ không phải mọi đỉnh. Một mô hình lặn
+xuống bằng đúng cái đỉnh không được canh, giữa hai frame được canh, vẫn lọt. Đây là giới hạn đã biết,
+không phải điều đã giải quyết — muốn chặt hơn thì phải theo dõi mọi đỉnh mỗi frame, và giá của nó là
+không trả nổi.
+
+## 🔒 Khoá tạm Manga Studio và Data2Map ("Coming soon", admin vẫn vào được)
+
+**Yêu cầu.** Hai tính năng chưa mở thì hiện mờ, ghi "Coming soon", khách không bấm được, admin bấm được.
+
+**Đã làm.** Một danh sách duy nhất, `lib/coming-soon.ts`, là nơi nói module nào chưa mở — hôm nay là
+Data2Map và Manga Studio. Cả navbar và middleware đọc **cùng danh sách đó**, nên menu và cổng không thể
+lệch nhau: mở một module trong menu mà route vẫn 404, hay ngược lại, là kiểu lỗi mà một danh sách thứ hai
+sẽ tạo ra.
+
+| Chỗ | Trước | Sau |
+| --- | --- | --- |
+| Navbar | Data2Map **ẩn** với khách; Manga Studio là link bình thường | cả hai **luôn hiện**, xám, có nhãn `Soon`, `aria-disabled`, `cursor-not-allowed`, không có `href` |
+| Probe | `/api/data2map-access` (một route cho một module) | `/api/module-access` — một request trả lời cho **mọi** module |
+| Middleware | chỉ `/data2map` | mọi module trong danh sách, **cả trang lẫn API** (`/api/manga` nằm trong cổng) |
+| Sitemap | Manga gallery được quảng cáo | chỉ liệt kê khi module đã mở — URL 404 thì không được nằm trong sitemap |
+
+**Mở lại một module là một dòng:**
+
+```bash
+NEXT_PUBLIC_MANGA_PUBLIC=1      # Manga Studio, cho mọi người
+NEXT_PUBLIC_DATA2MAP_PUBLIC=1   # Data2Map, cho mọi người
+```
+
+và `npm run dev` mở cả hai, vì module được viết trong lúc dev.
+
+**Admin là ai:** allow-list theo env (`DATA2MAP_ADMIN_IDS` / `DATA2MAP_ADMIN_EMAILS`) hoặc một dòng
+trong `public.app_admins` — **cùng một luật** mà Data2Map đã dùng, không có định nghĩa admin thứ hai.
+
+**Nút mờ là phép lịch sự, không phải ổ khoá.** Cái khoá là middleware, chạy trên **mọi** request, phủ cả
+API của từng module. Một nút bị vô hiệu và một route không tới được là hai việc khác nhau, và cả hai đều
+đã làm.
+
+**Kiểm chứng:** `npm run check:suites` **603 bài, 0 fail**, thêm `scripts/check-coming-soon.mjs` (6 bài):
+registry chỉ có hai module, bộ khớp đường dẫn phủ cả trang lẫn API **và từ chối các đường gần giống**
+(`/manga-studiox`, `/api/mangaid`, `/api/module-access`), công tắc mở module, middleware hỏi registry
+chứ không tự gọi tên module nào, và sitemap không quảng cáo thứ trả 404.
+
+## 🎨 Model trắng: màu nằm trong một extension three không đọc
+
+**Triệu chứng bạn báo.** Nhiều model chỉ có màu trắng. Đúng, và nguyên nhân không phải thiếu texture —
+texture nằm nguyên trong file.
+
+### Nguyên nhân: một extension đã bị khai tử
+
+9 loài — `hippopotamus`, `axolotl`, `capybara`, `komodo-dragon`, `gila-monster`,
+`california-condor`, `american-alligator`, `blue-ringed-octopus`, `monarch-butterfly` — viết màu của
+chúng vào `KHR_materials_pbrSpecularGlossiness`. **Khronos khai tử extension này và three.js đã xoá nó
+khỏi GLTFLoader**: loader đăng ký clearcoat, transmission, volume, specular, sheen, iridescence… nhưng
+không có nó. Material mà loader không hiểu trở thành `MeshStandardMaterial` mặc định — **trắng**.
+
+### Đo bằng pixel, không bằng mắt
+
+Render từng model trên nền trắng rồi tính độ bão hoà màu trung bình của các pixel được vẽ:
+
+| Model | Bão hoà trước | Sau |
+| --- | --- | --- |
+| hippopotamus | **0** | 0,34 |
+| capybara | **0** | 0,38 |
+| komodo-dragon | **0** | 0,20 |
+| gila-monster | **0** | 0,53 |
+| california-condor | **0** | 0,08 |
+| american-alligator | **0** | 0,20 |
+| blue-ringed-octopus | **0** | 0,64 |
+| monarch-butterfly | **0** | 0,54 |
+| axolotl | 0,03 | 0,24 |
+| lion *(đối chứng)* | 0,54 | 0,54 |
+| polar-bear *(đối chứng)* | 0,22 | 0,22 |
+
+Chín model có **bão hoà đúng bằng 0** — xám tuyệt đối. Hai model đối chứng không đổi, chứng minh bản
+sửa đúng chỗ chứ không phải tô màu bừa.
+
+### Sửa
+
+`scripts/fix-model-materials.mjs` chuyển extension cũ sang định dạng lõi của glTF 2.0, theo đúng hướng
+dẫn migration của Khronos:
+
+```
+baseColorFactor   <- diffuseFactor
+baseColorTexture  <- diffuseTexture
+metallicFactor    <- 0                  (spec-gloss không có metalness: điện môi)
+roughnessFactor   <- 1 - glossinessFactor
+```
+
+Hai điều là **phán đoán, và được ghi ra** thay vì giấu:
+
+1. roughness bị **kẹp ở 0,35** — nhiều asset có glossiness 1, chuyển thẳng thành gương hoàn hảo, mà một
+   tấm gương trong studio có environment map thì trông như crôm chứ không như con vật;
+2. **bỏ** `specularGlossinessTexture` chứ không dùng lại: RGB của nó là màu specular và alpha là
+   glossiness, không phải thứ một metallic-roughness map chứa.
+
+Bản sửa chỉ đụng vào material **chưa có** màu ở phần lõi: 65 model còn lại không bị chạm một byte.
+
+### Luật khoá lại
+
+`scripts/check-model-materials.mjs` (5 bài):
+
+1. **không model nào được dùng extension mà loader không đọc** — danh sách "loader đọc được gì" đọc
+   thẳng từ `GLTFLoader.js` của three, nên luật đi theo thư viện chứ không theo trí nhớ;
+2. **một model không thể hiện được màu nào thì không phải model của một con vật** — không phải "mọi
+   material phải có màu": 12 material trong catalogue không có màu và **đúng như vậy**
+   (`serval / hair`, `greater-flamingo / edge_color000255`, `green-sea-turtle / eyes`); đo lại thì 7
+   model đó đều có màu thật (bão hoà 0,14–0,55), nên luật cũ là dương tính giả và đã sửa;
+3. thư mục `public/models/` và file credit phải khớp nhau — một file không loài nào trỏ tới là một
+   file không ai nhìn thấy lỗi của nó.
+
+### Cái tìm ra khi đang đo: `meerkat` là một cái sọ
+
+Model của Meerkat có node `Skull_2`, material tên `Skull`, và **không có một texture nào** — nên nó
+không trắng vì thiếu màu, nó trắng vì nó là một cái sọ. Cùng loại với khẩu súng và cái túi da đã tìm ra
+trước đó. Theo đúng luật bạn đặt ("loài nào không có model thì xoá card"), Meerkat đã bị **xoá hẳn**:
+catalogue 74 → **73 loài**, 73 model, DB 73 dòng.
+
+## 🏛️ Catalogue thứ hai: công trình kiến trúc lịch sử, cùng bộ luật model
+
+**Yêu cầu.** Thêm một mục 3D model về các công trình lịch sử (tháp Eiffel, tháp nghiêng Pisa, và nhiều
+thứ nữa), **dùng đúng các quy tắc model như động vật**.
+
+### Trước khi viết dòng code nào: dò xem có gì
+
+Luật của dự án là *"dò trước, chọn sau"*. Tôi chạy một phép dò trên Sketchfab cho 25 công trình, lọc
+theo allow-list licence: **25/25 đều có model CC0/CC-BY tải được**. Nếu con số đó là 0 thì việc đúng
+phải làm là nói ra, không phải dựng một mục rỗng.
+
+### Bộ luật được **tái dùng**, không viết lại
+
+Script tải model công trình không tự định nghĩa luật nào. Nó import từ `fetch-models.mjs` — nơi luật
+licence và luật chấm điểm đã sống từ Phase 12:
+
+| Luật | Ở đâu | Áp cho công trình thế nào |
+| --- | --- | --- |
+| Licence chỉ CC0 / public domain / CC BY | `evaluateLicense` | y hệt; share-alike, ND, NC, all-rights-reserved bị từ chối |
+| Tên model phải nêu đúng chủ thể | `rankCandidates` + cổng riêng | xem dưới |
+| Ngân sách đa giác | `FACE_BUDGET.max` = 800k | ứng viên vượt bị loại, thử ứng viên kế tiếp |
+| DRACO | `compressGlb` | y hệt |
+| Model phải có màu | `modelCanShowColour` (mới, dùng chung) | kiểm **sau khi tải**, không đạt thì loại |
+| Không model thì không có card | quy tắc bạn đặt | Neuschwanstein bị xoá vì lý do này |
+| Không được chìm dưới mặt sàn | `ModelAnchor` | miễn phí: công trình dùng chính `ModelViewer` đó |
+
+Để công trình dùng được viewer của động vật, tôi rút ra `types/viewable.ts`: viewer thật ra chỉ đọc
+**năm trường** (slug, name, model_url, height_m, length_m). `Animal` thoả interface đó mà không phải
+sửa gì, và nhờ vậy công trình thừa hưởng luôn luật mặt sàn, watchdog, retry, DRACO và dòng credit.
+
+### Cổng chặn tên — và nó bắt được gì
+
+Lần chạy khô đầu tiên, nếu chỉ tin vào điểm số của bộ chấm, sẽ ship: Parthenon là **"Greece" (768 mặt)**,
+Kim tự tháp Giza là **"Giza" (880 mặt)**, Big Ben là **"Big Ben"** (khớp 12/30 điểm vì tên đầy đủ là
+"Elizabeth Tower (Big Ben)"), Neuschwanstein là **"Pixel Neuschwanstein Castle (Low Poly)"**.
+
+Nên cổng thật là hai điều kiện tách khỏi bộ chấm điểm:
+
+1. **tên phải chứa tên công trình** (bỏ dấu, nên "Sagrada Família" khớp "Familia"; chấp nhận cả tên
+   trong ngoặc, nên "Big Ben" khớp "Elizabeth Tower (Big Ben)");
+2. **không được chứa từ khoá placeholder** — danh sách chuyển vào `lib/model-quality.ts` để pipeline
+   tải và `npm run models:audit` dùng **cùng một danh sách**.
+
+Sau cổng: Parthenon → **"PARTHENON" (60.032)**, Giza → **"The Great Pyramid of Giza Egypt" (40.000)**,
+Neuschwanstein → **"Neuschwanstein Castle" (283.972)**, Chichén Itzá từ **bị từ chối hoàn toàn** thành
+**"El Castillo, Chichen Itza"**.
+
+Thêm một cổng nữa, kiểm **sau khi tải**: Colosseum đầu tiên là 27 material chỉ có `metallicFactor: 0` —
+không màu, không texture. Pipeline loại nó và lấy ứng viên kế tiếp: **"Colosseum Facade (Rome, Italy)"**,
+221k mặt, có màu.
+
+### Kết quả
+
+**15 công trình, 15 model, 39,7 MB**, tất cả CC-BY-4.0, đã credit đầy đủ (tác giả + licence + link
+nguồn), tất cả trong ngân sách đa giác:
+
+| | |
+| --- | --- |
+| Công trình | 15 (tháp, đền, di tích, tượng đài) |
+| **Model sạch cả ba luật** | **15/15** — 0 extension three không đọc, 0 model không màu, 0 model vượt ngân sách |
+| Vào được hover budget của card | 6/15 (còn lại hiện plate — đúng thiết kế) |
+| Dữ liệu | `data/landmarks.ts` — mỗi con số có nguồn, số nào gây tranh cãi thì nói rõ **ngay trong câu** (Eiffel 330 m gồm ăng-ten / 300 m sắt / 276 m sàn; Pisa ba chiều cao; Sagrada Família 2026 mới xong **mặt ngoài**) |
+
+**Neuschwanstein đã bị xoá** theo đúng luật bạn đặt: hai ứng viên duy nhất nêu tên nó là một món đồ
+chơi "Pixel … Low Poly" và một file 30,5 MB so với trần 25 MB. Không có model thì không có card.
+
+### Một điều nói thẳng
+
+Trần model của dự án là 25 MB, nhưng **taj-mahal 12 MB và sydney-opera-house 8,8 MB** là những asset
+nặng nhất site từng ship (model động vật lớn nhất ~9 MB). Chúng nằm trong trần và chỉ tải khi người xem
+mở trang chi tiết, nhưng nếu muốn nhẹ hơn thì phải decimate — và decimate là **sửa asset**, nên tôi
+không tự làm.
+
+## 🔎 Khảo sát nguồn model cho công trình (đầu vào của Phase 29)
+
+**Yêu cầu.** Liệt kê các trang có thể tải model công trình, và tải thêm **tất cả công trình nổi tiếng của
+mỗi nước trên thế giới**.
+
+### A. Các nguồn — và licence, thứ quyết định nguồn nào dùng được
+
+| Nguồn | Licence | Dùng được? | Ghi chú |
+| --- | --- | --- | --- |
+| **Sketchfab** | lọc theo từng model: CC0 / PDM / CC BY | ✅ **đang dùng** | Nguồn chính. Có API search + download, và pipeline đã lọc licence từ Phase 12 |
+| **Smithsonian Open Access** | **CC0** | ✅ đã nối sẵn trong pipeline | Thiên về hiện vật bảo tàng; có một số công trình |
+| **Poly Pizza** | **CC BY** | ✅ đã nối sẵn | Kho Google Poly cũ; có landmark nhưng ít |
+| **Wikimedia Commons** | **từng file**: có CC0 (đã kiểm: `File:Acropolis 3D.stl` là CC0), phần lớn còn lại là CC BY-SA | ⚠️ **đáng thêm** | Có category `Commons:3D models` và API đọc được licence từng file — nhưng **CC BY-SA bị luật dự án từ chối**, nên phải lọc |
+| Europeana | từng item (có CC0 / CC BY) | ⚠️ chưa xác minh | Trang search render bằng JS, không đọc được licence trong phiên này |
+| Open Heritage 3D (CyArk) | phần lớn **CC BY-NC-SA** | ❌ | Non-commercial + share-alike đều bị từ chối |
+| Scan the World / MyMiniFactory | phần lớn **CC BY-NC-SA** | ❌ | Cùng lý do |
+| Thingiverse / Printables / Cults3D | hỗn hợp, đa số NC | ❌ | Phải soi từng file; không có API licence đáng tin |
+| 3D Warehouse (Trimble) | từng model, thường NC | ⚠️ | Rất nhiều landmark, nhưng licence không đồng nhất |
+| NASA 3D / Poly Haven / Khronos | CC0 / CC BY | — | Đã nối sẵn nhưng **không có công trình kiến trúc** |
+| OpenStreetMap dựng khối | ODbL | ⚠️ | Dự án đã đùn khối nhà OSM cho twin; cho ra **footprint thật** nhưng không có chi tiết điêu khắc — không thể ra tháp Eiffel |
+
+**Kết luận về nguồn:** thêm Wikimedia Commons là việc đáng làm và rẻ (API công khai, licence đọc được
+từng file); các nguồn còn lại hoặc đã nối, hoặc licence không qua được allow-list. **Sketchfab vẫn là
+nguồn chính** vì nó là nơi duy nhất có cả ba: số lượng, licence lọc được, và API tải được.
+
+### B. Đo trước, hứa sau — dò 62 công trình ở 45 nước
+
+Tôi chạy pipeline dò trên **62 công trình thuộc 45 nước** trước khi viết bất kỳ dòng dữ liệu nào.
+
+| Vòng | Qua cổng | Cổng nào bắt được gì |
+| --- | --- | --- |
+| 1. Chỉ "tên chứa tên công trình" | **37/62** | — |
+| 2. + không phải **một mảnh** của công trình | **34/62** | Hawa Mahal → một **bức tường 4 tam giác**; Himeji → **con cá trên nóc**; Wat Arun → **một con búp bê**; Borobudur → **phù điêu**; Karnak → **các cột tháp**; Prague Castle → **cầu thang** |
+| 3. + sửa hai lỗi so khớp từ | **33/62** | `\bobelisk\b` không khớp "Obelisk**s**"; `lowpoly`/`low-poly` không khớp "low poly" (có dấu cách) |
+
+**Bài học đáng ghi nhất:** "tên có chứa tên công trình" là điều kiện **cần nhưng không đủ**. Vòng 2 và 3
+sửa được vì tôi **nhìn vào kết quả** chứ không tin vào con số tổng. Prambanan đổi từ một món "low poly"
+136k mặt sang **"Candi Prambanan" 499.936 mặt**; Parthenon từ **"Greece" (768 mặt)** sang **"PARTHENON"
+(60.032)**; Kim tự tháp Giza từ **"Giza" (880)** sang **"The Great Pyramid of Giza Egypt" (40.000)**.
+
+### C. Trạng thái
+
+| | |
+| --- | --- |
+| Đang phục vụ | **15 công trình, 15 model** (mục "Catalogue thứ hai" ở trên) |
+| Đã dò và **có model hợp lệ**, chờ viết dữ liệu | **33 công trình ở ~30 nước** — `mont-saint-michel`, `alhambra`, `hagia-sophia`, `forbidden-city`, `borobudur`, `petra`, `burj-khalifa`, `moai`, `uluru`, … |
+| Dò nhưng **không có model qua cổng** | 29 công trình — gồm những cái đáng tiếc như Notre-Dame de Paris và Brandenburg Gate (**có model, nhưng vượt ngân sách 800k mặt**), và nhiều cái chỉ có kết quả không nêu tên |
+| "Mọi nước trên thế giới" | **chưa xong, và tôi không giả vờ là xong.** 195 nước × vài công trình mỗi nước là vài trăm mục, mỗi mục cần một lượt tra nguồn cho từng con số (16 mục đầu mất ~25 phút tra cứu có kiểm chứng). Đây là việc nhiều lượt, không phải một lượt |
+
+**Việc đúng để làm tiếp, theo thứ tự:** (1) viết dữ liệu có nguồn cho 33 mục đã dò được — hai batch đang
+chạy; (2) thêm provider **Wikimedia Commons** vào `fetch-models.mjs` (API công khai, licence đọc được
+từng file, lọc CC BY-SA ra); (3) với những công trình vượt ngân sách đa giác như Notre-Dame, thêm bước
+**decimate** bằng `gltf-transform simplify` — sửa asset, nên là quyết định riêng; (4) mở rộng danh sách
+theo từng châu lục, mỗi lượt một nhóm nước, luôn dò trước khi viết.
+
+## 🏛️ Công trình: 15 lên 48, ở 30 nước — và hai lỗi của chính bộ luật
+
+**Yêu cầu.** "Tải về thêm mục landmark, tất cả công trình nổi tiếng của mỗi nước trên thế giới."
+
+### Kết quả đo được
+
+Hai batch dữ liệu mới — 17 công trình trong `data/landmarks/world-1.ts`, 16 trong `world-2.ts` — gộp với 15
+công trình gốc bằng `data/landmarks/all.ts`. File gộp thứ ba là cần thiết chứ không phải trang trí: hai batch
+import **kiểu** `Landmark` từ `data/landmarks.ts`, và một file import chính importer của nó là vòng lặp.
+
+| | |
+| --- | --- |
+| Công trình | **48**, ở **30 nước** — còn **47** sau khi Tử Cấm Thành bị xoá vì model chỉ là một tấm hình (xem mục dưới) |
+| Có model thật | **47/48**, nay là **46/47** |
+| Dung lượng ship | **103,0 MB** trong `public/models/landmarks/`; nặng nhất `taj-mahal` **12,02 MB** |
+| Licence | 47/47 **CC-BY-4.0**, mỗi mục có tác giả + link nguồn trong `data/landmark-attribution.json` |
+| Ba luật model | 0 extension three không đọc · 0 model không màu · 0 vượt ngân sách 800k mặt |
+| `height_m: null` | **13** mục — quần thể (Angkor, Forbidden City, Prambanan…) chứ không phải một khối |
+| Loại | đền 15 · tượng đài 14 · tháp 8 · lâu đài 5 · di tích 3 · cầu 3 |
+
+### Lỗi 1 — cổng chặn tên từ chối chính cái tên catalogue đang dùng
+
+Lượt chạy khô in ra **47/48 tải được, 1 không**, và lý do rất cụ thể:
+
+> `milan-cathedral — mọi ứng viên bị từ chối: Milan Cathedral (the title "Milan Cathedral" does not name it)`
+
+Cổng chặn tên (`lib/landmark-gate.ts`) hỏi đúng một câu: **tiêu đề của model có nêu tên công trình không**.
+Nhà cung cấp đặt tên tiếng Anh; catalogue của tôi ghi tên tiếng Ý — "Duomo di Milano" — vì một luật khác
+(`slug` phải là kebab-case của `name`, khoá bởi `check-landmarks-world-1.mjs`) và tôi đã chọn slug theo tên
+Ý. Hai luật đúng khi đứng riêng, sai khi đứng cạnh nhau: cổng đi tìm chữ "Duomo di Milano" trong những tiêu
+đề viết "Milan Cathedral".
+
+Sửa: mục đó **mang tên tiếng Anh "Milan Cathedral"**, slug `milan-cathedral`, còn tên Ý vào chính câu mô tả
+("Milan Cathedral, the Duomo di Milano, …"). Người đọc vẫn thấy tên bản địa, cổng tên và tên file khớp nhau,
+và `data/landmark-queries.json` giữ nguyên câu truy vấn "Duomo Milan Cathedral".
+
+### Lỗi 2 — trần 25 MB bị áp lên **con số nhà cung cấp công bố**, không phải lên file ship
+
+Ba công trình bị từ chối chỉ vì *kích thước khai báo*: Cologne 39,3 MB, Milan 33,8 MB, Prambanan 29,9 MB.
+Tôi tải thử bằng `--max-mb` và đo file thật:
+
+| Công trình | Khai báo | Sau DRACO (file ship) |
+| --- | --- | --- |
+| Cologne Cathedral | 39,3 MB | **3,87 MB** |
+| Milan Cathedral | 33,8 MB | **3,94 MB** |
+| Prambanan | 29,9 MB | **6,89 MB** |
+
+Cả ba nằm gọn trong 25 MB — thực ra nhỏ hơn cả `taj-mahal` (12,02 MB) đang chạy. Nghĩa là con số bị đem ra
+chặn không phải con số quyết định: **khai báo là kích thước trước khi nén**, còn thứ site phải phục vụ là file
+`.glb` sau DRACO. Luật nay có hai bước, cả hai đều đo được:
+
+1. **trước khi tải:** kích thước khai báo ≤ **2×** trần (`CONFIG.declaredHeadroom`). Đủ để loại một file
+   200 MB, đủ để không loại oan một file 39 MB.
+2. **sau khi nén:** file ship ≤ **25 MB** — vượt thì **xoá file** và thử ứng viên kế tiếp, chứ không nối vào
+   catalogue. Đây mới là con số mà trình duyệt và bucket `animal-assets` phải sống chung.
+
+Bước 2 trước đây **không tồn tại**: pipeline chỉ chặn ở bước 1, nên một file nén ra 40 MB vẫn được ship. Đó là
+lỗ hổng thật, và nó chỉ lộ ra khi tôi đi tìm ba công trình bị bỏ sót. Luật mới được khoá bằng một bài test
+trong `check-models.mjs` (đọc source của hai script, không import — import `fetch-landmark-models.mjs` sẽ
+chạy luôn thân script và tải model).
+
+### Lỗi 3 — hai file test cũ đang khẳng định pipeline **chưa từng chạy**
+
+`check-landmarks-world-1.mjs` và `check-landmarks-world-2.mjs` đều có một bài `model_url` phải là `null`,
+viết từ lúc batch còn là *đầu vào* của pipeline. Sau khi nối model, hai bài đó đỏ — và chúng đỏ vì lý do đúng:
+chúng khẳng định một điều đã hết đúng, chứ không bảo vệ điều gì. Đã thay bằng luật thật, cùng luật mà
+catalogue đầu tiên đã dùng: `model_url` hoặc `null` (batch 1 còn đúng một mục như vậy), hoặc khớp
+`^/models/landmarks/[a-z0-9-]+\.glb$` **và file đó phải tồn tại trên đĩa**; batch 2 thì cả 16 mục đều phải có.
+
+### Còn lại: Hagia Sophia
+
+**47/48.** Hagia Sophia (Thổ Nhĩ Kỳ) không lấy được model, và đây là số đo chứ không phải phỏng đoán — tôi tải
+thẳng ứng viên hợp licence duy nhất về và mở file ra:
+
+| Đo trên file ứng viên | |
+| --- | --- |
+| Licence / mặt | CC-BY-4.0, 21.440 mặt, 0,76 MB |
+| `extensionsUsed` | **rỗng** |
+| `images` | **0** |
+| material | **1**, chỉ có `{"pbrMetallicRoughness":{"metallicFactor":0,"roughnessFactor":0.6}}` |
+
+Không texture, không `baseColorFactor`, không extension — theo glTF, material đó mặc định `baseColorFactor` =
+`[1,1,1,1]`, tức **trắng tuyệt đối**. `scripts/fix-model-materials.mjs` không cứu được: nó chuyển
+`KHR_materials_pbrSpecularGlossiness` sang metallic-roughness, mà ở đây **không có màu nào để chuyển**. Ứng
+viên còn lại nêu đúng tên nó ("Hagia Sophia Mosaics") là **CC-BY-NC**, luật licence từ chối.
+
+Nên mục đó hiện **plate** (chữ cái đầu trên nền gradient của chính nó) chứ không hiện một khối trắng, và
+`/landmarks` nói thẳng "46 trong 47 công trình có model thật".
+
+**Đây là một quyết định còn treo.** Luật bạn đặt — "không model thì không có card", đã áp cho Neuschwanstein —
+nói rằng mục này nên bị **xoá hẳn**. Nhưng nó là công trình **duy nhất của Thổ Nhĩ Kỳ**, và xoá nó là mất một
+nước khỏi catalogue. Tôi đã hỏi trong phiên này và không nhận được trả lời (câu hỏi hết thời gian chờ), nên
+tôi **giữ nguyên và ghi ra đây** thay vì tự xoá dữ liệu đã tra nguồn. Một chữ "xoá" là đủ.
+
+## 🧱 `next build` treo: nó và dev server ghi chung một `.next`
+
+**Triệu chứng đã có số.** Sáu lần `next build` trong các phiên trước: webpack biên dịch xong, rồi **im hoàn
+toàn** 18–33 phút, không `BUILD_ID`, không file mới. Đã loại trừ mạng (Clerk, Supabase, Google Fonts đều trả
+lời dưới 2 s), tải CPU, và cả `--experimental-build-mode compile`.
+
+**Nguyên nhân tìm bằng `lsof`, không bằng phỏng đoán.** Có một tiến trình node đang chạy với `cwd` là repo và
+**listen cổng 9000** — tức `npm run dev` (`next dev -p 9000`) đang mở. Bằng chứng thứ hai: trong lúc tôi sửa
+file dữ liệu, `.next/prerender-manifest.json` **bị ghi lại lúc 13:59**, tức có tiến trình thứ hai đang ghi vào
+chính cây thư mục mà `next build` cũng ghi. `next build` và `next dev` mặc định dùng chung `.next`.
+
+**Kiểm chứng.** `next.config.ts` nay đọc `NEXT_DIST_DIR` (mặc định vẫn là `.next`), nên một lần build đo được
+*bên cạnh* dev server đang chạy:
+
+| | |
+| --- | --- |
+| Lệnh | `NEXT_DIST_DIR=.next-build npm run build` |
+| Kết quả | **exit 0**, `BUILD_ID` = `r4ugGNXbWPGKyw1VHomtk` |
+| Thời gian, **build nguội** | **839 giây (13 phút 59 giây)** — xoá sạch thư mục, cache rỗng |
+| Thời gian, **build thứ hai** (cùng máy, cache OS đã ấm, thêm 2 route) | **157 giây (2 phút 37 giây)** |
+| Kích thước | 512 MB |
+| Cảnh báo `<w>` | **0** ở cả hai lần — bộ lọc ở `lib/webpack-log-filter.ts` nay đã được kiểm trên build thật |
+| Trang dựng sẵn | **147**, rồi **153** sau khi Phase 25 thêm `/categories` và 5 trang chủ đề |
+
+**Hai số thời gian, không phải một.** 839 giây là build **nguội** (cache webpack rỗng, máy vừa chạy việc
+khác); 157 giây là build **thứ hai** trên cùng máy với cache hệ điều hành đã ấm. Ghi cả hai vì một con số duy
+nhất ở đây sẽ bị đọc sai theo cả hai hướng — "build mất 14 phút" và "build mất 2,6 phút" đều đúng, cho hai
+tình huống khác nhau. CI luôn là trường hợp nguội.
+
+Ba việc treo nhiều phiên được đóng bằng chính hai bản build đó: **thời gian build có số thật (#13)**, **ngân
+sách bundle cho hai route công trình (#20)**, và **ngân sách cho hai route danh mục mới**.
+`scripts/bundle-budget.mjs` đã có sẵn biến `NEXT_DIR`, nên chỉ cần trỏ nó vào bản build cách ly:
+
+| Route | Đo được | Ngân sách |
+| --- | --- | --- |
+| `/landmarks` | **137,7 kB** (đo 158 kB ở bản build trước) | 165 (ngang `/explore`) |
+| `/landmarks/[slug]` | **139,1 kB** | 155 |
+| `/categories` | **134,4 kB** | 140 (hồ sơ của `/data2map`, vì không có 3D và không có bản đồ) |
+| `/categories/[id]` | **139,4 kB** | 150 |
+
+**Một điều đo ra mà đáng ghi:** số của `/landmarks` **giảm** từ 158 kB xuống 137,7 kB sau khi thêm hai chủ đề
+danh mục, dù trang đó không sửa một dòng nào về mặt tải. Next chia chunk theo **cả đồ thị**, không theo từng
+route: một route mới dùng chung `LandmarkGrid` làm chunk đó được chia lại và rơi vào nhóm dùng chung. Nên một
+con số ngân sách chỉ có nghĩa kèm bản build sinh ra nó - và đó là lý do mỗi lần đo lại đều được ghi lại đây
+thay vì thay số cũ đi.
+
+Và một ngân sách cũ hoá ra **không phải ngân sách**: `/quiz` được đặt đúng bằng số đo của nó (164,9 so với
+165). Thêm **một icon** vào navbar dùng chung đẩy nó lên 165,0 và làm đỏ cổng chặn — một ngân sách gãy vì một
+glyph là một dây bẫy, không phải một hạn mức. Nâng lên **172**, đúng công thức file đó tự đặt ra: số đo cộng
+biên độ như các route cùng loại.
+
+**Một điều tôi chưa làm, và nói rõ:** chưa chạy phép thử ngược — một lần build vào `.next` **dùng chung**
+trong khi dev server đang mở. Phép thử đó tốn khoảng 20 phút và sẽ phá chính output mà dev server đang phục
+vụ. Nên đây là **giải thích mạnh nhất cộng với một lần build chạy xong**, không phải một thí nghiệm đối chứng.
+
+## 🖼️ Hai lỗi bạn báo: khung nhìn trong thẻ, và một model chỉ là hình vẽ
+
+### Lỗi 1 — model bị chiếu từ đáy khung lên
+
+**Bạn báo.** Mở model trong Architecture và Modern Buildings thì khung nhìn nằm ở đáy, gần như không thấy
+model; cần đúng góc 3/4.
+
+**Đo trước khi sửa.** Tôi dựng lại đúng phép toán của thẻ (`components/3d/AnimalModelPreview.tsx`) bằng
+Node, rồi chiếu 8 đỉnh hộp bao thật của **cả 48 model** qua chính camera của thẻ (vị trí `[2.1, 1.4, 2.7]`,
+fov 40, khung 4:3):
+
+| | |
+| --- | --- |
+| Model có tâm nằm **dưới** giữa khung | **21/48** |
+| Model có một đỉnh **bị cắt** ở mép dưới | **7** — Tử Cấm Thành, Sydney Harbour Bridge, Edinburgh Castle, Uluru, Trevi Fountain… |
+| Tệ nhất | Tử Cấm Thành: cả model nằm trong dải `ndcY −1,02 … −0,02` — chỉ còn một mẩu ở đáy thẻ |
+
+**Nguyên nhân.** Thẻ chuẩn hoá theo **cạnh dài nhất** (`1.9 / max(size)`), rồi **dời cả nhóm xuống −0,72**
+và để camera nhìn vào gốc toạ độ. Với model cao thì đúng; với model **thấp và rộng** — Tử Cấm Thành
+59,6 × 11,2 × 94,2, cầu Sydney Harbour, lâu đài Edinburgh — cạnh dài nhất là bề ngang, nên chiều cao bị thu
+nhỏ theo và model rơi hết xuống đáy khung. Không phải lỗi của model nào: một công thức đúng cho một hình
+dạng và sai cho mọi hình dạng khác.
+
+**Sửa.** Bỏ phép dời −0,72 và bỏ việc camera nhìn vào gốc; đặt model một lần cho đúng (chân trên mặt sàn,
+tâm ngang ở 0), rồi để `<Bounds fit clip observe>` của drei **căn camera theo hộp bao của chính model** —
+tâm model luôn ở giữa khung, bất kể hình dạng. Hướng nhìn lấy từ chính preset `threeQuarter` mà viewer đầy
+đủ dùng (`lib/camera-presets.ts`), nên thẻ và trang chi tiết nhìn công trình từ cùng một phía.
+
+**`margin` lấy từ số đo, không từ cảm tính.** `<Bounds fit>` đặt camera theo **cạnh dài nhất**, nên đỉnh hộp
+vẫn có thể thò ra ngoài. Quét thật trên 47 model:
+
+| margin | số model bị cắt | mức vượt khung tệ nhất |
+| --- | --- | --- |
+| 1,25 (mặc định của viewer) | 19 | 1,443 (Petronas Towers) |
+| 1,50 | 7 | 1,145 |
+| 1,60 | 4 | 1,057 |
+| **1,70** | **0** | 0,982 |
+
+Chọn **1,70**: cả model, đúng giữa khung, từ góc 3/4. Đổi lại thẻ không "kín" hình như trước — nhưng trước
+đó phần lớn các thẻ chỉ hiện một mẩu mái.
+
+### Lỗi 2 — Tử Cấm Thành không phải model, mà là một tấm hình
+
+**Bạn báo.** Model Tử Cấm Thành là "cái hình", không phải model đàng hoàng.
+
+**Đo.** File đang ship: **10.388 tam giác**, **1 ảnh**, 1 material, hộp bao 59,6 × 11,2 × 94,2 — rộng gấp
+8,4 lần cao, tức một tấm phẳng có mái **vẽ** lên trên, cho một quần thể 72 ha gồm **980 công trình**: khoảng
+**11 tam giác mỗi công trình**. So với các quần thể khác cùng catalogue: Alhambra 486.088, Angkor Wat
+379.354, Prambanan 499.936. Bạn đúng, và con số nói cùng một điều.
+
+**Dò lại nguồn.** Chỉ có **một** ứng viên hợp licence nêu đúng tên nó — chính file đó. Ứng viên thứ hai là
+2.020.640 mặt (vượt ngân sách 800k), thứ ba là CC-BY-NC. Nghĩa là **không có model tử tế nào cho Tử Cấm
+Thành trong luật licence hiện tại**, và luật của dự án là "không model thì không có card".
+
+**Đã làm: xoá mục đó** (48 → **47 công trình**), cùng cách đã xoá Neuschwanstein. File `.glb`, dòng credit,
+chỉ mục hover và câu truy vấn đã lưu đều được gỡ; `/landmarks/forbidden-city` trả **404**;
+`/landmarks` và `/categories/architecture` còn **47 thẻ**. Dữ liệu (961 × 753 m, 980 công trình, 24 hoàng
+đế) nằm trong git — mục này có thể trở lại ngày có model tử tế.
+
+### Luật mới, và giới hạn thật của nó
+
+`CRUDE_MONUMENT_FACES = 5.000` + `modelHasNoTexture`: model **không có texture** và **dưới 5.000 tam giác**
+bị từ chối, và pipeline thử ứng viên kế tiếp. Cần **cả hai** vế: chỉ đếm tam giác sẽ xoá Moai (2.210) và tháp
+Himeji (2.536) — hai model đẹp vì texture gánh chi tiết; chỉ nhìn texture sẽ giữ một tấm ảnh dán lên cái hộp.
+
+Áp luật này lên **Marina Bay Sands**, model tệ nhất còn lại: **524 tam giác, 0 ảnh**, ba material phẳng thay
+cho ba toà tháp. Pipeline từ chối nó và lấy **"Marina Bay Sands 298" — 4.984 tam giác, có texture** (0,16 MB).
+
+**Và đây là điều phải nói thẳng:** Tử Cấm Thành **lọt qua mọi cổng tự động** — có texture, 10k tam giác, đúng
+licence. Không phép đo hình học nào tôi thử phân biệt được nó với một model thật (độ phẳng cũng không: Trevi
+Fountain và Uluru cũng "phẳng" mà đúng). Thứ bắt được nó là **một người nhìn vào thẻ**. Đây là giới hạn thật
+của pipeline, ghi lại để lần sau không ai tưởng các cổng đó đã đủ.
+
+**Còn lại, đo được, cần bạn quyết** — model mỏng nhưng *có* texture, tức luật mới không từ chối và tôi không
+tự xoá:
+
+| Model | Tam giác | Tình cảnh |
+| --- | --- | --- |
+| `temple-of-heaven` | 1.996 | **0 ảnh**; không có ứng viên nào khác hợp licence |
+| `sydney-harbour-bridge` | 992 | mọi ứng viên khác đều bị cổng tên từ chối |
+| `boudhanath` | 2.281 | ứng viên còn lại là pointcloud (0 mặt) hoặc bị từ chối |
+| `himeji-castle` | 2.536 | hai ứng viên khác là 1,6 triệu mặt — vượt ngân sách |
+| `moai` | 2.210 | **có** lựa chọn tốt hơn: `Moai` 171.351 mặt, hoặc `moai mountain` 26.479 |
+
+## 🧭 Mở rộng Đa danh mục — lộ trình sáu phase
+
+Kami3D mở rộng từ **Động vật** sang nhiều lĩnh vực 3D. Sáu phase dưới đây là lộ trình đã chốt; mỗi phase
+ghi rõ **yêu cầu**, **cái gì đo được rồi**, **cái gì tái dùng**, và **cái gì chưa làm**.
+
+> **Số phase.** PLAN đã dùng 21 (auto-pilot) và 22 (admin đưa model lên card) từ trước, nên lộ trình này
+> bắt đầu ở **25**. Đánh số lại các phase cũ sẽ làm hỏng chính lịch sử mà tài liệu này tồn tại để giữ.
+
+---
+
+### 🗂️ Phase 25 — Multi-Category 3D Catalog System — ✅ **đã giao (nền + UI)**
+
+**Yêu cầu.** Bảng `categories` (animals, space, plants, vehicles, architecture…); bảng `items` mở rộng
+`animals` (`id, category_id, name, slug, model_url, scale_ratio, description, metadata jsonb`…); **giữ
+tương thích ngược**; Navbar đa danh mục; trang chủ hiển thị category; `ModelViewer`, `SizeComparison`,
+`InteractiveGlobe` chạy với mọi category; admin thêm item mọi category; RLS: public đọc – admin ghi.
+
+#### Quyết định thiết kế quan trọng nhất: **không di chuyển con vật nào**
+
+Cách migration hiển nhiên — chép mọi loài vào `items`, trỏ lại sáu khoá ngoại, xoá bảng cũ — đổi sự gọn
+gàng lấy đúng thứ dự án không thể thay thế: **73 loài với geodata, yêu thích, điểm quiz và lượt xem đang
+đúng**, và mọi khoá ngoại đang trỏ vào `animals`. Nên phase này **thêm** hệ chung và **không đụng** bảng cũ.
+
+| Đối tượng | Vai trò |
+| --- | --- |
+| `categories` | danh sách chủ đề, `is_public`, `has_models`, `sort_order`, `accent`, `icon` |
+| `items` | một mục thuộc mọi danh mục **không phải** động vật; `metadata jsonb` giữ phần riêng của từng loại (khối lượng hành tinh, công suất xe, họ thực vật) — một cột cho mỗi trường sẽ là bảng mọc thêm cột mỗi phase |
+| `catalog_items` | **view** chiếu `animals` sang hình dạng item rồi `union all` với `items` — "toàn bộ catalogue" trả lời bằng một truy vấn, và vẫn chỉ **một** dòng cho mỗi con vật |
+
+View khai `security_invoker = true`: một view đọc bằng quyền **definer** là đường vòng qua mọi policy của
+các bảng bên dưới.
+
+#### Cách migrate dữ liệu động vật cũ
+
+**Không migrate.** Động vật ở nguyên `public.animals`; `catalog_items` **chiếu** chúng. Đổi lại:
+
+- sáu khoá ngoại (`animal_geodata`, `model_assets`, `sound_assets`, `user_favorites`, `quiz_scores`, `animal_views_daily`) không phải sửa một dòng nào;
+- không có hai bản sao của cùng một con vật để lệch nhau;
+- một danh mục mới chỉ cần `insert` vào `categories` và `items` — không cần bảng riêng, không cần phase SQL.
+
+#### Đã giao và đã kiểm
+
+| Kiểm | Kết quả |
+| --- | --- |
+| Schema áp lên database thật | `npm run db:schema` chạy xong |
+| `categories` | **6 dòng**: animals · space · plants · vehicles · buildings · architecture |
+| `catalog_items` | **73 dòng, tất cả nhóm `animals`** — chiếu đúng, chưa copy dòng nào |
+| Anon **đọc** `catalog_items` | **200** ✅ |
+| Anon **ghi** `items` | **401** ✅ |
+| Test | `scripts/check-catalog.mjs` **11 bài** (thêm ba bài khoá phần UI: seed ↔ dữ liệu bundled, hai catalogue được chiếu chứ không chép lại, và card không trỏ tới route 404); tổng **669 bài, 0 fail**, `tsc` sạch |
+
+Ghi: đọc cho `anon, authenticated` khi danh mục `is_public`; ghi chỉ qua `public.is_admin()` — **cùng một
+định nghĩa admin** với mọi bề mặt admin khác. Và một lỗi tôi tự viết ra rồi test bắt được: `revoke all ...
+from anon` đứng **sau** `grant select` sẽ lấy lại đúng quyền vừa cấp — thứ tự được khoá bằng test.
+
+Sửa luôn một luật cũ sai: `check-sql` từng khẳng định `TABLES` khai **đúng 3 bảng**. Số lượng là bất biến
+sai — nó gãy khi thêm bảng và **không** gãy khi đổi tên bảng. Luật mới: mọi tên trong `TABLES` phải tồn
+tại dưới dạng bảng **hoặc** view.
+
+#### Phần UI — đã giao trong phiên này
+
+Phase 25 để lại đúng một việc mở: phần UI. Nó là **điều kiện tiên quyết của 26–30**, nên nó được làm xong
+trước khi mở phase nào khác.
+
+| Đã giao | Đo được / vì sao như vậy |
+| --- | --- |
+| `data/categories.ts` | **6 danh mục** (thêm `buildings` và `architecture`), là **bản sinh đôi** của seed SQL: cùng id, cùng thứ tự, cùng `sort_order`. `check-catalog` so **từng dòng** — một id chỉ có ở một bên là một trang 404 ở chế độ demo và chạy được ở production |
+| `lib/catalog-project.ts` | Chiếu `animals` và `landmarks` sang hình dạng item — **thuần**, import được bằng Node nên test được mà không cần database. Đây là bản TS của đúng quyết định mà view SQL đã làm: chiếu, không chép |
+| `lib/catalog.ts` | `getCategories` · `getCategory` · `getCategoryItems` · `getCategorySummaries`, `server-only`, có fallback về dữ liệu bundled khi Supabase không cấu hình hoặc lỗi |
+| `lib/catalog-links.ts` | `categoryHref` · `itemHref` · `itemSubtitle` — thuần, không import gì, nên lưới phía client dùng được. Luật được test khoá: **card không bao giờ trỏ tới route sẽ 404** |
+| `components/catalog/CategoryIcon.tsx` | Tên icon trong database → component lucide, qua **một map 5 dòng**. Nhập cả bộ lucide là vài trăm kB cho một trang vẽ 5 glyph |
+| `components/catalog/CategoryNav.tsx` | Dải danh mục, có trạng thái active; là **server component** — năm link không cần một ranh giới hydration |
+| `components/catalog/ItemGrid.tsx` | Lưới dùng chung cho mọi danh mục: lọc theo tên + chip "có model 3D", và trạng thái rỗng **nói ra lý do** |
+| `components/catalog/ItemCard.tsx` | Thẻ **cố tình rẻ**: plate + tên + một dòng metadata. Đặt một WebGL context sau mỗi tile của lưới 73 mục là tiêu cả ngân sách trang cho hover preview |
+| `/categories` và `/categories/[id]` | Chủ đề và một chủ đề, `generateStaticParams` từ danh sách bundled nên vẫn dựng sẵn, `dynamicParams` mở để danh mục thêm sau vẫn vào được |
+| Navbar + trang chủ | Một mục **Catalogue** và một dải "More than one world" — 5 chủ đề kèm số mục, chủ đề rỗng ghi thẳng "Being built" |
+| Sitemap | Thêm `/categories` và **chỉ những** trang danh mục **có mục** — hứa với crawler một trang "đang xây" là chuyện khác với nói thật với người đọc |
+
+**Kiểm bằng trình duyệt, không bằng suy luận** — dev server đang chạy ở cổng 9000:
+
+| URL | Kết quả |
+| --- | --- |
+| `/categories` | **200**, 139 kB HTML, 5 chủ đề, 3 chủ đề ghi "Being built" |
+| `/categories/animals` | **200**, 325 kB, `Filter 73 species` |
+| `/categories/architecture` | **200**, 369 kB, `Filter 48 monuments` (nay **47**), thẻ Eiffel trỏ `/landmarks/eiffel-tower` |
+| `/categories/space` | **200**, `Filter 0 objects` kèm câu giải thích |
+| `/categories/nope` | **404** |
+
+Và một lỗi thật, ghi lại vì nó suýt im lặng: chuyến đầu `/categories/architecture` trả **404** trong khi
+`animals` và `space` trả 200. Nguyên nhân không nằm ở code — **database thật đang có 4 danh mục**, vì seed
+`architecture` vừa được thêm vào `supabase/schema.sql` mà chưa áp lên. Fallback về dữ liệu bundled chỉ chạy
+khi bảng **trống** hoặc lỗi, **không** chạy khi bảng **thiếu một dòng** — đó là lựa chọn đúng (database được
+cấu hình thì database thắng), nhưng nó có nghĩa là: **đổi seed thì phải chạy `npm run db:schema`**, và bài
+test so seed với dữ liệu bundled chính là thứ phát hiện loại lệch này trước khi người dùng thấy. Sau khi áp:
+**200**, 48 mục.
+
+#### Architecture và Modern Buildings: hai câu hỏi, một catalogue
+
+**Yêu cầu.** "Đưa những model của landmark vào thẳng architecture, và thêm mục những toà nhà buildings hiện
+đại nằm riêng trong catalogue."
+
+**Đã làm.** Trang `/categories/[id]` trước đó vẽ lưới thẻ rẻ (`ItemGrid`: plate chữ cái + huy hiệu "3D"),
+nghĩa là vào Architecture thì **không thấy model nào** — đúng thứ bạn vừa phản hồi. Nay hai chủ đề
+`architecture` và `buildings` vẽ bằng chính `LandmarkGrid`/`LandmarkCard`: **cùng thẻ, cùng hover 3D,
+cùng ngân sách hover, cùng dòng credit** như trang `/landmarks`. Các chủ đề khác vẫn dùng lưới rẻ, vì đặt
+một WebGL context sau mỗi tile của lưới 73 loài là tiêu cả ngân sách trang cho hover preview.
+
+**Mục mới: Modern Buildings — 11 mục**, lọc ra từ chính catalogue công trình (48 mục lúc đó, 47 sau khi xoá Tử Cấm Thành) bằng một **luật viết ra**, không phải
+một danh sách cảm tính:
+
+| Điều kiện | Vì sao |
+| --- | --- |
+| Hoàn thành từ **1889** | Năm thép khung, bê tông cốt thép và hệ treo thôi làm thí nghiệm (Eiffel 1889; nhà khung thép đầu tiên 1885). Một nhà xây gạch mãi tới 1965 (Milan) hay 2026 (Sagrada Família) là **muộn**, không phải hiện đại |
+| **Có người đi vào hoặc đi qua** | Nhà chọc trời, tháp, nhà hát, nhà thờ Hồi giáo, cầu |
+| **Không phải tượng, không phải đá** | Christ the Redeemer (1931) và Mount Rushmore (1941) đúng thời kỳ nhưng sai loại; Uluru thì không ai xây |
+
+Danh sách: Eiffel Tower 1889 · Tower Bridge 1894 · Empire State 1931 · Sydney Harbour Bridge 1932 ·
+Golden Gate 1937 · Sydney Opera House 1973 · CN Tower 1976 · Hassan II Mosque 1993 · Petronas 1996 ·
+Burj Khalifa 2009 · Marina Bay Sands 2010. Kèm theo là **lý do từ chối** từng trường hợp gần đúng, viết
+ngay trong `data/buildings.ts` để người sau không phải suy lại.
+
+`check-catalog` kiểm **từng điều khoản**: slug phải tồn tại trong catalogue, năm ≥ 1889, không phải ruin —
+và **luật phải biết từ chối**: sáu trường hợp gần đúng (`christ-the-redeemer`, `mount-rushmore`, `uluru`,
+`milan-cathedral`, `sagrada-familia`, `chateau-frontenac`) được khẳng định là **không** nằm trong mục. Một
+luật không từ chối được gì chỉ là bản mô tả danh sách.
+
+**Một công trình, nhiều chủ đề — và vẫn một trang.** Eiffel Tower nằm ở cả Architecture lẫn Modern
+Buildings; cả hai cùng trỏ tới một model, một dòng credit và một trang chi tiết `/landmarks/eiffel-tower`
+(`DETAIL_PREFIX` trong `lib/catalog-links.ts`). Hai chủ đề **không** tạo hai bản sao: chúng chiếu từ **một**
+catalogue `data/landmarks/`, đúng luật mà view `catalog_items` đã đặt ra cho loài vật.
+
+Cùng lúc, một đường vòng đã bị bỏ: bản đầu tôi cho `/categories/architecture` **redirect** sang `/landmarks`
+để tránh hai URL cho một danh sách. Yêu cầu "đưa thẳng vào architecture" nói ngược lại — chủ đề phải **giữ**
+các mục của nó — nên redirect đã bị gỡ, và hai trang là hai lối vào của một catalogue: trang chủ đề có dải
+chủ đề, trang `/landmarks` có bộ lọc theo loại.
+
+**Kiểm trên dev server:** `/categories/architecture` **200** — **48 thẻ**, đủ 6 chip lọc theo loại;
+`/categories/buildings` **200** — **11 thẻ**; cả hai hiện dải chủ đề với **6 mục**.
+
+#### Còn lại của Phase 25
+
+| Việc | Ghi chú |
+| --- | --- |
+| `SizeComparison` + `InteractiveGlobe` cho mọi category | `ModelViewer` **đã xong** từ phase landmark (`types/viewable.ts` làm nó nhận mọi đối tượng có 5 trường); hai cái còn lại vẫn nhận `Animal` |
+| Admin thêm item mọi category | Bảng và RLS đã cho phép từ đầu (`is_admin()`); **form thì chưa** |
+| Gộp `AnimalGrid`/`LandmarkGrid` vào `ItemGrid` | Hai lưới cũ vẫn dùng thẻ riêng vì thẻ của chúng có hover 3D thật — gộp được, nhưng là việc dọn dẹp, không chặn phase nào |
+
+---
+
+### 🚀 Phase 26 — Space & Planets
+
+**Yêu cầu.** Category `space`; item: Mặt Trời, các hành tinh, vệ tinh, tàu vũ trụ, hố đen…; trang `/space`
+với **Solar System 3D tương tác** (xoay, zoom, click hành tinh), `ModelViewer` cho từng hành tinh/tàu,
+thông tin đường kính – khối lượng – khoảng cách – nhiệt độ; Size Comparison **so với Trái Đất**; dữ liệu ở
+Supabase, model `.glb`.
+
+**Nguồn — đo được, và là nguồn tốt nhất dự án có:** **NASA 3D Resources**, **public domain**, **provider đã
+nối sẵn trong pipeline từ Phase 12** (`data/model-providers.json`, không cần key). **227 thư mục `.glb`**,
+gồm Apollo Lunar Module, Cassini-Huygens, Curiosity, Chandra, Hubble, Deep Space Network, CubeSat, tiểu
+hành tinh 1999 RQ36, siêu tân tinh Cassiopeia A. Nghĩa là phase này **không phải thêm nguồn mới** — chỉ
+phải thêm dữ liệu và trang.
+
+**Tái dùng:** `ItemGrid` + `CategoryNav` (Phase 25), `ModelViewer` (đã nhận mọi category), pipeline
+`fetch-models.mjs` với provider `nasa`.
+
+**Việc riêng của phase này:** cảnh **Solar System 3D** không phải `ModelViewer` — nó là một cảnh quỹ đạo
+riêng (khoảng cách và bán kính phải **nén theo log** hoặc có hai chế độ, vì Mặt Trời–Sao Thuỷ và
+Mặt Trời–Sao Hải Vương lệch nhau 78 lần; vẽ đúng tỉ lệ thì cái sau nằm ngoài màn hình). Size Comparison
+ở đây so với **Trái Đất** chứ không so với người.
+
+**Chưa làm.**
+
+---
+
+### 🌱 Phase 27 — Plants & Botany
+
+**Yêu cầu.** Category `plants`; item: cây cối, hoa, nấm, cây thuốc… có model 3D; trang `/plants` với grid
++ lọc (loại, môi trường sống, công dụng), `ModelViewer` + thông tin khoa học (tên Latin, họ, công dụng…),
+có thể thêm âm thanh môi trường (lá xào xạc…).
+
+**Nguồn — đo được trên Sketchfab, cùng cổng chặn như động vật và công trình:**
+
+| Item | Model | Licence |
+| --- | --- | --- |
+| Oak tree | oak trees, **14.475 mặt** | CC-BY-4.0 |
+| Rose | Rose, **119.994 mặt** | CC-BY-4.0 |
+| Fly agaric | Fly Agaric Mushroom, **5.209 mặt** | CC-BY-4.0 |
+| Sunflower | Sunflower, **1.008 mặt** | CC-BY-4.0 |
+| Bonsai | Bonsai, **13.797 mặt** | CC-BY-4.0 |
+| Venus flytrap | Venus Flytrap, **2.464 mặt** | CC-BY-4.0 |
+
+**Tái dùng:** `ItemGrid`, `ModelViewer`, và **hạ tầng âm thanh có sẵn** — `data/sound-attribution.json`,
+`lib/sound-licenses.ts` và bảng `sound_assets` đã tồn tại từ Phase 9 cho tiếng kêu động vật; âm thanh môi
+trường đi đúng đường đó, gồm cả **cổng licence** (chỉ CC0/CC BY) đã có.
+
+**Việc riêng:** bộ lọc ba chiều (loại × môi trường sống × công dụng) và phần "công dụng" — thứ này dễ trượt
+sang **khẳng định y học**, nên mọi câu về cây thuốc phải có nguồn và phải nói rõ nó là **công dụng dân
+gian được ghi nhận**, không phải lời khuyên.
+
+**Chưa làm.**
+
+---
+
+### 🚗 Phase 28 — Vehicles
+
+**Yêu cầu.** Category `vehicles` (sub: motorcycle, car); trang `/vehicles` lọc theo loại – hãng – năm sản
+xuất; `ModelViewer` xoay 360° + **chế độ explod** (tháo rời chi tiết nếu có); thông số kỹ thuật (động cơ,
+công suất, kích thước…); Size Comparison **với người**; admin upload model + thông số.
+
+**Nguồn — đo được:**
+
+| Item | Model | Licence |
+| --- | --- | --- |
+| Vespa | VESPA, **342.100 mặt** | CC-BY-4.0 |
+| VW Beetle | Volkswagen Beetle, **42.500 mặt** | CC-BY-4.0 |
+| Ford Model T | Ford Model T v2 Downloadable, **42.890 mặt** | CC-BY-4.0 |
+| Trabant | Trabant, **18.245 mặt** | CC-BY-4.0 |
+| London Bus | London Bus double-decker, **95.161 mặt** | CC-BY-4.0 |
+
+**Tái dùng:** `ItemGrid`, `ModelViewer`, `reserve_model_download(provider = 'upload')` và
+`publishUploadedModel()` từ Phase 22 cho **admin upload** — đường upload đã có, gồm cả hộp thư Storage và
+ngân sách.
+
+**Việc riêng:** **chế độ explod**. Phần lớn model không có nhóm phụ rời, nên "tháo rời" chỉ có nghĩa khi
+asset mang cây node riêng cho từng bộ phận (bánh, động cơ, thân). Cách đúng: đọc cây node, cho chọn node
+để tách ra, và **nói rõ khi asset không có gì để tháo** — bịa ra chuyển động tách rời cho một mesh liền
+khối là cùng loại lỗi với việc vẽ rig thủ tục cho một loài.
+
+**Chưa làm.**
+
+---
+
+### 🏛️ Phase 29 — Architecture & Houses
+
+**Yêu cầu.** Category `architecture`; item: nhà ở, biệt thự, **công trình nổi tiếng**, nội thất…; trang
+`/architecture` với `ModelViewer` **đi vào bên trong được** (first-person hoặc orbit), bật/tắt **tầng** và
+**nội thất**, thông tin diện tích – phong cách – vật liệu; đo kích thước cơ bản.
+
+**Đã có sẵn một nửa:** **15 công trình lịch sử đang chạy ở `/landmarks`** với 15 model CC-BY đã credit, sạch
+cả ba luật (màu, extension, mặt sàn) — Phase 29 là **gộp chúng vào category `architecture`** rồi mở rộng.
+Mục "Nguồn model cho công trình" bên dưới là bản khảo sát nguồn cho phase này: Wikimedia Commons (CC0 đã
+kiểm từng file), Sketchfab, và danh sách nguồn **bị từ chối vì licence** (Open Heritage 3D, Scan the
+World — CC BY-NC-SA).
+
+**Tái dùng:** `ItemGrid`, `ModelViewer`, `LandmarkCard`, pipeline landmark đã có
+(`fetch-landmark-models.mjs` + `probe-landmarks.mjs`).
+
+**Việc riêng:** **đi vào trong nhà**, **bật/tắt tầng**, **bật/tắt nội thất**. Ba thứ này cần asset có cấu
+trúc (tầng là nhóm node, nội thất là mesh riêng) — cùng vấn đề với chế độ explod của Phase 28, và cùng
+cách trả lời: đọc cấu trúc thật của file, và nói thẳng khi file không có cấu trúc đó.
+
+**Chưa làm.**
+
+---
+
+### 🔎 Phase 30 — Unified Search & Cross-Category
+
+**Yêu cầu.** Thanh tìm kiếm toàn cục (animals + space + plants + vehicles + architecture); trang kết quả
+thống nhất; gợi ý liên quan **xuyên danh mục** (ví dụ "voi" → động vật + ảnh hưởng môi trường…); trang
+Explore tổng hợp; SEO metadata động theo category và item.
+
+**Tái dùng:** `lib/animals.ts`'s `searchAnimals` là bản mẫu; `catalog_items` là **một truy vấn cho tất cả
+năm danh mục** — đây chính là thứ view đó được dựng ra để làm. Navbar đã có ô tìm kiếm (`/explore?q=`).
+
+**Việc riêng và là phần khó nhất:** **gợi ý xuyên danh mục**. Nó đòi quan hệ giữa các mục ở *các danh mục
+khác nhau* (voi ↔ môi trường sống ↔ thực vật), mà dữ liệu hiện tại không có trường nào diễn tả. Hai đường
+trung thực: một bảng `item_links` do người viết tay (đúng, nhưng là lao động thủ công), hoặc suy từ
+`metadata` có cấu trúc (rẻ, nhưng chỉ đúng khi metadata được viết để suy được). Chọn đường nào là quyết
+định của phase đó, và **không được bịa ra một "điểm liên quan"** — cùng luật với mọi con số khác trong dự án.
+
+**Chưa làm.**
+
+---
+
+### Thứ tự phụ thuộc
+
+```
+Phase 25 (nền)          ItemGrid · CategoryNav · SizeComparison & Globe đa danh mục
+      │
+      ├── Phase 26 Space      (NASA, public domain — không cần nguồn mới)
+      ├── Phase 27 Plants     (Sketchfab CC-BY + hạ tầng âm thanh Phase 9)
+      ├── Phase 28 Vehicles   (Sketchfab CC-BY + upload Phase 22)
+      ├── Phase 29 Architecture (15 landmark đã có + Wikimedia Commons)
+      └── Phase 30 Unified Search (đọc catalog_items — cần 26–29 có dữ liệu trước)
+```
+
+**Luật không đổi cho cả năm phase:** mỗi item phải có **model thật, licence CC0/CC BY, đã credit**; **không
+model thì không có card**; model không được chìm dưới mặt sàn, không được render trắng, không được vượt
+ngân sách đa giác; và mọi con số trong dữ liệu phải **tra được nguồn**.
+
+## 🚀 Phases 26–28 — nền chung cho Space · Plants · Vehicles
+
+**Yêu cầu.** "Thực thi những phase còn lại cũng như những mục trong catalogue chưa làm chưa có model."
+
+### Đo trước: ba danh mục trống có nguồn model thật không?
+
+| Danh mục | Nguồn đã dò | Kết quả đo |
+| --- | --- | --- |
+| space — tàu/thiết bị | **NASA 3D Resources** (227 thư mục, public domain, GitHub, không cần key) | toàn tàu và thiết bị: ISS, Hubble, JWST, Curiosity, Saturn V, Apollo Lunar Module, Voyager… **không có hành tinh nào** |
+| space — hành tinh | Sketchfab | Earth 3.360 / 567.296 mặt · Mars 3.968 / 5.040 · Jupiter 4.076–8.448 · Saturn 3.328–6.912 — tất cả **CC-BY-4.0** |
+| plants | Sketchfab | Oak 7.112–183.680 mặt · Sunflower 42.492–75.084 — CC-BY-4.0 |
+| vehicles | Sketchfab | Formula 1 31.176–397.890 · Boeing 747 9.527–70.448 — CC-BY-4.0 |
+
+Cả ba danh mục lấp được bằng model thật. Không có danh mục nào phải dựng bằng hình vẽ.
+
+### Phase 27 — Plants: 16 mục, 16 model thật (50,4 MB)
+
+**Dữ liệu.** `data/plants.ts` — **16 mục**: sunflower · oak · orchid · coffee · venus-flytrap · ivy · lavender · lotus · bamboo · wheat · giant-sequoia · saguaro · ginkgo · baobab · kelp · bracken. Mỗi mục có `subtitle` dạng "Tree · Fagaceae", `metadata` gồm `kind`, `family`, `scientific_name`, `native_range`, `max_height_m`, `lifespan` và **`source`**; số không tra được để **null** thay vì đoán.
+
+**Model: 16/16, tổng 50,4 MB**, 15 mục CC-BY-4.0 và **`bracken` CC0-1.0** (giấy phép tốt hơn cả mức tối thiểu). Nặng nhất `oak` 8,28 MB; nhẹ nhất `kelp` 0,30 MB.
+
+**Một lỗi của chính cổng tên, do danh mục này lộ ra.** Lượt chạy khô đầu tiên chọn **"Giant Sequoia Cone - Retopologized"** cho mục *Giant Sequoia* — một cái **nón**, không phải cái cây. Đây là loại lỗi thứ ba, khác hai loại đã có: không phải hàng giả (`PLACEHOLDER_WORDS`), không phải món đồ *của* nó (`OBJECT_WORDS`), mà là **một bộ phận của nó**. Nên `catalog-gate.ts` có thêm danh sách thứ ba — cone · seed · seedling · sapling · leaf · leaves · fruit · engine · wheel · tyre · tire · cockpit — kèm đúng cái luật mà cổng công trình đã học được: **một từ bộ phận chỉ là bằng chứng khi chính mục đó không mang tên ấy**. "Mercedes Atego Fire Engine" **đạt**, vì mục này *là* fire engine; nếu không có luật đó thì cổng vừa bỏ một model thật, vừa giữ nguyên lỗi.
+
+Sau khi thêm luật, `giant-sequoia` lấy **"Giant Sequoia Tree Trunk" 598.946 mặt** — đúng cái cây (thân là phần chính của một cây sequoia khổng lồ), không phải quả của nó. Và `venus-flytrap` tự nâng từ 2.464 lên **67.360 mặt**: ứng viên nhẹ hơn bị cổng màu từ chối, pipeline đi tiếp.
+
+## 📈 Mở rộng +100 model mỗi mục — cỗ máy thu thập (đang chạy)
+
+**Yêu cầu.** "Tìm thêm 100 model cho mỗi mục trong catalogue" — 6 mục × 100 ≈ **600 mục mới**.
+
+**Vì sao không viết tay.** Batch công trình viết tay tốn **~25 phút/mục** (tra từng con số). 600 mục theo cách đó là ~250 giờ. Nên việc được tách đúng như phần còn lại của dự án:
+
+| Thành phần | Nguồn | Vì sao |
+| --- | --- | --- |
+| **Danh sách chủ thể** | NASA 3D Resources (227 thư mục, public domain) cho space; Sketchfab theo ~40 truy vấn/mục cho plants, vehicles, buildings | Một chủ thể không có model hợp licence là chủ thể site không hiển thị được — viết dữ liệu trước là vô nghĩa |
+| **Số liệu + mô tả** | **Wikipedia**, ghi tên bài làm `metadata.source` từng mục: mô tả = các câu mở đầu của bài, mỗi fact = một câu **có chữ số** | Đây đúng chuẩn mà batch công trình đã dùng ("checked against the English Wikipedia article text and infobox"), áp ở quy mô lớn. Không diễn giải thành một con số mà không ai viết |
+| **Model** | `scripts/fetch-catalog-models.mjs` sẵn có | Cỗ máy thu thập **không** quyết định cái gì được ship: mọi cổng (licence, tên, màu/kết cấu, đa giác, trần 25 MB) vẫn là của pipeline |
+
+**Script mới:** `scripts/harvest-catalogue-entries.mjs --catalogue=space|plants|vehicles|buildings --limit=100 [--apply]`
+
+- tên chủ thể từ NASA được thử **nhiều biến thể** trước khi tra Wikipedia ("Aqua (A)" → "Aqua (satellite)"; "…(TDRS) (A)" → bỏ ngoặc), vì tên thư mục được viết cho cái kệ chứ không cho bách khoa;
+- fact lấy từ **toàn bài** (khối lượng, ngày phóng thường nằm ở thân bài), mô tả lấy từ **đoạn mở đầu**;
+- mục đã có thì bỏ qua, nên chạy lại là **cộng thêm** chứ không nhân bản;
+- chạy khô in ra 5 mục đầu để đọc trước khi ghi.
+
+**Lượt 1 — kết quả đo được (space):**
+
+| Bước | Số đo |
+| --- | --- |
+| Chủ thể sau khi mở rộng nguồn (NASA **+ 41 truy vấn Sketchfab**) | **227 NASA + ~40 chủ thể Sketchfab** |
+| Mục thu được | **+72 mục** trong một lượt (16 viết tay + 15 lượt trước → **103 mục**) |
+| Model tải được | 3 + 7 + 53 = **63 model** (cả NASA public-domain PDM-1.0 lẫn Sketchfab CC-BY) |
+| **Sau khi xoá mục không có model** (luật "không model thì không có card") | **79 mục — 77 có model** (125 MB) |
+| Test | **681 bài / 0 fail** |
+
+Ba lỗi thật do lượt này lộ ra, đều đã sửa và **khoá bằng test**:
+
+1. **Slug bị cắt giữa từ**: `slugFor()` cắt ở 40 ký tự *trước* khi bỏ gạch nối cuối, nên "geostationary-operational-environmental-" vào thẳng catalogue (không phải kebab-case). Nay cắt trước, trim sau.
+2. **Mạng đứt giữa lượt**: `ECONNRESET` làm cả lượt thu thập chết ở chủ thể thứ N. Nay dùng `fetchWithRetry` của chính dự án và bọc từng chủ thể — một chủ thể hỏng không kết thúc cả lượt.
+3. **File model mồ côi**: một `.glb` không có dòng credit (do DRACO chết giữa đường) là model không ai cấp phép, không ai đo, không ai truy được. Nay `check-catalogues` có bài **"no catalogue folder holds a file the manifest does not credit"**, và `drop-entries-without-models.mjs` xoá luôn câu truy vấn của mục bị xoá (trước đó để lại khoá mồ côi làm test đỏ).
+
+**Kết quả đo được trước khi mở rộng nguồn** (một lượt trên 227 chủ thể NASA):
+
+| | |
+| --- | --- |
+| Chủ thể dò được | **227** |
+| Qua cổng Wikipedia (≥2 fact có số + mô tả ≥120 ký tự) | **10 mục/lượt** — phần lớn thư mục NASA là *dụng cụ* (Hammer, Wrench, Grease Gun) không có bài bách khoa |
+| `space` | **16 → 31 mục** (2 lượt), 16 mục cũ vẫn giữ nguồn mạnh hơn (NASA Planetary Fact Sheet) |
+| Test | **680 bài / 0 fail** sau khi ghi |
+
+**Còn lại của mục tiêu** (goal đang mở, nhiều lượt): chạy tiếp các lượt cho space (thêm truy vấn Sketchfab cho hành tinh/vệ tinh/tàu), rồi plants, vehicles, buildings, animals, architecture; sau mỗi lượt chạy pipeline tải model (**tự động**), và mục nào không có model thì bị `drop-entries-without-models.mjs` xoá — luật "không model thì không có card".
+
+### Lượt 2 — plants, và bảo mật (Phase 31 theo yêu cầu mới)
+
+**plants: 16 → 31 mục, 27 có model.** Cỗ máy thu thập chạy 40 truy vấn; cổng licence của pipeline từ chối đúng những model quá nặng (`eucalyptus-camaldulensis`: 1.499.999 mặt, vượt trần 800k). Sau khi tải: 4 mục không có model bị xoá, 4 file mồ côi bị xoá.
+
+**Ba lỗi công cụ được sửa trong lượt này** (đều là loại "file mô tả sai sự thật"):
+1. **Bộ lọc licence viết tay trong harvester** — tôi tự khớp chuỗi `^(CC0|CC-BY|...)`, nhưng Sketchfab dán nhãn CC-BY là *"CC Attribution"*, nên 40 truy vấn chỉ ra **7 ứng viên**. Nay harvester dùng **chính `evaluateLicense`/`rankCandidates` của pipeline**: không có ý kiến thứ hai về licence.
+2. **Slug cắt giữa từ** (đã ghi ở lượt 1) và **tên file/credit/index phải đổi theo** khi slug đổi.
+3. **Bốn file không còn khớp nhau sau mỗi lượt tải** — nên có script mới `scripts/reconcile-catalogue.mjs`: đưa **catalogue · file .glb · manifest credit · saved queries** về cùng một tập, và `check-catalogues` khoá lại bằng bài *"no catalogue folder holds a file the manifest does not credit"*.
+
+**Bảo mật (yêu cầu Phase 28 của bạn — ghi là Phase 31 vì PLAN đã dùng 28/29/30):**
+
+Đo trên database thật: **150 quyền không phải SELECT** cấp cho `anon`/`authenticated`. RLS quản lý hàng nhưng **không** quản lý `TRUNCATE`/`REFERENCES`/`TRIGGER` — nên `anon` đang giữ **`TRUNCATE ON public.animals`**: ai có anon key cũng xoá sạch được bảng loài, không policy nào được hỏi.
+
+| | Trước | Sau |
+| --- | --- | --- |
+| Quyền không phải SELECT cho `anon`/`authenticated` | **150** | **39** |
+| Quyền của `anon` | 11 nhóm, gồm TRUNCATE/DELETE/INSERT/UPDATE | **0** — chỉ còn `SELECT` |
+| `authenticated` | mọi bảng | 5 bảng per-user + 8 bảng manga, đúng nơi có policy |
+| Bảng tạo ở phase sau | thừa hưởng quyền rộng | `alter default privileges` chặn từ đầu |
+
+Khối SQL nằm trong `supabase/schema.sql` (*"Phase 31 - Security hardening: least privilege on the tables themselves"*) kèm số đo trong comment, **đã áp lên database**. Cố ý **không** thu hồi `EXECUTE` trên functions: site gọi RPC với tư cách khách có chủ đích (`increment_animal_view`, `quiz_stats`), và các hàm thay đổi dữ liệu tự kiểm người gọi.
+
+**Chưa làm, và không giả vờ là đã làm:** Phase 32 (Lemon Squeezy: `subscriptions`/`purchases`, webhook + verify signature, `checkPremium`, trang Pricing) và Phase 33 (Ads & Unlock: `ad_placements`/`locked_contents`/`user_unlocks`, `AdBanner`, `UnlockModal`, rewarded ad mock). Cả hai cần biến môi trường thật của Lemon Squeezy (`LEMON_SQUEEZY_API_KEY`, `STORE_ID`, `WEBHOOK_SECRET`, variant id) — không có key thì webhook **không test được**, và tôi không muốn giao một webhook chưa từng chạy.
+
+## ✅ Phase 31 — Kết quả (phần 2): nốt sáu yêu cầu của bản brief bảo mật
+
+Lượt trước mới làm **yêu cầu 1** (quyền trên bảng: 150 → 39 quyền không phải SELECT, `anon` mất `TRUNCATE`). Sáu yêu cầu còn lại nay đã xong, mỗi cái có số đo hoặc có bài test giữ nó.
+
+| Yêu cầu của brief | Nay nằm ở đâu | Bằng chứng |
+| --- | --- | --- |
+| 1. RLS mọi bảng | `supabase/schema.sql` (khối Phase 31 phần 1 + 2) | **34/34 bảng** có `relrowsecurity = true`; `npm run verify:rls` **PASS** |
+| 2. API route: bắt buộc đăng nhập, chỉ admin, rate limit | `lib/write-guard.ts`, `app/api/admin/_lib/guard.ts` | mọi route ghi đều đi qua `guardWrite` (khoá bằng test); `POST /api/admin/models/run` không session → **404** |
+| 3. Storage: chỉ ghi vào thư mục của mình | `supabase/schema.sql` (policy trên `storage.objects`) | 3 policy so `(storage.foldername(name))[1]` với `current_user_id()`; hai bucket asset **không** có policy ghi nào — và test khẳng định sự vắng mặt đó |
+| 4. Frontend: sanitize, không lộ key | `lib/sanitize.ts`, `lib/env.ts`, `npm run check:secrets` | 2 chỗ `dangerouslySetInnerHTML` bị test khoá đúng **2 file**, cả hai ăn từ serializer; sanitizer thuần, có test |
+| 5. Middleware bảo vệ route admin | `lib/admin-gate.ts` + `middleware.ts` | `GET /admin/models` không session → **404** |
+| 6. Logging & monitoring | `lib/security-log.ts`, bảng `public.security_events`, trang `/admin/security` | một dòng thật được ghi khi thử cross-site, đọc lại từ database |
+
+### Bốn lỗi thật do chính lượt này tìm ra
+
+1. **Middleware chưa hề chặn `/admin/*`.** Câu trong `app/api/admin/_lib/guard.ts` — *"it matches the /admin/* gate in the middleware (Phase D8)"* — **là câu sai**: middleware chỉ chặn các module chưa ra mắt. Ba trang admin tự gọi `adminStatus()` rồi vẽ panel đăng nhập, tức là trang **đã render xong** mới biết người xem không phải admin. Nay có `lib/admin-gate.ts` + một nhánh trong middleware: 404 trước khi một dòng của console chạy, đúng quy ước 404-mà-không-403 của API. Demo Mode không có identity thì cũng không có admin, nên `/admin` trả 404 ở đó.
+2. **`scripts/verify-rls.mjs` báo ba FAIL sai.** Nó đòi `401/403` cho việc đọc bảng per-user, nhưng câu trả lời đúng của một bảng có RLS là **200 kèm `[]`** — `anon` cố ý giữ SELECT, policy mới là thứ lọc hàng. Một bài kiểm kêu oan là bài kiểm bị bỏ qua, nên kỳ vọng nay viết theo từng phép thử: đọc được nhưng **0 hàng**, còn 200 **có hàng** mới là rò rỉ. Script PASS, và nó in ra số hàng thay vì chỉ mã trạng thái.
+3. **`anonymiseAddress("::1")` trả `1::/48`** — hàm cắt chuỗi theo dấu hai chấm nên đọc sai dạng nén của IPv6; hàng đầu tiên trong log là bằng chứng (`address_prefix = 1::/48`). Nay `::` được bù về đủ 8 nhóm **trước khi** lấy ba nhóm đầu, mỗi nhóm đệm 4 chữ số, nên `::1` → `0000:0000:0000::/48` và hai cách viết của cùng một mạng so bằng nhau được.
+4. **Route `/api/admin/geodata` tự hỏi database một mình** (`is_admin()` riêng + 403 riêng), nên quy ước 404, luật chủ sở hữu mặc định và phần ghi log mới **không áp** cho nó. Nay nó dùng `requireAdmin()`, và có test quét **mọi** route dưới `app/api/admin`: phải gọi gate chung, và không được tự gọi `.rpc("is_admin")`.
+
+### Log bảo mật: ghi được, đọc được, và nói thẳng giới hạn
+
+Đo trên server đang chạy, khoá anon, không session:
+
+| Phép thử | Kết quả | Ghi vào log |
+| --- | --- | --- |
+| `POST /api/settings` với `Sec-Fetch-Site: cross-site` | **403** | `kind=cross-site`, `bucket=settings` |
+| `POST /api/admin/models/policy` không session | **404** | `kind=admin-denied`, `route=/api/admin/models/policy` |
+| 45 lần `POST /api/views` trong một phút | 40 × **200**, 5 × **429** | `kind=rate-limited` |
+| `GET /rest/v1/security_events` bằng khoá anon | **401** (`42501`) | — |
+| `GET /admin/models` không session | **404** | — |
+
+Bảng `security_events`: RLS bật, **chỉ** policy đọc cho `is_admin()`, **không có policy insert** — chỉ service role ghi, nên không ai giả được một sự kiện. Điều đáng ghi: khối `alter default privileges` của phần 1 cấp `SELECT` cho `anon` trên **mọi bảng mới**, nên bảng này phải **đòi lại** — nếu không thì chính khối siết chặt lại vừa trao cuốn log cho khách. Đã đo: có `revoke` thì khoá anon nhận 401.
+
+Ba giới hạn được ghi thẳng, không giả vờ: log **lấy mẫu** (một dòng mỗi loại + mỗi mạng mỗi phút, nên sự kiện của kẻ tấn công bị thưa), `GET` trên route admin chỉ có `POST` trả **405** nên xác nhận đường dẫn tồn tại (đường dẫn nằm trong client component, mà chunk là file tĩnh — danh sách endpoint chưa bao giờ là bí mật, thứ kiểm soát là cái cổng, và cái cổng trả 404), và **chưa có chốt cho route trả phí** vì hôm nay chưa có route nào trả phí — Phase 32 sẽ đặt nó cạnh đúng thứ nó chặn, chứ không dựng một hàm `isPaidPath()` luôn trả `false`.
+
+**Kiểm:** `check:suites` **687 bài / 0 fail** (10 bài của `check:security`, thêm 6 bài mới), `tsc` sạch, `verify:rls` PASS. Trang `/admin/security` đọc log; `docs/SECURITY.md` có bảng sáu yêu cầu và bốn giới hạn còn lại.
+
+## ✅ Phase 32 — Kết quả: Lemon Squeezy (thanh toán + quyền lợi)
+
+Không có tài khoản Lemon Squeezy thật, nên lượt này **không giả vờ** đã chạy một giao dịch. Cách làm: dựng đủ tầng theo tài liệu của họ, rồi **đo mọi thứ đo được** — chữ ký webhook được kiểm bằng HMAC thật do chính tôi ký, đường đi của một delivery được chạy trên server thật, và hai việc không thể chạy (một delivery thật từ Lemon Squeezy, một checkout thật) được ghi thẳng vào `docs/PAYMENTS.md`.
+
+| Yêu cầu của brief | Nay nằm ở đâu | Bằng chứng |
+| --- | --- | --- |
+| 1. Các gói: Premium tháng/năm, mở khoá model tuyệt chủng, Manga Studio Pro | `lib/payments/plans.ts` | 4 gói, mỗi gói khai **quyền lợi** nó cấp; gói không có variant id thì **không được chào bán** |
+| 2. Checkout + webhook 4 sự kiện | `app/api/payments/checkout/route.ts`, `app/api/payments/webhook/route.ts` | checkout do **server** mở (API key không bao giờ xuống browser); webhook xử lý `subscription_*` và `order_*` |
+| 3. Bảng `subscriptions` + `purchases` | `supabase/schema.sql` (khối Phase 32) | RLS bật, **chỉ** policy đọc cho chủ sở hữu, **không** policy ghi nào; `anon` không có quyền nào |
+| 4. `checkPremium` + middleware/helper | `lib/payments/account.ts`, `lib/payments/account-view.ts`, `lib/payments/entitlements.ts` | toán quyền lợi thuần, đồng hồ tiêm được, 8 bài test |
+| 5. Trang Pricing, nút nâng cấp, trạng thái trong Settings | `app/pricing/page.tsx`, `components/payments/UpgradeButton.tsx`, `components/settings/SettingsScreen.tsx` | navbar + sitemap có `/pricing`; Settings đọc trạng thái từ server nên không nhấp nháy |
+| 6. Verify signature, TS strict, không lưu thẻ | `lib/payments/webhook.ts` | `timingSafeEqual`, không có cột nào cho thẻ |
+
+### Đo thật trên server đang chạy (không có tài khoản store, chữ ký ký cục bộ)
+
+| Phép thử | Kết quả |
+| --- | --- |
+| Delivery `subscription_created` **có chữ ký đúng** | **200**, ghi **1 hàng** vào `subscriptions` (plan `premium-monthly`, status `active`) |
+| Gửi lại y nguyên delivery đó | **200**, vẫn **1 hàng** — upsert theo `lemon_squeezy_id` chính là cơ chế idempotent |
+| `subscription_cancelled` kèm `ends_at` | **200**, **cùng hàng đó** đổi thành `cancelled` và `current_period_end` = ngày hết hạn trả trước |
+| `order_created` có chữ ký | **200**, một hàng `purchases` với `total_cents = 499`, `currency = USD` |
+| Body thêm **một dấu cách** | **401** `invalid signature` + một sự kiện `webhook-signature` trong log |
+| Chữ ký ký bằng secret khác | **401** |
+| Không có header chữ ký | **401** |
+| `GET /rest/v1/subscriptions` bằng khoá anon | **401** — `anon` không có quyền nào trên bảng thanh toán |
+
+### Ba quyết định đáng nhớ
+
+1. **`plan` và `status` cho phép NULL, có chủ đích.** Lemon Squeezy có thể gửi một variant deployment này không bán, hoặc một chuỗi status bản build này chưa từng thấy. Từ chối hàng đó là trả **500 cho một giao dịch thật** và chuốc một cơn bão retry; nên hàng vẫn được lưu, phần toán quyền lợi bỏ qua nó, và Settings nói thẳng là không nhận ra.
+2. **`current_period_end` là cột dẫn xuất**, vì Lemon Squeezy không có cột tên như vậy: có `ends_at` (khi đã huỷ) thì lấy nó, không thì lấy `renews_at`. Nó tồn tại vì đó là cột mà **mọi** câu hỏi về quyền lợi thật sự đọc.
+3. **Huỷ không phải là hết.** `cancelled` vẫn có quyền tới hết kỳ đã trả; `cancelled` mà **không có ngày** thì không có gì để tôn trọng nên không cấp gì. `past_due`/`unpaid` mất quyền ngay — một khoảng ân hạn là quyết định kinh doanh, và một mặc định im lặng còn tệ hơn không có.
+
+### Nói thẳng phần chưa làm được
+
+**Chưa từng có một delivery thật từ Lemon Squeezy, và chưa từng mở một checkout thật.** Repo không có tài khoản store. Mọi thứ *trước* hai bước đó đều đã chạy: chữ ký được kiểm bằng HMAC thật, bộ phân tích sự kiện được cho ăn payload đúng hình dạng tài liệu của họ, và body request được khẳng định từng trường. Rủi ro còn lại là delivery thật đầu tiên — và nó được ghi ở `docs/PAYMENTS.md`, không phải để sau này phát hiện ra.
+
+Cũng chưa có: **dunning** (khách quá hạn mất quyền ngay, không có ân hạn), **link customer portal** (đổi thẻ thì phải vào link trong email hoá đơn), và **logic proration** khi đổi gói (store đã tính rồi, ở đây chỉ ghi lại đúng thứ store gửi).
+
+**Kiểm:** `npm run check:payments` — **8 bài / 0 fail**, gồm cả bài khẳng định SQL và TypeScript khớp nhau về danh sách plan. `npx tsc --noEmit` sạch.
+
+## ✅ Phase 33 — Kết quả: vị trí quảng cáo & cơ chế mở khoá
+
+Cả hai thứ trong phase này đều mặc định **tắt**: ba vị trí quảng cáo được seed với `enabled = false`, và bảng khoá bắt đầu **rỗng**. Một deployment không quan tâm phase này sẽ trông y như trước.
+
+| Yêu cầu của brief | Nay nằm ở đâu | Bằng chứng |
+| --- | --- | --- |
+| 1. Vị trí: sidebar, dưới nội dung, giữa danh sách; không che ModelViewer | `lib/ads.ts` (danh mục vị trí), `components/ads/AdBanner.tsx` | test cơ học: **không file nào** dưới `components/3d` được import component quảng cáo |
+| 1b. AdSense / Ezoic / placeholder | `lib/ads.ts`, `components/ads/AdSlot.tsx` | AdSense cần **cả** client id và ad unit id, thiếu một cái thì không vẽ gì và in ra lý do; **Ezoic bị từ chối** vì build này không có tích hợp nào |
+| 2. Hai cách mở khoá: xem quảng cáo (mock) / mua một lần | `lib/unlock.ts`, `app/api/unlock/route.ts`, `components/unlock/UnlockPanel.tsx` | quảng cáo thưởng là **mock** và nói thẳng; mua dùng checkout thật của Phase 32 |
+| 2b. Ghi vào `user_unlocks` | `supabase/schema.sql` | policy chỉ cho `method = 'ad'`; đo thật: ad **được ghi**, purchase **42501** |
+| 3. UI: modal khoá, nút xem quảng cáo, nút mua, hiện nội dung đã mở | `components/unlock/UnlockPanel.tsx`, `components/unlock/UnlockGate.tsx` | gate hiện placeholder khi đang kiểm tra, **không bao giờ** lộ nội dung bị khoá |
+| 4. Admin bật/tắt từng vị trí, đánh dấu nội dung cần mở khoá | `/admin/ads`, `app/api/admin/ads/route.ts`, `app/api/admin/locked/route.ts` | console in ra **lý do** khi một vị trí đang bật mà không vẽ gì |
+| 5. Ba bảng `ad_placements`, `locked_contents`, `user_unlocks` | `supabase/schema.sql` (khối Phase 33) | RLS bật cả ba; chỉ admin đổi được công tắc |
+
+### Đo thật
+
+Policy của `user_unlocks`, chạy đúng vai `authenticated` với claim `sub` kiểu Clerk, mỗi ca một transaction:
+
+| Câu lệnh | Kết quả |
+| --- | --- |
+| tài khoản của mình, `method = 'ad'` | **ghi được** |
+| tài khoản của mình, `method = 'purchase'` | **42501** — vi phạm row level security |
+| id của tài khoản khác, `method = 'ad'` | **42501** |
+
+Nghĩa là: một client **không thể tự nhận đã trả tiền**. Mở khoá bằng mua do webhook ghi bằng service role.
+
+### Ba điều nói thẳng, không giả vờ
+
+1. **Quảng cáo thưởng là mock.** Client báo giờ bắt đầu, server chỉ kiểm đã đủ thời lượng chưa — nên **một client nói dối vẫn mở khoá được miễn phí**. Điều đó chấp nhận được với một placeholder và **không** chấp nhận được với một mạng quảng cáo thật. `docs/ADS.md` ghi rõ một tích hợp thật cần gì: ad unit thưởng của mạng, **server-side verification** của chính mạng đó (chứ không phải một cái đồng hồ), và một endpoint mà mạng gọi vào — lúc đó browser không còn là bên tự khai đã xem xong.
+2. **Đây là cổng sản phẩm, không phải kiểm soát truy cập.** File model nằm trong bucket **công khai** (mọi model của catalogue này đều vậy), nên khoá quyết định **giao diện hiện gì**, không quyết định mạng trả gì. Ai đọc payload của trang vẫn tìm được URL. Muốn khoá cả byte thì phải có policy theo từng object + signed URL — một thay đổi khác, có giá khác (nó sẽ phá cả hover preview và cache header mà các trang 3D đang dựa vào). Ghi ra đây thay vì để một cái ổ khoá trên UI ngụ ý sai.
+3. **Cơ chế mở khoá cũ của Phase 4 vẫn còn, và phase này không lặng lẽ thay nó.** `components/premium/UnlockModal.tsx` đọc cờ `premium` của loài và nhớ trong store của trình duyệt — một cơ chế khác hẳn (client, không có hàng nào trong database). Hai cơ chế cho cùng một ý niệm là một mùi khó chịu, và cách xử lý đúng là **một migration**: seed `locked_contents` từ dữ liệu loài rồi nghỉ hưu `useExploreStore.unlockPremium`. Việc đó chưa làm — nói ra để nó không thành cơ chế thứ ba.
+
+### Về vị trí quảng cáo: đổi hành vi có chủ đích
+
+Năm trang (`/explore`, `/animal/[slug]`, `/quiz`, `/leaderboard`, `/profile`) trước đây luôn vẽ một **khung placeholder** của Phase 4. Nay chúng dùng `<AdBanner placement=... />`: khung đó chỉ hiện khi admin bật đúng vị trí ấy. Đây là thay đổi nhìn thấy được, và là điều brief yêu cầu ("admin bật/tắt ad trên từng vị trí") — nhưng nếu bạn muốn thấy placeholder trở lại thì chỉ cần bật ba công tắc ở `/admin/ads`.
+
+Vị trí được đọc bằng một **client island** gọi `/api/ads/slots` (cache 60 giây, trong process và ở edge), chứ không đọc ở server: đọc ở server nghĩa là `cookies()` — tức là mọi trang có chỗ cho quảng cáo trở thành render động — hoặc là nướng kết quả vào lúc build, tức là admin phải chờ build lại. Đổi lại, quảng cáo **không bao giờ** nằm trên đường tới first paint, đúng luật mà các viewer 3D đã theo.
+
+**Kiểm:** `npm run check:unlock` — **7 bài / 0 fail**; `npm run check:payments` **8 bài / 0 fail**; `npx tsc --noEmit` sạch. Trang `/catalog/space/uranus` vẫn 200 khi mục đó bị khoá (gate là island, trang ở lại tĩnh).
+
+## 📐 "Model nằm quá cao so với mặt sàn" — studio cố định, model thì không
+
+**Bạn báo.** Các model nên nằm sát mặt sàn cắt ngang; chúng đang ở quá cao.
+
+**Đo trước, và loại trừ cái không phải nguyên nhân.** Phép neo (`ModelAnchor` + `floorOffset`) đặt **điểm thấp nhất** của model đúng vào `y = 0`, và tôi kiểm lại bằng hình học thật của từng file: hộp bao sau khi áp ma trận node, rồi `floorOffset = [-center.x, -min.y, -center.z]` — đáy model luôn về 0. Nên **không phải lỗi neo**, và cũng không phải lỗi khung nhìn trong thẻ (đã sửa ở lượt trước).
+
+**Nguyên nhân thật: studio có kích thước cố định, còn model thì không.** Mọi thứ quanh model — lưới, mặt gương, bóng đổ, cả giới hạn zoom của camera — đều là **số tuyệt đối** viết cho loài vật, mà loài vật có cạnh dài **trung vị 4,36 đơn vị**. Nay catalogue không còn chỉ có loài vật:
+
+| Catalogue | Cạnh dài nhất (đơn vị native) |
+| --- | --- |
+| animals | 0,014 (green sea turtle) → 42.911 (serval); **trung vị 4,36** |
+| space | 2 → **200.000** (Uranus) |
+| plants | 0,25 → 654 |
+| vehicles | 2 → 2.772 |
+
+Một mặt sàn vẽ ở **48 đơn vị** là **vô hình** dưới một hành tinh 200.000 đơn vị, và là **một lục địa** dưới một bông hoa 0,25 đơn vị. Model không có sàn nhìn thấy được dưới chân thì đúng là "nằm quá cao" — và đó là điều bạn thấy.
+
+**Sửa.** Mỗi prop của studio nay là **bội số của chính kích thước model**, đo một lần từ đúng hộp bao mà phép neo dùng (`posedBounds`):
+
+| Prop | Cũ (tuyệt đối) | Nay | Với loài vật (4,36) |
+| --- | --- | --- | --- |
+| lưới: cellSize / sectionSize / fadeDistance | 0,5 / 2,5 / 26 | × 0,115 / 0,573 / 5,96 | 0,5 / 2,5 / 26 — **y hệt** |
+| mặt gương | 48 × 48 | × 11 | 48 × 48 |
+| bóng đổ `scale` / `far` | 16 / 5 | × 3,67 / 1,15 | 16 / 5 |
+| camera `minDistance` / `maxDistance` | 0,6 / 26 | × 0,138 / 5,96 | 0,6 / 26 |
+
+Các tỉ lệ được lấy **bằng chính số cũ chia 4,36**, nên những trang vốn đã đúng (loài vật) nhìn **không đổi một pixel**, còn hành tinh, cây và xe thì nay có sàn thật dưới chân. Đây là cùng cách xử lý mà fog đã được sửa trước đó: "không rescale model — rescale cái quanh nó".
+
+**Kiểm:** `/catalog/space/uranus` (200.000 đơn vị) và `/animal/lion` đều render, ảnh chụp canvas có nội dung ở cả hai; **680 bài / 0 fail**, `tsc` sạch.
+
+**Nếu vẫn thấy cao, nói tôi biết đang nhìn ở đâu** — thẻ hover trong lưới catalogue, hay trang chi tiết — vì hai chỗ đó đặt camera khác nhau (thẻ căn theo hộp bao model qua `<Bounds fit margin={1.7}>`, trang chi tiết dùng `<Bounds fit margin={1.25}>`). Tôi có harness chụp + giải mã PNG để chỉnh bằng số đo, không bằng cảm tính.
+
+### Phase 29 — Architecture: đo trước, và **nói thẳng** thay vì làm một công tắc rỗng
+
+Phase 29 yêu cầu ba thứ mà một viewer công trình thường có: **đi vào bên trong**, **bật/tắt tầng**, **bật/tắt nội thất**. Cả ba đều cần asset có các phần **tách rời và có tên**. Nên việc đầu tiên là đo xem catalogue có gì — `scripts/probe-model-structure.mjs` đọc thẳng cây node của từng file `.glb`:
+
+| Catalogue | Model | Có ≥3 phần được đặt tên | Không có tên nào |
+| --- | --- | --- | --- |
+| animals | 73 | 7 | 60 |
+| landmarks | 47 | 10 | 30 |
+| space | 16 | 3 | 3 |
+| plants | 16 | 7 | 7 |
+| vehicles | 14 | 4 | 9 |
+| **Tổng** | **166** | **31** | **112** |
+
+Và tên của 31 file kia không nói lên cấu trúc: chúng đặt theo **vật liệu** — `Material2`, `Model_material1_0`, `BuildingMesh-00000.005_BuildingMat-00006.005_0`. **Không có một `Floor_1`, `Roof` hay `Chair` nào trong toàn bộ catalogue.** File lớn nhất lại càng ít cấu trúc: `taj-mahal` có 770 node và 259 mesh, **không cái nào có tên**; `hagia-sophia` 308 và 203, cũng vậy.
+
+**Nên thứ được giao là sự thật, không phải công tắc.** Mỗi trang model nay có một panel "This model file" in ra **con số thật của chính file đang vẽ**: *"This file is one unbroken mesh: 259 meshes in 770 nodes, none of them named. There are no floors or furniture in it to switch on and off."* Kèm câu giải thích vì sao ở đó có một câu chứ không phải một nút.
+
+Cách này là **đúng tinh thần mà chính PLAN đã viết cho phase này** ("đọc cấu trúc thật của file, và nói thẳng khi file không có cấu trúc đó"), và nó tránh đúng loại lỗi mà dự án đã gặp hai lần: một model thủ tục được vẽ thay cho model thật, và một card hứa một file nó không có. Một công tắc "Tầng" trên một khối đặc là lời nói dối mà người xem chỉ phát hiện khi bấm vào.
+
+**Còn lại của Phase 29, nói rõ:** muốn có "đi vào trong nhà / bật tắt tầng / nội thất" thì phải có **asset có cấu trúc** — file chia node theo tầng và theo đồ đạc. Đó là việc **tìm nguồn asset khác**, không phải việc code thêm: pipeline hiện tại tải photogrammetry một khối, và mọi nguồn đã khảo sát (Sketchfab, Smithsonian, Poly Pizza, Wikimedia Commons) đều cho đúng loại đó. Ghi lại làm đầu vào cho một lượt khảo sát sau, thay vì dựng một tính năng không có dữ liệu để chạy.
+
+### Ngân sách bundle cho các route mới — và con số trang
+
+Build cách ly (exit 0, **212 giây**, **0 cảnh báo**, **199 trang** dựng sẵn — trước các phase này là 154):
+
+| Route | Đo được | Ngân sách |
+| --- | --- | --- |
+| `/catalog/[category]/[slug]` | **139,1 kB** | 155 (cùng số với `/landmarks/[slug]`) |
+| `/search` (dynamic, đọc từ manifest) | **117,5 kB** | 130 |
+| `/categories/[id]` (nay có thẻ hover 3D) | **139,9 kB** | 150 |
+| `/categories` | **134,5 kB** | 140 |
+
+`check:bundle` xanh, không có three.js ở first paint, và **không còn route nào chưa khai ngân sách** ngoài 6 route manga (#12).
+
+### Tổng kết ba danh mục mới
+
+| Danh mục | Mục | Model | Dung lượng | Nguồn model |
+| --- | --- | --- | --- | --- |
+| Space | 16 | **16** | 32 MB | Sketchfab CC-BY-4.0 (NASA được tìm nhưng xếp dưới — xem ghi chú ở Phase 26) |
+| Plants | 16 | **16** | 50,4 MB | Sketchfab 15 × CC-BY-4.0 + 1 × **CC0-1.0** |
+| Vehicles | 16 viết → **14 giữ** | **14** | 16 MB | Sketchfab CC-BY-4.0 |
+| **Tổng** | **46** | **46** | **~98 MB** | |
+
+Ba danh mục trống của catalogue nay **không còn mục nào thiếu model**: mọi mục hiển thị đều có một file thật, đã credit, và mục nào không lấy được model thì **bị xoá** — đúng luật đã áp cho động vật, công trình và Forbidden City.
+
+### Phase 28 — Vehicles: 14 mục, 14 model thật
+
+**Dữ liệu.** `data/vehicles.ts` — 16 mục viết ra, **14 mục còn lại** sau khi hai mục bị xoá vì không có model (xem dưới). Nguồn số liệu ghi trong `metadata.source` từng mục: bảng "Specifications" của Wikipedia cho máy bay/trực thăng (747-200B; A380-800 theo Airbus; Concorde; UH-1H theo Jane's All the World's Aircraft 1987-88), infobox tàu cho tàu thuỷ (Emma Maersk dẫn ABS Record), "Formula One car" + "Formula One" (1950), "Toyota Corolla (E210)", "Tesla Model S", fact file của U.S. Navy cho tàu ngầm, và bài Wikipedia tương ứng cho Shinkansen / Harley-Davidson / road bicycle / AEC Routemaster / fire engine / hot air balloon.
+
+Số gây tranh cãi đã ghi rõ trong comment đầu file: F1 375 km/h ("up to"), 747 900 km/h là **cruise**, A380 903/955 km/h là bản đổi Mach của chính nguồn, Concorde 2.179 km/h max so với cruise 2.158, Shinkansen 320 km/h chạy thường lệ / 443 km/h kỷ lục thử nghiệm 1996 còn **603 km/h (2015) thuộc L0 maglev, không phải Shinkansen**, Titanic 39 km/h khi thử máy (trung bình 18 kn), tàu ngầm 46,3 km/h là số Navy công bố còn max vẫn classified, Emma Maersk 11.000 TEU quảng cáo so với 14.770+ TEU. Các số không tra được để **null** và ghi rõ: tốc độ tối đa của Harley/Corolla/xe đạp/xe cứu hoả/khinh khí cầu, chiều dài của Shinkansen (là mạng nhiều loại tàu)/Harley/xe đạp/xe cứu hoả/khinh khí cầu, khối lượng của nhóm đó + Routemaster.
+
+**Model: 14/14 tải được, tất cả CC-BY-4.0, tổng 16 MB.** Nặng nhất `road-bicycle` 7,81 MB (454.503 mặt), nhẹ nhất `routemaster` 0,15 MB (1.908 mặt).
+
+**Hai mục bị xoá, kèm lý do đo được** — luật "không model thì không có card", thực thi bằng `scripts/drop-entries-without-models.mjs` (script mới, có tự kiểm mảnh cắt trước khi ghi):
+
+| Mục | Lý do |
+| --- | --- |
+| `emma-maersk` | không có model nào nêu đúng tên nó: truy vấn "Emma Maersk", "Emma Mærsk", "Maersk container ship", "container ship" đều không trả về kết quả hợp licence nào (gate bỏ dấu nên "Mærsk" khớp "Maersk", vẫn không có) |
+| `los-angeles-class-submarine` | ứng viên đúng nhất — **"Los angeles class", 30.700 mặt, CC-BY-4.0** — bị **cổng màu** từ chối: file khai báo không màu, sẽ render trắng |
+
+**Một cơ chế mới, và vì sao nó cần có.** Cổng tên đòi **mọi từ** của tên hiển thị xuất hiện trong tiêu đề. Với một lớp tàu, điều đó là sai: model của lớp Los Angeles có tiêu đề "Los angeles class" và **không có chữ "submarine" nào**. Hai cách xử lý — bóp méo tên hiển thị, hoặc từ chối một model thật 30.700 mặt của đúng loại tàu đó — đều tệ. Nên mục dữ liệu **tự khai tên mà model của nó có thể mang** (`metadata.model_aliases`), pipeline truyền danh sách đó cho cổng, và tên hiển thị không đổi một chữ. (Trong trường hợp này cổng màu vẫn từ chối, nên mục bị xoá — nhưng cơ chế ở lại và dùng được cho lần sau.)
+
+**Model sinh bằng AI đã được ghi nhãn.** Lượt tải đầu ship **"[🟢Meshy] Bell UH-1 Iroquois"** — một model do AI sinh từ câu lệnh, và **không có gì nói ra điều đó**. Nay pipeline phát hiện dấu hiệu generator trong tiêu đề (meshy / tripo / ai-generated / text-to-3d), ghi một bản ghi `generated` vào manifest, và trang chi tiết in thẳng: *"This model was generated by Meshy from a text description — a reconstruction, not a scan or a hand-built model of the real thing."* Cùng luật mà `scripts/generate-models.mjs` đã áp cho loài vật: một model tổng hợp được hiển thị như model thật là **cùng một lời nói dối** với một số liệu bịa.
+
+### Phase 30 — Unified Search: một ô cho sáu danh mục
+
+**Yêu cầu.** Tìm kiếm xuyên danh mục.
+
+**Đã giao.** `/search?q=` — trang **duy nhất** trong nửa catalogue đọc query ở **server** (Next không sinh route tĩnh cho search param, nên nó là dynamic có chủ ý; `robots: noindex`). `lib/search.ts` chấm điểm giải thích được: tên trùng khít 100 · tên bắt đầu bằng 80 · tên chứa 60 · tên thứ hai (danh pháp, phân loại) 40 · fact 25 · mô tả 10, và **hiện lý do khớp** (fact/mô tả nào). Bỏ dấu cả hai phía nên "chichen itza" tìm ra Chichén Itzá.
+
+- **Ô tìm kiếm trên navbar nay trỏ về `/search`**, và `SearchAction` trong dữ liệu có cấu trúc được sửa theo (`lib/seo.ts` + test `check-seo`), nếu không thì structured data hứa với crawler một URL mà query không chạy.
+- Query rỗng trả về **danh mục** của sáu chủ đề (một câu trả lời tốt hơn "không có kết quả"); không khớp gì thì **nói thẳng** "không khớp, đã tìm trong N chủ đề" kèm danh sách chủ đề, để không ai nhầm "site không có" với "tìm kiếm hỏng".
+- Kiểm trên dev server: `/search?q=tower` → **200**, "17 matches across 3 of 6 subjects" (Animals · Modern Buildings · Architecture); `/search?q=saturn` → **200**.
+
+### Phase 26 — Space: 16 mục, 16 model thật
+
+**Dữ liệu.** `data/space.ts` — **16 mục**, hai nhóm:
+
+| Nhóm | Mục |
+| --- | --- |
+| 10 thiên thể | Sun · Mercury · Venus · Earth · Moon · Mars · Jupiter · Saturn · Uranus · Neptune |
+| 6 tàu/thiết bị NASA | International Space Station · Hubble · James Webb · Curiosity rover · Saturn V · Voyager 1 |
+
+**Nguồn số liệu**, ghi trong `metadata.source` từng mục: **NASA Planetary Fact Sheet** (nssdc.gsfc.nasa.gov, bản tự ghi "Last Updated: 9 May 2024") cho khối lượng, đường kính, khoảng cách, độ dài ngày, chu kỳ quỹ đạo, nhiệt độ, số mặt trăng; **Sun Fact Sheet** cho Mặt Trời (bảng hành tinh không có Mặt Trời); các trang `science.nasa.gov` và trang nhiệm vụ cho fact về sứ mệnh; trang Facts and Figures của ISS, "Hubble by the numbers", FAQ của Webb, trang Curiosity, bài giải thích Saturn V và trang Voyager 1 cho nhóm B.
+
+**Những con số gây tranh cãi, và cách xử lý** — ghi ngay trong comment đầu file, đúng luật của dự án:
+
+- khối lượng/đường kính Trái Đất lệch nhau **giữa hai trang NASA cùng site** (5,97e24 so với 5,9722e24 kg; 12.756 so với 12.742 km) — cả hai đều được nêu;
+- đường kính Mặt Trời 1.391.400 km là **2 × bán kính 695.700 km** vì bảng không có dòng đường kính; nhiệt độ 5.499 °C là 5.772 K đổi ra, không phải một con số Celsius được công bố;
+- "ngày" của Mặt Trời 609,12 h thực ra là **chu kỳ tự quay ở vĩ độ 16°**;
+- sao Kim 5.832,5 h là dòng rotation (bảng in số âm = nghịch hành), không phải dòng "length of day" 2.802,0 h;
+- Sao Thiên Vương 28 mặt trăng theo bảng, nhưng **chú thích ảnh trên chính trang NASA đó ghi 27**;
+- Saturn V 111 m trong khi 363 ft = 110,6 m — trang NASA làm tròn lên;
+- **bốn số để null** vì không tra được: `moon.distance_from_sun_km` (dòng của bảng là khoảng cách tới Trái Đất, và nó dao động ~43.000 km), `sun.year_length_days` (Mặt Trời không quay quanh chính nó), chiều dài của Webb (chỉ có sunshield 21,197 × 14,162 m — một khẩu độ đã bung), chiều dài của Voyager 1 (trang NASA không đưa).
+
+**Model: 16/16 tải được, tất cả CC-BY-4.0, tổng 32 MB**, nặng nhất `curiosity-rover` 6,00 MB và `james-webb-space-telescope` 5,56 MB:
+
+| Mục | Mặt | MB | | Mục | Mặt | MB |
+| --- | --- | --- | --- | --- | --- | --- |
+| sun | 7.936 | 1,81 | | international-space-station | 38.006 | 1,01 |
+| mercury | 5.888 | 0,32 | | hubble-space-telescope | 50.447 | 5,14 |
+| venus | 5.888 | 0,45 | | james-webb-space-telescope | 19.353 | 5,56 |
+| earth | 32.256 | 1,61 | | curiosity-rover | 48.384 | 6,00 |
+| moon | 5.888 | 0,40 | | saturn-v | 1.982 | 0,79 |
+| mars | 2.048 | 1,15 | | voyager-1 | 20.390 | 1,89 |
+| jupiter | 4.076 | 2,74 | | | | |
+| saturn | 6.912 | 0,29 | | | | |
+| uranus | 8.072 | 0,42 | | | | |
+| neptune | 7.936 | 2,26 | | | | |
+
+**Một điều đáng ghi về nhà cung cấp.** NASA 3D Resources (public domain, 227 thư mục) **đã được tìm** cho cả 16 mục, và **không mục nào chọn NASA**. Lý do nằm ở bộ chấm điểm: NASA không khai số lượt tải, không khai lượt thích, không có thumbnail, và **không khai số mặt** — bốn tín hiệu trong sáu tín hiệu của `scoreModelQuality`, nên model Sketchfab luôn xếp trên. Đây là hệ quả của một chính sách đã có từ Phase 12 (chấm điểm theo thứ người xem nhận ra), không phải lỗi; nhưng nếu muốn ưu tiên **public domain** cho không gian thì đó là một quyết định chính sách, không phải một sửa lỗi — ghi lại ở đây để lần sau ai đọc cũng biết vì sao 16/16 đến từ Sketchfab.
+
+**Một lỗi thật, do chính lượt dò này tìm ra:** `rankCandidates` gọi `term.trim()` trên mọi term, nên một mục **không có tên khoa học** (hành tinh) làm cả 16 mục nổ với `Cannot read properties of null (reading 'trim')`. Đã sửa ở tầng dùng chung: `titleScore` bỏ qua term không phải chuỗi — thiếu term là thiếu, không phải lỗi.
+
+### Cổng chặn tên mới, vì cổng của công trình không dùng lại được
+
+`lib/landmark-gate.ts` mang luật về **bộ phận của một toà nhà** ("Shachihoko **of** Himeji Castle" là một món trang trí; "wall" bị từ chối trừ khi chính công trình tên là wall). Những từ đó vô nghĩa với một hành tinh hay một cây hướng dương, và dùng lại sẽ từ chối oan.
+
+Nên `lib/catalog-gate.ts` là **luật nhỏ nhất đúng** cho ba danh mục:
+
+1. tiêu đề phải chứa **tên mục**, bỏ dấu, khớp theo **ranh giới từ**; tên nhiều từ thì **mọi từ** phải có mặt — "ISS (A) International Space Station" đạt, "To Scale Solar System" không;
+2. **không có từ khoá placeholder**, dùng chung danh sách với pipeline động vật và công trình (`lib/model-quality.ts`) để ba pipeline không lệch nhau về định nghĩa "hàng giả";
+3. **tên khoa học cũng tính**, vì model của một loài cây thường được đặt theo tên Latinh (`Quercus robur`).
+
+**14 ca kiểm**, gồm những ca suýt đúng lấy từ chính lượt dò: "Earthquake simulator" (chứa "earth" nhưng không phải `\bearth\b`), "Sunset over Mars", "Low Poly Oak Tree", "LEGO Formula 1 Car", "Toy paper Globe" — tất cả bị từ chối đúng, và các ca đúng đều đạt.
+
+### Một pipeline cho mọi catalogue, và nó không tự định nghĩa luật nào
+
+`scripts/fetch-catalog-models.mjs --catalogue=space|plants|vehicles` import **mọi** cổng từ module đã sở hữu chúng: `rankCandidates` (licence), `titleNamesEntry`, `FACE_BUDGET.max`, `modelCanShowColour`, `CRUDE_MONUMENT_FACES` + `modelHasNoTexture`, `compressGlb`, và trần 25 MB **đo trên file ship**.
+
+Khác biệt duy nhất so với pipeline công trình: **tìm trên hai nhà cung cấp** (NASA + Sketchfab) rồi chấm điểm chung, và **đếm tam giác từ chính file đã tải** khi nhà cung cấp không khai — NASA không khai, nên nếu không đếm thì ngân sách đa giác và luật "hình vẽ" sẽ không có tác dụng với nửa số model.
+
+### Trang chi tiết dùng chung: `/catalog/[category]/[slug]`
+
+Ba catalogue mới dùng **một** route chi tiết, vì chúng chia sẻ interface `CatalogEntry`. Trang đọc **hình dạng**, không đọc chủ thể: viewer, luật mặt sàn, dòng credit, DRACO và watchdog đều là của `ModelViewer` sẵn có — không có bản sao thứ hai.
+
+Động vật và công trình **không** được phục vụ ở route này: chúng có route riêng với field riêng (tình trạng bảo tồn, bản đồ phân bố, kiến trúc sư), và một con sư tử có hai URL là cách một site có hai bản của mọi thứ. `itemHref` trong `lib/catalog-links.ts` là **một chỗ** quyết định card trỏ đi đâu, và luật "card không bao giờ trỏ tới route 404" được khoá bằng test.
+
+### Thẻ catalogue nay vẽ model thật khi hover
+
+Trước đó `ItemCard` chỉ có plate chữ cái và huy hiệu "3D". Nay nó mount **model thật** khi hover — sau 180 ms, chỉ trên thiết bị có hover — qua `next/dynamic`, nên three.js vẫn không nằm ở first paint và **chỉ một canvas** tồn tại tại một thời điểm.
 
 ## 🚧 Việc còn lại
 
@@ -4044,17 +5561,618 @@ Ghi thành luật, vì đây là sai lầm đã mắc một lần và trả giá
 | 9 | Âm thanh loài (**Phase 9**) | **Đã tải 6 bản ghi** (635 kB, CC0/CC-BY, đã credit + upload Storage). 18 loài còn lại không có bản ghi hợp licence trên Wikimedia — phần lớn là CC BY-SA/NC. Muốn tăng độ phủ: dán `FREESOUND_API_KEY` **thật** vào `.env.local` (giá trị hiện tại chỉ 3 ký tự nên API trả 401) rồi chạy `npm run sounds:fetch -- --all`. |
 | 10 | File `LICENSE` | Repo public nhưng chưa có license — quyết định của bạn. |
 | 11 | Xoay service role key | Đang dùng cho chế độ Clerk; nên xoay định kỳ. |
+| 12 | **Ngân sách bundle cho 6 route `/manga-studio/*`** (Phase 24) | 🟠 **Đo được rồi, chưa khai.** Nút thắt đã gỡ: `NEXT_DIST_DIR=.next-build npm run build && NEXT_DIR=.next-build node scripts/bundle-budget.mjs --report` (xem mục "`next build` treo"). Sáu route vẫn chưa có ngân sách trong `ROUTES`, và theo luật của chính file đó thì một ngân sách chưa đo còn tệ hơn không có — nên việc còn lại là chạy đúng hai lệnh trên rồi điền số. |
+| 13 | ~~**Thời gian build**~~ | ✅ **Đã đo: 839 giây (13 phút 59 giây)** — exit 0, 512 MB, **0 cảnh báo `<w>`**, **147** trang dựng sẵn. Đây là lần build đầu tiên chạy xong trong môi trường này, khi nó được cấp thư mục output riêng (`NEXT_DIST_DIR=.next-build`). Số **~6,5 phút của CI** là số cũ, đo trước thay đổi dataset; cần một lần CI để so. Xem mục "`next build` treo". |
+| 14 | Panel AI của Manga Studio cần key thật | `MANGA_AI_PROVIDER` / `MANGA_AI_API_KEY` / `MANGA_AI_MODEL`. Không có key thì `/api/manga/ai/status` trả `configured: false` kèm lý do và UI in lý do đó ra; đường upload tay vẫn chạy. Ba shape request của ba provider là **tài liệu của họ**, chưa gọi thật lần nào. |
+| 16 | ~~34 loài không có model 3D~~ | ✅ **Đã xoá hẳn** — xem mục "Chỉ giữ loài có model". Muốn thêm loài mới: dò trước (`npm run models:report`), chỉ viết vào catalogue sau khi có model nêu đúng tên loài (`npm run models:audit` là cổng) |
+| 21 | ~~**Phase 25 chưa xong phần UI**~~ | ✅ **Đã giao**: `CategoryNav`, `ItemGrid`, `ItemCard`, `CategoryIcon`, `/categories` + `/categories/[id]`, mục Catalogue trên Navbar, dải chủ đề trên trang chủ, sitemap, 5 danh mục trong seed. Kiểm trên dev server: 200 ở cả 4 route, 404 ở id lạ. Còn lại hai việc nhỏ không chặn phase nào: `SizeComparison`/`InteractiveGlobe` cho mọi category, và form admin thêm item. Xem mục "Phase 25 — Phần UI" |
+| 22 | ~~**Phase 26–30 chưa triển khai**~~ | ✅ **Đã giao** — Space 16, Plants 31, Vehicles 14, Architecture (48 công trình), Unified Search `/search`, mỗi mục có model thật đã credit (xem "Tổng kết ba danh mục mới"). Phần **chưa** làm của Phase 29 là "đi vào trong nhà / bật tắt tầng": không nguồn asset nào có cấu trúc node theo tầng, và điều đó được in ra trên trang thay vì dựng một công tắc rỗng |
+| 24 | **Phase 31/32/33 — ba phase bảo mật, thanh toán, quảng cáo** | ✅ **Đã giao**, kèm hai chỗ chưa kiểm chứng được và nói thẳng: (31) sáu yêu cầu bảo mật có test + số đo, xem "Phase 31 — Kết quả (phần 2)"; (32) tầng Lemon Squeezy đầy đủ nhưng **chưa từng có delivery thật** và chưa từng mở checkout thật vì repo không có tài khoản store — chữ ký thì đã đo bằng HMAC thật; (33) quảng cáo + mở khoá có policy đo được, nhưng **quảng cáo thưởng vẫn là mock** (client tự khai), và cơ chế mở khoá cũ của Phase 4 vẫn tồn tại song song — hợp nhất chúng là một migration chưa làm |
+| 23 | ~~Landmark: batch 1 và 2~~ | ✅ **Đã nối hết**: `data/landmarks/all.ts` gộp 15 + 17 + 16 = **48 công trình ở 30 nước**, **47 có model thật** (103,0 MB, tất cả CC-BY-4.0). Xem mục "Công trình: 15 lên 48" — trong đó có hai lỗi của chính bộ luật và một quyết định còn treo (Hagia Sophia) |
+| 20 | Công trình: asset nặng | ✅ **Ngân sách bundle đã khai và đã đo**: `/landmarks` **158 kB** (ngân sách 165, ngang `/explore`), `/landmarks/[slug]` **139 kB** (ngân sách 155). Còn lại là **quyết định của bạn**: `taj-mahal` 12,02 MB, `sydney-opera-house` 8,8 MB, `alhambra` 8,2 MB, `prambanan` 6,89 MB là những asset nặng nhất site — muốn nhẹ hơn thì phải decimate, tức là sửa asset |
+| 19 | Mặt sàn chỉ được canh ở mức lấy mẫu | Phép quét 32 mẫu + lưới 192 đỉnh/6 frame. Một mô hình lặn đúng vào đỉnh không được canh, giữa hai frame được canh, vẫn lọt dưới sàn. Chặt hơn thì phải canh mọi đỉnh mỗi frame — xem mục "Mặt sàn" |
+| 18 | **Lấy model AI cho ~20 loài** | Hạ tầng xong (`scripts/generate-models.mjs`), chờ `MESHY_API_KEY`. Meshy Free = CC BY 4.0 nhưng chỉ ~3 model/tháng với 100 credit; gói trả tiền thì **mất** CC BY nên phải quyết định lại luật licence trước |
+| 17 | ~~`docs/MODELS.md` và `docs/PERFORMANCE.md` ghi "24 species"~~ | ✅ **Đã sửa, bằng số đo chứ không bằng cách thay số:** `MODELS.md` nay ghi **73 model / 136,1 MB / 2.127.639 mặt / trung vị 0,95 MB / lớn nhất 20,3 MB** (đọc từ `data/model-attribution.json`) và mô tả cả catalogue công trình; `PERFORMANCE.md` ghi 73 loài + 48 công trình và sitemap **73 + 48 + 7** URL |
+| 25 | **25 model bị người soi nói là sai, chưa gỡ** (Phase 35) | Danh sách đầy đủ kèm câu của người soi ở mục "duyệt bằng mắt" của Phase 35. Gỡ là **quyết định của bạn**: loài thôi nhận một model nó không có và rơi về rig thủ tục, và với plants/space/architecture thì phải gỡ dòng credit cùng lúc hoặc `scripts/check-catalogues.mjs` đỏ |
+| 26 | **Một bộ lập lịch của phiên trước vẫn đang ghi vào cây làm việc** | PID `50193` (`model-orders.mjs --upload`) và PID `96430` (dev server treo trên cổng 9000) vẫn spawn `fetch-models.mjs --apply --upload`. Nó làm số đếm đổi giữa hai lần đo và làm 4 bài test `check-r2`/`check-catalogues` đỏ. Nó cũng **wire model không qua cổng thị giác**. Cần bạn quyết định dừng hay để chạy |
+| 27 | **Token R2 không liệt kê được bucket** (`ListObjectsV2` 403) | Đã sửa phần mềm để `--push` chạy được mà không cần liệt kê; còn lại là quyền của token trên dashboard Cloudflare nếu muốn `npm run r2:index` chạy lại |
+| 15 | Upload panel cần `SUPABASE_SERVICE_ROLE_KEY` | Bucket `manga-panels` chỉ có policy **đọc** công khai (đúng như SQL đã chốt), nên ghi vào Storage trả **503 kèm câu giải thích** khi thiếu key. Cùng luật với hộp thư model ở Phase 22. |
 
 ---
+
+## ☁️ Phase 34 — Migrate Supabase Storage → Cloudflare R2 (đã đẩy **242 object / 488,5 MB** lên R2 và đọc lại được; cắt sang CDN còn chờ **một CORS rule** trên bucket)
+
+**Yêu cầu:** chuyển toàn bộ file từ Supabase Storage sang Cloudflare R2, cập nhật URL trong database, giữ nguyên cấu trúc thư mục.
+
+### Đo trước khi làm, và con số đổi hẳn bài toán
+
+| Bucket | Object | Dung lượng |
+| --- | --- | --- |
+| `animal-assets` | **0** | 0 MB |
+| `animal-sounds` | **6** | 0,6 MB |
+| `manga-panels` | **0** | 0 MB |
+
+Trong khi đó catalogue đang phục vụ **236 model, 461,7 MB** — tất cả từ `public/models/**` trong repo. Nghĩa là: **Storage gần như trống**, và "chuyển toàn bộ file sang R2" hôm nay là chuyển **6 file / 0,6 MB**. Đây không phải một migration, đây là một **quyết định kiến trúc**: có muốn đưa 461,7 MB asset ra CDN hay không.
+
+Điều này đúng với chủ đích đã ghi trong PLAN từ trước (*"Asset ưu tiên Storage, repo chỉ là fallback"*) — chỉ có điều nhánh Storage **chưa từng được nạp**. Nên phase này phải trả lời câu hỏi đó trước khi viết một dòng code nào.
+
+### Khoá đã có; phép thử đầu tiên thì hỏng, và hỏng ở phía tôi
+
+`.env.local` **đã có đủ năm biến** (kiểm bằng tên biến, không in giá trị): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `NEXT_PUBLIC_R2_PUBLIC_URL`.
+
+Lượt thử đầu là một request SigV4 **tự viết tay** bằng Python, và nó trả **403 SignatureDoesNotMatch**. Kết quả đó **không nói gì về khoá**: canonical request tôi dựng đã **bỏ trống dòng query string** (`list-type=2&max-keys=5`), mà SigV4 bắt buộc phải đưa query đã sắp xếp vào chuỗi ký — nên chữ ký sai là lỗi của phép thử, không phải của credential. Bài học đúng với chính dự án này: **không tự ký tay**, dùng một S3 client thật.
+
+(`NEXT_PUBLIC_R2_PUBLIC_URL` trả 403 khi gọi vào gốc `/` cũng không phải bằng chứng: bucket công khai của R2 không liệt kê thư mục, nên 403 ở gốc là bình thường.)
+
+### Lượt này: khoá đã chạy thật, và 488,5 MB đã nằm trên R2
+
+**Quyết định của bạn:** đẩy **cả hai** — 6 file âm thanh *và* toàn bộ model — và **giữ nguyên bản sao
+trong repo** (đúng quyết định 0b, để Demo Mode và self-host vẫn chạy không cần khoá).
+
+**S3 client thật, không ký tay.** Cài `aws4fetch` (một SigV4 signer chạy trên WebCrypto, ~3 KB) thay vì
+`@aws-sdk/client-s3` 19 gói cho một repo có 19 dependency. Toàn bộ việc ký nằm ở một chỗ:
+`scripts/r2.mjs`. Bài học 403 của lượt trước được ghi thành code, không chỉ thành lời.
+
+**Phép thử xanh hết** (`npm run r2:check`) — đọc được, ghi được, URL công khai đúng **byte**:
+
+| Bước | Kết quả |
+| --- | --- |
+| `ListObjectsV2` | OK — bucket rỗng lúc đầu |
+| `PutObject` một file nhỏ | OK |
+| `GET` qua `NEXT_PUBLIC_R2_PUBLIC_URL` | **HTTP 200, đúng số byte** |
+| ETag == md5(nội dung) | OK — byte lên nguyên vẹn |
+| `DeleteObject` | OK — dọn sạch probe |
+
+**Đã đẩy: 242 object, 488.472.973 byte (488,5 MB / 465,8 MiB).**
+
+| Nhóm | Số file | Byte | Đo được |
+| --- | --- | --- | --- |
+| `sounds/**` | 6 | 634.937 | 620 KiB |
+| `models/**` | 236 | 487.838.036 | 487,8 MB (465,2 MiB) |
+
+⚠️ **Con số "461,7 MB" của lượt trước là sai** — đó là ước lượng, không phải phép đo. Số thật là
+**487,8 MB** cho riêng model. Cùng loại lỗi như `du -sm` (ra 466 MiB vì làm tròn theo block).
+
+**Đã đọc lại toàn bộ:** `npm run r2:verify` → **242/242 object đọc được công khai với đúng số byte**,
+`content-type` đúng (`model/gltf-binary`, `audio/ogg`, `audio/mpeg`) và `cache-control:
+public, max-age=31536000, immutable` — cùng header mà `lib/model-publish.ts` gửi cho Supabase, nên hai
+host không khác nhau. Biên lai được commit ở `data/r2-manifest.json` (byte + md5 mà R2 trả về làm ETag).
+
+**Đẩy là chuyện nhỏ; chỗ suýt sai là chỗ khác.** Bucket công khai của R2 **không gửi**
+`access-control-allow-origin`. `useGLTF` đi qua `fetch()` (three `FileLoader`), nên **trình duyệt chặn
+model** — trong khi thẻ `<audio>` của `SoundButton` không cần CORS. Đây không phải suy luận từ source: một
+trình duyệt thật đã trả lời (`npm run r2:probe`):
+
+```
+CHẶN  model fetch (useGLTF path)       HTTP 0      0 B   Failed to fetch
+OK    audio element (SoundButton path) HTTP 200           canplaythrough fired
+```
+
+Nghĩa là: **"file đã ở trên CDN" và "trang đọc được nó" là hai chuyện khác nhau**, và nếu chỉ đẩy rồi tuyên
+bố xong thì mọi trang 3D sẽ vỡ trong im lặng.
+
+Sửa bằng `PutBucketCors`? **403 AccessDenied** — khoá S3 trong `.env.local` là *object-scoped*, không
+phải admin. Việc này phải làm trong dashboard Cloudflare (hoặc tạo token có Admin Write rồi chạy
+`npm run r2:cors`).
+
+**Cắt sang CDN đã sẵn sàng, có công tắc, và đang TẮT.** `lib/r2.ts` là chỗ duy nhất quyết định host:
+
+- `NEXT_PUBLIC_R2_PUBLIC_URL` = **bucket ở đâu** (script đẩy lên đó);
+- `NEXT_PUBLIC_R2_ASSETS=on` = **site có đọc từ đó không** (mọi giá trị khác → bản trong repo).
+
+Hai công tắc tách rời vì đẩy 488 MB và đổi thứ khách tải về là hai sự kiện khác nhau — và vì cái CORS rule
+kia phải có trước. Đã nối vào **bốn** chỗ đọc, không phải 79 chỗ ghi: `lib/animals.ts`, `lib/landmarks.ts`,
+`lib/catalog.ts`, `lib/catalog-project.ts`.
+
+**Database: không có gì phải migrate, và đó là phát hiện đáng giá nhất.** Đo thật 73 dòng `animals` bằng
+service key: `model_url` **73/73 là đường dẫn nội bộ** (`/models/…`), `sound_url` 6/6 cũng vậy, **0 dòng
+trỏ vào Storage**. Nên kế hoạch "sửa URL trong database" ở lượt trước là một bước thừa: khoá ngoại việc đổi
+host nằm ở *một hàm*, không nằm ở 79 dòng — và 79 dòng thì sớm muộn cũng lệch nhau.
+
+### Nếu làm, đụng đúng những chỗ này (đã dò, không phải đoán)
+
+| Chỗ | Vì sao |
+| --- | --- |
+| `lib/model-publish.ts` | nơi **duy nhất** upload + `getPublicUrl` (`ASSET_BUCKET = "animal-assets"`) |
+| `lib/animals.ts` | đường đọc asset duy nhất (Storage → fallback `public/`), theo quyết định 0b trong PLAN |
+| `scripts/fetch-sounds.mjs --upload`, `scripts/fetch-models.mjs --upload` | hai pipeline có nhánh đẩy file lên bucket |
+| `scripts/model-orders.mjs --upload`, `lib/upload-ingest.ts` | hộp thư model và đường publish thủ công của admin |
+| `lib/manga/panel.ts` + `/api/manga/*` | bucket `manga-panels` (đang 0 object) |
+| `supabase/schema.sql` | `model_assets.storage_path`, `animals.model_url`, và policy đọc công khai của bucket |
+| `docs/ASSETS.md` | hợp đồng "Storage trước, repo sau" phải được viết lại theo sự thật mới |
+
+**Giữ nguyên cấu trúc thư mục** là điều dễ nhất trong phase này: đổi *host* chứ không đổi *đường dẫn*, nên `storage_path` trong database không phải migrate — chỉ URL công khai đổi tiền tố. Việc thật là: (1) đẩy file lên, (2) sửa hàm dựng URL, (3) quyết định repo còn giữ bản sao hay không (nếu bỏ, `public/models/**` 461,7 MB rời khỏi repo — và bản self-host/Demo Mode mất model, đúng thứ quyết định 0b đang bảo vệ).
+
+### Đo được, không phải suy đoán
+
+| Việc | Lệnh | Kết quả |
+| --- | --- | --- |
+| Khoá đọc/ghi/URL công khai | `npm run r2:check` | 5/5 bước xanh, ETag == md5 |
+| Đẩy file (resumable) | `npm run r2:push` | 242 object · 488,5 MB · 6,3 MiB/s trung bình · 1 file lỗi giữa đường, lần chạy lại bắt được |
+| Đọc lại công khai | `npm run r2:verify` | **242/242** đúng số byte |
+| Trình duyệt thật | `npm run r2:probe` | model **bị chặn** (thiếu CORS) · âm thanh **OK** |
+| Luật host + tính đủ đặn | `npm run check:r2` | 10 test, gồm "mọi asset mà catalogue trỏ tới đều có trong bucket" |
+
+### Supabase Storage đã nghỉ hưu — và nó **không** trống như PLAN ghi
+
+Yêu cầu lượt này: *"từ nay file chỉ lưu ở Cloudflare R2, không lưu ở Supabase Storage nữa, nếu được thì
+xoá bên Supabase"*. Việc đầu tiên là đo lại, và **con số trong PLAN sai**:
+
+| Bucket | PLAN ghi | Đo được | Thực chất là gì |
+| --- | --- | --- | --- |
+| `animal-assets` | 0 object | **107 object · 179,2 MiB** | 69 trùng R2, **35 model không tồn tại ở đâu khác**, 9 bản gốc trước nén |
+| `animal-sounds` | 6 | 6 · 620 KiB | 6 bản ghi, đã có trên R2 |
+| `manga-panels` | 0 | 0 | — |
+
+Nếu tin con số "0 object" và xoá thẳng, **35 model sẽ biến mất vĩnh viễn**: chúng không có trong `data/**`,
+không có dòng nào trong `animals`, không có trên R2 — model của những loài chưa từng vào catalogue
+(meerkat, walrus, thylacine, reindeer, sea-otter…). Không có gì trỏ tới chúng, nhưng chúng là bản duy nhất
+của chính mình.
+
+**Đã chạy thật** (`node scripts/migrate-storage-to-r2.mjs --apply`):
+
+| Bước | Kết quả |
+| --- | --- |
+| Đối chiếu md5 (ETag của R2 chính là md5) | **69/113 đã trùng byte** |
+| Copy file chỉ có ở Supabase | **35 file** lên đúng key tự nhiên |
+| Bản gốc khác byte | **9 file** → `originals/models/…` (không ghi đè bản đang phục vụ) |
+| Đọc lại từng bản copy qua URL công khai | **44/44 đúng md5**, 0 lỗi |
+| Sửa URL trong database | **78 dòng** (`model_assets.public_url` 72, `sound_assets.public_url` 6) |
+| Sửa `data/sound-attribution.json` | 6 `publicUrl` |
+| Xoá khỏi Supabase | **107 + 6 object**; sau đó: `animal-assets=0, animal-sounds=0, manga-panels=0` |
+
+**Thứ tự mới là toàn bộ lập luận an toàn:** so md5 → copy → **đọc lại bản copy qua URL công khai** → sửa
+dòng → *rồi mới* xoá. Script **từ chối xoá** nếu còn bất kỳ object nào chưa được chứng minh.
+
+**Không ghi vào Supabase Storage nữa, ở mọi đường:** `lib/model-publish.ts` (model admin đăng),
+`lib/upload-ingest.ts` (hộp thư inbox/published/rejected), `lib/manga/panel.ts` (panel manga),
+`scripts/fetch-models.mjs` + `scripts/fetch-sounds.mjs` (pipeline tải về). Tất cả đi qua **một** module:
+`lib/r2-storage.ts` — nơi duy nhất giữ credential của object store — và **một** luật ánh xạ bucket→key:
+`lib/r2-paths.ts`.
+
+`ASSET_BUCKET` và `publicAssetUrl()` trong `lib/supabase.ts` đã **bị xoá** thay vì trỏ lại: một helper tên
+"asset bucket" chính là thứ sẽ cho call site thứ năm lặng lẽ ghi vào Supabase Storage lần nữa.
+
+**Lỗi của chính tôi, ghi lại:** bản đầu của script ánh xạ `animal-sounds` → key `<file>` thay vì
+`sounds/<file>`, nên nó báo **6 bản ghi là "không có trên R2"** trong khi chúng nằm đó từ đầu. Đã gom luật
+này về `lib/r2-paths.ts` và khoá bằng test.
+
+**Còn treo:** 35 model mồ côi giờ nằm trên R2 (đã ghi `source: null` trong `data/r2-manifest.json`) nhưng
+không loài nào dùng. Xoá hay đưa chúng vào catalogue là quyết định của bạn, và giờ nó có danh sách trước mặt.
+
+### Ảnh avatar cho card: chụp model một lần, không tải model để lấy mặt
+
+Yêu cầu: *"chụp hình model làm avatar đại diện cho model đó khi user nhìn card… chưa click vào"*.
+
+Trước đây card chỉ vẽ glyph (emoji / chữ cái đầu): `lib/model-preview.ts` chỉ cho tải model khi hover nếu file
+**< 1,5 MB và < 75k mặt**, nên phần lớn catalogue — mọi công trình, mọi loài lớn — **vĩnh viễn chỉ có emoji**.
+Giờ mỗi model được render một lần, off-screen:
+
+```bash
+npm run models:previews          # resumable; --force để render lại
+npm run r2:push -- --previews    # nhân bản ảnh lên CDN
+```
+
+| Số đo | Giá trị |
+| --- | --- |
+| Ảnh | **234 / 236 model** (2 ca hỏng, xem dưới) |
+| Định dạng | 512×512 WebP, **nền trong suốt**, góc 3/4, sáng theo đúng preset của viewer |
+| Dung lượng | 2.377.396 B (2,27 MB) · trung bình 10.160 B · lớn nhất 37.806 B |
+| Thời gian | 18m24s lần đầu · 12m41s khi `--force` · **4,0 s** khi đã có đủ (resume) |
+| Trên R2 | 234 object dưới prefix `previews/` · `r2:verify` 520/520 đúng byte |
+
+**Hai ca hỏng, có nguyên nhân đo được:** `space/international-space-station` và bản `-iss-e-intern` — GLB
+chứa **một mesh lạc 52 đỉnh cách trạm ~10.000 đơn vị**, nên bounding box phình lên 10.633 đơn vị và camera lùi
+~19.800 đơn vị; trạm chỉ còn ~76 pixel. Đây **không phải lỗi pipeline**: viewer thật cũng hiện đúng một chấm
+như vậy. Muốn có đủ 236 thì phải sửa chính asset (hoặc cho luật fit bỏ qua outlier).
+
+**Không có lookup trong client.** Bản đầu tôi viết đọc `data/previews.json` để biết ảnh nào tồn tại — file đó
+~40 KB, mà card là client component, nghĩa là **cả index của catalogue đi theo mọi lượt tải trang**, đúng thứ
+`npm run check:bundle` canh. Nên không có lookup: đường dẫn suy ra từ `model_url`
+(`/models/lion.glb` → `/previews/lion.webp`), ảnh thiếu thì `onError` giữ lại tấm emoji. Manifest vẫn có,
+nhưng đóng vai **biên lai** — bytes + md5, để test đối chiếu repo với bucket thay vì tin vào một lần `ls`.
+
+**Một phát hiện ngoài phạm vi, đáng giá nhất, chưa sửa:** `envMapIntensity` trong `lib/model-materials.ts`
+**không có tác dụng** trên three 0.186 — `WebGLRenderer.setProgram` ghi đè uniform đó bằng
+`scene.environmentIntensity`, mà drei khoá ở 1. Đo được: nếu tôn trọng hệ số này, mean luma của sư tử đi từ
+**84 lên 143**; Château Frontenac từ 13 lên 52. Ảnh preview **cố tình tái hiện đúng hành vi hiện tại** (không
+tự ý "sửa cho đẹp"), nên nếu sửa `components/3d/StudioEnvironment.tsx` thì phải render lại toàn bộ.
+
+**Biết trước để không bất ngờ:** render **không** tái lập bit-for-bit — `--force` tái tạo đúng 228/234 ảnh,
+6 ảnh lệch vài pixel và `california-sea-lion` đổi mỗi lần chạy. Vì vậy **không test nào được giả định md5 của
+ảnh là bất biến**; test hiện tại chỉ so bucket với manifest, và đó là chiều đúng.
+
+### Bước kế tiếp, theo thứ tự
+
+1. **Bạn làm (chỉ một lần, trong dashboard):** Cloudflare → R2 → bucket `kami3d-storage` → Settings →
+   CORS policy → thêm rule `GET`, `HEAD`, origin `*`. Xong thì `npm run r2:probe` sẽ báo cả hai đường OK.
+2. **Rồi mới bật công tắc:** đặt `NEXT_PUBLIC_R2_ASSETS=on`, và đo trước/sau bằng `npm run audit:perf`
+   (TTFB/FCP/LCP trên Chrome thật) — đó là con số duy nhất trả lời được "CDN có nhanh hơn không".
+3. **Trước khi coi là production:** trỏ một custom domain vào bucket thay vì `pub-*.r2.dev` (endpoint phát
+   triển của Cloudflare, có rate-limit và không có SLA). Đổi base URL là đổi một biến.
+4. **Còn treo, chưa làm:** repo có nên tiếp tục giữ 488 MB bản sao hay không — bạn đã chọn **giữ**, nên bản
+   sao ở lại; bỏ nó là một quyết định khác, có giá khác (dev local và bản offline mất model).
+
+## 📈 Phase 35 — Mở rộng catalogue, chuẩn chất lượng "duyệt bằng mắt", và `buildings` tách ra
+
+**Yêu cầu:** đưa 35 model mồ côi vào catalogue thành loài thật, và tải đủ **100 model cho mỗi mục**
+(animals, space, plants, vehicles, architecture, buildings tách riêng).
+
+### Đo trước khi làm
+
+| Mục | Mục catalogue | Có model | Cần thêm |
+| --- | --- | --- | --- |
+| animals | 73 | 73 | 27 |
+| space | 77 | 75 | 23 |
+| plants | 29 | 27 | 71 |
+| vehicles | 14 | 14 | 86 |
+| architecture | 47 | 47 | 53 |
+| buildings | 11 (tập con của architecture) | 11 | 100 |
+| | | | **349 model** |
+
+Trần tải trong `model_download_policy` khi đó là **400 tổng / 400 tháng**, đã dùng 85 → không đủ. Đã nâng
+lên **500 / 500** (người dùng duyệt), headroom 415 lượt.
+
+### Phát hiện quyết định: 35 model mồ côi **không dùng được**
+
+Chúng có nguồn gốc thật — nhật ký `model_download_log` giữ dòng cho **31/35** (Sketchfab, CC-BY) — nhưng
+chúng mồ côi vì **người tải trước đây đã đúng khi không wire chúng**. Bằng chứng, không phải phỏng đoán:
+
+| Loài | Model thực tế |
+| --- | --- |
+| walrus | "Day 310: **Walrus skull**" — một cái sọ |
+| sea-otter | "Sea otters **charm fastener**, Alaska, c.1800" — một cái móc áo |
+| kea | "I **KEA**_STRELITZIA Planta" — **một loài cây** (tên loài 3 chữ cái khớp nhầm) |
+| andean-condor | "Santuario de la Naturaleza Cascada" — một khu bảo tồn |
+| atlas-moth | "Laptop_assignment10" |
+
+Cổng `wire-local-models.mjs` từ chối **cả 34** loài mới, và nó cũng bắt được lỗi của chính phase này:
+`meerkat` từng được wire rồi phải gỡ, vì model là **một cái sọ** (node `Skull_2`, material `Skull`).
+
+**Đã dọn:** xoá 19 file model sai, 21 dòng `model_assets`, gỡ khỏi `model-attribution.json` /
+`model-preview.json` / `model-structure.json`; cả 35 loài để `model_url: null`.
+
+**Ngưỡng đang chặn, đo được:** `TITLE_MATCH_POINTS = 24` nhưng title chỉ *chứa* tên loài được 22,5 điểm
+(`QUALITY_WEIGHTS.title × 0.75`), nên chỉ title **đúng bằng** tên loài mới qua — trừ khi có người ghi
+`EVIDENCE` xác minh (repo đã có sẵn cơ chế: `"plains-zebra": 'mesh names "ZEBRA_L.3DS"'`).
+
+### Đã làm được, có số
+
+| Việc | Kết quả |
+| --- | --- |
+| 34 loài viết vào `data/species/batch-6.ts` | batch-6 = 35, catalogue **108 loài**; nguồn Wikidata P141 / Wikipedia / ADW |
+| Geodata | **105 loài** có envelope từ GBIF/OBIS (CC-BY, có số điểm và khoảng năm); bundle regenerate: 112 feature / 108 loài |
+| Harvest `space` | 77 → **131 mục** |
+| Tải model `space` | **41 model** lấy được, 40 wire; 15 ca hỏng có lý do từng ca (không có kết quả licence-clean; licence non-commercial; thư mục NASA không có .glb; "1248 triangles and no texture: a diagram of the thing") |
+
+**Trạng thái đo được:** animals 108 (73 có model) · space 131 (116) · plants 29 (27) · vehicles 14 (14) ·
+architecture 47 (47) · **277 model trên đĩa · 268 ảnh preview · R2 564 object / 669,3 MiB, verify 564/564
+đúng byte · `npm run check` 717/717.**
+
+### Lỗi hạ tầng tìm được trong lúc làm, đã sửa
+
+1. `scripts/r2.mjs` `put()` không trả `publicUrl` → `model_assets.public_url` ghi thành **null** (JSON bỏ
+   key `undefined`, không có gì báo lỗi).
+2. Pipeline động vật **thiếu cổng "model phải có màu"** (`fetch-catalog-models` và
+   `fetch-landmark-models` đều có) → có thể ship model chỉ render xám.
+3. Ứng viên bị cổng từ chối thì ứng viên kế bị xếp thành `-alt2` thay vì được thăng làm chính.
+4. `r2-push --index` không làm mới số byte khi object bị ghi đè (biên lai nói dối về bucket), và không
+   xoá `source` khi file repo biến mất.
+5. `data/previews.json` giữ mục mồ côi sau khi file bị xoá.
+6. **Harvester lấy cả tiêu đề mục của Wikipedia vào mô tả.** `page.extract` trả về cả thân bài, và bản
+   đầu cắt ở `\n\n` đầu tiên — nhưng bài ngắn thì tiêu đề `== References ==` nằm ngay sau lead, nên
+   `buildings/rattin-castle-wm034-008` ship một mô tả kết thúc bằng đúng hai chữ `== References ==`.
+   `scripts/check-catalogues.mjs` bắt được (luật *"mô tả phải kết thúc bằng dấu câu"*), và đã sửa hai chỗ:
+   cắt extract tại tiêu đề mục đầu tiên, và chỉ nhận câu đã trọn — mảnh cuối bị bỏ chứ không được đăng.
+
+## 👁️ Chuẩn chất lượng: **duyệt bằng mắt** — và nó có sổ
+
+**Quyết định của bạn:** giữ chuẩn (một số loài sẽ không có model) / **duyệt bằng mắt** / hạ chuẩn. Đường
+được chọn là đường giữa, và nó là đường duy nhất trong ba đường **kiểm chứng được**: mỗi model được một
+model thị giác soi, câu trả lời được ghi lại kèm ảnh và md5 của ảnh, và chỉ model nào được nói đúng thì mới
+được wire.
+
+### Vì sao phải là mắt, không phải thêm một cổng chữ
+
+Mọi cổng cũ đều đọc **chữ**: giấy phép đọc nhãn, cổng tên đọc tiêu đề kết quả tìm kiếm, cổng màu đếm
+texture, cổng kích thước đếm byte. Không cổng nào phân biệt được con moóc với **cái sọ moóc** — và đó không
+phải giả thuyết: repo này đã từng ship một con meerkat là cái sọ, một con octopus là "Sphere_Color_0 trên
+Plane_Color_0", và "Sea otters charm fastener" nằm dưới tên sea otter, cho tới khi có người mở ảnh ra xem.
+
+Sổ ghi bằng chứng là `data/model-verification.json`, ghi bởi `node scripts/model-vision-review.mjs
+--record` — **không có gì khác ghi được nó**. Mỗi dòng: phán quyết, câu mô tả điều người soi **thật sự
+nhìn thấy**, lý do, model đã soi, đường dẫn ảnh, **md5 của ảnh**, đường dẫn model, sha256 của model, và
+những mục catalogue nào đang nhận model đó là mình.
+
+Luật nằm ở một module thuần `lib/model-verification.ts`, có test riêng, và nó nói đúng một câu:
+**một phán quyết còn giá trị khi người soi đã nhìn, nói model đúng là thứ catalogue nhận, và ảnh họ nhìn vẫn
+là ảnh đang nằm trên đĩa.** Điều khoản cuối cùng là điều khoản làm cả thiết kế này có nghĩa: `npm run
+models:previews -- --force` tái tạo **228/234** ảnh y hệt và **lệch 6 ảnh**, nên một phán quyết buộc vào
+*tên file* sẽ sống lâu hơn chính bằng chứng của nó. md5 đổi thì phán quyết thành **stale** và model tự quay
+lại hàng đợi.
+
+### Đo được, ở lần chạy này
+
+| Số đo | Giá trị |
+| --- | --- |
+| Model có mục catalogue nhận và có ảnh để soi | **274** |
+| Đã soi và ghi sổ | **208** (169 matches · 25 mismatch · 14 unclear) |
+| Chưa soi (hàng đợi còn lại) | **66** |
+| Không có ảnh để soi | **3** (ba bản của ISS — xem mục dưới) |
+| Phán quyết hết hạn vì ảnh bị vẽ lại | **0** |
+
+**25 model bị nói là không phải thứ catalogue nhận.** Đây là danh sách, kèm đúng câu người soi viết — mỗi
+câu kiểm được bằng cách mở ảnh ra:
+
+| Model | Đang được nhận là | Người soi nhìn thấy gì |
+| --- | --- | --- |
+| `american-bison` | American Bison | *"một con bò nhà lông mượt màu nâu đỏ, đầu cúi, sừng ngắn hướng lên"* |
+| `black-mamba` | Black Mamba | *"một con rắn trắng nhợt, chỉ thấy đầu và phần thân trước"* |
+| `hellbender` | Hellbender | *"một sinh vật lưỡng cư bốn chân màu hồng nhạt, miệng đầy răng nhỏ, gai dọc lưng và khoảng mười lăm mắt giả trên mặt"* |
+| `orca` | Orca | *"một mớ bề mặt bóng màu chàm và trắng, tua dài, ống chi ngắn, và một ngôi sao sáu nhánh nhọn ở dưới, có khe hở như bị vỡ"* |
+| `serval` | Serval | *"một cô gái hình người kiểu anime, tai thú cao, váy và tất đốm"* |
+| `smilodon` | Smilodon | *"một cái sọ hoá thạch tẩy trắng, hai răng nanh dài cong xuống"* |
+| `landmarks/borobudur` | Borobudur | *"ba stupa chuông trắng có lỗ hoa văn, trên nền trắng"* |
+| `landmarks/colosseum` | Colosseum | *"một mảng tường vòm cong duy nhất, ba tầng, mép rách, không có lòng đấu trường"* |
+| `landmarks/djenne-mosque` | Great Mosque of Djenné | *"một khối hộp màu đất nung, mái bằng, tường có gân, trên một tấm nền trông như bản đồ"* |
+| `landmarks/machu-picchu` | Machu Picchu | *"một sườn núi xanh, đá trơ và một dòng suối nhạt dưới chân — không có ruộng bậc thang, tường hay nhà nào"* |
+| `landmarks/petra` | Petra | *"một mặt tiền đá sa thạch cắt phẳng như ảnh, có lỗ thủng, không có gì xung quanh"* |
+| `landmarks/petronas-towers` | Petronas Towers | *"một quả cầu trắng nhẵn dán ảnh bầu trời, mây và một mảng nhà bị bóp méo"* |
+| `landmarks/prague-castle` | Prague Castle | *"mặt tiền một toà nhà đá hai tầng cắt phẳng như ảnh, mép trong suốt lởm chởm"* |
+| `landmarks/sagrada-familia` | Sagrada Família | *"một quả cầu dán ảnh toàn cảnh thành phố, trong đó có một nhà thờ nhiều tháp"* |
+| `landmarks/st-peters-basilica` | St Peter's Basilica | *"một mảng tường đá trắng thủng lỗ chỗ, có huy hiệu thánh giá vàng và mảnh trời dính vào"* |
+| `landmarks/trevi-fountain` | Trevi Fountain | *"một tấm phiến dài các khối nhà hồng nhạt nhìn từ trên xuống, như một ô bản đồ vệ tinh"* |
+| `plants/bamboo` | Bamboo | *"vài que xanh nhẵn cắm trong lọ, uốn thành lò xo, không lá, không đốt, không cành"* |
+| `plants/giant-sequoia` | Giant Sequoia | *"một thân cây quét 3D bị cắt phẳng ngọn, không cành, không tán"* |
+| `plants/mediterranean-metalurgy-ue5-gate-ornamen` | Mediterranean metallurgy gate ornament | *"một nhân vật người mặc bộ giáp sci-fi bóng loáng, đội mũ, đeo găng"* |
+| `space/apollo-lunar-excursion-module` | Apollo Lunar Excursion Module | *"một ô cửa sổ tam giác phẳng trong khung tán đinh, viền gioăng cam, đứng một mình"* |
+| `space/apollo-lunar-module` | Apollo Lunar Module | *"cũng ô cửa sổ đó, không có thân xe, không có chân, không có tầng lên"* |
+| `space/ares-1-b` | Ares I (bản B) | *"một kết cấu quanh một vòng xuyến có nan, một cần dài thon và một mô-đun nhỏ ở đầu"* |
+| `space/extravehicular-mobility-unit` | EMU (bộ đồ du hành) | *"một phiến dẹt màu nâu thịt, mép như răng bánh răng, nhìn gần như cạnh, và vài mảnh rời"* |
+| `space/galaxy` | Galaxy | *"một quả cầu tối lấm tấm sao, có một ảnh xoắn ốc tám cạnh dán vào giữa"* |
+| `space/mars-atmosphere-and-volatile-evolution-m` | MAVEN | *"một nhân vật hình người, mũ đen, giáp ngực đen, găng đỏ, quần nâu, bốt nặng"* |
+
+Hai trong số đó là **bằng chứng do người viết tay**, và đây là phần đáng nhớ nhất của cả lượt này:
+`serval` từng được nhận với lý do `node "servaltest.fbx", 28 meshes, rigged` và `hellbender` với
+`"DitchDoggy.fbx" - ditch dog is a vernacular name for the hellbender`. Cả hai ghi chú đều **đúng sự
+thật về file** — thật sự có 28 mesh trong một rig, và "ditch dog" thật sự là tên địa phương của
+hellbender. Điều mà không ghi chú nào nói được là **file trông như thế nào**. Đó là giới hạn của mọi cổng
+chữ trong repo này, do chính hai dòng của nó thú nhận; hai dòng đó đã bị **gỡ khỏi `EVIDENCE`** và lý do
+được viết lại ngay tại chỗ trong `scripts/wire-local-models.mjs`.
+
+### Cổng wire nay đọc sổ
+
+`scripts/wire-local-models.mjs` nhận một model khi **một trong ba** điều đúng: tiêu đề nêu đúng tên
+(cổng cũ), có `EVIDENCE` viết tay (cổng cũ), hoặc **sổ nói `matches` và md5 ảnh còn khớp**. Câu
+evidence khi wire bằng đường thứ ba được viết ra nguyên văn, ví dụ:
+
+```
+vision review by "deepseek-v4-flash-vision-exp": "a complete white fox with a pointed muzzle…"
+  (…) - image public/previews/arctic-fox.webp md5 3f2a…
+```
+
+Sổ cũng in ra danh sách **model đang được wire mà người soi nói là sai** (6 loài động vật ở lần chạy này)
+— in ra, **không tự gỡ**. Gỡ là một thay đổi mà người đọc nhìn thấy: loài thôi nhận một model nó không có
+và rơi về rig thủ tục, còn với công trình thì mục đó phải rời
+`data/<catalogue>-attribution.json` cùng lúc, nếu không `scripts/check-catalogues.mjs` đỏ vì hai bên
+nói khác nhau. Đó là một quyết định có danh sách trước mặt, không phải hệ quả phụ của việc chạy một cổng.
+
+### Chạy nó
+
+```bash
+node scripts/model-vision-review.mjs --queue     # dựng hàng đợi từ đĩa; việc đã soi và còn nguyên ảnh thì bỏ qua
+node scripts/model-vision-review.mjs             # báo cáo: matches / mismatch / unclear / stale / chưa soi
+node scripts/model-vision-review.mjs --record=answers.json
+```
+
+Câu hỏi gửi cho người soi được **lưu trong chính hàng đợi** (`data/model-vision-queue.json`), nên câu trả
+lời không bao giờ tách rời khỏi câu hỏi. Ba điều trong đó là cố ý: "bạn thật sự nhìn thấy gì" hỏi **trước**
+phán quyết; `unclear` là một câu trả lời thật (một ô 512×512 có thể chỉ là một chấm, và một chấm không
+chứng minh gì — cùng lý do bộ render từ chối ghi một khung dưới ngưỡng phủ); và các mục catalogue được nêu
+ra như **lời nhận**, không phải như sự thật.
+
+### 66 mục chưa soi, và vì sao dừng ở đó
+
+Endpoint thị giác chậm dần rồi sập hẳn tốc độ sau khoảng 200 lời gọi: 12 ảnh mất **71 giây** lúc đầu, và
+**595 giây cho một ảnh** về cuối. Đây là số đo, không phải phỏng đoán — và nó là lý do hàng đợi còn 66 mục
+thay vì 0. Chúng nằm nguyên trong `data/model-vision-queue.json`; chạy lại `--queue` lúc endpoint khoẻ
+thì chỉ còn đúng 66 mục đó, vì 208 mục đã soi vẫn còn nguyên md5.
+
+## 🐛 Bộ render treo: một promise không ai settle
+
+Bạn báo: *"bộ render treo một lần mà không có tiến trình Chrome nào"*. Nguyên nhân tìm được, và nó nằm gọn
+trong một chỗ.
+
+Chrome được điều khiển qua DevTools protocol. Hàm `send()` chỉ **settle** khi có message trả về, và nó chỉ
+có hẹn giờ khi **người gọi truyền vào** — mà `Page.enable`, `Runtime.enable` và `Page.navigate` thì
+không truyền. Không có `socket.onclose`, không có `chrome.on("exit")` nào đánh thức những lời hứa đang
+chờ. Nghĩa là: **Chrome chết → socket đóng → lời hứa không bao giờ được settle → tiến trình sống mãi**.
+Đúng hình dạng của sự cố bạn thấy từ bên ngoài: driver đang chờ, browser đã chết.
+
+Đã sửa, và **đã kiểm bằng cách giết Chrome giữa lúc chạy**:
+
+| Trước | Sau |
+| --- | --- |
+| treo vô hạn, không tiến trình Chrome | thoát sau **1 giây**, exit code 1, in ra *"the driver lost the browser: the DevTools socket errored"*, và ghi manifest đầy đủ trước khi thoát |
+
+Ba thay đổi: `socket.onclose`/`socket.onerror`/`chrome.on("exit")` đều **fail mọi lời gọi đang chờ**
+với lý do đọc được; mọi `send()` có **trần 30 giây** kể cả khi người gọi không truyền; và `recover()`
+không còn thử nạp lại một *trang* khi không còn *browser* nào để nạp. `scripts/audit-frames.mjs` có cùng
+lỗi đó (nó chỉ `console.error` khi socket đóng, rồi chờ tiếp) và đã được sửa cùng cách.
+
+## 🖼️ 9 ảnh preview thiếu: 6 vẽ lại được, 3 là lỗi của asset
+
+Chạy lại bộ render cho đúng 9 mục đó:
+
+| Kết quả | Số | Ghi chú |
+| --- | --- | --- |
+| Vẽ được ngay | **6** | `submillimeter-wave-astronomy-satellite-s`, `telescope`, `titan`, `umbriel`, `van-allen-probes`, `vehicle-assembly-building-vab` — 1,6–11,5 kB, 0,8–4,8 s mỗi ảnh |
+| Vẫn hỏng | **3** | ba entry cùng trỏ vào **một** model ISS |
+
+Ba cái còn lại có nguyên nhân **đo được, và không phải lỗi bộ render**: GLB chứa một mesh lạ 52 đỉnh cách
+trạm ~10.000 đơn vị, bounding box phình lên 10.633 đơn vị, camera lùi ~19.800 đơn vị, và cả trạm chỉ còn
+**0,029% khung hình**. Bộ render từ chối ghi nó — đúng như thiết kế (*"một ô trắng được tính là thành công
+là kết cục duy nhất pipeline này không được phép tạo ra"*), và viewer thật cũng hiện đúng một chấm như vậy.
+Muốn có đủ thì phải sửa **asset** hoặc đổi luật fit cho bỏ qua outlier — và luật fit nằm ở
+`ModelScene.tsx` dùng chung, nên sửa nó là sửa cách **mọi** model được đóng khung, rồi phải vẽ lại toàn bộ
+274 ảnh.
+
+## 🏛️ `buildings` tách ra: harvester đã có đường, nhưng đường đó chưa nối
+
+Bạn phát hiện đúng: `harvest-catalogue-entries.mjs` **có** `buildings` trong `SOURCES`. Nhưng chạy nó
+thì chết ngay, và chết ở hai chỗ:
+
+```
+existing[source.exported].map is not a function
+```
+
+`data/buildings.ts` **không phải** một catalogue — nó là một **luật**: một mảng chuỗi 11 slug công trình
+hiện đại, đọc bởi `lib/catalog-project.ts`. Harvester trỏ vào đó, tìm một export tên `BUILDING_ENTRIES`
+(không có), rồi sẽ chèn object entry vào **chính mảng luật** nếu qua được bước đầu. Cùng lỗi đó ở
+`fetch-catalog-models.mjs`, nơi `DATA_FILE` được suy ra từ id.
+
+Đã nối:
+
+| Chỗ | Trước | Sau |
+| --- | --- | --- |
+| Entries | — | `data/buildings-entries.ts` (`BUILDING_ENTRIES`) |
+| Truy vấn | — | `data/buildings-queries.json` |
+| Harvester | `data/buildings.ts` | `data/buildings-entries.ts` |
+| Pipeline model | `data/<id>.ts` suy ra | `dataFile` khai rõ trong `CATALOGUES` |
+| Model | — | `public/models/buildings/`, credit `data/buildings-attribution.json` |
+| Danh mục | phép chiếu thuần | **hai luồng**: 11 công trình có tên (chiếu từ architecture) **+** entry thu hoạch; **slug có tên luôn thắng**, nên hai luồng không thể cùng đặt tên một công trình |
+| Test | 3 catalogue | 4 catalogue, và một catalogue viết-rồi-để-trống được **báo ra** chứ không làm đỏ bộ test |
+
+**Đo được, và nó chạy tới đích:** danh sách truy vấn mở rộng cho ra **1.748 chủ đề ứng viên** từ Sketchfab,
+và chạy tới `--limit=100` thì dừng ở **100 entry** — đúng trần đặt ra, **trước khi** cạn chủ đề (còn ~173
+chủ đề chưa soi). Tỉ lệ nhận ~6,4% (100/1575). Nghĩa là con số thật của catalogue này **chưa biết**, và nó
+chỉ bị chặn bởi trần tôi đặt, không bởi nguồn.
+
+**Va chạm tên có xảy ra, và được xử lý chứ không được giả vờ là không có:** trong 100 entry thu hoạch, **1**
+entry trùng slug với công trình có tên do luật `data/buildings.ts` giữ (`empire-state-building`). Luật là
+**bản có tên luôn thắng**: entry thu hoạch bị bỏ, công trình giữ nguyên trang, năm và model của nó — và
+`scripts/check-catalog.mjs` khẳng định đúng điều đó thay vì khẳng định hai danh sách không giao nhau.
+
+Một điều phải nói thẳng về chất lượng của 100 entry đó: chủ đề đến từ **tiêu đề kết quả tìm kiếm**, nên
+chúng là **loại công trình** (`skyscraper`, `lighthouse`, `suspension bridge`) **trộn với công trình có
+tên** mà kết quả tìm kiếm trả về (`aviva-stadium`, `olympiastadion-berlin`). Đó là hệ quả của thiết kế
+"chủ thể đến từ nguồn model", không phải lỗi — nhưng nó là lý do danh sách này cần một lượt đọc bằng mắt
+nữa trước khi trở thành một mục catalogue tử tế.
+
+## 📈 Mở rộng nguồn chủ đề, và đích đến thật
+
+Bốn danh sách truy vấn dự phòng đã được mở rộng — space 40 → **86**, plants 40 → **120**, vehicles
+40 → **150**, buildings 40 → **180** — và đây là chỗ trả lời trực tiếp câu *"sửa lại mục tiêu nếu bạn vẫn
+muốn con số 100"*:
+
+| Mục | Bây giờ | Nguồn còn lại | Đích đến thật |
+| --- | --- | --- | --- |
+| animals | 108 mục · 73 có model | quy trình thứ tự + lookup thủ công | **~100** khi 35 loài còn lại có model thật |
+| space | 131 mục · 116 có model | 1.748 chủ đề | **đã vượt 100** |
+| plants | 29 mục · 27 có model | 120 truy vấn | **không đủ 100 chủ đề** ở tỉ lệ nhận hiện tại |
+| vehicles | 14 mục · 14 có model | 150 truy vấn | **không đủ 100** |
+| architecture | 47 · 47 | viết tay, ~25 phút/mục | **đích đến là 47**, không phải 100 |
+| buildings | 111 mục (11 công trình có tên + 100 thu hoạch) · 11 có model | 1.748 chủ đề, còn ~173 chưa soi | **≥100**, chưa biết trần thật |
+
+Con số 100 không phải một mục tiêu — nó là một con số tròn. Đích đến thật do **nguồn** quyết định, và bảng
+trên là số đo của nguồn, không phải của mong muốn.
+
+## 🧱 Ba phát hiện ngoài phạm vi, đo được, chưa sửa
+
+1. **28 file model là bản sao của 13 model khác** — 13 nhóm md5 trùng, gồm ba bản của cùng một trạm ISS
+   (`international-space-station`, `-iss-a`, `-iss-e-intern`), hai bản Apollo Lunar Module, hai bản
+   Hubble, ba bản "planet Earth". Cùng một file được ship dưới hai tên và hai entry: đúng thứ mà luật *"một
+   con sư tử không được có hai URL"* của repo này cấm. Chưa sửa vì chọn entry nào giữ model là một quyết
+   định dữ liệu, không phải một phép biến đổi.
+2. **Khoá R2 đã hết hiệu lực, cả đọc lẫn ghi.** `ListObjectsV2` trả **403 AccessDenied**, và chạy
+   `node scripts/r2-push.mjs --previews` thì **274/274 object PutObject 403** — không một byte nào lên
+   được, sau 2.526 giây thử. Đây không phải chuyện quyền hẹp (object-scoped như Phase 34 ghi) mà là một
+   khoá không còn dùng được: Phase 34 đã đẩy 242 object bằng chính khoá này, và giờ nó từ chối cả PUT.
+   Hệ quả: `npm run r2:push`, `npm run r2:index`, `npm run r2:check` đều không chạy, và 6 ảnh preview
+   vẽ lại trong lượt này **chưa lên CDN**.
+
+   **Chẩn đoán sâu hơn, bằng ba phép thử phân biệt** (mỗi phép gọi một thao tác S3 riêng và in mã lỗi
+   thật):
+
+   | Phép thử | Mã trả về | Nghĩa |
+   | --- | --- | --- |
+   | key id 32 ký tự **không tồn tại** | **401 Unauthorized** | R2 từ chối thẳng credential lạ |
+   | key id **thật** trong `.env.local` | **403 AccessDenied** | key id **được R2 nhận ra** |
+   | key id thật + secret **cố tình làm sai** | 403 AccessDenied *(y hệt)* | R2 đang xét **quyền**, không xét chữ ký |
+   | key id thật + secret bị cắt còn 32 / nhân đôi | 403 AccessDenied | như trên |
+   | `ListObjectsV2` · `PutObject` · `GetObject` · `HeadObject` · `DeleteObject` · `GetBucketLocation` | 403 · 403 · 403 · 403 · 403 · 403 | **không một thao tác nào được phép** |
+   | `HEAD` công khai `pub-…r2.dev/models/lion.glb` (không dùng khoá) | **200 · 341.076 byte** | bucket và object vẫn nguyên vẹn |
+
+   Nghĩa là: **access key ID còn sống trong hệ thống Cloudflare, nhưng secret + quyền của nó thì không
+   còn tác dụng** — một khoá không tồn tại sẽ trả 401, khoá này trả 403 cho *mọi* thao tác kể cả
+   `PutObject` lên đúng cái bucket nó đã ghi được 6 tiếng trước đó.
+
+   **Mốc thời gian, đọc từ biên lai trong database** (`model_assets.public_url`), không phải suy đoán:
+
+   | Lúc | Việc | Kết quả |
+   | --- | --- | --- |
+   | `2026-10-07T16:52:57Z` – `16:54:10Z` | bộ lập lịch đẩy 4 model lên R2 | **thành công** — 4 dòng `public_url` trỏ đúng `pub-21950d….r2.dev` |
+   | `2026-10-07T22:43Z` | tải `bengal-tiger` | **không có dòng nào trong `model_assets`** — file xuống đĩa nhưng bước upload không xong |
+   | `2026-10-07T23:30Z` (ước) | `r2-push --previews` | **274/274 PUT 403**, 0 byte lên được |
+   | `2026-10-08T01:19Z` | phép thử sáu thao tác ở trên | tất cả 403 |
+
+   Vậy khoá chết trong khoảng **16:54Z → 22:43Z ngày 2026-10-07** (23:54 → 05:43 giờ máy). Việc cần làm là
+   ở dashboard Cloudflare, không phải ở code: tạo token mới (**Object Read & Write** trên bucket
+   `kami3d-storage`; thêm **Admin Read & Write** nếu muốn `npm run r2:index` chạy lại) rồi thay
+   `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` trong `.env.local`. Đường công khai không cần khoá nên
+   **site vẫn phục vụ model bình thường** — đây là lỗi của đường ghi, không phải của đường đọc.
+
+   Phần **sửa được bằng code thì đã sửa**, và nó sửa hai lỗi thật: `remoteIndex()` nay coi 403 là *"không
+   biết gì"* và **tiếp tục đẩy** thay vì chết cả lệnh (mọi PUT đều idempotent, cái mất chỉ là resume), và
+   phần đối chiếu biên lai được gom vào một hàm `reconcileWithRepository()` dùng chung cho cả `--push`
+   lẫn `--index`. Hàm đó sửa thêm một lỗi nữa: một file **quay lại** repo (`emperor-penguin` đúng lịch
+   sử đó) thì biên lai vẫn giữ `source: null` và mọi phép đếm lệch một.
+3. **Một bộ lập lịch của phiên trước vẫn đang chạy và đang ghi vào cây làm việc.** Đo được lúc viết mục
+   này: PID `50193` = `node scripts/model-orders.mjs --order=… --upload`, PID `96430` = một dev server
+   Next đang **treo** trên cổng 9000 (curl trả 000 nhưng tiến trình còn sống), và nó spawn
+   `fetch-models.mjs --species=sea-otter … --apply --compress --approve --actor=scheduler --upload`. Hệ quả
+   đo được: `public/models/` mọc thêm file, `data/model-attribution.json` và `data/model-preview.json`
+   bị ghi lại **giữa lúc bộ test đang chạy**, số đếm đổi giữa hai lần đo, và bốn bài test `check-r2`/
+   `check-catalogues` đỏ vì biên lai lệch với cây làm việc. Đáng chú ý nhất: **đường tự động này wire model
+   mà không đi qua cổng thị giác** — đúng cái chuẩn vừa được chọn. Cần bạn quyết định dừng nó hay để nó chạy.
+
+### Còn treo, và vì sao
+
+- **66 model chưa soi** — hàng đợi còn nguyên; endpoint thị giác sập tốc độ sau ~200 lời gọi (số đo ở
+  mục "duyệt bằng mắt").
+- **25 model bị người soi nói là sai, chưa gỡ** — danh sách đầy đủ ở trên, kèm câu của người soi. Gỡ là
+  quyết định của bạn, và với plants/space/architecture thì phải gỡ cả dòng credit cùng lúc.
+- **3 ảnh preview** còn thiếu, và chúng thiếu vì **asset** (mesh lạ cách trạm 10.000 đơn vị), không vì bộ
+  render.
+- **`npm run check` là 726 bài, 724 xanh, 2 đỏ**, và cả hai đỏ đều đã biết nguyên nhân — không bài nào
+  là logic:
+  1. *"every model on disk is one of the two catalogues actually uses"* — `animals/common-octopus.glb`
+     đang nằm trên đĩa mà chưa có dòng credit, còn `bengal-tiger` thì ngược lại. Đây là **ảnh chụp giữa
+     chừng của bộ lập lịch ở mục 3**: một job `fetch-models --apply --wire` đang chạy thì file và biên lai
+     lệch nhau trong vài phút, và bộ test đọc đúng lúc đó.
+  2. *"every rendered card preview is in the repository and on the CDN"* — 6 ảnh preview vẽ lại trong lượt
+     này **chưa lên CDN** được, vì khoá R2 ở mục 2 trả 403 cho cả `ListObjectsV2` lẫn `PutObject`.
+     `node scripts/r2-push.mjs --previews` đã chạy thật: **274/274 object 403**, 0 byte lên được.
+- **`pirate-ship`** nằm trong danh sách mục `space` — danh sách truy vấn dự phòng của harvester quét quá rộng.
+- **`buildings` chưa có model nào**: 100 entry được thu hoạch, 0 model tải về. Bước kế tiếp là
+  `node scripts/fetch-catalog-models.mjs --catalogue=buildings --apply`.
+- **Đường tự động (`fetch-models.mjs --wire`, bộ lập lịch) chưa đi qua cổng thị giác.** Cổng đã nối vào
+  `wire-local-models.mjs`; nối vào đường tự động là việc còn lại, và là việc đúng.
 
 ## 🔍 Cách kiểm chứng
 
 ```bash
-npm run check        # typecheck + 518 bài test trong 46 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
+npm run check        # typecheck + 702 bài test trong 48 tệp (rig, tỉ lệ, SQL, squircle, JSON-LD, session hint, theme, tier, camera, quiz, địa cầu, licence âm thanh, bản đồ, timeline, risk, nhập geodata, ngân sách tải model, bảo mật)
 npm run check:secrets # quét bí mật trong mọi file git theo dõi + chunk client của bản build (không in giá trị)
+npm run check:payments # Phase 32: chữ ký webhook (HMAC thật), bộ phân tích sự kiện, toán quyền lợi, SQL ↔ plans.ts
+npm run check:unlock  # Phase 33: vị trí quảng cáo, hai cách mở khoá, policy user_unlocks, "không quảng cáo trên canvas"
 npm run check:autopilot # toán auto-pilot + khẳng định SQL trong schema.sql khớp với lib/autopilot.ts
 npm run check:model-upload # parser GLB trên model thật + luật credit + ngân sách card
 npm run models:work  # chạy một lệnh trong hàng đợi (--list để xem; --upload để đưa model lên Storage)
+npm run check:autopilot-clock # luật skip của auto-pilot: off/build/already-started + sàn 60 s của nhịp
+npm run check:data2map-samples # 4 dataset Data2Map: file nào, parse được, không page nào import lại JSON
+npm run check:build-log # bộ lọc log webpack: đúng một dòng bị bỏ, mọi dòng khác còn nguyên
+npm run check:manga-export # bộ ghi CBZ đọc lại bằng một ZIP parser độc lập, và AI không retry 4xx
 npm run check:bundle # ngân sách JS mỗi route + luật "không 3D/auth ở first paint" (cần build trước)
 npm run build        # build production 41 route
 npm run db:status    # database đang có bao nhiêu loài
@@ -4070,6 +6188,16 @@ npm run check:quiz   # bộ sinh câu hỏi + luật tính điểm của quiz
 npm run check:globe  # toán địa cầu: camera bay tới vùng, xếp hạng pin theo vùng
 npm run check:sounds # chính sách licence âm thanh, cửa sổ kích thước, tên file chống path traversal
 npm run sounds:report # Chrome không cần: dò bản ghi từng loài, KHÔNG tải gì (cần mạng)
+npm run check:r2     # Phase 34: luật chọn host của asset + mọi đường dẫn catalogue trỏ tới đều có trong bucket
+npm run r2:check     # khoá R2 thật: ListObjectsV2 + PutObject + GET công khai + DeleteObject (cần mạng)
+npm run r2:verify    # HEAD từng object qua URL công khai, so byte với bản trong repo (cần mạng)
+npm run r2:probe     # Chrome thật: trình duyệt có tải được model/âm thanh từ CDN không (cần mạng)
+npm run r2:index     # đối chiếu manifest với đúng thứ bucket đang có (thêm object lạ, bỏ object đã mất)
+npm run models:previews # render ảnh avatar cho mọi model còn thiếu (resumable; cần Chrome)
+npm run models:status # mỗi catalogue: bao nhiêu mục, bao nhiêu có model thật, bao nhiêu có ảnh, chỗ nào lệch
+npm run check:model-vision # Phase 35: sổ duyệt bằng mắt — mọi dòng phải kiểm được (ảnh còn đó, md5 còn khớp, mục catalogue còn tồn tại)
+npm run models:verify # hàng đợi duyệt bằng mắt: --queue / --report / --record=answers.json
+npm run storage:retire  # báo cáo Supabase Storage; --apply để copy+verify rồi mới xoá
 ```
 
 > ⚠️ **Đừng chạy `npm run build` khi `npm run dev` đang chạy** — hai tiến trình cùng ghi vào
