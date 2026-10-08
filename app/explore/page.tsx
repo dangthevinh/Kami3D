@@ -2,7 +2,7 @@ import { Compass } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { AdSlot } from "@/components/ads/AdSlot";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { ExploreExperience } from "@/components/animal/ExploreExperience";
 import { ExploreUrlFilters } from "@/components/animal/ExploreUrlFilters";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -93,7 +93,7 @@ export default async function ExplorePage() {
                 here are listed as Vulnerable, Endangered or Critically Endangered.
               </p>
             </div>
-            <AdSlot format="sidebar" note="Sidebar slot — pinned beside the grid, never over the 3D viewer." />
+            <AdBanner placement="sidebar" note="Sidebar slot — pinned beside the grid, never over the 3D viewer." />
           </div>
         </aside>
       </div>

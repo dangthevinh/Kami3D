@@ -27,6 +27,14 @@ import { cn } from "@/lib/utils";
  * client only, which is why the active state is gated on `mounted`.
  */
 
+/** The site's secondary surfaces. Kept here rather than in the navbar row: see the note in the panel. */
+const SECONDARY_LINKS = [
+  { href: "/leaderboard", label: "Most viewed" },
+  { href: "/profile", label: "Your collection" },
+  { href: "/analytics", label: "Insights" },
+  { href: "/pricing", label: "Pricing" },
+] as const;
+
 const THEMES = [
   { value: "light", label: "Light", icon: Sun, hint: "Bright surface, dark ink" },
   { value: "dark", label: "Dark", icon: Moon, hint: "The default night studio" },
@@ -138,6 +146,26 @@ export function SettingsMenu() {
             All settings
             <span className="text-[10px] text-white/40">accent · 3D · audio · units</span>
           </Link>
+
+          {/* The rest of the site, in one place.
+              These four used to sit in the top row, which had grown to eleven entries and read as a
+              wall of words rather than as navigation. They are the surfaces a visitor reaches *about
+              themselves* (what they watched, collected, the numbers, what it costs), so they belong in
+              the menu that already holds their settings — the row keeps the five things that are about
+              the site. Nothing moved out of reach: every entry is one click away, and the mobile
+              disclosure draws from the same array, so both menus changed together. */}
+          <div role="group" aria-label="More of Kami3D" className="mt-2 rounded-xl bg-white/6 p-1.5 ring-1 ring-white/10">
+            {SECONDARY_LINKS.map((entry) => (
+              <Link
+                key={entry.href}
+                href={entry.href}
+                onClick={() => setOpen(false)}
+                className="block rounded-lg px-3 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {entry.label}
+              </Link>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>

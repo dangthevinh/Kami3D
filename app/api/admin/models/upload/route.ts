@@ -25,14 +25,14 @@ export const maxDuration = 300;
  * A plain 405 would tell a visitor the path is real, and every other admin route in this project says
  * 404 instead. An admin who lands here by mistake gets the sentence they need.
  */
-export async function GET() {
-  const gate = await requireAdmin();
+export async function GET(request: Request) {
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
   return NextResponse.json({ ok: false, reason: "POST a multipart form with a 'file' field" }, { status: 405 });
 }
 
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   // Six uploads in five minutes: each one is a stored model and a budget slot, not a page view.

@@ -19,7 +19,7 @@ const MAX_REQUESTED = 200;
  * trimmed here, and refused again by the database if the budget has moved since.
  */
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
   const blocked = guardWrite(request, { name: "admin-orders", rule: { limit: 20, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
   if (blocked) return blocked;

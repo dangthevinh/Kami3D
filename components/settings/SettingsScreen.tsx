@@ -42,13 +42,36 @@ import {
  * the call player, the measurements).
  */
 
+/**
+ * What the server already knows about payments, passed in as plain data (Phase 32).
+ *
+ * It is a prop rather than a fetch for the same reason the account card is: this page is rendered per
+ * visitor anyway, and a subscription status that appears a second late is a status that flickers.
+ */
+export interface SettingsPayments {
+  /** False when this deployment has no checkout keys: the card then explains rather than offers. */
+  checkout: boolean;
+  /** The sentence naming what is missing, when checkout is off. */
+  reason: string | null;
+  signedIn: boolean;
+  /** False when the tables could not be read - an empty entitlement list must not be read as "none". */
+  checked: boolean;
+  premium: boolean;
+  planName: string | null;
+  statusReason: string | null;
+  periodEnd: string | null;
+  /** The entitlements the account holds, printed as-is so nothing is invented. */
+  entitlements: string[];
+}
+
 export interface SettingsScreenProps {
   /** From the server, so the account card is right on first paint. */
   user: { id: string; name: string | null; imageUrl: string | null } | null;
   provider: "clerk" | "supabase" | "none";
+  payments?: SettingsPayments | null;
 }
 
-export function SettingsScreen({ user, provider }: SettingsScreenProps) {
+export function SettingsScreen({ user, provider, payments = null }: SettingsScreenProps) {
   const { settings, ready, signedIn, source, saving, error, update, reset } = useSettings();
   const quality = useQuality();
   const t = React.useCallback((key: MessageKey) => messagesFor(settings.language)[key], [settings.language]);
@@ -114,6 +137,57 @@ export function SettingsScreen({ user, provider }: SettingsScreenProps) {
         <p role="status" className="mt-5 rounded-2xl bg-solar/12 px-4 py-3 text-xs text-solar ring-1 ring-solar/25">
           {t("save.failed")}
         </p>
+      ) : null}
+
+      {payments ? (
+        <div className="mt-6">
+          <SettingsCard
+            id="subscription"
+            icon={Sparkles}
+            title="Subscription"
+            description="What this account holds, from the store's own events."
+          >
+            {payments.signedIn ? (
+              payments.checked ? (
+                <div className="space-y-2 text-sm text-white/70">
+                  <p>
+                    {payments.premium
+                      ? "Premium" + (payments.planName ? " — " + payments.planName : "") + "."
+                      : "No active subscription or paid unlock on this account."}
+                  </p>
+                  {payments.statusReason ? <p className="text-xs text-white/45">{payments.statusReason}</p> : null}
+                  {payments.periodEnd ? (
+                    <p className="text-xs text-white/45">
+                      Paid period ends {new Date(payments.periodEnd).toISOString().slice(0, 10)}.
+                    </p>
+                  ) : null}
+                  {payments.entitlements.length > 0 ? (
+                    <p className="text-xs text-white/40">Held: {payments.entitlements.join(", ")}.</p>
+                  ) : null}
+                  <Link href="/pricing" className="inline-block text-xs text-neon hover:text-white">
+                    See what is available →
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-sm text-white/55">
+                  The payment tables could not be read, so this says nothing about your subscription rather
+                  than claiming you have none.
+                </p>
+              )
+            ) : payments.checkout ? (
+              <p className="text-sm text-white/55">
+                <Link href="/settings" className="text-neon hover:text-white">
+                  Sign in
+                </Link>{" "}
+                to see a subscription. Purchases are attached to an account.
+              </p>
+            ) : (
+              <p className="text-sm text-white/55">
+                Checkout is not configured on this deployment. {payments.reason ?? ""}
+              </p>
+            )}
+          </SettingsCard>
+        </div>
       ) : null}
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">

@@ -55,7 +55,138 @@ export const QUALITY_WEIGHTS = {
  * to be decimated before it can ship, and is scored accordingly rather than refused,
  * because a decimation pass is exactly what `--compress` is for.
  */
-export const FACE_BUDGET = { crude: 500, ideal: 150_000, heavy: 500_000, max: 800_000 } as const;
+/**
+ * The polygon ceilings, raised on 2026-10-06 from `max: 800_000`.
+ *
+ * `max` is **eligibility**, not preference: the scorer already discounts a heavy model
+ * (`heavy` and `max` bands take 70% and 40% of the complexity weight), so a 1.2M-face file only wins
+ * when there is nothing better. What the old ceiling did instead was refuse outright - measured:
+ * `eucalyptus-camaldulensis` was refused twice for a candidate at **1,499,999 faces**, and the entry
+ * had to be dropped from the catalogue for want of any other model that named it.
+ *
+ * The cost is real and is not hidden by the number: a model above ~500k triangles is heavy on a phone,
+ * even DRACO-compressed, and the viewer's watchdog gives it 15 seconds. The hover-card budget
+ * (`lib/model-preview.ts`: 1.5 MB, 75k faces) is **unchanged**, so a heavy model still never loads on
+ * hover - it is a detail-page asset.
+ */
+export const FACE_BUDGET = { crude: 500, ideal: 150_000, heavy: 500_000, max: 1_500_000 } as const;
+
+/**
+ * Words that mean "this is a stand-in wearing the subject's name".
+ *
+ * A "Bengal Tiger Voxel" scores 74 and is a toy; a "Pixel Neuschwanstein Castle (Low Poly)" is the
+ * same failure for a building. The list lives here rather than in the audit script because two
+ * pipelines now refuse on it - the audit reports these, `scripts/fetch-landmark-models.mjs` refuses
+ * them outright - and a rule that decides what ships belongs next to the other quality constants.
+ */
+/**
+ * Words that name something **of** the subject rather than the subject.
+ *
+ * A different failure from `PLACEHOLDER_WORDS`, and it needed its own list. A placeholder is a stand-in
+ * wearing the subject's name ("Low Poly Oak Tree", "LEGO Himeji Castle"). These are real objects that
+ * *belong to* or *depict* the subject: a doorbell from the building, a souvenir of it, a miniature of
+ * it. The gate asks "does the title name this thing", and "Hagia Sophia Doorbell" answers yes to that
+ * question while being a doorbell.
+ *
+ * Measured, not imagined: with the query widened to `Hagia Sophia`, the landmark pipeline shipped
+ * **"Hagia Sophia Doorbell" (55,282 faces)** for Hagia Sophia - the gate had no word for it - and the
+ * next candidate down the list was **"Miniature Mosque (Hagia Sophia)"**. Both are in this list's
+ * territory and neither is the building.
+ *
+ * Checked against every shipped title before it was added: no animal or landmark already in the
+ * catalogue carries one of these words, so nothing that is already on the site became inadmissible.
+ */
+export const OBJECT_WORDS = [
+  "souvenir",
+  "keychain",
+  "keyring",
+  "magnet",
+  "postcard",
+  "bookmark",
+  "puzzle",
+  "miniature",
+  "figurine",
+  "diorama",
+  "replica",
+  "mockup",
+  "mug",
+  "sticker",
+  "doorbell",
+  "knocker",
+  "lamp",
+  "cake",
+  "cookie",
+  "charm",
+] as const;
+
+/**
+ * Below this many triangles, a monument with **no texture at all** is a diagram of a building.
+ *
+ * Two rules in one, and both halves are needed. Triangles alone cannot decide: the Moai ships at 2,210
+ * triangles and the Himeji keep at 2,536, and both look right because their texture carries the detail.
+ * Textures alone cannot decide either: a 500-triangle box with a photograph wrapped on it is a picture
+ * of a building - which is exactly what the Forbidden City turned out to be (10,388 triangles for a
+ * 72-hectare complex of 980 buildings, with a single image painted over a slab 8.4 times wider than it
+ * is tall, so no gate in this file would have caught it and a person looking at the card did).
+ *
+ * What the two together **can** catch is the case that is indefensible on its own terms: nothing to
+ * look at in the geometry and nothing painted on it either. Measured across the shipped catalogue that
+ * is one model - Marina Bay Sands at 524 triangles and **zero** images, three flat materials standing
+ * in for three towers and a SkyPark - while the three other untextured models (the Statue of Liberty
+ * at 42,090, the Parthenon at 60,031, the Golden Gate Bridge at 159,902) are detailed enough to carry
+ * themselves.
+ */
+export const CRUDE_MONUMENT_FACES = 5_000;
+
+/** True when a parsed glTF carries no image at all. */
+export function modelHasNoTexture(gltf: { images?: unknown[] }): boolean {
+  return (gltf.images ?? []).length === 0;
+}
+
+/**
+ * Can this model show a colour at all?
+ *
+ * A glTF material that declares neither a base-colour texture nor a base-colour factor renders as
+ * white, and a model where nothing declares either is a white model however good its geometry is.
+ * That is a fact about the file, not about the subject, and it is checkable before anyone looks at it:
+ * the Colosseum arrived as 27 materials carrying nothing but `metallicFactor: 0`, and the Great Wall
+ * and the Taj Mahal arrived with their colour inside `KHR_materials_pbrSpecularGlossiness`, which
+ * three.js does not implement.
+ *
+ * It takes the parsed glTF JSON rather than a file so the pipeline, the check suite and any future
+ * reader share one implementation.
+ */
+export function modelCanShowColour(gltf: {
+  materials?: Array<{
+    pbrMetallicRoughness?: { baseColorTexture?: unknown; baseColorFactor?: unknown };
+    extensions?: Record<string, { diffuseTexture?: unknown; diffuseFactor?: unknown } | undefined>;
+  }>;
+  images?: unknown[];
+}): boolean {
+  if ((gltf.images ?? []).length > 0) return true;
+  return (gltf.materials ?? []).some((material) => {
+    const pbr = material.pbrMetallicRoughness ?? {};
+    const specGloss = material.extensions?.KHR_materials_pbrSpecularGlossiness;
+    return Boolean(pbr.baseColorTexture || pbr.baseColorFactor || specGloss?.diffuseTexture || specGloss?.diffuseFactor);
+  });
+}
+
+export const PLACEHOLDER_WORDS = [
+  "voxel",
+  "lowpoly",
+  "low-poly",
+  "chick",
+  "baby",
+  "toy",
+  "cute",
+  "stylized",
+  "cartoon",
+  "blocky",
+  "pixel",
+  "minecraft",
+  "lego",
+  "papercraft",
+] as const;
 
 export interface QualityInput {
   title: string;
@@ -85,7 +216,14 @@ const round = (value: number) => Math.round(value * 10) / 10;
 
 function titleScore(title: string, terms: readonly string[]): { score: number; matched: boolean } {
   const normalised = title.trim().toLowerCase();
-  const wanted = terms.map((term) => term.trim().toLowerCase()).filter(Boolean);
+  // A term the caller does not have is not a term. Three pipelines pass terms from three different data
+  // shapes, and the first run of the catalogue pipeline crashed on every entry because a planet has no
+  // binomial and passed `null` where a species passes a string - "Cannot read properties of null
+  // (reading 'trim')" sixteen times. A missing term is skipped; it is not an error and not a match.
+  const wanted = terms
+    .filter((term): term is string => typeof term === "string")
+    .map((term) => term.trim().toLowerCase())
+    .filter(Boolean);
 
   if (wanted.some((term) => normalised === term)) return { score: QUALITY_WEIGHTS.title, matched: true };
   if (wanted.some((term) => normalised.includes(term))) return { score: round(QUALITY_WEIGHTS.title * 0.75), matched: true };

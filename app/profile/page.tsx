@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdSlot } from "@/components/ads/AdSlot";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { AnimalCard } from "@/components/animal/AnimalCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -168,7 +168,7 @@ export default async function ProfilePage() {
         </section>
       ) : null}
 
-      <AdSlot format="leaderboard" note="Profile slots stay below the fold of every 3D surface." />
+      <AdBanner placement="below-content" note="Profile slots stay below the fold of every 3D surface." />
     </div>
   );
 }

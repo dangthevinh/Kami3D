@@ -1,0 +1,429 @@
+[
+  {
+    "slug": "notre-dame-de-paris",
+    "name": "Notre-Dame de Paris",
+    "city": "Paris",
+    "country": "France",
+    "query": "Notre Dame Cathedral Paris"
+  },
+  {
+    "slug": "mont-saint-michel",
+    "name": "Mont Saint-Michel",
+    "city": "Normandy",
+    "country": "France",
+    "query": "Mont Saint Michel"
+  },
+  {
+    "slug": "arc-de-triomphe",
+    "name": "Arc de Triomphe",
+    "city": "Paris",
+    "country": "France",
+    "query": "Arc de Triomphe Paris"
+  },
+  {
+    "slug": "milan-cathedral",
+    "name": "Milan Cathedral",
+    "city": "Milan",
+    "country": "Italy",
+    "query": "Duomo Milan Cathedral"
+  },
+  {
+    "slug": "trevi-fountain",
+    "name": "Trevi Fountain",
+    "city": "Rome",
+    "country": "Italy",
+    "query": "Trevi Fountain Rome"
+  },
+  {
+    "slug": "tower-bridge",
+    "name": "Tower Bridge",
+    "city": "London",
+    "country": "United Kingdom",
+    "query": "Tower Bridge London"
+  },
+  {
+    "slug": "edinburgh-castle",
+    "name": "Edinburgh Castle",
+    "city": "Edinburgh",
+    "country": "United Kingdom",
+    "query": "Edinburgh Castle"
+  },
+  {
+    "slug": "alhambra",
+    "name": "Alhambra",
+    "city": "Granada",
+    "country": "Spain",
+    "query": "Alhambra Granada"
+  },
+  {
+    "slug": "brandenburg-gate",
+    "name": "Brandenburg Gate",
+    "city": "Berlin",
+    "country": "Germany",
+    "query": "Brandenburg Gate Berlin"
+  },
+  {
+    "slug": "cologne-cathedral",
+    "name": "Cologne Cathedral",
+    "city": "Cologne",
+    "country": "Germany",
+    "query": "Cologne Cathedral"
+  },
+  {
+    "slug": "belem-tower",
+    "name": "Belém Tower",
+    "city": "Lisbon",
+    "country": "Portugal",
+    "query": "Belem Tower Lisbon"
+  },
+  {
+    "slug": "atomium",
+    "name": "Atomium",
+    "city": "Brussels",
+    "country": "Belgium",
+    "query": "Atomium Brussels"
+  },
+  {
+    "slug": "charles-bridge",
+    "name": "Charles Bridge",
+    "city": "Prague",
+    "country": "Czechia",
+    "query": "Charles Bridge Prague"
+  },
+  {
+    "slug": "prague-castle",
+    "name": "Prague Castle",
+    "city": "Prague",
+    "country": "Czechia",
+    "query": "Prague Castle"
+  },
+  {
+    "slug": "schonbrunn-palace",
+    "name": "Schönbrunn Palace",
+    "city": "Vienna",
+    "country": "Austria",
+    "query": "Schonbrunn Palace Vienna"
+  },
+  {
+    "slug": "hungarian-parliament",
+    "name": "Hungarian Parliament Building",
+    "city": "Budapest",
+    "country": "Hungary",
+    "query": "Hungarian Parliament Budapest"
+  },
+  {
+    "slug": "saint-basils-cathedral",
+    "name": "Saint Basil's Cathedral",
+    "city": "Moscow",
+    "country": "Russia",
+    "query": "Saint Basil Cathedral Moscow"
+  },
+  {
+    "slug": "hagia-sophia",
+    "name": "Hagia Sophia",
+    "city": "Istanbul",
+    "country": "Turkey",
+    "query": "Hagia Sophia Istanbul"
+  },
+  {
+    "slug": "blue-mosque",
+    "name": "Blue Mosque",
+    "city": "Istanbul",
+    "country": "Turkey",
+    "query": "Sultan Ahmed Mosque Blue"
+  },
+  {
+    "slug": "st-peters-basilica",
+    "name": "St. Peter's Basilica",
+    "city": "Vatican City",
+    "country": "Vatican City",
+    "query": "St Peters Basilica Vatican"
+  },
+  {
+    "slug": "hawa-mahal",
+    "name": "Hawa Mahal",
+    "city": "Jaipur",
+    "country": "India",
+    "query": "Hawa Mahal Jaipur"
+  },
+  {
+    "slug": "qutub-minar",
+    "name": "Qutub Minar",
+    "city": "Delhi",
+    "country": "India",
+    "query": "Qutub Minar Delhi"
+  },
+  {
+    "slug": "temple-of-heaven",
+    "name": "Temple of Heaven",
+    "city": "Beijing",
+    "country": "China",
+    "query": "Temple of Heaven Beijing"
+  },
+  {
+    "slug": "kinkaku-ji",
+    "name": "Kinkaku-ji",
+    "city": "Kyoto",
+    "country": "Japan",
+    "query": "Kinkakuji Golden Pavilion"
+  },
+  {
+    "slug": "himeji-castle",
+    "name": "Himeji Castle",
+    "city": "Himeji",
+    "country": "Japan",
+    "query": "Himeji Castle"
+  },
+  {
+    "slug": "gyeongbokgung",
+    "name": "Gyeongbokgung Palace",
+    "city": "Seoul",
+    "country": "South Korea",
+    "query": "Gyeongbokgung Palace Seoul"
+  },
+  {
+    "slug": "wat-arun",
+    "name": "Wat Arun",
+    "city": "Bangkok",
+    "country": "Thailand",
+    "query": "Wat Arun Bangkok"
+  },
+  {
+    "slug": "bayan-temple",
+    "name": "Bayon Temple",
+    "city": "Siem Reap",
+    "country": "Cambodia",
+    "query": "Bayon Temple Angkor"
+  },
+  {
+    "slug": "borobudur",
+    "name": "Borobudur",
+    "city": "Magelang",
+    "country": "Indonesia",
+    "query": "Borobudur temple"
+  },
+  {
+    "slug": "prambanan",
+    "name": "Prambanan",
+    "city": "Yogyakarta",
+    "country": "Indonesia",
+    "query": "Prambanan temple"
+  },
+  {
+    "slug": "petronas-towers",
+    "name": "Petronas Towers",
+    "city": "Kuala Lumpur",
+    "country": "Malaysia",
+    "query": "Petronas Towers"
+  },
+  {
+    "slug": "marina-bay-sands",
+    "name": "Marina Bay Sands",
+    "city": "Singapore",
+    "country": "Singapore",
+    "query": "Marina Bay Sands"
+  },
+  {
+    "slug": "burj-khalifa",
+    "name": "Burj Khalifa",
+    "city": "Dubai",
+    "country": "United Arab Emirates",
+    "query": "Burj Khalifa"
+  },
+  {
+    "slug": "hegra",
+    "name": "Hegra",
+    "city": "AlUla",
+    "country": "Saudi Arabia",
+    "query": "Hegra Mada'in Salih AlUla"
+  },
+  {
+    "slug": "persepolis",
+    "name": "Persepolis",
+    "city": "Shiraz",
+    "country": "Iran",
+    "query": "Persepolis ruins"
+  },
+  {
+    "slug": "petra",
+    "name": "Petra",
+    "city": "Ma'an",
+    "country": "Jordan",
+    "query": "Petra Treasury Al-Khazneh"
+  },
+  {
+    "slug": "boudhanath",
+    "name": "Boudhanath Stupa",
+    "city": "Kathmandu",
+    "country": "Nepal",
+    "query": "Boudhanath stupa"
+  },
+  {
+    "slug": "sigiriya",
+    "name": "Sigiriya",
+    "city": "Matale",
+    "country": "Sri Lanka",
+    "query": "Sigiriya Lion Rock"
+  },
+  {
+    "slug": "registan",
+    "name": "Registan",
+    "city": "Samarkand",
+    "country": "Uzbekistan",
+    "query": "Registan Samarkand"
+  },
+  {
+    "slug": "shwedagon-pagoda",
+    "name": "Shwedagon Pagoda",
+    "city": "Yangon",
+    "country": "Myanmar",
+    "query": "Shwedagon Pagoda"
+  },
+  {
+    "slug": "abu-simbel",
+    "name": "Abu Simbel",
+    "city": "Aswan",
+    "country": "Egypt",
+    "query": "Abu Simbel temples"
+  },
+  {
+    "slug": "karnak",
+    "name": "Karnak",
+    "city": "Luxor",
+    "country": "Egypt",
+    "query": "Karnak temple Luxor"
+  },
+  {
+    "slug": "hassan-ii-mosque",
+    "name": "Hassan II Mosque",
+    "city": "Casablanca",
+    "country": "Morocco",
+    "query": "Hassan II Mosque Casablanca"
+  },
+  {
+    "slug": "el-jem-amphitheatre",
+    "name": "Amphitheatre of El Jem",
+    "city": "El Jem",
+    "country": "Tunisia",
+    "query": "El Jem amphitheatre"
+  },
+  {
+    "slug": "lalibela",
+    "name": "Rock-Hewn Churches of Lalibela",
+    "city": "Lalibela",
+    "country": "Ethiopia",
+    "query": "Lalibela rock churches"
+  },
+  {
+    "slug": "askum-stelae",
+    "name": "Stelae of Aksum",
+    "city": "Aksum",
+    "country": "Ethiopia",
+    "query": "Aksum stelae obelisk"
+  },
+  {
+    "slug": "djenne-mosque",
+    "name": "Great Mosque of Djenné",
+    "city": "Djenné",
+    "country": "Mali",
+    "query": "Great Mosque Djenne"
+  },
+  {
+    "slug": "empire-state-building",
+    "name": "Empire State Building",
+    "city": "New York City",
+    "country": "United States",
+    "query": "Empire State Building"
+  },
+  {
+    "slug": "golden-gate-bridge",
+    "name": "Golden Gate Bridge",
+    "city": "San Francisco",
+    "country": "United States",
+    "query": "Golden Gate Bridge"
+  },
+  {
+    "slug": "mount-rushmore",
+    "name": "Mount Rushmore",
+    "city": "Keystone",
+    "country": "United States",
+    "query": "Mount Rushmore"
+  },
+  {
+    "slug": "cn-tower",
+    "name": "CN Tower",
+    "city": "Toronto",
+    "country": "Canada",
+    "query": "CN Tower Toronto"
+  },
+  {
+    "slug": "chateau-frontenac",
+    "name": "Château Frontenac",
+    "city": "Quebec City",
+    "country": "Canada",
+    "query": "Chateau Frontenac Quebec"
+  },
+  {
+    "slug": "teotihuacan",
+    "name": "Teotihuacan",
+    "city": "San Juan Teotihuacán",
+    "country": "Mexico",
+    "query": "Teotihuacan Pyramid of the Sun"
+  },
+  {
+    "slug": "tikal",
+    "name": "Tikal",
+    "city": "Petén",
+    "country": "Guatemala",
+    "query": "Tikal temple Mayan"
+  },
+  {
+    "slug": "christ-the-redeemer",
+    "name": "Christ the Redeemer",
+    "city": "Rio de Janeiro",
+    "country": "Brazil",
+    "query": "Christ the Redeemer Rio"
+  },
+  {
+    "slug": "obelisco-buenos-aires",
+    "name": "Obelisco de Buenos Aires",
+    "city": "Buenos Aires",
+    "country": "Argentina",
+    "query": "Obelisco Buenos Aires"
+  },
+  {
+    "slug": "moai",
+    "name": "Moai",
+    "city": "Easter Island",
+    "country": "Chile",
+    "query": "Moai Easter Island"
+  },
+  {
+    "slug": "sacsayhuaman",
+    "name": "Sacsayhuamán",
+    "city": "Cusco",
+    "country": "Peru",
+    "query": "Sacsayhuaman Cusco"
+  },
+  {
+    "slug": "uluru",
+    "name": "Uluru",
+    "city": "Petermann",
+    "country": "Australia",
+    "query": "Uluru Ayers Rock"
+  },
+  {
+    "slug": "sydney-harbour-bridge",
+    "name": "Sydney Harbour Bridge",
+    "city": "Sydney",
+    "country": "Australia",
+    "query": "Sydney Harbour Bridge"
+  },
+  {
+    "slug": "sky-tower",
+    "name": "Sky Tower",
+    "city": "Auckland",
+    "country": "New Zealand",
+    "query": "Sky Tower Auckland"
+  }
+]

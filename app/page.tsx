@@ -1,48 +1,56 @@
-import { ArrowRight, Compass, Gamepad2, Headphones, Layers, Ruler, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowRight, Compass, Gamepad2, Headphones, Layers, LayoutGrid, Ruler, ShieldAlert, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-import { AdSlot } from "@/components/ads/AdSlot";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { AnimalCard } from "@/components/animal/AnimalCard";
+import { CategoryIcon } from "@/components/catalog/CategoryIcon";
 import { HomeGlobe } from "@/components/explore/HomeGlobe";
 import { PremiumTeaser } from "@/components/premium/PremiumTeaser";
 import { Button } from "@/components/ui/button";
 import { getAllAnimals, getPremiumAnimals, getRegionCounts, getStatistics } from "@/lib/animals";
+import { getCategorySummaries } from "@/lib/catalog";
 
 export const revalidate = 300;
 
 const FEATURES = [
   {
     icon: Layers,
-    title: "Rotate real 3D models",
-    body: "Orbit, zoom and pan every species — with a wireframe mode and studio lighting you control.",
+    title: "Rotate real models",
+    body: "Orbit, zoom and pan any entry. Every model in the catalogue is a credited file somebody published — never a drawing — with a wireframe mode and studio lighting you control.",
   },
   {
     icon: Ruler,
     title: "Compare your size",
-    body: "Stand any animal next to a human, a blue whale or a T. rex to feel how big it really is.",
+    body: "Stand an entry next to a human, to scale: a blue whale, a T. rex, a Saturn V or a giant sequoia.",
   },
   {
     icon: Headphones,
-    title: "Listen to the wild",
-    body: "Play roars, calls and songs while the model turns, so identification sticks.",
+    title: "Hear the animals",
+    body: "Play a species' call while its model turns. Each recording carries its licence, and a species with none says so rather than playing a stand-in.",
   },
 ] as const;
 
 export default async function HomePage() {
-  const [animals, counts, stats, premiumAnimals] = await Promise.all([
+  const [animals, counts, stats, premiumAnimals, categories] = await Promise.all([
     getAllAnimals(),
     getRegionCounts(),
     getStatistics(),
     getPremiumAnimals(),
+    getCategorySummaries(),
   ]);
 
   const featured = animals.filter((animal) => !animal.premium).slice(0, 8);
 
+  // Counted rather than written down: the home page said "three more subjects are being built" long after
+  // Space, Plants and Vehicles had entries, and a hard-coded number is how that happens.
+  const subjects = categories.length;
+  const subjectsWithEntries = categories.filter((category) => category.count > 0).length;
+
   const statItems = [
+    { label: "Subjects", value: subjects, icon: LayoutGrid },
     { label: "Species modelled", value: stats.species, icon: Compass },
     { label: "Threatened", value: stats.threatened, icon: ShieldAlert },
     { label: "Regions", value: stats.regions, icon: Sparkles },
-    { label: "Prehistoric", value: stats.prehistoric, icon: Layers },
   ];
 
   return (
@@ -53,20 +61,23 @@ export default async function HomePage() {
           <div className="animate-rise">
             <span className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-neon">
               <Sparkles className="size-3" />
-              3D World Wildlife Encyclopedia
+              3D world encyclopedia
             </span>
 
             <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Meet the animal kingdom
+              Meet the world
               <span className="block bg-gradient-to-r from-neon via-glow to-iris bg-clip-text text-transparent">
                 in three dimensions
               </span>
             </h1>
 
+            {/* The hero says what the whole site holds, not what it started as: animals, space, plants,
+                vehicles and the built world all live here, and a visitor who only reads this paragraph
+                should still know that. */}
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/65">
-              Kami3D turns the encyclopedia into something you can hold. Spin a globe, open a species,
-              walk around its model, check your own size against it — then prove what you learned in the
-              silhouette quiz.
+              Kami3D turns the encyclopedia into something you can hold. Spin the globe, then open a
+              species, a planet, a plant, a machine or a monument, turn its real model in your hands, and
+              check your own size against it — and prove what you learned in the silhouette quiz.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -116,13 +127,60 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------------------------------- The catalogue */}
+      {/* Phase 25: the site holds more than one subject now, and the home page says which ones.
+          The counts come from the same reader the category pages use, so a card that says "48
+          entries" cannot point at a page holding a different number. */}
+      <section className="section-shell">
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">More than one world</h2>
+            <p className="mt-1 text-sm text-white/55">
+              Animals came first; Space, Plants, Vehicles, Modern Buildings and Architecture followed —{" "}
+              {subjectsWithEntries} subjects of {subjects} hold entries today. Each card says how many it
+              holds, and a subject with none says so rather than opening an empty page.
+            </p>
+          </div>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/categories">
+              All subjects
+              <ArrowRight />
+            </Link>
+          </Button>
+        </header>
+
+        <ul className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+          {categories.map((category) => (
+            <li key={category.id}>
+              <Link
+                href={category.href}
+                className="group flex h-full flex-col gap-2 rounded-[var(--radius-card)] bg-white/4 p-4 ring-1 ring-white/8 transition-all duration-300 hover:-translate-y-1 hover:bg-white/6"
+                style={{ backgroundImage: `linear-gradient(140deg, ${category.accent[0]}1f, transparent 60%)` }}
+              >
+                <span
+                  className="grid size-9 place-items-center rounded-lg ring-1 ring-white/12"
+                  style={{ background: `linear-gradient(140deg, ${category.accent[0]}33, ${category.accent[1]}66)` }}
+                >
+                  <CategoryIcon name={category.icon} className="size-4 text-white/85" />
+                </span>
+                <span className="font-display text-sm font-semibold text-white">{category.name}</span>
+                <span className="text-xs text-white/45">
+                  {category.count > 0 ? `${category.count} entries` : "Being built"}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* ------------------------------------------------------- Featured species */}
       <section className="section-shell">
         <header className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">Featured species</h2>
             <p className="mt-1 text-sm text-white/55">
-              Hover a card on desktop to spin a quick 3D preview — click through for the full model.
+              Hover a card on desktop to spin a quick 3D preview. Click through for the full model, its
+              measurements, its range and the source behind every figure.
             </p>
           </div>
           <Button asChild variant="ghost" size="sm">
@@ -143,7 +201,7 @@ export default async function HomePage() {
       </section>
 
       <section className="section-shell">
-        <AdSlot format="leaderboard" note="Ad revenue funds new 3D scans and modeller time." />
+        <AdBanner placement="below-content" note="Ad revenue funds new 3D scans and modeller time." />
       </section>
 
       {/* ------------------------------------------------------------- Prehistoric */}
@@ -153,7 +211,7 @@ export default async function HomePage() {
 
       {/* -------------------------------------------------------------- Quiz call */}
       <section className="section-shell">
-        <AdSlot format="in-article" note="In-article slot — kept below the fold of every 3D viewer." />
+        <AdBanner placement="below-content" note="Kept below the fold of every 3D viewer." />
       </section>
 
       <section className="section-shell">
@@ -174,8 +232,8 @@ export default async function HomePage() {
               Can you name the animal from its shadow?
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/60">
-              Ten rounds of rotating 3D silhouettes. Earn badges, save your score, and unlock the
-              collector badges on your profile.
+              Ten rounds of rotating 3D silhouettes, drawn from the species catalogue. Earn badges, save
+              your score, and collect them on your profile.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">

@@ -26,7 +26,7 @@ async function handle(request: Request) {
   const verdict = cronAuthorised(request.headers.get("authorization"), process.env.CRON_SECRET ?? null);
 
   if (!verdict.ok) {
-    const gate = await requireAdmin();
+    const gate = await requireAdmin(request);
     if (!gate.ok) return NextResponse.json({ ok: false, reason: verdict.reason }, { status: 401 });
   }
 

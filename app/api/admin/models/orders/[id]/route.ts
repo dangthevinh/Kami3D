@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /** Cancel an order that has not been claimed yet. A running order is left to finish its species. */
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(_request);
   if (!gate.ok) return gate.response;
   const blocked = guardWrite(_request, { name: "admin-order-cancel", rule: { limit: 30, windowMs: 60_000 }, expectedHost: hostOfRequest(_request) });
   if (blocked) return blocked;

@@ -236,8 +236,20 @@ test("the automatic path refuses a file with no credit, and never retries one it
   assert.ok(validateAt > 0 && publishAt > validateAt, "the credit is checked before anything is published");
 
   assert.match(ingest, /if \(!item\.hasSidecar\)[\s\S]{0,200}?continue;/, "no sidecar means no publish");
-  assert.match(ingest, /UPLOAD_PREFIXES\.rejected \+ "\/" \+ item\.name \+ "\.reason\.txt"/, "a refusal leaves its reason beside the file");
-  assert.match(ingest, /moveObject\(modelPath, UPLOAD_PREFIXES\.published/, "a published file leaves the inbox");
+
+  // The reason is written **before** the file is moved, and the order is the point: if the move then
+  // fails, the explanation is already sitting beside the file, which is the only thing that makes a
+  // failed move diagnosable. Asserted as an order rather than as one line of source, because the line
+  // that writes it moved when object storage moved to R2.
+  // Searched as the expression, not as the bare extension: ".reason.txt" also appears in the file's
+  // own header comment, which is above every line of code and would make the ordering check meaningless.
+  const reasonAt = ingest.indexOf('rejectedName + ".reason.txt"');
+  const moveAt = ingest.indexOf("moveObject(store, modelPath, rejectedName)");
+  assert.ok(reasonAt > 0, "a refusal writes a .reason.txt");
+  assert.ok(moveAt > reasonAt, "and it writes it before moving the file out of the inbox");
+  assert.match(ingest, /UPLOAD_PREFIXES\.rejected \+ "\/" \+ item\.name/, "the reason and the file land under rejected/");
+
+  assert.match(ingest, /moveObject\(store, modelPath, UPLOAD_PREFIXES\.published/, "a published file leaves the inbox");
   assert.match(ingest, /remove\(\[from\]\)/, "moving is a copy and a delete, so the inbox really empties");
 });
 
@@ -252,7 +264,9 @@ test("both doors are admin-only and rate-limited, like every other write in the 
   const inbox = read("app/api/admin/models/inbox/route.ts");
 
   for (const [name, source] of [["upload", upload], ["inbox", inbox]]) {
-    assert.match(source, /requireAdmin\(\)/, name + " must check the admin");
+    // Phase 31 passes the request so a refusal can name the route it came from; both shapes are the
+    // same gate, so the assertion is about the call rather than about its argument list.
+    assert.match(source, /requireAdmin\((request|_request)?\)/, name + " must check the admin");
     assert.match(source, /guardWrite\(request, \{/, name + " must go through the shared write guard");
     assert.match(source, /rule: \{ limit: \d+, windowMs: [\d_]+ \}/, name + " must carry a rate limit");
   }

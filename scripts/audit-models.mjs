@@ -24,12 +24,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ANIMALS } from "../data/animals.ts";
-import { scoreModelQuality } from "../lib/model-quality.ts";
+// The placeholder list lives beside the other quality constants, because the landmark pipeline
+// refuses on it too - a rule that decides what ships belongs in one place.
+import { PLACEHOLDER_WORDS, scoreModelQuality } from "../lib/model-quality.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const json = process.argv.includes("--json");
 
-const PLACEHOLDER_WORDS = ["voxel", "lowpoly", "low-poly", "chick", "baby", "toy", "cute", "stylized", "cartoon", "blocky"];
 /** Below this, the pipeline's own ranking would not pick the model again today. */
 const WEAK_SCORE = 75;
 /** The title term of the quality score, out of the weights in lib/model-quality.ts. */

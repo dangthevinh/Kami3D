@@ -24,7 +24,7 @@ const run = promisify(execFile);
  * require_approval demands, and --actor puts their id in the log.
  */
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
   const blocked = guardWrite(request, { name: "admin-download", rule: { limit: 4, windowMs: 300_000 }, expectedHost: hostOfRequest(request) });
   if (blocked) return blocked;

@@ -5,6 +5,7 @@ import { BATCH_2 } from "./batch-2.ts";
 import { BATCH_3 } from "./batch-3.ts";
 import { BATCH_4 } from "./batch-4.ts";
 import { BATCH_5 } from "./batch-5.ts";
+import { BATCH_6 } from "./batch-6.ts";
 
 /**
  * The catalogue after Phase 23: the hundred species added to the original twenty-four, grouped by
@@ -17,4 +18,5 @@ export const EXTRA_ANIMALS: Animal[] = [
   ...BATCH_3,
   ...BATCH_4,
   ...BATCH_5,
+  ...BATCH_6,
 ];

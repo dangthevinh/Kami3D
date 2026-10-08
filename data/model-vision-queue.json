@@ -1,0 +1,4228 @@
+{
+  "generatedAt": "2026-10-07T15:44:43.508Z",
+  "reviewer": "deepseek-v4-flash-vision-exp",
+  "question": "You are auditing a 3D catalogue. You will be shown ONE image: an off-screen render of a single 3D\nmodel, framed and lit exactly the way the site's own viewer frames and lights it.\n\nOpen the image with the read_image tool at the absolute path given below, look at it, and answer.\n\nFirst write, in one sentence, what you actually see - the object, plainly, without guessing what it\nwas meant to be. Then judge whether it supports the catalogue's claim about it.\n\nAnswer with JSON only, no prose around it:\n{\"subject\": \"<what you actually see, one sentence>\", \"verdict\": \"matches\" | \"mismatch\" | \"unclear\", \"reason\": \"<one sentence: why that verdict>\"}\n\nUse \"matches\" when the object in the image is the thing claimed. Use \"mismatch\" when it is a\ndifferent thing, or only a part of the thing (a skull is not an animal, a fragment is not the\nbuilding, a diagram with no texture is not a model). Use \"unclear\" when the render is too small,\ntoo dark, or too empty to tell. Do not reward effort and do not be polite: \"unclear\" and \"mismatch\"\nare useful answers, and a wrong \"matches\" is the one answer that costs this catalogue its credit.",
+  "counts": {
+    "models": 274,
+    "current": 0,
+    "pending": 274,
+    "stale": 0,
+    "unrenderable": 3
+  },
+  "unrenderable": [
+    {
+      "key": "space/international-space-station",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-space-station",
+          "name": "International Space Station",
+          "latin": null
+        }
+      ],
+      "why": "no preview image was rendered for this model"
+    },
+    {
+      "key": "space/international-space-station-iss-a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-space-station-iss-a",
+          "name": "International Space Station",
+          "latin": null
+        }
+      ],
+      "why": "no preview image was rendered for this model"
+    },
+    {
+      "key": "space/international-space-station-iss-e-intern",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-space-station-iss-e-intern",
+          "name": "International Space Station",
+          "latin": null
+        }
+      ],
+      "why": "no preview image was rendered for this model"
+    }
+  ],
+  "items": [
+    {
+      "id": "african-bush-elephant",
+      "image": "public/previews/african-bush-elephant.webp",
+      "imageMd5": "841e648269cd672a540fe01e1b076f48",
+      "model": "public/models/african-bush-elephant.glb",
+      "modelSha256": "e716f8fad5b5243f985f9532f6e9b5ab4955275288860b5ee40ec8792a1c9ae4",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "african-bush-elephant",
+          "name": "African Bush Elephant",
+          "latin": "Loxodonta africana"
+        }
+      ]
+    },
+    {
+      "id": "american-alligator",
+      "image": "public/previews/american-alligator.webp",
+      "imageMd5": "8d465c2fb674366e6e9440fda632f185",
+      "model": "public/models/american-alligator.glb",
+      "modelSha256": "558f2553827606f8e7b1b17e8d74c80f2df506cba392b6fa48db14bdc0c0861d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "american-alligator",
+          "name": "American Alligator",
+          "latin": "Alligator mississippiensis"
+        }
+      ]
+    },
+    {
+      "id": "american-bison",
+      "image": "public/previews/american-bison.webp",
+      "imageMd5": "3548c5e1e879ebf6b6a94553a288727b",
+      "model": "public/models/american-bison.glb",
+      "modelSha256": "cb879c5058980966f33bb756acaffeae78a799ac43c1a47d33b39bf137c4e814",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "american-bison",
+          "name": "American Bison",
+          "latin": "Bison bison"
+        }
+      ]
+    },
+    {
+      "id": "arctic-fox",
+      "image": "public/previews/arctic-fox.webp",
+      "imageMd5": "79a67f2946a2691cf2a87538f3ff3b99",
+      "model": "public/models/arctic-fox.glb",
+      "modelSha256": "72ed838e9dd3d6505960a9510664a75ae223d8e5470fbddb872193cad9dfacdc",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "arctic-fox",
+          "name": "Arctic Fox",
+          "latin": "Vulpes lagopus"
+        }
+      ]
+    },
+    {
+      "id": "axolotl",
+      "image": "public/previews/axolotl.webp",
+      "imageMd5": "c30605646f7bbd453da2351047212ec8",
+      "model": "public/models/axolotl.glb",
+      "modelSha256": "dd41379fbb48e5ac64f8b48d87fdf17227c2b268ffcdb0bff581a8bf47c22b6c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "axolotl",
+          "name": "Axolotl",
+          "latin": "Ambystoma mexicanum"
+        }
+      ]
+    },
+    {
+      "id": "bald-eagle",
+      "image": "public/previews/bald-eagle.webp",
+      "imageMd5": "deccf5f0f26ec462b86efc10726346c8",
+      "model": "public/models/bald-eagle.glb",
+      "modelSha256": "baf6043308d83d05082dc0f32fa7a6f3b4d0383ade239034514025d47643ed1b",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "bald-eagle",
+          "name": "Bald Eagle",
+          "latin": "Haliaeetus leucocephalus"
+        }
+      ]
+    },
+    {
+      "id": "black-mamba",
+      "image": "public/previews/black-mamba.webp",
+      "imageMd5": "626b08fd3c24fa717897c8cc781b77bc",
+      "model": "public/models/black-mamba.glb",
+      "modelSha256": "63ee46258fee71f2a2085e0dd1728bff51db8cce0ec45f0cab4c12653b4b6d21",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "black-mamba",
+          "name": "Black Mamba",
+          "latin": "Dendroaspis polylepis"
+        }
+      ]
+    },
+    {
+      "id": "blue-ringed-octopus",
+      "image": "public/previews/blue-ringed-octopus.webp",
+      "imageMd5": "f2575fe49e61290bd453d07ec7370b9e",
+      "model": "public/models/blue-ringed-octopus.glb",
+      "modelSha256": "5fba3961844b4f5c5064b70c8da00a904fa3d13d095308e3f0b01e917f89871e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "blue-ringed-octopus",
+          "name": "Blue-ringed Octopus",
+          "latin": "Hapalochlaena lunulata"
+        }
+      ]
+    },
+    {
+      "id": "blue-whale",
+      "image": "public/previews/blue-whale.webp",
+      "imageMd5": "57bab7736824021ea90db7c25cd3ef40",
+      "model": "public/models/blue-whale.glb",
+      "modelSha256": "ea159f10c212c145e0f2dbee47c0d8a15f1eb4dcd501359d6488637bbee1179d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "blue-whale",
+          "name": "Blue Whale",
+          "latin": "Balaenoptera musculus"
+        }
+      ]
+    },
+    {
+      "id": "bottlenose-dolphin",
+      "image": "public/previews/bottlenose-dolphin.webp",
+      "imageMd5": "e9eb786042cdef0b3a5ccd06b68fc694",
+      "model": "public/models/bottlenose-dolphin.glb",
+      "modelSha256": "262c4f7bf23c5de349cdc805610ac412da71698e3c96cb55b0ea9179e2c3cb0d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "bottlenose-dolphin",
+          "name": "Bottlenose Dolphin",
+          "latin": "Tursiops truncatus"
+        }
+      ]
+    },
+    {
+      "id": "california-condor",
+      "image": "public/previews/california-condor.webp",
+      "imageMd5": "0437d74f890c40f18496994de7367c16",
+      "model": "public/models/california-condor.glb",
+      "modelSha256": "13ec3eba2a0548a4cb4a169d06c4ff405875b5f025ecd3d196fead38ec817672",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "california-condor",
+          "name": "California Condor",
+          "latin": "Gymnogyps californianus"
+        }
+      ]
+    },
+    {
+      "id": "california-sea-lion",
+      "image": "public/previews/california-sea-lion.webp",
+      "imageMd5": "9745fa146bdbfc71d099ce038dfa17ba",
+      "model": "public/models/california-sea-lion.glb",
+      "modelSha256": "a3157db176f4669237c32be5f6c7d29d35255958825bdd6670dc94ee4053da09",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "california-sea-lion",
+          "name": "California Sea Lion",
+          "latin": "Zalophus californianus"
+        }
+      ]
+    },
+    {
+      "id": "capybara",
+      "image": "public/previews/capybara.webp",
+      "imageMd5": "4cd1620fa92b52a1163f128c92ab3771",
+      "model": "public/models/capybara.glb",
+      "modelSha256": "9c474f67f7459ab9f038c3c5ad66d3163bf42d904ca4bae459a943cac53aac9e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "capybara",
+          "name": "Capybara",
+          "latin": "Hydrochoerus hydrochaeris"
+        }
+      ]
+    },
+    {
+      "id": "cheetah",
+      "image": "public/previews/cheetah.webp",
+      "imageMd5": "353885e6af23c51c96eeaa9483139fe9",
+      "model": "public/models/cheetah.glb",
+      "modelSha256": "2ba5137f62b542ac5c42214c253152d8fa61217ab42e0740d8c346ab747e3e98",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "cheetah",
+          "name": "Cheetah",
+          "latin": "Acinonyx jubatus"
+        }
+      ]
+    },
+    {
+      "id": "chimpanzee",
+      "image": "public/previews/chimpanzee.webp",
+      "imageMd5": "7183855efeffb31a32596bac92f095ae",
+      "model": "public/models/chimpanzee.glb",
+      "modelSha256": "2e0e9310a7dac6e49f693f299cf247e1bd02d7261d9596ff5b6ab183ce66d34e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "chimpanzee",
+          "name": "Chimpanzee",
+          "latin": "Pan troglodytes"
+        }
+      ]
+    },
+    {
+      "id": "common-ostrich",
+      "image": "public/previews/common-ostrich.webp",
+      "imageMd5": "e5aeba42d8b99311443eca8eff0d6644",
+      "model": "public/models/common-ostrich.glb",
+      "modelSha256": "3742f5f3fcc6a8090d673a964f7a1b22f4aa8cbb907ff199462e32ab9e5ff561",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "common-ostrich",
+          "name": "Common Ostrich",
+          "latin": "Struthio camelus"
+        }
+      ]
+    },
+    {
+      "id": "deathstalker-scorpion",
+      "image": "public/previews/deathstalker-scorpion.webp",
+      "imageMd5": "dc1931569a11c371930c117aa0896f79",
+      "model": "public/models/deathstalker-scorpion.glb",
+      "modelSha256": "0a08dbf3d64960c10404ca182cf44a34d84f20bba59e9a149daa852574b09c9a",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "deathstalker-scorpion",
+          "name": "Deathstalker Scorpion",
+          "latin": "Leiurus quinquestriatus"
+        }
+      ]
+    },
+    {
+      "id": "dodo",
+      "image": "public/previews/dodo.webp",
+      "imageMd5": "05053c2130e88016f2fcca110a294a53",
+      "model": "public/models/dodo.glb",
+      "modelSha256": "7ebe22f8d75abdd16d4b88eaf360448e4d13beae488ec5f843f91560b69b4d5f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "dodo",
+          "name": "Dodo",
+          "latin": "Raphus cucullatus"
+        }
+      ]
+    },
+    {
+      "id": "electric-eel",
+      "image": "public/previews/electric-eel.webp",
+      "imageMd5": "b1cd8503a034102c334803eff63d7a45",
+      "model": "public/models/electric-eel.glb",
+      "modelSha256": "0c50d2b4bdea7a9a9a5b72d13eb1400a541484d805587f5fa825e7fb234327e6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "electric-eel",
+          "name": "Electric Eel",
+          "latin": "Electrophorus electricus"
+        }
+      ]
+    },
+    {
+      "id": "emperor-dragonfly",
+      "image": "public/previews/emperor-dragonfly.webp",
+      "imageMd5": "b85fdece53f4cf4820a748b9958fe93b",
+      "model": "public/models/emperor-dragonfly.glb",
+      "modelSha256": "37b1be9f455f36576c1ad83a670a48ccfba53a2362172a43f3a291065a90a4ff",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "emperor-dragonfly",
+          "name": "Emperor Dragonfly",
+          "latin": "Anax imperator"
+        }
+      ]
+    },
+    {
+      "id": "emperor-scorpion",
+      "image": "public/previews/emperor-scorpion.webp",
+      "imageMd5": "8249c44f8fdbe1f02b1a0d4be8f24d1d",
+      "model": "public/models/emperor-scorpion.glb",
+      "modelSha256": "45289ff68ec7079996bc18b7d66f88a5a73a49217259f79c32bdafd0d5c24b65",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "emperor-scorpion",
+          "name": "Emperor Scorpion",
+          "latin": "Pandinus imperator"
+        }
+      ]
+    },
+    {
+      "id": "european-mantis",
+      "image": "public/previews/european-mantis.webp",
+      "imageMd5": "253470985c48c28feaa8c656c7cbb154",
+      "model": "public/models/european-mantis.glb",
+      "modelSha256": "a1ebe4a3bb58d30fc0a6427e9dbf7c4ea4e6550ef35435153cc8ef030aa9080c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "european-mantis",
+          "name": "European Mantis",
+          "latin": "Mantis religiosa"
+        }
+      ]
+    },
+    {
+      "id": "fennec-fox",
+      "image": "public/previews/fennec-fox.webp",
+      "imageMd5": "fcac117fd5c896f759b96bf482b9fb1e",
+      "model": "public/models/fennec-fox.glb",
+      "modelSha256": "fc143736d07f99a5a9e00160d0f83bd370dbaf5305e93bf81b682b98da1f5d94",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "fennec-fox",
+          "name": "Fennec Fox",
+          "latin": "Vulpes zerda"
+        }
+      ]
+    },
+    {
+      "id": "giant-anteater",
+      "image": "public/previews/giant-anteater.webp",
+      "imageMd5": "550fc80386bcd50337bba7f11cfde633",
+      "model": "public/models/giant-anteater.glb",
+      "modelSha256": "d11e60cedbf1765469d346326ce1dcbe6d73a34ede27f836d913020ea682a52c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-anteater",
+          "name": "Giant Anteater",
+          "latin": "Myrmecophaga tridactyla"
+        }
+      ]
+    },
+    {
+      "id": "giant-clam",
+      "image": "public/previews/giant-clam.webp",
+      "imageMd5": "57a8742029391e914901eb020c912973",
+      "model": "public/models/giant-clam.glb",
+      "modelSha256": "e3d7e413a7c4d98cfc0e2aa869cb8f405b96a2f89418042ba951717cfcdeeaed",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-clam",
+          "name": "Giant Clam",
+          "latin": "Tridacna gigas"
+        }
+      ]
+    },
+    {
+      "id": "giant-manta-ray",
+      "image": "public/previews/giant-manta-ray.webp",
+      "imageMd5": "c132f6cfa5b0d5b909bc69f593337563",
+      "model": "public/models/giant-manta-ray.glb",
+      "modelSha256": "24ca857ba249e6f3d1bedcd1b8d6b3b52e9f83595118b54eb99b4f2a68364499",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-manta-ray",
+          "name": "Giant Manta Ray",
+          "latin": "Mobula birostris"
+        }
+      ]
+    },
+    {
+      "id": "giant-panda",
+      "image": "public/previews/giant-panda.webp",
+      "imageMd5": "0d3551f55f157d452c6c79594847ae93",
+      "model": "public/models/giant-panda.glb",
+      "modelSha256": "fada53573305125a5796258e856c6b31e84606853fab95ccc274119a8a716a7f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-panda",
+          "name": "Giant Panda",
+          "latin": "Ailuropoda melanoleuca"
+        }
+      ]
+    },
+    {
+      "id": "giant-squid",
+      "image": "public/previews/giant-squid.webp",
+      "imageMd5": "0200108713061731e45df70200acf3ba",
+      "model": "public/models/giant-squid.glb",
+      "modelSha256": "8ae8f1d5481789f3d199c39e889272757d1c27034beaa4a9b29a93994d3407b0",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-squid",
+          "name": "Giant Squid",
+          "latin": "Architeuthis dux"
+        }
+      ]
+    },
+    {
+      "id": "gila-monster",
+      "image": "public/previews/gila-monster.webp",
+      "imageMd5": "44d4b26e2173614b0223237cadfe26cd",
+      "model": "public/models/gila-monster.glb",
+      "modelSha256": "aee4c009ce899ba4f64ef203381c892d85d147efe872c24948cf0b53cc7f23e6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "gila-monster",
+          "name": "Gila Monster",
+          "latin": "Heloderma suspectum"
+        }
+      ]
+    },
+    {
+      "id": "giraffe",
+      "image": "public/previews/giraffe.webp",
+      "imageMd5": "7a3a842fc1dcd19a290842a01b556795",
+      "model": "public/models/giraffe.glb",
+      "modelSha256": "c2573be8551d22217746b419624a53a36eb76f36e6d8fd69d01771d3c34e6d9e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giraffe",
+          "name": "Giraffe",
+          "latin": "Giraffa camelopardalis"
+        }
+      ]
+    },
+    {
+      "id": "goliath-birdeater",
+      "image": "public/previews/goliath-birdeater.webp",
+      "imageMd5": "f08992374d124912835b5f79597f4aea",
+      "model": "public/models/goliath-birdeater.glb",
+      "modelSha256": "d96fbc5bec64c4328b0661264926961ac525d39de9b74bb341566f98e95e6cc8",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "goliath-birdeater",
+          "name": "Goliath Birdeater",
+          "latin": "Theraphosa blondi"
+        }
+      ]
+    },
+    {
+      "id": "gray-wolf",
+      "image": "public/previews/gray-wolf.webp",
+      "imageMd5": "6b2ceee82c020ceb6f2d03d68567c4f2",
+      "model": "public/models/gray-wolf.glb",
+      "modelSha256": "52fe0927c7ab100c1882969dedcf78e997b5e878b7838acd572080b9d83a1e93",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "gray-wolf",
+          "name": "Gray Wolf",
+          "latin": "Canis lupus"
+        }
+      ]
+    },
+    {
+      "id": "great-white-shark",
+      "image": "public/previews/great-white-shark.webp",
+      "imageMd5": "204d00894b75a9c6490c354e6c11c659",
+      "model": "public/models/great-white-shark.glb",
+      "modelSha256": "46b8906506cbc9a179f382ebc8e8f1009982a1a2985fa75c2db0c1ae402656ce",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "great-white-shark",
+          "name": "Great White Shark",
+          "latin": "Carcharodon carcharias"
+        }
+      ]
+    },
+    {
+      "id": "greater-flamingo",
+      "image": "public/previews/greater-flamingo.webp",
+      "imageMd5": "e7bdb68858e5950952fc4b406c539272",
+      "model": "public/models/greater-flamingo.glb",
+      "modelSha256": "3e7daabd8a0e2473bb17988b3a1d96bb68c0ac5ef98f5f3479f2e2b43fd9d92f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "greater-flamingo",
+          "name": "Greater Flamingo",
+          "latin": "Phoenicopterus roseus"
+        }
+      ]
+    },
+    {
+      "id": "green-sea-turtle",
+      "image": "public/previews/green-sea-turtle.webp",
+      "imageMd5": "34193bd4ad9190218da1919d004019db",
+      "model": "public/models/green-sea-turtle.glb",
+      "modelSha256": "fecb65a0881456e0e01c04056a4517ee43c970c8911be051c63a4d354721c92c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "green-sea-turtle",
+          "name": "Green Sea Turtle",
+          "latin": "Chelonia mydas"
+        }
+      ]
+    },
+    {
+      "id": "harpy-eagle",
+      "image": "public/previews/harpy-eagle.webp",
+      "imageMd5": "7e97bc9ea4ef1318205ca8b566011d42",
+      "model": "public/models/harpy-eagle.glb",
+      "modelSha256": "9ca15c7f518b8fbebd33fbb39394f0e842a095334c0b500188b6028a725781a9",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "harpy-eagle",
+          "name": "Harpy Eagle",
+          "latin": "Harpia harpyja"
+        }
+      ]
+    },
+    {
+      "id": "hellbender",
+      "image": "public/previews/hellbender.webp",
+      "imageMd5": "8824d67fa47bfd735f0dd9ab589a469c",
+      "model": "public/models/hellbender.glb",
+      "modelSha256": "0bdc5e37f35ffb9560323b7ee2fb74fa89c256b16de9a63216a111928265a959",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hellbender",
+          "name": "Hellbender",
+          "latin": "Cryptobranchus alleganiensis"
+        }
+      ]
+    },
+    {
+      "id": "hippopotamus",
+      "image": "public/previews/hippopotamus.webp",
+      "imageMd5": "20bc7d18ff9070531fc5a6d80dea6129",
+      "model": "public/models/hippopotamus.glb",
+      "modelSha256": "0e0ea9c63fbbdf261cd6af4b52ffba0674f57d09e3dba19c85b6163b6076eefd",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hippopotamus",
+          "name": "Hippopotamus",
+          "latin": "Hippopotamus amphibius"
+        }
+      ]
+    },
+    {
+      "id": "hoatzin",
+      "image": "public/previews/hoatzin.webp",
+      "imageMd5": "c7efe0548507d72e9f79cb5fa26a3641",
+      "model": "public/models/hoatzin.glb",
+      "modelSha256": "5914d61ac45f3646c458f19a896a456405ceb3637315703bdcab7d955afd3ad4",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hoatzin",
+          "name": "Hoatzin",
+          "latin": "Opisthocomus hoazin"
+        }
+      ]
+    },
+    {
+      "id": "humpback-whale",
+      "image": "public/previews/humpback-whale.webp",
+      "imageMd5": "9a70da5ce894b679208f11cb3786acca",
+      "model": "public/models/humpback-whale.glb",
+      "modelSha256": "4d1bd67f032d964b448ba9b130f5ab0d9aab1bfe377c57a24560cf2fafc09617",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "humpback-whale",
+          "name": "Humpback Whale",
+          "latin": "Megaptera novaeangliae"
+        }
+      ]
+    },
+    {
+      "id": "jaguar",
+      "image": "public/previews/jaguar.webp",
+      "imageMd5": "dcaa0e0441550ff700776f924e6110b8",
+      "model": "public/models/jaguar.glb",
+      "modelSha256": "6a055a38f2087421d2b5f669a877aae93296589dab0531bb3c249018fc7112b6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "jaguar",
+          "name": "Jaguar",
+          "latin": "Panthera onca"
+        }
+      ]
+    },
+    {
+      "id": "king-cobra",
+      "image": "public/previews/king-cobra.webp",
+      "imageMd5": "087ea70e48276cff4af9e93b3668e97a",
+      "model": "public/models/king-cobra.glb",
+      "modelSha256": "d482d800d6a1b4aaaa39641a0e5a5f82baca023cf1729f609f48c14f23031a26",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "king-cobra",
+          "name": "King Cobra",
+          "latin": "Ophiophagus hannah"
+        }
+      ]
+    },
+    {
+      "id": "komodo-dragon",
+      "image": "public/previews/komodo-dragon.webp",
+      "imageMd5": "dd5e60d647b5cdc3daa79e48f6d4f467",
+      "model": "public/models/komodo-dragon.glb",
+      "modelSha256": "fef1c2761359d9846a08663424da7554653fa24342fb0ede16119d2e14298de3",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "komodo-dragon",
+          "name": "Komodo Dragon",
+          "latin": "Varanus komodoensis"
+        }
+      ]
+    },
+    {
+      "id": "landmarks/alhambra",
+      "image": "public/previews/landmarks/alhambra.webp",
+      "imageMd5": "7ffcd8d19c62078be1dfee3ab0b755cf",
+      "model": "public/models/landmarks/alhambra.glb",
+      "modelSha256": "e2bf29d260a57ebaf2722a5ceb72058e4cc6e3b33de7f26daf4d3c26e70bc01e",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "alhambra",
+          "name": "Alhambra",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/angkor-wat",
+      "image": "public/previews/landmarks/angkor-wat.webp",
+      "imageMd5": "06bb33778d36fb1ee2d31fb43392f7bb",
+      "model": "public/models/landmarks/angkor-wat.glb",
+      "modelSha256": "506ebdb8826745e65c36a8f50334837ede64db2869eba35b2bf8c6906a72f787",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "angkor-wat",
+          "name": "Angkor Wat",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/arc-de-triomphe",
+      "image": "public/previews/landmarks/arc-de-triomphe.webp",
+      "imageMd5": "526d04fd8a192fc532e69b0b3f33f77e",
+      "model": "public/models/landmarks/arc-de-triomphe.glb",
+      "modelSha256": "7d5575f30cb2f223254ef4eeb93a690ee92b0dc12c0307d7e4f7f8d1a2a9abe1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "arc-de-triomphe",
+          "name": "Arc de Triomphe",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/big-ben",
+      "image": "public/previews/landmarks/big-ben.webp",
+      "imageMd5": "54eb74136f35ffbf66c008c01bff62ed",
+      "model": "public/models/landmarks/big-ben.glb",
+      "modelSha256": "f87881d5bb58d4f7a203f37207dcb75246e2d9b1ec8bcbf757cb8d184432e099",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "big-ben",
+          "name": "Elizabeth Tower (Big Ben)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/borobudur",
+      "image": "public/previews/landmarks/borobudur.webp",
+      "imageMd5": "0c2086af83b045d6ba379f057e9ac73f",
+      "model": "public/models/landmarks/borobudur.glb",
+      "modelSha256": "91ab0883639fbb0b3cc75f97a4eb409563831fd015a86c34d77c8f558862f86d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "borobudur",
+          "name": "Borobudur",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/boudhanath",
+      "image": "public/previews/landmarks/boudhanath.webp",
+      "imageMd5": "c95cd16e0682a130584b558c3d6bcd56",
+      "model": "public/models/landmarks/boudhanath.glb",
+      "modelSha256": "7cbaae1ae0bcb69e86c494a6e5aa83d0dad4f7d11b7bc787876dc97f362146d0",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "boudhanath",
+          "name": "Boudhanath Stupa",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/burj-khalifa",
+      "image": "public/previews/landmarks/burj-khalifa.webp",
+      "imageMd5": "558b84d0b43e8a4583bac2f56ca897c4",
+      "model": "public/models/landmarks/burj-khalifa.glb",
+      "modelSha256": "cec9567249ee82399b8d08a6254ce4ea57e1568a9b1688c518f2f017b8f83d63",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "burj-khalifa",
+          "name": "Burj Khalifa",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "burj-khalifa",
+          "name": "Burj Khalifa",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/chateau-frontenac",
+      "image": "public/previews/landmarks/chateau-frontenac.webp",
+      "imageMd5": "ebf97d0f5c4c50def7f95a1c43f687eb",
+      "model": "public/models/landmarks/chateau-frontenac.glb",
+      "modelSha256": "33426751a11c0207152bb083c5c1e4762bebd2a437853e2f07b6a8589695c89d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "chateau-frontenac",
+          "name": "Château Frontenac",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/chichen-itza",
+      "image": "public/previews/landmarks/chichen-itza.webp",
+      "imageMd5": "ebd33e273a2e8430330c4221c32ee428",
+      "model": "public/models/landmarks/chichen-itza.glb",
+      "modelSha256": "774bd9a32f4db3a19a4aaf1f6823651e4aa0b16e597e9654f84ccaa5630d1a06",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "chichen-itza",
+          "name": "Chichén Itzá",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/christ-the-redeemer",
+      "image": "public/previews/landmarks/christ-the-redeemer.webp",
+      "imageMd5": "b6270c3ce063b7a01e76a419f7e4404c",
+      "model": "public/models/landmarks/christ-the-redeemer.glb",
+      "modelSha256": "7e8de5b993f2974bd4b95d06667af3cfa979dc9b37ca599753802a0f673cc0c7",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "christ-the-redeemer",
+          "name": "Christ the Redeemer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/cn-tower",
+      "image": "public/previews/landmarks/cn-tower.webp",
+      "imageMd5": "75f5977243a7a1b274316dbd7a295b79",
+      "model": "public/models/landmarks/cn-tower.glb",
+      "modelSha256": "bd5ba305a44c7f3b0d56a96f85841364bf21ce720b2f3c19b7987057a62416cb",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "cn-tower",
+          "name": "CN Tower",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "cn-tower",
+          "name": "CN Tower",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/cologne-cathedral",
+      "image": "public/previews/landmarks/cologne-cathedral.webp",
+      "imageMd5": "a7a8b1751293f5b3ac7b65c15f6b1b64",
+      "model": "public/models/landmarks/cologne-cathedral.glb",
+      "modelSha256": "ab1c89c69379cf9eb58e732a67ad2ee840a33a9daece2ae86a94993c9b267517",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "cologne-cathedral",
+          "name": "Cologne Cathedral",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/colosseum",
+      "image": "public/previews/landmarks/colosseum.webp",
+      "imageMd5": "ee6e48455ba971c5f50cbadb90de6420",
+      "model": "public/models/landmarks/colosseum.glb",
+      "modelSha256": "f9f17d11a6aa1740da6aef1a056b4ecaf53d339b5ee07711e03eaed7bcd981bb",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "colosseum",
+          "name": "Colosseum",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/djenne-mosque",
+      "image": "public/previews/landmarks/djenne-mosque.webp",
+      "imageMd5": "00952eaacefa4f0c9b6e23b08c9f1093",
+      "model": "public/models/landmarks/djenne-mosque.glb",
+      "modelSha256": "cd5dc91468caa2c2e12001225c9c75028e9ef8616ca201be3c7016f8d1ce58ba",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "djenne-mosque",
+          "name": "Great Mosque of Djenné",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/edinburgh-castle",
+      "image": "public/previews/landmarks/edinburgh-castle.webp",
+      "imageMd5": "5b6661e90fd571c083d310752b9cd07b",
+      "model": "public/models/landmarks/edinburgh-castle.glb",
+      "modelSha256": "e78a40a2ccaec9f762030ed7c58648efba8fb24f5a6e9322d02b4bf1b9e12df0",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "edinburgh-castle",
+          "name": "Edinburgh Castle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/eiffel-tower",
+      "image": "public/previews/landmarks/eiffel-tower.webp",
+      "imageMd5": "cf5e2ce89fe480bcbfad07502a95ecb0",
+      "model": "public/models/landmarks/eiffel-tower.glb",
+      "modelSha256": "c35c0e6a14cf2de5aae57bdada702b2474b333f2214e34db31863a4e745d8030",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "eiffel-tower",
+          "name": "Eiffel Tower",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "eiffel-tower",
+          "name": "Eiffel Tower",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/empire-state-building",
+      "image": "public/previews/landmarks/empire-state-building.webp",
+      "imageMd5": "43f959ca469a5e843407fcd683471a4f",
+      "model": "public/models/landmarks/empire-state-building.glb",
+      "modelSha256": "bd04aab7648fe138aea10f5c48d5ee2e374fb2f27f1d0acecc445a93a4cb0e35",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "empire-state-building",
+          "name": "Empire State Building",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "empire-state-building",
+          "name": "Empire State Building",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/golden-gate-bridge",
+      "image": "public/previews/landmarks/golden-gate-bridge.webp",
+      "imageMd5": "9b20053c83c04d4918cb4d425bd21ba2",
+      "model": "public/models/landmarks/golden-gate-bridge.glb",
+      "modelSha256": "1e8b5f8ac30d04a88f0d3810bc9ad07eb886fd8bb067f9d5b35bb054fcc65b3c",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "golden-gate-bridge",
+          "name": "Golden Gate Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "golden-gate-bridge",
+          "name": "Golden Gate Bridge",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/great-pyramid-of-giza",
+      "image": "public/previews/landmarks/great-pyramid-of-giza.webp",
+      "imageMd5": "58f8e1b4c5a4f770a6d341b33af498db",
+      "model": "public/models/landmarks/great-pyramid-of-giza.glb",
+      "modelSha256": "c6497ecd96b5ab1f29bbc64eba2a8e71451354fec5a57f16edc7c985753e9205",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "great-pyramid-of-giza",
+          "name": "Great Pyramid of Giza",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/great-wall",
+      "image": "public/previews/landmarks/great-wall.webp",
+      "imageMd5": "7b3e073678a38c9bd021159f845bd8a7",
+      "model": "public/models/landmarks/great-wall.glb",
+      "modelSha256": "34084538763768a70e6850170514f2ce77d322e28cad392f89acdf8ae4c29b64",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "great-wall",
+          "name": "Great Wall of China",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/hagia-sophia",
+      "image": "public/previews/landmarks/hagia-sophia.webp",
+      "imageMd5": "6e2993a1d9cff3c94ea156bec9e649ac",
+      "model": "public/models/landmarks/hagia-sophia.glb",
+      "modelSha256": "bc28cdc4aee16d4afc14de542abc75cfa1dd84f7a1f41a84a8f4e00350dfdc20",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "hagia-sophia",
+          "name": "Hagia Sophia",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/hassan-ii-mosque",
+      "image": "public/previews/landmarks/hassan-ii-mosque.webp",
+      "imageMd5": "9c3c18ab891e6fb68226530394fc106c",
+      "model": "public/models/landmarks/hassan-ii-mosque.glb",
+      "modelSha256": "644c6d55306832e896dbaa899ad79fd7e007ca968cacc97691af3316c78a7a1c",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "hassan-ii-mosque",
+          "name": "Hassan II Mosque",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "hassan-ii-mosque",
+          "name": "Hassan II Mosque",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/himeji-castle",
+      "image": "public/previews/landmarks/himeji-castle.webp",
+      "imageMd5": "1f3722e9511833a950356967a483177a",
+      "model": "public/models/landmarks/himeji-castle.glb",
+      "modelSha256": "8b64947b611f4f58e0c85c94372aa60fe5e68eb2f98e0cf7b9e914be11005344",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "himeji-castle",
+          "name": "Himeji Castle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/leaning-tower-of-pisa",
+      "image": "public/previews/landmarks/leaning-tower-of-pisa.webp",
+      "imageMd5": "ee0a2792808400173db626c21b99f428",
+      "model": "public/models/landmarks/leaning-tower-of-pisa.glb",
+      "modelSha256": "30585d78fcc1dd16967053b6abbb641b795c64a84d5597b2bd1fb8544de01166",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "leaning-tower-of-pisa",
+          "name": "Leaning Tower of Pisa",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/machu-picchu",
+      "image": "public/previews/landmarks/machu-picchu.webp",
+      "imageMd5": "1443f17b4941ac15bef9f69dee2fe212",
+      "model": "public/models/landmarks/machu-picchu.glb",
+      "modelSha256": "e7fabd5a8c125eadb2851dbde74da16591644fddc443053dce4c6630f0323506",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "machu-picchu",
+          "name": "Machu Picchu",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/marina-bay-sands",
+      "image": "public/previews/landmarks/marina-bay-sands.webp",
+      "imageMd5": "e056a0157e10e755ac0b452c05890885",
+      "model": "public/models/landmarks/marina-bay-sands.glb",
+      "modelSha256": "d9f181a3e34f890bade176289fc7ed9f5b90551f5d592f8a07fc336d87758c9a",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "marina-bay-sands",
+          "name": "Marina Bay Sands",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "marina-bay-sands",
+          "name": "Marina Bay Sands",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/milan-cathedral",
+      "image": "public/previews/landmarks/milan-cathedral.webp",
+      "imageMd5": "2db560d28aeb672ad41a750a77de99e0",
+      "model": "public/models/landmarks/milan-cathedral.glb",
+      "modelSha256": "8b3cb79a57ba2bdd0ae3fc994cc3e4c832b5d6813e1ea31a0bfff18f2681764b",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "milan-cathedral",
+          "name": "Milan Cathedral",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/moai",
+      "image": "public/previews/landmarks/moai.webp",
+      "imageMd5": "bda6d8c10e6e5a6e1ba2efd40c26da6a",
+      "model": "public/models/landmarks/moai.glb",
+      "modelSha256": "a49b6835f8fa1212175613f361b44bbf71646e776e68157919ebba86bdb11578",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "moai",
+          "name": "Moai",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/mont-saint-michel",
+      "image": "public/previews/landmarks/mont-saint-michel.webp",
+      "imageMd5": "84ee3fd78503a864b3be11c5e9348845",
+      "model": "public/models/landmarks/mont-saint-michel.glb",
+      "modelSha256": "1b138e9b992eb2555d225062dbda412b244286a3c8cde5c535bea2e6d6edb5f2",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "mont-saint-michel",
+          "name": "Mont Saint-Michel",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/mount-rushmore",
+      "image": "public/previews/landmarks/mount-rushmore.webp",
+      "imageMd5": "78e7ad25e8cf44897f704667fdf79c61",
+      "model": "public/models/landmarks/mount-rushmore.glb",
+      "modelSha256": "f1da42b8763cf2fc2de772181e59ef8bc22d0b1d8bf091ef828ea509e18d3de1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "mount-rushmore",
+          "name": "Mount Rushmore",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/parthenon",
+      "image": "public/previews/landmarks/parthenon.webp",
+      "imageMd5": "004c4d67e39cc117c88b479c8f980603",
+      "model": "public/models/landmarks/parthenon.glb",
+      "modelSha256": "aaa6573952a454c9ba2a77d6c52301899bb01166b9544871ab1226c3c5cc30dc",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "parthenon",
+          "name": "Parthenon",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/petra",
+      "image": "public/previews/landmarks/petra.webp",
+      "imageMd5": "1ec0a28de70ac90fe745db597bc3bdca",
+      "model": "public/models/landmarks/petra.glb",
+      "modelSha256": "adae233b1969f67488d8af96516a46154acf5458af9b216575ac48af5910f553",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "petra",
+          "name": "Petra",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/petronas-towers",
+      "image": "public/previews/landmarks/petronas-towers.webp",
+      "imageMd5": "64905724097ebdb09b62da87a368dbc5",
+      "model": "public/models/landmarks/petronas-towers.glb",
+      "modelSha256": "7dd4562cb39b00df2fe1770410cabaa26af0c80d9bb2f7f1067cc3251f2b90a1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "petronas-towers",
+          "name": "Petronas Towers",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "petronas-towers",
+          "name": "Petronas Towers",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/prague-castle",
+      "image": "public/previews/landmarks/prague-castle.webp",
+      "imageMd5": "684126b1b67e8e5db3898b82814b0020",
+      "model": "public/models/landmarks/prague-castle.glb",
+      "modelSha256": "70ae5223e4cd3f3e39e51a2b03a0a577e3b2bb97903311131d7d0b9bee2ed581",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "prague-castle",
+          "name": "Prague Castle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/prambanan",
+      "image": "public/previews/landmarks/prambanan.webp",
+      "imageMd5": "20779104d518e591492bd423ceb1c2bb",
+      "model": "public/models/landmarks/prambanan.glb",
+      "modelSha256": "3d8f5907492ad078557cf172c800d9eadb812687f2de37eb5a088bc2938df153",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "prambanan",
+          "name": "Prambanan",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/sagrada-familia",
+      "image": "public/previews/landmarks/sagrada-familia.webp",
+      "imageMd5": "5c1b9ea613a0b4b2206d21f1fcac23e5",
+      "model": "public/models/landmarks/sagrada-familia.glb",
+      "modelSha256": "df465ce539636c0960fb395cfb98a6f5062b0ff5cda629a1bd045656fae2a87a",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sagrada-familia",
+          "name": "Sagrada Família",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/saint-basils-cathedral",
+      "image": "public/previews/landmarks/saint-basils-cathedral.webp",
+      "imageMd5": "e5bc6478692c5837286d00a4e051ea4a",
+      "model": "public/models/landmarks/saint-basils-cathedral.glb",
+      "modelSha256": "41ded1f86d4b7ff33552e671aedf757e707089aebc68e02173b693cf14a36706",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "saint-basils-cathedral",
+          "name": "Saint Basil's Cathedral",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/st-peters-basilica",
+      "image": "public/previews/landmarks/st-peters-basilica.webp",
+      "imageMd5": "25dc96caf025a119b12ece9dfb8e3b66",
+      "model": "public/models/landmarks/st-peters-basilica.glb",
+      "modelSha256": "de0d06fec9f86e15c26da35d7e4ab35cefae0b29c14c74b811f587d7efa6c545",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "st-peters-basilica",
+          "name": "St. Peter's Basilica",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/statue-of-liberty",
+      "image": "public/previews/landmarks/statue-of-liberty.webp",
+      "imageMd5": "ef50d5408af0e481656099e72192e02c",
+      "model": "public/models/landmarks/statue-of-liberty.glb",
+      "modelSha256": "ee81d1989bc1b06588a58fa6b5fa8781a1bdedfb1fdfd3e9c30c3b146f3ad34b",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "statue-of-liberty",
+          "name": "Statue of Liberty",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/stonehenge",
+      "image": "public/previews/landmarks/stonehenge.webp",
+      "imageMd5": "8c6f83c3257edae35fe218dbb1489f1e",
+      "model": "public/models/landmarks/stonehenge.glb",
+      "modelSha256": "c3f4d2d20c53dd453f8bcdc436c35b0171276be0b89b7e17ea4cfcf5d8624c37",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "stonehenge",
+          "name": "Stonehenge",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/sydney-harbour-bridge",
+      "image": "public/previews/landmarks/sydney-harbour-bridge.webp",
+      "imageMd5": "97feef928d811a85a8e9410f185edf10",
+      "model": "public/models/landmarks/sydney-harbour-bridge.glb",
+      "modelSha256": "0a1b0e165fc727d9ea22a62025c2f4fa1d15e8917aee16efcacb78e376bc9d91",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sydney-harbour-bridge",
+          "name": "Sydney Harbour Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "sydney-harbour-bridge",
+          "name": "Sydney Harbour Bridge",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/sydney-opera-house",
+      "image": "public/previews/landmarks/sydney-opera-house.webp",
+      "imageMd5": "d4fc5e3d67459176b7bbf8d6db04f95d",
+      "model": "public/models/landmarks/sydney-opera-house.glb",
+      "modelSha256": "fdf69a9211b5f8451aeeb673241cb4cf2cfb0f52c5072ee88000b6edab0f3bab",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sydney-opera-house",
+          "name": "Sydney Opera House",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "sydney-opera-house",
+          "name": "Sydney Opera House",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/taj-mahal",
+      "image": "public/previews/landmarks/taj-mahal.webp",
+      "imageMd5": "a2b4d2eee54de5e14e177e39d6b066bf",
+      "model": "public/models/landmarks/taj-mahal.glb",
+      "modelSha256": "ae422073c366eb52cff95fbe9b3f25e7664ee576930ceb3126e2431caafaf62d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "taj-mahal",
+          "name": "Taj Mahal",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/temple-of-heaven",
+      "image": "public/previews/landmarks/temple-of-heaven.webp",
+      "imageMd5": "c57bddbedf1d9cc8a0e1a1094969bab6",
+      "model": "public/models/landmarks/temple-of-heaven.glb",
+      "modelSha256": "660fee6db8aa68b51453d978b4ba2e1bfdd86b0cfb1982ec76d27bc339566d59",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "temple-of-heaven",
+          "name": "Temple of Heaven",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/tower-bridge",
+      "image": "public/previews/landmarks/tower-bridge.webp",
+      "imageMd5": "db10275756b0718dcad62d8bb8058274",
+      "model": "public/models/landmarks/tower-bridge.glb",
+      "modelSha256": "51bb731a0fd626b27855e48e89e7fd86cea8dea62cee45157e1c738f1e37153d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "tower-bridge",
+          "name": "Tower Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "tower-bridge",
+          "name": "Tower Bridge",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/trevi-fountain",
+      "image": "public/previews/landmarks/trevi-fountain.webp",
+      "imageMd5": "06481b1df9087b2a54c48766db6693c7",
+      "model": "public/models/landmarks/trevi-fountain.glb",
+      "modelSha256": "7db5dcef6239db3353f5dc0d4f582c05920cd997aad70490ab7c6d220013dd43",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "trevi-fountain",
+          "name": "Trevi Fountain",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "landmarks/uluru",
+      "image": "public/previews/landmarks/uluru.webp",
+      "imageMd5": "13fb3b5eedad0c2b8dc931c5f23915f5",
+      "model": "public/models/landmarks/uluru.glb",
+      "modelSha256": "60d7bf3044c0cce29104b0ee0cffbd015eff38ba38d28fda436444f60d7f6e22",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "uluru",
+          "name": "Uluru",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "leopard-seal",
+      "image": "public/previews/leopard-seal.webp",
+      "imageMd5": "6a735c9d0157ad71a213d7a5ca99dc9d",
+      "model": "public/models/leopard-seal.glb",
+      "modelSha256": "f79c7b1d5e1ccffe217ac61590cd44f9fc8cce75d80cc151d9f4f0e1f0739c46",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "leopard-seal",
+          "name": "Leopard Seal",
+          "latin": "Hydrurga leptonyx"
+        }
+      ]
+    },
+    {
+      "id": "lion",
+      "image": "public/previews/lion.webp",
+      "imageMd5": "1b0dcbe30f169bcad745ee60cbfc2ea2",
+      "model": "public/models/lion.glb",
+      "modelSha256": "c1490f3ed91576afe9c4de24824f4f9c6db9b067dea9edc2edce5bb73179952c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "lion",
+          "name": "Lion",
+          "latin": "Panthera leo"
+        }
+      ]
+    },
+    {
+      "id": "luna-moth",
+      "image": "public/previews/luna-moth.webp",
+      "imageMd5": "c50e2c801fdfa011e497d0d9bafd087a",
+      "model": "public/models/luna-moth.glb",
+      "modelSha256": "194655e1f442a372eb173aad3b5c7d94efd905df883a4341e2285875e9639398",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "luna-moth",
+          "name": "Luna Moth",
+          "latin": "Actias luna"
+        }
+      ]
+    },
+    {
+      "id": "megalodon",
+      "image": "public/previews/megalodon.webp",
+      "imageMd5": "eefdba3b41e4f655df8b7a115266da7e",
+      "model": "public/models/megalodon.glb",
+      "modelSha256": "da1b73f48f6dac6f145e85f26402c58b3ac5a9eb9bc7dda5ab2a078fc7c951e0",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "megalodon",
+          "name": "Megalodon",
+          "latin": "Otodus megalodon"
+        }
+      ]
+    },
+    {
+      "id": "monarch-butterfly",
+      "image": "public/previews/monarch-butterfly.webp",
+      "imageMd5": "8934433325edc6775eb7ee55edaea668",
+      "model": "public/models/monarch-butterfly.glb",
+      "modelSha256": "09df216231b793c5faf0d571d49a53af0809581205356f7768887b620243bf21",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "monarch-butterfly",
+          "name": "Monarch Butterfly",
+          "latin": "Danaus plexippus"
+        }
+      ]
+    },
+    {
+      "id": "moose",
+      "image": "public/previews/moose.webp",
+      "imageMd5": "509213d8cf19b6d8c3ac8303609b82c9",
+      "model": "public/models/moose.glb",
+      "modelSha256": "489b07697a171da06e4a5a93bd9099af2b7cb07527b6db8d51580b55dd01ab54",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "moose",
+          "name": "Moose",
+          "latin": "Alces alces"
+        }
+      ]
+    },
+    {
+      "id": "narwhal",
+      "image": "public/previews/narwhal.webp",
+      "imageMd5": "dd75b008d0d5fc7c362d926d015afea6",
+      "model": "public/models/narwhal.glb",
+      "modelSha256": "364541abaaaa0779f2cff4ad867ee86a00c191e0cd2db3866852d71c794c6160",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "narwhal",
+          "name": "Narwhal",
+          "latin": "Monodon monoceros"
+        }
+      ]
+    },
+    {
+      "id": "ocelot",
+      "image": "public/previews/ocelot.webp",
+      "imageMd5": "d5be1a97d7f143f3471388a32f1ef339",
+      "model": "public/models/ocelot.glb",
+      "modelSha256": "47b90cd1e71d151a38058064f6545e9fa7c01cccf8e28cc9e871e0af34381280",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "ocelot",
+          "name": "Ocelot",
+          "latin": "Leopardus pardalis"
+        }
+      ]
+    },
+    {
+      "id": "orca",
+      "image": "public/previews/orca.webp",
+      "imageMd5": "f8cfbbbfff4dea74ca649aab2b2fe9bf",
+      "model": "public/models/orca.glb",
+      "modelSha256": "1713a9282013a2628028356896431ca8a53ec35533705250cc22e905349d3e92",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "orca",
+          "name": "Orca",
+          "latin": "Orcinus orca"
+        }
+      ]
+    },
+    {
+      "id": "peregrine-falcon",
+      "image": "public/previews/peregrine-falcon.webp",
+      "imageMd5": "91d7e60691c14abddff722dee39ddf15",
+      "model": "public/models/peregrine-falcon.glb",
+      "modelSha256": "82ac85b138da77ba1328f8e793ea920e3ea534c97015e9e5ee1a9f6c591864d5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "peregrine-falcon",
+          "name": "Peregrine Falcon",
+          "latin": "Falco peregrinus"
+        }
+      ]
+    },
+    {
+      "id": "plains-zebra",
+      "image": "public/previews/plains-zebra.webp",
+      "imageMd5": "405503faf73c2a5bf893de9210a27c11",
+      "model": "public/models/plains-zebra.glb",
+      "modelSha256": "7e458106d713a2c38011403334630def297572f22c5154411eee4d14671d6554",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "plains-zebra",
+          "name": "Plains Zebra",
+          "latin": "Equus quagga"
+        }
+      ]
+    },
+    {
+      "id": "plants/bamboo",
+      "image": "public/previews/plants/bamboo.webp",
+      "imageMd5": "80e46f4ef663d89cd3e19e8ba4da59de",
+      "model": "public/models/plants/bamboo.glb",
+      "modelSha256": "84a6691051d64c100bae3c6c43a41ba42efc084e4a94d30718a7a1620bf5897a",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "bamboo",
+          "name": "Bamboo",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/banana",
+      "image": "public/previews/plants/banana.webp",
+      "imageMd5": "b7358dfd22cc863844cc04dc5f89eb6e",
+      "model": "public/models/plants/banana.glb",
+      "modelSha256": "d0c3bead32d5870ace10c2bc4c40bfb9e3e33921172afd7dce569d90255b4407",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "banana",
+          "name": "Banana",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/baobab",
+      "image": "public/previews/plants/baobab.webp",
+      "imageMd5": "408961cf96e384caab8e7a9c6d0e4a85",
+      "model": "public/models/plants/baobab.glb",
+      "modelSha256": "9b2a8370e5c76c2e98abeb6d374a72b681654e4f43c79f0a9ece1ca72508f744",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "baobab",
+          "name": "Baobab",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/cactus",
+      "image": "public/previews/plants/cactus.webp",
+      "imageMd5": "c8abb0a65705012f3155eac9b2566a6a",
+      "model": "public/models/plants/cactus.glb",
+      "modelSha256": "d3d25e4703cdea07c7d6594b5abe8f6dc6ea61710dae9a134bb2feaf1f954337",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "cactus",
+          "name": "Cactus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/cactus-pack",
+      "image": "public/previews/plants/cactus-pack.webp",
+      "imageMd5": "c8abb0a65705012f3155eac9b2566a6a",
+      "model": "public/models/plants/cactus-pack.glb",
+      "modelSha256": "d3d25e4703cdea07c7d6594b5abe8f6dc6ea61710dae9a134bb2feaf1f954337",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "cactus-pack",
+          "name": "Cactus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/coffee",
+      "image": "public/previews/plants/coffee.webp",
+      "imageMd5": "e28fc73794d86037b440a0b0f641640d",
+      "model": "public/models/plants/coffee.glb",
+      "modelSha256": "d2575e4a3f5a2c37e9da9390bffb8e7a8f867c86b06656f69088dba61c4ca9a4",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "coffee",
+          "name": "Coffee",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/fig-tree",
+      "image": "public/previews/plants/fig-tree.webp",
+      "imageMd5": "ea41a335f8f703bd2756cfa9240e2087",
+      "model": "public/models/plants/fig-tree.glb",
+      "modelSha256": "5be28f076c4ba41f4bfba3955b061a5ca02a30c4e7a88903d1eeb2ad2f6b8aaf",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "fig-tree",
+          "name": "Ficus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/gazebo",
+      "image": "public/previews/plants/gazebo.webp",
+      "imageMd5": "04f6c194cb21f8f34d9fa4d24c440b92",
+      "model": "public/models/plants/gazebo.glb",
+      "modelSha256": "9ea8ff09552156623ef8a4a16399a35cca77723e50fafb0c7371a94bde17f399",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "gazebo",
+          "name": "Gazebo",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/giant-sequoia",
+      "image": "public/previews/plants/giant-sequoia.webp",
+      "imageMd5": "25178fe77319fae7197d20d0740f520f",
+      "model": "public/models/plants/giant-sequoia.glb",
+      "modelSha256": "13bc71bf5d18c50f0cce2f47abb966e7989140ac5217c3b83852bf3960168aa3",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "giant-sequoia",
+          "name": "Giant Sequoia",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/ginkgo",
+      "image": "public/previews/plants/ginkgo.webp",
+      "imageMd5": "45e99f64ed7212720af054adf846b2aa",
+      "model": "public/models/plants/ginkgo.glb",
+      "modelSha256": "51543d1c5d8ab75043eed295ccc1658a1e5bc49537c6e847f0a34fc47d180e21",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "ginkgo",
+          "name": "Ginkgo",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/hollow-knight-33-34-moss-charger",
+      "image": "public/previews/plants/hollow-knight-33-34-moss-charger.webp",
+      "imageMd5": "f9642a1220a3be84938e64a4a7d69ff9",
+      "model": "public/models/plants/hollow-knight-33-34-moss-charger.glb",
+      "modelSha256": "6913a7009bd7942241e0fc52f7292fcaf53aba31cb098dd5efc2e8228e8bf09a",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "hollow-knight-33-34-moss-charger",
+          "name": "Hollow Knight",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/ivy",
+      "image": "public/previews/plants/ivy.webp",
+      "imageMd5": "5649aef5d904681039370579e7d52f91",
+      "model": "public/models/plants/ivy.glb",
+      "modelSha256": "2e3b5fcde2a590592b584bc20fb6b0612733861f1e05237f3bd574469de7b50d",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "ivy",
+          "name": "Ivy",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/kelp",
+      "image": "public/previews/plants/kelp.webp",
+      "imageMd5": "5888450b41ec5c7b5f7011ff56416a0c",
+      "model": "public/models/plants/kelp.glb",
+      "modelSha256": "73c61bf9300364757fbb433af45b6e10f48ceb3ef5353ae0311ba7403dcd7ee2",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "kelp",
+          "name": "Kelp",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/lavender",
+      "image": "public/previews/plants/lavender.webp",
+      "imageMd5": "a6614a430d08a5ec6e8591cfabac4f2f",
+      "model": "public/models/plants/lavender.glb",
+      "modelSha256": "9f0bed87aa0a2f0f07c215246a51d78f22165b4ae1790bdca0121bab98c46c63",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lavender",
+          "name": "Lavender",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/lily-of-the-valley",
+      "image": "public/previews/plants/lily-of-the-valley.webp",
+      "imageMd5": "3ae9f1792a5c70f61c8b96fbc4de4e40",
+      "model": "public/models/plants/lily-of-the-valley.glb",
+      "modelSha256": "31ce1fd9bd66e52757fc5c5a3f039929e95dc59d544a98b107cec0da8c638c23",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lily-of-the-valley",
+          "name": "Lily of the valley",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/lotus",
+      "image": "public/previews/plants/lotus.webp",
+      "imageMd5": "2029fa1b7ec4c9fba43322648465a2a6",
+      "model": "public/models/plants/lotus.glb",
+      "modelSha256": "b9a009de0bdbc9743fb78ebfc97aa03de0d9b8136185ae30da7a1568fe27de80",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lotus",
+          "name": "Lotus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/maple-tree",
+      "image": "public/previews/plants/maple-tree.webp",
+      "imageMd5": "971af456ec02c85b2fb5eea63933b534",
+      "model": "public/models/plants/maple-tree.glb",
+      "modelSha256": "92bdfcc6d98c11dc3c08263d4d0b60ecbe040bd94fbfdf84dfadeb3d0d9c6794",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "maple-tree",
+          "name": "Maple",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/mediterranean-metalurgy-ue5-gate-ornamen",
+      "image": "public/previews/plants/mediterranean-metalurgy-ue5-gate-ornamen.webp",
+      "imageMd5": "8941310a12f3ee4795e2e4adc1df9720",
+      "model": "public/models/plants/mediterranean-metalurgy-ue5-gate-ornamen.glb",
+      "modelSha256": "5fe7443684926ee886a17c158d232d2fdee6a6461a297de8999220859e1caf70",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "mediterranean-metalurgy-ue5-gate-ornamen",
+          "name": "Unreal Engine 5",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/oak",
+      "image": "public/previews/plants/oak.webp",
+      "imageMd5": "513aea4c4cc316cd61c8186d7f9b1dc0",
+      "model": "public/models/plants/oak.glb",
+      "modelSha256": "818eb837582c57e3f59d5f7b942a65d2d2a2a96016c99791db47dc2a395539e7",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "oak",
+          "name": "Oak",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/orchid",
+      "image": "public/previews/plants/orchid.webp",
+      "imageMd5": "288400fda5c5845aea9c728c546c5cf9",
+      "model": "public/models/plants/orchid.glb",
+      "modelSha256": "55aa9f5c5e213cb20025300989d7f5e6e294ebcc7ba52070156162fb2f69b91e",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "orchid",
+          "name": "Orchid",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/poppy-playtime-daisy-the-flower-updated",
+      "image": "public/previews/plants/poppy-playtime-daisy-the-flower-updated.webp",
+      "imageMd5": "d0e65090dc69acb3427bbb47541e34fb",
+      "model": "public/models/plants/poppy-playtime-daisy-the-flower-updated.glb",
+      "modelSha256": "4cad14da2b0f201fd55c035aa0575c841a2c954f7ee048dd747f0f8e005d0a23",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "poppy-playtime-daisy-the-flower-updated",
+          "name": "Poppy Playtime",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/saguaro",
+      "image": "public/previews/plants/saguaro.webp",
+      "imageMd5": "89680109f7f38202ca1ae4d8454bda0e",
+      "model": "public/models/plants/saguaro.glb",
+      "modelSha256": "dbd32fb7f64a871e91b0e478067d76c4a8fe5fb223c010dcaf984fbd4e601d4d",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "saguaro",
+          "name": "Saguaro",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/sunflower",
+      "image": "public/previews/plants/sunflower.webp",
+      "imageMd5": "ddcae4378472680512c15ace832b926c",
+      "model": "public/models/plants/sunflower.glb",
+      "modelSha256": "c45bfbbfc1e487e6e19970a6ae520335bb161b11fff5f1b05f1982d4231b52bb",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "sunflower",
+          "name": "Sunflower",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/tulip",
+      "image": "public/previews/plants/tulip.webp",
+      "imageMd5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "model": "public/models/plants/tulip.glb",
+      "modelSha256": "d9f66162c9571055b5102beefcf368140bea47c3e24f5aafdfd4e7dfca4be559",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "tulip",
+          "name": "Tulip",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/tulip-flower",
+      "image": "public/previews/plants/tulip-flower.webp",
+      "imageMd5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "model": "public/models/plants/tulip-flower.glb",
+      "modelSha256": "d9f66162c9571055b5102beefcf368140bea47c3e24f5aafdfd4e7dfca4be559",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "tulip-flower",
+          "name": "Tulip",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/venus-flytrap",
+      "image": "public/previews/plants/venus-flytrap.webp",
+      "imageMd5": "7eb2d7a0e8e5aa87856a7aa0713ed551",
+      "model": "public/models/plants/venus-flytrap.glb",
+      "modelSha256": "9c7ded5a20282b5837db7c22d6dfc9f90dba27529bad24b57467389aa4c3a27e",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "venus-flytrap",
+          "name": "Venus Flytrap",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "plants/wheat",
+      "image": "public/previews/plants/wheat.webp",
+      "imageMd5": "a8e5139636590fe8c593d6697a1fa710",
+      "model": "public/models/plants/wheat.glb",
+      "modelSha256": "583b2edfa4b7d08374d1407a1e85ddf9dae9992cf6e1cebddef2b3650fc823f6",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "wheat",
+          "name": "Wheat",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "poison-dart-frog",
+      "image": "public/previews/poison-dart-frog.webp",
+      "imageMd5": "9ba46b7c61e28b85cf7f1966a03db2c9",
+      "model": "public/models/poison-dart-frog.glb",
+      "modelSha256": "0fc7d1cda023b3a62ba00cf279b85797f4995a11631baad090b5b539b594e463",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "poison-dart-frog",
+          "name": "Poison Dart Frog",
+          "latin": "Dendrobatidae"
+        }
+      ]
+    },
+    {
+      "id": "polar-bear",
+      "image": "public/previews/polar-bear.webp",
+      "imageMd5": "47d1ab2dda003ba190991ec9ba31ba46",
+      "model": "public/models/polar-bear.glb",
+      "modelSha256": "0312464169061114e4cfa06ceb22018a759a8d554588dd063d2b426739aea153",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "polar-bear",
+          "name": "Polar Bear",
+          "latin": "Ursus maritimus"
+        }
+      ]
+    },
+    {
+      "id": "quagga",
+      "image": "public/previews/quagga.webp",
+      "imageMd5": "ab11159be6ef714fee7dcbe0df9ef383",
+      "model": "public/models/quagga.glb",
+      "modelSha256": "63ef8d571e7b238215280ec7fe58f409afe3977164565397ab30642235a33ed5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "quagga",
+          "name": "Quagga",
+          "latin": "Equus quagga quagga"
+        }
+      ]
+    },
+    {
+      "id": "saltwater-crocodile",
+      "image": "public/previews/saltwater-crocodile.webp",
+      "imageMd5": "e8ba6bd564bb5cab828e63848bad57f1",
+      "model": "public/models/saltwater-crocodile.glb",
+      "modelSha256": "5e25e4b76da8f6ddec4f163fce1cfc2bafcea804be8db76b2f096c90690fec2c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "saltwater-crocodile",
+          "name": "Saltwater Crocodile",
+          "latin": "Crocodylus porosus"
+        }
+      ]
+    },
+    {
+      "id": "scarlet-macaw",
+      "image": "public/previews/scarlet-macaw.webp",
+      "imageMd5": "ae9cf7eee5e345c4c53186ca26b083c5",
+      "model": "public/models/scarlet-macaw.glb",
+      "modelSha256": "e0ae70d4bfe4f8e4a48c330ec1e68b158d9390239ea63a14ec0f3dd3d1113df5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "scarlet-macaw",
+          "name": "Scarlet Macaw",
+          "latin": "Ara macao"
+        }
+      ]
+    },
+    {
+      "id": "serval",
+      "image": "public/previews/serval.webp",
+      "imageMd5": "bc14a9d4d2e5bf9a8814466729e1deb3",
+      "model": "public/models/serval.glb",
+      "modelSha256": "f4c6da12fd58665a8aed018f70332067bf98dedcbdcb1f2a6b9a2d1248efaeaa",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "serval",
+          "name": "Serval",
+          "latin": "Leptailurus serval"
+        }
+      ]
+    },
+    {
+      "id": "smilodon",
+      "image": "public/previews/smilodon.webp",
+      "imageMd5": "f957022fb5ee5d961992162886474f2e",
+      "model": "public/models/smilodon.glb",
+      "modelSha256": "73aa3cf42cf298f08f79743564c4564320f83e231df254f0611cb1e7098f48dd",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "smilodon",
+          "name": "Smilodon",
+          "latin": "Smilodon fatalis"
+        }
+      ]
+    },
+    {
+      "id": "snow-leopard",
+      "image": "public/previews/snow-leopard.webp",
+      "imageMd5": "eccc4225a6d8bd5fcc11c9711175deff",
+      "model": "public/models/snow-leopard.glb",
+      "modelSha256": "61b5d392bbeda670ca06a817ab9f957fc68c187ae0703984733c0011a6dc3048",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "snow-leopard",
+          "name": "Snow Leopard",
+          "latin": "Panthera uncia"
+        }
+      ]
+    },
+    {
+      "id": "snowy-owl",
+      "image": "public/previews/snowy-owl.webp",
+      "imageMd5": "8e25e997dbee2268d4a4453a675a1f51",
+      "model": "public/models/snowy-owl.glb",
+      "modelSha256": "aeb8b6b5acb0cfcc25841b7b35ec5c0dcdf391c3ce2f4a5db806ac1f64108009",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "snowy-owl",
+          "name": "Snowy Owl",
+          "latin": "Bubo scandiacus"
+        }
+      ]
+    },
+    {
+      "id": "space/advanced-composition-explorer",
+      "image": "public/previews/space/advanced-composition-explorer.webp",
+      "imageMd5": "3e0adc6aaf5be061b0529d4f3ccf5cd1",
+      "model": "public/models/space/advanced-composition-explorer.glb",
+      "modelSha256": "2d8fc3356656d115b99f0a20f49c2ba2eb61dc905dcd60966737d893f5a82130",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "advanced-composition-explorer",
+          "name": "Advanced Composition Explorer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/advanced-crew-escape-suit",
+      "image": "public/previews/space/advanced-crew-escape-suit.webp",
+      "imageMd5": "d74aed887f939d70cf664fb1117277f9",
+      "model": "public/models/space/advanced-crew-escape-suit.glb",
+      "modelSha256": "cde481ca5f2c968fda8312a2d063fb35d3eed054fac9293e65c84401c87e1bef",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "advanced-crew-escape-suit",
+          "name": "Advanced Crew Escape Suit",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/aeronomy-of-ice-in-the-mesosphere",
+      "image": "public/previews/space/aeronomy-of-ice-in-the-mesosphere.webp",
+      "imageMd5": "d46a1fb3644a57ad295b5166b8b9f1e9",
+      "model": "public/models/space/aeronomy-of-ice-in-the-mesosphere.glb",
+      "modelSha256": "cfc0bdfdc04d4ea2a646df4a671f360bb1bcc71663ccffe68e979994903ab4aa",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "aeronomy-of-ice-in-the-mesosphere",
+          "name": "Aeronomy of Ice in the Mesosphere",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/agena-target-vehicle",
+      "image": "public/previews/space/agena-target-vehicle.webp",
+      "imageMd5": "76f98d2ce5889d8f12c27a99fe0efe04",
+      "model": "public/models/space/agena-target-vehicle.glb",
+      "modelSha256": "5594bc86b4e71e4bda7505ec277d69eb3360407afcba88d276d180b6edcb065e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "agena-target-vehicle",
+          "name": "Agena target vehicle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/apollo-lunar-excursion-module",
+      "image": "public/previews/space/apollo-lunar-excursion-module.webp",
+      "imageMd5": "8c4f5b2c98162a9a072b1b927a1b0e7d",
+      "model": "public/models/space/apollo-lunar-excursion-module.glb",
+      "modelSha256": "ad24a244e52fad83c5b541085452b782448aef1056732adf297cd0adba8f54f0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "apollo-lunar-excursion-module",
+          "name": "Apollo Lunar Module",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/apollo-lunar-module",
+      "image": "public/previews/space/apollo-lunar-module.webp",
+      "imageMd5": "8c4f5b2c98162a9a072b1b927a1b0e7d",
+      "model": "public/models/space/apollo-lunar-module.glb",
+      "modelSha256": "ad24a244e52fad83c5b541085452b782448aef1056732adf297cd0adba8f54f0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "apollo-lunar-module",
+          "name": "Apollo Lunar Module",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/ares-1-b",
+      "image": "public/previews/space/ares-1-b.webp",
+      "imageMd5": "6cd475e0a597d0facc6e57ff97e84cee",
+      "model": "public/models/space/ares-1-b.glb",
+      "modelSha256": "9ae3794fa1010501d41dd28b4a4c1ec8f14367664483a7a44156e416a632656a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ares-1-b",
+          "name": "Ares I",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/argo",
+      "image": "public/previews/space/argo.webp",
+      "imageMd5": "224d511fecd26be002589821965b9b9b",
+      "model": "public/models/space/argo.glb",
+      "modelSha256": "a83aa314d47fbef723283b0336495d7ae8048d44accdb8c4b7aaa0b95b2c6f5e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "argo",
+          "name": "Argo",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/astronaut",
+      "image": "public/previews/space/astronaut.webp",
+      "imageMd5": "3c84fef926298ab47856668ecc6e8eb9",
+      "model": "public/models/space/astronaut.glb",
+      "modelSha256": "6749744032426b2e99ad2d8a7779f6f510ce609a75d2718189c72fd2b5619f02",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "astronaut",
+          "name": "Astronaut",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/base-station",
+      "image": "public/previews/space/base-station.webp",
+      "imageMd5": "caf31b80b28161863162af5897e1eb4e",
+      "model": "public/models/space/base-station.glb",
+      "modelSha256": "0496efce8a16bbeef74bfe57b6f2243f1fddb24e583c7d96754bb4d912f8c459",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "base-station",
+          "name": "Base station",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/black-hole",
+      "image": "public/previews/space/black-hole.webp",
+      "imageMd5": "af7f5c2b8ae3ac9e9b05082098c51880",
+      "model": "public/models/space/black-hole.glb",
+      "modelSha256": "fcf6096fda84dc1900dd85fcb3a8348a0c1031730c9748b9c48904f40d0bf9cb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "black-hole",
+          "name": "Black hole",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/black-hole-astroriah",
+      "image": "public/previews/space/black-hole-astroriah.webp",
+      "imageMd5": "f6c2a219acdbaf96be74ac5ef5bb54cb",
+      "model": "public/models/space/black-hole-astroriah.glb",
+      "modelSha256": "d01b025d70b40dfe10170df39f48cf9c13221ca0c829e31c4fe8f60709b52313",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "black-hole-astroriah",
+          "name": "Black hole",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/bp-tauri",
+      "image": "public/previews/space/bp-tauri.webp",
+      "imageMd5": "70dc951b4322c788afaf92680c206a1f",
+      "model": "public/models/space/bp-tauri.glb",
+      "modelSha256": "96e7f6e3aee19b5d075ada9979ad88e4eaad79288951b450e2c1b989247d3cc3",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "bp-tauri",
+          "name": "BP Tauri",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/callisto-moon",
+      "image": "public/previews/space/callisto-moon.webp",
+      "imageMd5": "696699356a1766a1a2e0e0be871e5765",
+      "model": "public/models/space/callisto-moon.glb",
+      "modelSha256": "53fb7ac3896438eb9e27cecb3cbe9057b88eb9bffa254d0cba07b74a601bde10",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "callisto-moon",
+          "name": "Callisto (moon)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/chandra-x-ray-observatory",
+      "image": "public/previews/space/chandra-x-ray-observatory.webp",
+      "imageMd5": "5f8a4fd6affdf5ec6a2b865a2f2e63c4",
+      "model": "public/models/space/chandra-x-ray-observatory.glb",
+      "modelSha256": "e312944866fda56d57343cf9f27bc636b0f0f16ca61af13070cc826171b9fffd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "chandra-x-ray-observatory",
+          "name": "Chandra X-ray Observatory",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/clementine",
+      "image": "public/previews/space/clementine.webp",
+      "imageMd5": "878ff092e4456f584a5dc741050e174a",
+      "model": "public/models/space/clementine.glb",
+      "modelSha256": "dbbd5b71b6f366b045a9ddddc7728635c11c588113e4bc2716d49a2678ae471f",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "clementine",
+          "name": "Clementine",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/cloudsat-a",
+      "image": "public/previews/space/cloudsat-a.webp",
+      "imageMd5": "ce7299b6fbed196474a0d1fe9e1a8cbb",
+      "model": "public/models/space/cloudsat-a.glb",
+      "modelSha256": "67207ee49753814c79bf33f4ff21d3b9480bedd7663d3a95427fef4e58ea30bf",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-a",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/cloudsat-b",
+      "image": "public/previews/space/cloudsat-b.webp",
+      "imageMd5": "bd7a2a6d0686706846111e8e77e9b270",
+      "model": "public/models/space/cloudsat-b.glb",
+      "modelSha256": "db466de7ddc5b74ab42c4824a999ea8e459b430e664fdf9bf292dfdf8e55b777",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-b",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/cloudsat-c",
+      "image": "public/previews/space/cloudsat-c.webp",
+      "imageMd5": "67df66289cefa8b1af3a18dd8b1a843a",
+      "model": "public/models/space/cloudsat-c.glb",
+      "modelSha256": "1daa29b00a56b063a2aac77221d679a35c216ce17538b59d77e5ed550c195790",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-c",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/curiosity-rover",
+      "image": "public/previews/space/curiosity-rover.webp",
+      "imageMd5": "f512ccd63ffeed8b8106aca0addc023a",
+      "model": "public/models/space/curiosity-rover.glb",
+      "modelSha256": "4cde15b8746c6f1bd3956d2bbf89e2cb44fbaf35ab8ad3d5a5b544cfc73f87d1",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "curiosity-rover",
+          "name": "Curiosity",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/curiosity-rover-msl",
+      "image": "public/previews/space/curiosity-rover-msl.webp",
+      "imageMd5": "10b4f9dc7d6a9de40c608d4e5350e15f",
+      "model": "public/models/space/curiosity-rover-msl.glb",
+      "modelSha256": "bc77b2411c5f503c1d3771f45727174aa2821e6c5b680cc8246d3029c7396dee",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "curiosity-rover-msl",
+          "name": "Curiosity (rover)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/cyclone-global-navigation-satellite-syst",
+      "image": "public/previews/space/cyclone-global-navigation-satellite-syst.webp",
+      "imageMd5": "7ad1b0014a603ee221f198e316cddbb1",
+      "model": "public/models/space/cyclone-global-navigation-satellite-syst.glb",
+      "modelSha256": "79cd25f0d29cf28bd9d3bf7c4902a9f99d7ae5709a4aa39e384d2393cfeb0a2d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cyclone-global-navigation-satellite-syst",
+          "name": "Cyclone Global Navigation Satellite System",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/deep-space-1",
+      "image": "public/previews/space/deep-space-1.webp",
+      "imageMd5": "ef9b96a15c814b30ebe351a08da0167b",
+      "model": "public/models/space/deep-space-1.glb",
+      "modelSha256": "9bbb51c696b31b32c8972ec5f52bc9ae726c1fb8469f65a8c029b3be391330a9",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "deep-space-1",
+          "name": "Deep Space 1",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/deep-space-climate-observatory-dscovr-tr",
+      "image": "public/previews/space/deep-space-climate-observatory-dscovr-tr.webp",
+      "imageMd5": "15560429f1000cb1a52b3be976bebe15",
+      "model": "public/models/space/deep-space-climate-observatory-dscovr-tr.glb",
+      "modelSha256": "8ea5f5a2f630778da460391139e193484c47749da03a49320660da80c72ce125",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "deep-space-climate-observatory-dscovr-tr",
+          "name": "Deep Space Climate Observatory",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/earth",
+      "image": "public/previews/space/earth.webp",
+      "imageMd5": "383087f076281c1ab9bfa25adbed74f6",
+      "model": "public/models/space/earth.glb",
+      "modelSha256": "b50d8e35cf9dcd92ae1c6fe9751f908fe1097cc8dfb732097b3141648482746e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "earth",
+          "name": "Earth",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/earth-observing-1-eo-1",
+      "image": "public/previews/space/earth-observing-1-eo-1.webp",
+      "imageMd5": "9cdc7b632807fd0162cb06cb7c29029a",
+      "model": "public/models/space/earth-observing-1-eo-1.glb",
+      "modelSha256": "35d9b385a5c6e511adde9d409278e00f90cd79ba7f4a44b31d75de0ae70ee280",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "earth-observing-1-eo-1",
+          "name": "Earth Observing-1",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/extravehicular-mobility-unit",
+      "image": "public/previews/space/extravehicular-mobility-unit.webp",
+      "imageMd5": "6b6729d7d14eeeb99e83d255ccb2fc1d",
+      "model": "public/models/space/extravehicular-mobility-unit.glb",
+      "modelSha256": "a697427a88238d54f36889d8af1c6060c8d8542e49d0f5c3cfe5d924f30cd23d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "extravehicular-mobility-unit",
+          "name": "Extravehicular Mobility Unit",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/far-ultraviolet-spectroscopic-explorer",
+      "image": "public/previews/space/far-ultraviolet-spectroscopic-explorer.webp",
+      "imageMd5": "dd37a2555c2d22676c8414e8dddd756c",
+      "model": "public/models/space/far-ultraviolet-spectroscopic-explorer.glb",
+      "modelSha256": "55d7d0a0c253b1c73ccd3ef0a8b8ea489d11c0e04f8faa0d8e589211132084cd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "far-ultraviolet-spectroscopic-explorer",
+          "name": "Far Ultraviolet Spectroscopic Explorer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/galaxy",
+      "image": "public/previews/space/galaxy.webp",
+      "imageMd5": "13567cb7eaa30272b975e9608cb08298",
+      "model": "public/models/space/galaxy.glb",
+      "modelSha256": "62d348c29cd28568c1dffc8f04c8320d46cf62025311ed2baff3407d70644ea4",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "galaxy",
+          "name": "Galaxy",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/ganymede-moon",
+      "image": "public/previews/space/ganymede-moon.webp",
+      "imageMd5": "a18475a3ce841b43e54ddfd84e2f6328",
+      "model": "public/models/space/ganymede-moon.glb",
+      "modelSha256": "db6a028a7564709114ba5ac30583fa7d2775b5474c29254003d78392977196d6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ganymede-moon",
+          "name": "Ganymede (moon)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/gemini-spacesuit",
+      "image": "public/previews/space/gemini-spacesuit.webp",
+      "imageMd5": "690a08d1f59e77efa3986e343c3c5726",
+      "model": "public/models/space/gemini-spacesuit.glb",
+      "modelSha256": "ad109f71fb23c964d78258b1cc8df448b142504b61aecfe5029675f1e9decbfb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "gemini-spacesuit",
+          "name": "Gemini spacesuit",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/gingerbread-man",
+      "image": "public/previews/space/gingerbread-man.webp",
+      "imageMd5": "c8471f358e1b6c28a1c97fe740ebfead",
+      "model": "public/models/space/gingerbread-man.glb",
+      "modelSha256": "fbefcc137ccefb45c8527c475880170316032ed79db0e6ecb17d1f64e7123fb6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "gingerbread-man",
+          "name": "Gingerbread man",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/hammer",
+      "image": "public/previews/space/hammer.webp",
+      "imageMd5": "6fd86ecef22be2a6a1a00f5434a48bc9",
+      "model": "public/models/space/hammer.glb",
+      "modelSha256": "ef59a9298f7e9ce182f81ca32c06ce818fda532c3ed79232158cce0b5461c405",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hammer",
+          "name": "Hammer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/helmet",
+      "image": "public/previews/space/helmet.webp",
+      "imageMd5": "a2c53f75ac040e998c055bb1e6ad32bc",
+      "model": "public/models/space/helmet.glb",
+      "modelSha256": "64aed10d9a34b14ef4650267aa3c82ecd89dd84060b2b0cb5639268e26d43a84",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "helmet",
+          "name": "Helmet",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/hubble",
+      "image": "public/previews/space/hubble.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/hubble-space-telescope",
+      "image": "public/previews/space/hubble-space-telescope.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble-space-telescope.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/hubble-space-telescope-a",
+      "image": "public/previews/space/hubble-space-telescope-a.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble-space-telescope-a.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope-a",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/hubble-space-telescope-b",
+      "image": "public/previews/space/hubble-space-telescope-b.webp",
+      "imageMd5": "bfffb26248089886dd9a0cdd8a2370e4",
+      "model": "public/models/space/hubble-space-telescope-b.glb",
+      "modelSha256": "95b70bacccd6a501f66e58d63e33c5ffeef4deba9b6156d7f509187c2074b46d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope-b",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/international-space-station-iss-b",
+      "image": "public/previews/space/international-space-station-iss-b.webp",
+      "imageMd5": "97c034dce0d7543811bf919b953ca89b",
+      "model": "public/models/space/international-space-station-iss-b.glb",
+      "modelSha256": "351a1bbc64c94f18c2735d2ca23db49a653c1cdf96b8bb95121533b95be43836",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-space-station-iss-b",
+          "name": "International Space Station",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/international-x-ray-observatory",
+      "image": "public/previews/space/international-x-ray-observatory.webp",
+      "imageMd5": "f23e5e698eb3edaf8a8064eaab6eec0c",
+      "model": "public/models/space/international-x-ray-observatory.glb",
+      "modelSha256": "a504267370d26d3fd5862ee074ca222767b6ee5d7dc9eebefde499e880ac84cc",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-x-ray-observatory",
+          "name": "International X-ray Observatory",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/interstellar-boundary-explorer-ibex",
+      "image": "public/previews/space/interstellar-boundary-explorer-ibex.webp",
+      "imageMd5": "dc7529c39c9ae10800d4d8665bc3650c",
+      "model": "public/models/space/interstellar-boundary-explorer-ibex.glb",
+      "modelSha256": "253d1ab7fbe700a9ca0400944600780957bdc973e93b861f5f499d9876c066b2",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "interstellar-boundary-explorer-ibex",
+          "name": "Interstellar Boundary Explorer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/james-webb-space-telescope",
+      "image": "public/previews/space/james-webb-space-telescope.webp",
+      "imageMd5": "80145611067512616bffb74e45f125e1",
+      "model": "public/models/space/james-webb-space-telescope.glb",
+      "modelSha256": "10147b596306f8ec2990d8528773ca04d26a5939891a843874a33dd1390e5463",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "james-webb-space-telescope",
+          "name": "James Webb Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/jupiter",
+      "image": "public/previews/space/jupiter.webp",
+      "imageMd5": "2ac2c08807a3e70aca230fc6a999a1c6",
+      "model": "public/models/space/jupiter.glb",
+      "modelSha256": "36edd4c936dd20ef9e6c2269acc66399866489b324eabc6696cc8e8bee6b614a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "jupiter",
+          "name": "Jupiter",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/landsat-7",
+      "image": "public/previews/space/landsat-7.webp",
+      "imageMd5": "dcec872bd7645411c55d0cd77f79e7c9",
+      "model": "public/models/space/landsat-7.glb",
+      "modelSha256": "653bac21943c1e00c585fd23183accac779d609f22268774b16d2719b853ff72",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "landsat-7",
+          "name": "Landsat 7",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/landsat-8",
+      "image": "public/previews/space/landsat-8.webp",
+      "imageMd5": "22c648db2a13a1810c2993fe3032b419",
+      "model": "public/models/space/landsat-8.glb",
+      "modelSha256": "cea55a00dd5cc1be6817636973044cbbc2051a3c0e799b923b7e5a6932b47f2d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "landsat-8",
+          "name": "Landsat 8",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/laser-interferometer-space-antenna-lisa",
+      "image": "public/previews/space/laser-interferometer-space-antenna-lisa.webp",
+      "imageMd5": "c9597b3225e9ac03de30d0905ed8348d",
+      "model": "public/models/space/laser-interferometer-space-antenna-lisa.glb",
+      "modelSha256": "4331ee0294fb16f4a368dbdf84807ea312349fe5edd8591a1cad2d9b30743a7f",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "laser-interferometer-space-antenna-lisa",
+          "name": "Laser Interferometer Space Antenna",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/lunar-atmosphere-and-dust-environment-ex",
+      "image": "public/previews/space/lunar-atmosphere-and-dust-environment-ex.webp",
+      "imageMd5": "1469ecdc28cb680f427fa618b1b43813",
+      "model": "public/models/space/lunar-atmosphere-and-dust-environment-ex.glb",
+      "modelSha256": "60665167a6fe3350af101acfad5300b85a446700c3d1d833c6d6021ca25cd46e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "lunar-atmosphere-and-dust-environment-ex",
+          "name": "LADEE",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/lunar-reconnaissance-orbiter-a",
+      "image": "public/previews/space/lunar-reconnaissance-orbiter-a.webp",
+      "imageMd5": "2476d6a4e5c6ce65ad04857fb6cb4b44",
+      "model": "public/models/space/lunar-reconnaissance-orbiter-a.glb",
+      "modelSha256": "088aa7c0f15345f3145b46e271bf2fe6f969b4d38369113b6dc8a10ba920fd74",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "lunar-reconnaissance-orbiter-a",
+          "name": "Lunar Reconnaissance Orbiter",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars",
+      "image": "public/previews/space/mars.webp",
+      "imageMd5": "f2fcac170c0cfdd41038f1452bdf1071",
+      "model": "public/models/space/mars.glb",
+      "modelSha256": "594a4b9d733b59af9d3e998238ba6787ad38a93d392725fa0a02e440e7af92bb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars",
+          "name": "Mars",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars-atmosphere-and-volatile-evolution-m",
+      "image": "public/previews/space/mars-atmosphere-and-volatile-evolution-m.webp",
+      "imageMd5": "af45a31d74f6d5f445562a5922cceeb4",
+      "model": "public/models/space/mars-atmosphere-and-volatile-evolution-m.glb",
+      "modelSha256": "58ad1be887021015d10eb6eafbbb789c7a4e23eba6a677905422ad08abe79da6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-atmosphere-and-volatile-evolution-m",
+          "name": "MAVEN",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars-global-surveyor",
+      "image": "public/previews/space/mars-global-surveyor.webp",
+      "imageMd5": "80a808088f2aefadc781a3d515633227",
+      "model": "public/models/space/mars-global-surveyor.glb",
+      "modelSha256": "c53b60e9afd521ada722784868153b5f13e89f2814b36eb017eaab10d1cec412",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-global-surveyor",
+          "name": "Mars Global Surveyor",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars-reconnaissance-orbiter-mro-a",
+      "image": "public/previews/space/mars-reconnaissance-orbiter-mro-a.webp",
+      "imageMd5": "f0d09bb9e1676a647ea2ce306f3a45c5",
+      "model": "public/models/space/mars-reconnaissance-orbiter-mro-a.glb",
+      "modelSha256": "3db683dad23b8c84053c14cfa1eee5675ecf46480b360ecc1d9572edcc82267d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-reconnaissance-orbiter-mro-a",
+          "name": "Mars Reconnaissance Orbiter",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars-reconnaissance-orbiter-mro-c",
+      "image": "public/previews/space/mars-reconnaissance-orbiter-mro-c.webp",
+      "imageMd5": "5dd2832a77eee4571ef542d10d663832",
+      "model": "public/models/space/mars-reconnaissance-orbiter-mro-c.glb",
+      "modelSha256": "109b08d08f7639106563f43df4a44ec1b44290a4200fd24b1f0df1640d2c5cd8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-reconnaissance-orbiter-mro-c",
+          "name": "Mars Reconnaissance Orbiter",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mars-rover",
+      "image": "public/previews/space/mars-rover.webp",
+      "imageMd5": "ab872761a6dbb8ce7db3c15a3cef0049",
+      "model": "public/models/space/mars-rover.glb",
+      "modelSha256": "6dfd16466beb5c61ecfafc6898e326cc3b24fb088e3ae7d9023bcda0fbf8eded",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-rover",
+          "name": "Mars rover",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mercury",
+      "image": "public/previews/space/mercury.webp",
+      "imageMd5": "8002d9a3bafb9203db2818b4f7e559be",
+      "model": "public/models/space/mercury.glb",
+      "modelSha256": "f15ccd39e8b77904e7d0daa80d2a2bb1f06ba9e51de14aa1459a001c5096f571",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury",
+          "name": "Mercury",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mercury-planet",
+      "image": "public/previews/space/mercury-planet.webp",
+      "imageMd5": "871666ee26d67f03dcf746414c02a161",
+      "model": "public/models/space/mercury-planet.glb",
+      "modelSha256": "fc98663e3775d7c94592f82c7c5ebc5680d9ab722056ef608c43310ac581515c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-planet",
+          "name": "Mercury (planet)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mercury-planet-brass-stylised",
+      "image": "public/previews/space/mercury-planet-brass-stylised.webp",
+      "imageMd5": "871666ee26d67f03dcf746414c02a161",
+      "model": "public/models/space/mercury-planet-brass-stylised.glb",
+      "modelSha256": "fc98663e3775d7c94592f82c7c5ebc5680d9ab722056ef608c43310ac581515c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-planet-brass-stylised",
+          "name": "Mercury (planet)",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mercury-spacesuit",
+      "image": "public/previews/space/mercury-spacesuit.webp",
+      "imageMd5": "4ff006b4fdc528d62266047855744e66",
+      "model": "public/models/space/mercury-spacesuit.glb",
+      "modelSha256": "b90a4f083874f4e9fe17dab0506fd049ed4d57bc7ea42a5e33b8f80c6a09cd76",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-spacesuit",
+          "name": "Mercury spacesuit",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/meteorite",
+      "image": "public/previews/space/meteorite.webp",
+      "imageMd5": "27e5ef9fd4f46c2c29766318811a458e",
+      "model": "public/models/space/meteorite.glb",
+      "modelSha256": "e1a6b02bc84e2a326357af2a7d28ceede06bf8e4014f783c4d43e94efc5d72b5",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "meteorite",
+          "name": "Meteorite",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/meteorites",
+      "image": "public/previews/space/meteorites.webp",
+      "imageMd5": "27e5ef9fd4f46c2c29766318811a458e",
+      "model": "public/models/space/meteorites.glb",
+      "modelSha256": "e1a6b02bc84e2a326357af2a7d28ceede06bf8e4014f783c4d43e94efc5d72b5",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "meteorites",
+          "name": "Meteorite",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/mir",
+      "image": "public/previews/space/mir.webp",
+      "imageMd5": "ea27ad84e9939256313bedb3bc4c39d3",
+      "model": "public/models/space/mir.glb",
+      "modelSha256": "f5f7ee13631f69370af29b6ccac41309789556cbb079e80d769c8d2eab19bef3",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mir",
+          "name": "Mir",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/moon",
+      "image": "public/previews/space/moon.webp",
+      "imageMd5": "8002d9a3bafb9203db2818b4f7e559be",
+      "model": "public/models/space/moon.glb",
+      "modelSha256": "de86e8723e998bac53b16cf497b1014440c84de0cd7be29cf9e7274ec817160e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "moon",
+          "name": "Moon",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/nancy-grace-roman-space-telescope-a",
+      "image": "public/previews/space/nancy-grace-roman-space-telescope-a.webp",
+      "imageMd5": "07bff8cf67d219bce4d8502ccf544ce6",
+      "model": "public/models/space/nancy-grace-roman-space-telescope-a.glb",
+      "modelSha256": "9a58d97d1dc8fb8ea7b7b774bdef3c75b15ce6a2b89538405f93a0245085c39b",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "nancy-grace-roman-space-telescope-a",
+          "name": "Nancy Grace Roman Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/nancy-grace-roman-space-telescope-b",
+      "image": "public/previews/space/nancy-grace-roman-space-telescope-b.webp",
+      "imageMd5": "8684d3c52794fb14d1c261f594da80b8",
+      "model": "public/models/space/nancy-grace-roman-space-telescope-b.glb",
+      "modelSha256": "bcdb6b74c974c397c003a643fa6fd3669cd249d62ef04f14e9df3f273f26ffcd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "nancy-grace-roman-space-telescope-b",
+          "name": "Nancy Grace Roman Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/near-shoemaker",
+      "image": "public/previews/space/near-shoemaker.webp",
+      "imageMd5": "715ead5ae8fcc980a75d51b03ef9a632",
+      "model": "public/models/space/near-shoemaker.glb",
+      "modelSha256": "47f02b52932642f43562d1944867fb03d650d78046964d2822cb02e17dfc1e87",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "near-shoemaker",
+          "name": "NEAR Shoemaker",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/neptune",
+      "image": "public/previews/space/neptune.webp",
+      "imageMd5": "6b3c1ab79bfefe836423119baaed60a4",
+      "model": "public/models/space/neptune.glb",
+      "modelSha256": "34334859bfd990aef12f641479dd022e37617f0e45be1e2474cb925f770eed22",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "neptune",
+          "name": "Neptune",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/neptune-v2",
+      "image": "public/previews/space/neptune-v2.webp",
+      "imageMd5": "6b3c1ab79bfefe836423119baaed60a4",
+      "model": "public/models/space/neptune-v2.glb",
+      "modelSha256": "34334859bfd990aef12f641479dd022e37617f0e45be1e2474cb925f770eed22",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "neptune-v2",
+          "name": "Neptune",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/ocean-surface-topography-mission-ostm-ja",
+      "image": "public/previews/space/ocean-surface-topography-mission-ostm-ja.webp",
+      "imageMd5": "fa18a5f9cc6fc26640f3f5e58bee8246",
+      "model": "public/models/space/ocean-surface-topography-mission-ostm-ja.glb",
+      "modelSha256": "8ac9347769325d345601ad1fb8c31ed5378301d047ac1a63101326b16fbdac4c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ocean-surface-topography-mission-ostm-ja",
+          "name": "OSTM/Jason-2",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/parker-solar-probe",
+      "image": "public/previews/space/parker-solar-probe.webp",
+      "imageMd5": "69d259d48b57d83d223937011cc22a2f",
+      "model": "public/models/space/parker-solar-probe.glb",
+      "modelSha256": "cf63419d097a2b0d1df88d764a1a3174115357f2f1f287293ec4bf55ef18d5db",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "parker-solar-probe",
+          "name": "Parker Solar Probe",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/parker-solar-probe-suns-kisser",
+      "image": "public/previews/space/parker-solar-probe-suns-kisser.webp",
+      "imageMd5": "b91d90809fb1faab8b0cdd9d0cde415e",
+      "model": "public/models/space/parker-solar-probe-suns-kisser.glb",
+      "modelSha256": "708f6b7046a2c89ff7289ac1424d0e132b3970204803a00d9ce77f10b204df7e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "parker-solar-probe-suns-kisser",
+          "name": "Parker Solar Probe",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planet-earth",
+      "image": "public/previews/space/planet-earth.webp",
+      "imageMd5": "383087f076281c1ab9bfa25adbed74f6",
+      "model": "public/models/space/planet-earth.glb",
+      "modelSha256": "b50d8e35cf9dcd92ae1c6fe9751f908fe1097cc8dfb732097b3141648482746e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-earth",
+          "name": "Earth",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planet-earth-alt-drag-to-change-lighting",
+      "image": "public/previews/space/planet-earth-alt-drag-to-change-lighting.webp",
+      "imageMd5": "383087f076281c1ab9bfa25adbed74f6",
+      "model": "public/models/space/planet-earth-alt-drag-to-change-lighting.glb",
+      "modelSha256": "b50d8e35cf9dcd92ae1c6fe9751f908fe1097cc8dfb732097b3141648482746e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-earth-alt-drag-to-change-lighting",
+          "name": "Earth",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planet-neptune",
+      "image": "public/previews/space/planet-neptune.webp",
+      "imageMd5": "6b3c1ab79bfefe836423119baaed60a4",
+      "model": "public/models/space/planet-neptune.glb",
+      "modelSha256": "34334859bfd990aef12f641479dd022e37617f0e45be1e2474cb925f770eed22",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-neptune",
+          "name": "Neptune",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planet-nine",
+      "image": "public/previews/space/planet-nine.webp",
+      "imageMd5": "3c47a687af07f7b88319d2ea57bb9fa8",
+      "model": "public/models/space/planet-nine.glb",
+      "modelSha256": "749b076a66e453944f1798b2347e4bd1b823fb1bc2005cb0259d72e97736dff6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-nine",
+          "name": "Planet Nine",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planet-saturn",
+      "image": "public/previews/space/planet-saturn.webp",
+      "imageMd5": "069e010cbc779e4ecb9b419ec25bc3a2",
+      "model": "public/models/space/planet-saturn.glb",
+      "modelSha256": "deedc2b8489abc30c59fc5bbb8192ac3b14d3bc619e965c42539ac270ae8d067",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-saturn",
+          "name": "Saturn",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/planetary-nebula",
+      "image": "public/previews/space/planetary-nebula.webp",
+      "imageMd5": "cc5c2a2d9eb28b6974481038f4602de2",
+      "model": "public/models/space/planetary-nebula.glb",
+      "modelSha256": "fac7708c6713a1e8ac66e2980771195cd7024f8a2ff55c390a699f00c6e075f6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planetary-nebula",
+          "name": "Planetary nebula",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/quick-scatterometer-quikscat",
+      "image": "public/previews/space/quick-scatterometer-quikscat.webp",
+      "imageMd5": "8838c24151d0d278c10524f377a42728",
+      "model": "public/models/space/quick-scatterometer-quikscat.glb",
+      "modelSha256": "edfdfc57b674c9cf61e8019ffb8cad626a4833d5b13695597f76b22f0e3a30a1",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "quick-scatterometer-quikscat",
+          "name": "QuikSCAT",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/radome",
+      "image": "public/previews/space/radome.webp",
+      "imageMd5": "06374855d41ffa99bc373273570f44c9",
+      "model": "public/models/space/radome.glb",
+      "modelSha256": "73f00d651e0670565a3523e12214e3e0ae97cde1947b6063fa9b7753bfb89cb8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "radome",
+          "name": "Radome",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/robonaut-2",
+      "image": "public/previews/space/robonaut-2.webp",
+      "imageMd5": "1d064d32d0ce6578a285b4214897652e",
+      "model": "public/models/space/robonaut-2.glb",
+      "modelSha256": "ee8db60266ab1e7b16bce94d1302b5fe38515d254e75aef8d70e001efada7894",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "robonaut-2",
+          "name": "Robonaut",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/rocket-engine",
+      "image": "public/previews/space/rocket-engine.webp",
+      "imageMd5": "b1824a096aee3b61b3cb69cae07045c5",
+      "model": "public/models/space/rocket-engine.glb",
+      "modelSha256": "1dbad30948aceabcc556b3a31ffc8c344f56229b829f2a2b3744da1e3d9584d7",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "rocket-engine",
+          "name": "Rocket engine",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/rosetta",
+      "image": "public/previews/space/rosetta.webp",
+      "imageMd5": "0b8437c34582532d5e213b9d5eb1a3ed",
+      "model": "public/models/space/rosetta.glb",
+      "modelSha256": "2a7ca68a125cba2da4b897ec6c2b74072852861966088286ffb3df1ac7fcc072",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "rosetta",
+          "name": "Rosetta",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/rs-2200",
+      "image": "public/previews/space/rs-2200.webp",
+      "imageMd5": "d6f6ec4e3b8cac5e3aca732a96a944c8",
+      "model": "public/models/space/rs-2200.glb",
+      "modelSha256": "f0df1b991697a5c899728bbb2c492fa998fd15af67660d2aab9242030ee1a7cf",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "rs-2200",
+          "name": "RS-2200",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/saturn",
+      "image": "public/previews/space/saturn.webp",
+      "imageMd5": "069e010cbc779e4ecb9b419ec25bc3a2",
+      "model": "public/models/space/saturn.glb",
+      "modelSha256": "deedc2b8489abc30c59fc5bbb8192ac3b14d3bc619e965c42539ac270ae8d067",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "saturn",
+          "name": "Saturn",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/saturn-v",
+      "image": "public/previews/space/saturn-v.webp",
+      "imageMd5": "9592fdc028c5fb9b03522aa338fb11da",
+      "model": "public/models/space/saturn-v.glb",
+      "modelSha256": "d1331fa344f1385da68a1c658ebd3f5cab1ac97d5bcdc26915259774781ad35d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "saturn-v",
+          "name": "Saturn V",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/skylab",
+      "image": "public/previews/space/skylab.webp",
+      "imageMd5": "e8013275166e1f040994f10f7c61c3f5",
+      "model": "public/models/space/skylab.glb",
+      "modelSha256": "0d56f1f401edeff1f7a58472a0968980aabcdb844b08d6dd74603ce3ef9e23a0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "skylab",
+          "name": "Skylab",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/solar-and-heliospheric-observatory",
+      "image": "public/previews/space/solar-and-heliospheric-observatory.webp",
+      "imageMd5": "524863ccb9af923dd4b53377244ebe25",
+      "model": "public/models/space/solar-and-heliospheric-observatory.glb",
+      "modelSha256": "905f635174bd888c149f859d0b53dff413b12c6b320b638768cacd7ac6c70253",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "solar-and-heliospheric-observatory",
+          "name": "Solar and Heliospheric Observatory",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/solar-dynamics-observatory",
+      "image": "public/previews/space/solar-dynamics-observatory.webp",
+      "imageMd5": "ee087728c1bda7b807f3e4af639099ac",
+      "model": "public/models/space/solar-dynamics-observatory.glb",
+      "modelSha256": "6880fa7ff017796a3988cd1120e417a6ed90441a4835c0bba348e07c56f8abc8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "solar-dynamics-observatory",
+          "name": "Solar Dynamics Observatory",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/solar-radiation-and-climate-experiment-s",
+      "image": "public/previews/space/solar-radiation-and-climate-experiment-s.webp",
+      "imageMd5": "94c6a4105104bf6bc46d7778a72e7f35",
+      "model": "public/models/space/solar-radiation-and-climate-experiment-s.glb",
+      "modelSha256": "2b084ed1f8cecf63c30054dc319be73ce7ba17693b3a42c569565cf2e6e9cbba",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "solar-radiation-and-climate-experiment-s",
+          "name": "Solar Radiation and Climate Experiment",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/solar-system",
+      "image": "public/previews/space/solar-system.webp",
+      "imageMd5": "ebf61c10eeb969e5ed058667da1b6d6f",
+      "model": "public/models/space/solar-system.glb",
+      "modelSha256": "750f3809bd48dcd8afa9238380b60fe923dfe1d8d1de3563c35aae67e896d3b4",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "solar-system",
+          "name": "Solar System",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/solar-terrestrial-relations-observatory",
+      "image": "public/previews/space/solar-terrestrial-relations-observatory.webp",
+      "imageMd5": "0dc737814df3792ed46ec81692bacd4d",
+      "model": "public/models/space/solar-terrestrial-relations-observatory.glb",
+      "modelSha256": "0af75ccb8d5deeb76a83d354562ba9899b9cc611600808300883220dca2deac2",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "solar-terrestrial-relations-observatory",
+          "name": "STEREO",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-shuttle-c",
+      "image": "public/previews/space/space-shuttle-c.webp",
+      "imageMd5": "76266bd0dee4283f62a19f72c8849015",
+      "model": "public/models/space/space-shuttle-c.glb",
+      "modelSha256": "9af8cd0810c970ee58e47e5af0f8286a7fc777849614349bf1766c3069d0c08e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-shuttle-c",
+          "name": "Space Shuttle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-shuttle-challenger",
+      "image": "public/previews/space/space-shuttle-challenger.webp",
+      "imageMd5": "f53add46be666f531df6b99c51fe6501",
+      "model": "public/models/space/space-shuttle-challenger.glb",
+      "modelSha256": "ec0a6370a8a54d5e4a2c289fe3154fbe16da069b304c704cdb82626b6f1c8226",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-shuttle-challenger",
+          "name": "Space Shuttle Challenger",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-shuttle-d",
+      "image": "public/previews/space/space-shuttle-d.webp",
+      "imageMd5": "229bb3736bbc4f095f590a584dc3a45b",
+      "model": "public/models/space/space-shuttle-d.glb",
+      "modelSha256": "cedcfa6fdcee8b713ef8877f822d36ba9c29646c13838d50a473c97b157286bb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-shuttle-d",
+          "name": "Space Shuttle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-shuttle-discovery",
+      "image": "public/previews/space/space-shuttle-discovery.webp",
+      "imageMd5": "76266bd0dee4283f62a19f72c8849015",
+      "model": "public/models/space/space-shuttle-discovery.glb",
+      "modelSha256": "9af8cd0810c970ee58e47e5af0f8286a7fc777849614349bf1766c3069d0c08e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-shuttle-discovery",
+          "name": "Space Shuttle Discovery",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-station",
+      "image": "public/previews/space/space-station.webp",
+      "imageMd5": "0ef6398955033a87d5546f9f5e1d7695",
+      "model": "public/models/space/space-station.glb",
+      "modelSha256": "906fd66343d6e1a96acca5090e1e7b904d6fbf88dae25f2508369fe1b684341c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-station",
+          "name": "Space station",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/space-suit",
+      "image": "public/previews/space/space-suit.webp",
+      "imageMd5": "a914588dc20327051acfaffbd86dfebf",
+      "model": "public/models/space/space-suit.glb",
+      "modelSha256": "f04115ea22a72244c99515e5d843ec4878985acd795068cb0019430e6262ef32",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "space-suit",
+          "name": "Space suit",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/spitzer-space-telescope",
+      "image": "public/previews/space/spitzer-space-telescope.webp",
+      "imageMd5": "60eec384c3f7b265406fc0b338bc0b28",
+      "model": "public/models/space/spitzer-space-telescope.glb",
+      "modelSha256": "90e36a247257399a8075fb08645823dd8102797b3cba9047b9784e3f49a15163",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "spitzer-space-telescope",
+          "name": "Spitzer Space Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/submillimeter-wave-astronomy-satellite-s",
+      "image": "public/previews/space/submillimeter-wave-astronomy-satellite-s.webp",
+      "imageMd5": "138e0f31936b719b325afbb57c0ff4c8",
+      "model": "public/models/space/submillimeter-wave-astronomy-satellite-s.glb",
+      "modelSha256": "0d00620f4e9e573c5707fb8a79f58a31324321717d078265c0b994f93ba5cfad",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "submillimeter-wave-astronomy-satellite-s",
+          "name": "Submillimeter Wave Astronomy Satellite",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/sun",
+      "image": "public/previews/space/sun.webp",
+      "imageMd5": "b1d42bdd58eb6c0c341961ff74497931",
+      "model": "public/models/space/sun.glb",
+      "modelSha256": "fc7e8da6c1f8fe0b7f2877a0de69fe6ef9615b4d77e6306ff0b1777412b7f63f",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "sun",
+          "name": "Sun",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/telescope",
+      "image": "public/previews/space/telescope.webp",
+      "imageMd5": "7f6d5e19e7f4b926b565524757e8cdde",
+      "model": "public/models/space/telescope.glb",
+      "modelSha256": "41643abf4bde00ea7289a6c25fc33ced5dff02c502a0a6e55b3296fe509e8a15",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "telescope",
+          "name": "Telescope",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/titan",
+      "image": "public/previews/space/titan.webp",
+      "imageMd5": "4fc4ee4643e0b0dd1b57bef0bc31705d",
+      "model": "public/models/space/titan.glb",
+      "modelSha256": "31f49b048ae001b5f6042b75d414b05ba76cb313296b6e2bbd682f37c1461adf",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "titan",
+          "name": "Titan",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/total-ozone-mapping-spectrometer-toms",
+      "image": "public/previews/space/total-ozone-mapping-spectrometer-toms.webp",
+      "imageMd5": "485995d8a2ae611067170320ee1cdfa0",
+      "model": "public/models/space/total-ozone-mapping-spectrometer-toms.glb",
+      "modelSha256": "15a2a38b45e932d131876624f045280a6d23589931b2370ed9ea4bbbb07a14fc",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "total-ozone-mapping-spectrometer-toms",
+          "name": "Total Ozone Mapping Spectrometer",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/transiting-exoplanet-survey-satellite-te",
+      "image": "public/previews/space/transiting-exoplanet-survey-satellite-te.webp",
+      "imageMd5": "10f3fcc6db4b50e93e80fa2cf17e3fc2",
+      "model": "public/models/space/transiting-exoplanet-survey-satellite-te.glb",
+      "modelSha256": "3896d66b7bd55f4bd801a766f798e0f574b611eaaf807e1770a9842ab17ee9c8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "transiting-exoplanet-survey-satellite-te",
+          "name": "Transiting Exoplanet Survey Satellite",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/tropical-rainfall-measuring-mission-trmm",
+      "image": "public/previews/space/tropical-rainfall-measuring-mission-trmm.webp",
+      "imageMd5": "70a33226b2020a32c1eb78c7ae4952ca",
+      "model": "public/models/space/tropical-rainfall-measuring-mission-trmm.glb",
+      "modelSha256": "be4e1ab9a64c51f772285b81cf289400b990cf0e16877f2ccec8ca1620b723a6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "tropical-rainfall-measuring-mission-trmm",
+          "name": "Tropical Rainfall Measuring Mission",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/umbriel",
+      "image": "public/previews/space/umbriel.webp",
+      "imageMd5": "16474119169a6bfa87ec2c06b12759eb",
+      "model": "public/models/space/umbriel.glb",
+      "modelSha256": "f758ab9d3059158658066e728ffb8776b45910b3ed0cc065ad9183cb0aabeca6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "umbriel",
+          "name": "Umbriel",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/uranus",
+      "image": "public/previews/space/uranus.webp",
+      "imageMd5": "741aa5f9fc36d698f3ef3794b74f13fc",
+      "model": "public/models/space/uranus.glb",
+      "modelSha256": "3e2ce960792ca8f5ba8229c24f255fdc9ace099807125880a85bc56bc4236734",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "uranus",
+          "name": "Uranus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/van-allen-probes",
+      "image": "public/previews/space/van-allen-probes.webp",
+      "imageMd5": "a857f0708009514ad42e4fe75fbc0140",
+      "model": "public/models/space/van-allen-probes.glb",
+      "modelSha256": "0c23e92995520db66445ed5af78bb8306d71efc806b84e453d7eca0e18c6f4a5",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "van-allen-probes",
+          "name": "Van Allen Probes",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/vehicle-assembly-building-vab",
+      "image": "public/previews/space/vehicle-assembly-building-vab.webp",
+      "imageMd5": "032f6ea58873655ab3f56644868ca602",
+      "model": "public/models/space/vehicle-assembly-building-vab.glb",
+      "modelSha256": "ed437074e0724d4e0b0e7cbfcff9f4419ce604b73eb1ff520d36432e9d2d44a8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "vehicle-assembly-building-vab",
+          "name": "Vehicle Assembly Building",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/venus",
+      "image": "public/previews/space/venus.webp",
+      "imageMd5": "8002d9a3bafb9203db2818b4f7e559be",
+      "model": "public/models/space/venus.glb",
+      "modelSha256": "d4126a691f260bb17ef461e2ae779d89a00a406a2be768f084ca154991bb7ec0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "venus",
+          "name": "Venus",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/voyager-1",
+      "image": "public/previews/space/voyager-1.webp",
+      "imageMd5": "bbff97ba595c66eb30662a465fc482e8",
+      "model": "public/models/space/voyager-1.glb",
+      "modelSha256": "a60c106bbdddc847136981e957f96c3150afd52c67ca355e8d3ebdc1f46187c4",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "voyager-1",
+          "name": "Voyager 1",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/wilkinson-microwave-anisotropy-probe-wma",
+      "image": "public/previews/space/wilkinson-microwave-anisotropy-probe-wma.webp",
+      "imageMd5": "145ded24bc91da5b3c745ef35441406b",
+      "model": "public/models/space/wilkinson-microwave-anisotropy-probe-wma.glb",
+      "modelSha256": "a70178245bacfe8f33197533eeb637ccc8bc364c0f26084c93e941d99d023e2a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "wilkinson-microwave-anisotropy-probe-wma",
+          "name": "Wilkinson Microwave Anisotropy Probe",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/wind",
+      "image": "public/previews/space/wind.webp",
+      "imageMd5": "480b15452a4f7a16d2379434ba643229",
+      "model": "public/models/space/wind.glb",
+      "modelSha256": "3db764db98bf3ea68efd9835005eed3c9646d61e02168f0b1c2029ce4b534245",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "wind",
+          "name": "Wind",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "space/wrench",
+      "image": "public/previews/space/wrench.webp",
+      "imageMd5": "c85f699abfab62ae4e87f92004727ce5",
+      "model": "public/models/space/wrench.glb",
+      "modelSha256": "e1edd3c0b023da09dbe520fdcb005601566c6449be0ffe85b84c8c3300f1dcc8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "wrench",
+          "name": "Wrench",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "sperm-whale",
+      "image": "public/previews/sperm-whale.webp",
+      "imageMd5": "c55fce889b3fc7e5dfec3cf5639f3eae",
+      "model": "public/models/sperm-whale.glb",
+      "modelSha256": "e77af528e9c23963f6ff354a49fe9b1f0e24cf0c487001d8c4196f89f0f79bb9",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "sperm-whale",
+          "name": "Sperm Whale",
+          "latin": "Physeter macrocephalus"
+        }
+      ]
+    },
+    {
+      "id": "spotted-hyena",
+      "image": "public/previews/spotted-hyena.webp",
+      "imageMd5": "bfe01c417f0b838b2a9be0e95d809bbf",
+      "model": "public/models/spotted-hyena.glb",
+      "modelSha256": "19eda4d27173f870edd244589acd88b24518ebbc037a95bf95fca4c47ae24123",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "spotted-hyena",
+          "name": "Spotted Hyena",
+          "latin": "Crocuta crocuta"
+        }
+      ]
+    },
+    {
+      "id": "stellers-sea-cow",
+      "image": "public/previews/stellers-sea-cow.webp",
+      "imageMd5": "40fd16183b1bf6563b05ad72db3e6457",
+      "model": "public/models/stellers-sea-cow.glb",
+      "modelSha256": "66aa06c35b996995d97311faaff8c252056a7e12beffdeca9f0c7597e72d9cae",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "stellers-sea-cow",
+          "name": "Steller's Sea Cow",
+          "latin": "Hydrodamalis gigas"
+        }
+      ]
+    },
+    {
+      "id": "toco-toucan",
+      "image": "public/previews/toco-toucan.webp",
+      "imageMd5": "385d129440ef5aee66a01977467a7978",
+      "model": "public/models/toco-toucan.glb",
+      "modelSha256": "d057f17c02acee90978f98ab768ce8e24e5ac34ffd2a0a00633d20c20178caed",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "toco-toucan",
+          "name": "Toco Toucan",
+          "latin": "Ramphastos toco"
+        }
+      ]
+    },
+    {
+      "id": "tyrannosaurus-rex",
+      "image": "public/previews/tyrannosaurus-rex.webp",
+      "imageMd5": "f8ffdc67bfbb566f0c8d988de79270bb",
+      "model": "public/models/tyrannosaurus-rex.glb",
+      "modelSha256": "9f3058f8c7a8f910d1172b32c96dac5df67201b50dff13f38cb668b865e78ba5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "tyrannosaurus-rex",
+          "name": "Tyrannosaurus rex",
+          "latin": "Tyrannosaurus rex"
+        }
+      ]
+    },
+    {
+      "id": "vehicles/airbus-a380",
+      "image": "public/previews/vehicles/airbus-a380.webp",
+      "imageMd5": "4532e0da1f8b99f0e287d1b9564c9dad",
+      "model": "public/models/vehicles/airbus-a380.glb",
+      "modelSha256": "764f14f65148ec537d1859d90679bebe7284931e1de55788bd40433ff38c32c0",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "airbus-a380",
+          "name": "Airbus A380",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/bell-uh-1",
+      "image": "public/previews/vehicles/bell-uh-1.webp",
+      "imageMd5": "f2c7d4d11945949722f3dbf5b4b6c3b6",
+      "model": "public/models/vehicles/bell-uh-1.glb",
+      "modelSha256": "26a120398276968e60fe45efa74ec9daadcbc0477ffd2ff479a784200a612d9a",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "bell-uh-1",
+          "name": "Bell UH-1",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/boeing-747",
+      "image": "public/previews/vehicles/boeing-747.webp",
+      "imageMd5": "e2ce6e2c2e8104e5170ed6bc78afba96",
+      "model": "public/models/vehicles/boeing-747.glb",
+      "modelSha256": "b3598bee860e13a1b936357852a2686de87c31302c510e79be908cb42cad96f1",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "boeing-747",
+          "name": "Boeing 747",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/concorde",
+      "image": "public/previews/vehicles/concorde.webp",
+      "imageMd5": "c0341bece9ca687b9c4a71fb38d0f022",
+      "model": "public/models/vehicles/concorde.glb",
+      "modelSha256": "07f47f136970fed674723af795e53d25979dd3fbe2d9f0aceaba7a537a5a0c77",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "concorde",
+          "name": "Concorde",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/fire-engine",
+      "image": "public/previews/vehicles/fire-engine.webp",
+      "imageMd5": "54ed15e3e87c7d8f0fa508d361f7bcfe",
+      "model": "public/models/vehicles/fire-engine.glb",
+      "modelSha256": "5de30249c1c6c94075ddbbef6dbfe32570f32b60c9c16c52a6613de6b4394ca0",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "fire-engine",
+          "name": "Fire Engine",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/formula-1-car",
+      "image": "public/previews/vehicles/formula-1-car.webp",
+      "imageMd5": "e1415464e29a899d1aba6f646c0594ca",
+      "model": "public/models/vehicles/formula-1-car.glb",
+      "modelSha256": "317b4d96ed008eb68f41d206759229e88bdab24b36bf189cef8194ca1de5ffb5",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "formula-1-car",
+          "name": "Formula 1 Car",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/harley-davidson",
+      "image": "public/previews/vehicles/harley-davidson.webp",
+      "imageMd5": "115049791cc6cd0573abecede7a70a2b",
+      "model": "public/models/vehicles/harley-davidson.glb",
+      "modelSha256": "dd9fd8ebe99b560405c7fee66c3182c56443479bf1d40b18137d524fd7ba3b0a",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "harley-davidson",
+          "name": "Harley-Davidson",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/hot-air-balloon",
+      "image": "public/previews/vehicles/hot-air-balloon.webp",
+      "imageMd5": "b9809dfd82d189ac96285ec7318c1789",
+      "model": "public/models/vehicles/hot-air-balloon.glb",
+      "modelSha256": "9f9352d17ab3e5c50c54926a76d01a92038baf3f2c435a724624be46bf358d66",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "hot-air-balloon",
+          "name": "Hot Air Balloon",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/road-bicycle",
+      "image": "public/previews/vehicles/road-bicycle.webp",
+      "imageMd5": "4d47a6d51ca39dcdb272165fb57e8022",
+      "model": "public/models/vehicles/road-bicycle.glb",
+      "modelSha256": "ec638666dccf0283a73cf084d07cd776bc5081bd767414180c519324f50d7bff",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "road-bicycle",
+          "name": "Road Bicycle",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/routemaster",
+      "image": "public/previews/vehicles/routemaster.webp",
+      "imageMd5": "8743ffec6d5e295142ea1a9c5426bd88",
+      "model": "public/models/vehicles/routemaster.glb",
+      "modelSha256": "06760f39109fcabd4e2ed73ba2304b931bcc66709468ba587131d3d92fa5ce8f",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "routemaster",
+          "name": "Routemaster",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/shinkansen",
+      "image": "public/previews/vehicles/shinkansen.webp",
+      "imageMd5": "8b39aef65e8f7234fbe4bbe918450d17",
+      "model": "public/models/vehicles/shinkansen.glb",
+      "modelSha256": "259e76d412bfa0905cf652af5e657e93f5a8067ea97430d1bedbc30559b8a306",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "shinkansen",
+          "name": "Shinkansen",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/tesla-model-s",
+      "image": "public/previews/vehicles/tesla-model-s.webp",
+      "imageMd5": "bc99b19a5e827f5ddac3b9f75667635f",
+      "model": "public/models/vehicles/tesla-model-s.glb",
+      "modelSha256": "5d0e2e11433d09f218fafd22a43502a3d577951e99c05b7072fa3813847e4f0c",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "tesla-model-s",
+          "name": "Tesla Model S",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/titanic",
+      "image": "public/previews/vehicles/titanic.webp",
+      "imageMd5": "d85309210cd430703fc46fe786de8c7c",
+      "model": "public/models/vehicles/titanic.glb",
+      "modelSha256": "2f9fc0ccdc6a2ae46fe515b6c3a88869ab4dd96508de7fd38272c8ba3c46b81b",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "titanic",
+          "name": "Titanic",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "vehicles/toyota-corolla",
+      "image": "public/previews/vehicles/toyota-corolla.webp",
+      "imageMd5": "4506e28ee6efb87213fe357319271a9f",
+      "model": "public/models/vehicles/toyota-corolla.glb",
+      "modelSha256": "b4eadf6074e88be265b6af23a52007ba4744a45454c3e9c48c6ac4eda2eb5a69",
+      "claims": [
+        {
+          "catalogue": "vehicles",
+          "slug": "toyota-corolla",
+          "name": "Toyota Corolla",
+          "latin": null
+        }
+      ]
+    },
+    {
+      "id": "weddell-seal",
+      "image": "public/previews/weddell-seal.webp",
+      "imageMd5": "b6b5521632d361c31021f3ef8a903c3b",
+      "model": "public/models/weddell-seal.glb",
+      "modelSha256": "25a6068c0bcd4a5a9b1cafe48d88026f1ef944e314a2960e80eb04c90fe344f1",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "weddell-seal",
+          "name": "Weddell Seal",
+          "latin": "Leptonychotes weddellii"
+        }
+      ]
+    },
+    {
+      "id": "whale-shark",
+      "image": "public/previews/whale-shark.webp",
+      "imageMd5": "5eed46ddf4a9d6cbf01502e02e512593",
+      "model": "public/models/whale-shark.glb",
+      "modelSha256": "7e80c8110486ad5dac4e7972bc23427a6c539a1ad8367a558c37535f3366c1e3",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "whale-shark",
+          "name": "Whale Shark",
+          "latin": "Rhincodon typus"
+        }
+      ]
+    },
+    {
+      "id": "white-rhinoceros",
+      "image": "public/previews/white-rhinoceros.webp",
+      "imageMd5": "7301f0993077a8c5127029819392f1b9",
+      "model": "public/models/white-rhinoceros.glb",
+      "modelSha256": "aebf2971ebcc7a0643510b004d615685c09b53f4d72e2d976d758b2e8d200ac2",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "white-rhinoceros",
+          "name": "White Rhinoceros",
+          "latin": "Ceratotherium simum"
+        }
+      ]
+    },
+    {
+      "id": "wolverine",
+      "image": "public/previews/wolverine.webp",
+      "imageMd5": "5ad22138c9a9db858b11e89aa282d01b",
+      "model": "public/models/wolverine.glb",
+      "modelSha256": "5323bb9b9eb6995cfe74e7c70261fbe045a009a1db05b888c94ce80aa6ac26af",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "wolverine",
+          "name": "Wolverine",
+          "latin": "Gulo gulo"
+        }
+      ]
+    },
+    {
+      "id": "woolly-mammoth",
+      "image": "public/previews/woolly-mammoth.webp",
+      "imageMd5": "0b605dd6c8f5b9996bb70fba4163c125",
+      "model": "public/models/woolly-mammoth.glb",
+      "modelSha256": "00abfc66f0f6056eae2f7bde108150081675082068c0326fee3476c4ae5b2fa9",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "woolly-mammoth",
+          "name": "Woolly Mammoth",
+          "latin": "Mammuthus primigenius"
+        }
+      ]
+    }
+  ]
+}

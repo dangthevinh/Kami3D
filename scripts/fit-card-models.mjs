@@ -28,6 +28,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { PREVIEW_BUDGET } from "../lib/model-preview.ts";
+import { createR2, readR2Config } from "./r2.mjs";
 
 const run = promisify(execFile);
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -135,9 +136,17 @@ if (publish) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    console.error("--publish needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+    console.error("--publish needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for the rows.");
     process.exit(2);
   }
+
+  // The file goes to R2; only the rows still go to Supabase.
+  const r2Config = readR2Config();
+  if (!r2Config.configured) {
+    console.error("--publish needs Cloudflare R2 for the file: missing " + r2Config.missing.join(", ") + ".");
+    process.exit(2);
+  }
+  const r2 = createR2(r2Config);
   const headers = { apikey: key, authorization: "Bearer " + key, "content-type": "application/json" };
   const rest = async (path, init = {}) => {
     const response = await fetch(url + "/rest/v1/" + path, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
@@ -168,15 +177,23 @@ if (publish) {
 
     if (apply && existsSync(local) && rowChanged(animal.slug)) {
       const file = readFileSync(local);
-      await fetch(url + "/storage/v1/object/animal-assets/" + asset.storage_path, {
-        method: "POST",
-        headers: { apikey: key, authorization: "Bearer " + key, "content-type": "model/gltf-binary", "x-upsert": "true" },
-        body: file,
-      });
-      const head = await fetch(asset.public_url, { method: "HEAD" });
+
+      // The key is the row's own `storage_path`, still `models/<slug>.glb`: only the host changed, so
+      // a row written before the move is republished to a path that already exists.
+      const put = await r2.put(asset.storage_path, file, "model/gltf-binary", "public, max-age=31536000, immutable");
+
+      // Then read the size back **over the public URL**, not from the call we just made. The number
+      // written into model_assets has to describe what a visitor downloads; a value taken from the
+      // upload would only describe what we hoped they would.
+      const head = await fetch(put.publicUrl, { method: "HEAD" });
       const served = Number(head.headers.get("content-length"));
+      if (!Number.isFinite(served) || served <= 0) {
+        console.warn("  ! could not read " + animal.slug + " back from R2 — row left alone");
+        continue;
+      }
+
       await rest("model_assets?id=eq." + asset.id, { method: "PATCH", body: JSON.stringify({ file_size_bytes: served, face_count: faces }) });
-      console.log("republished " + animal.slug + ": " + (served / 1_048_576).toFixed(2) + " MB on Storage");
+      console.log("republished " + animal.slug + ": " + (served / 1_048_576).toFixed(2) + " MB on R2");
     }
 
     await rest("animals?id=eq." + animal.id, { method: "PATCH", body: JSON.stringify({ preview_eligible: eligible }) });

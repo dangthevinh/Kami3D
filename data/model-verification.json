@@ -1,0 +1,4025 @@
+{
+  "note": "Every entry is one vision check of one image. It names the image, the md5 of that image, the model file and its sha256, the sentence the reviewer wrote about what they saw, and the model that did the looking. A verdict stops counting the moment the image it judged changes - see the header of scripts/model-vision-review.mjs. Written by scripts/model-vision-review.mjs --record, never by hand.",
+  "reviewer": "deepseek-v4-flash-vision-exp",
+  "generatedAt": "2026-10-07T21:59:09.213Z",
+  "entries": {
+    "african-bush-elephant": {
+      "verdict": "matches",
+      "subject": "A heavy pale grey elephant standing, with a long trunk, big flapping ears and two forward-curving tusks.",
+      "reason": "Trunk, tusks, ear size and the elephant body plan are all plainly present.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/african-bush-elephant.webp",
+      "imageMd5": "841e648269cd672a540fe01e1b076f48",
+      "model": "public/models/african-bush-elephant.glb",
+      "modelSha256": "e716f8fad5b5243f985f9532f6e9b5ab4955275288860b5ee40ec8792a1c9ae4",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "african-bush-elephant",
+          "name": "African Bush Elephant",
+          "latin": "Loxodonta africana"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.207Z"
+    },
+    "american-alligator": {
+      "verdict": "matches",
+      "subject": "A crocodilian lying low with a broad rounded snout, ridged scaly back, squat legs and a long tapering tail.",
+      "reason": "It is a complete broad-snouted crocodilian, which is what an alligator is.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/american-alligator.webp",
+      "imageMd5": "8d465c2fb674366e6e9440fda632f185",
+      "model": "public/models/american-alligator.glb",
+      "modelSha256": "558f2553827606f8e7b1b17e8d74c80f2df506cba392b6fa48db14bdc0c0861d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "american-alligator",
+          "name": "American Alligator",
+          "latin": "Alligator mississippiensis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "american-bison": {
+      "verdict": "mismatch",
+      "subject": "A smooth-coated reddish-brown bovine with its head lowered, short pale upcurving horns and heavy forequarters.",
+      "reason": "It reads as domestic cattle rather than a bison, lacking the shaggy dark cape, beard and massive shoulder hump.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/american-bison.webp",
+      "imageMd5": "3548c5e1e879ebf6b6a94553a288727b",
+      "model": "public/models/american-bison.glb",
+      "modelSha256": "cb879c5058980966f33bb756acaffeae78a799ac43c1a47d33b39bf137c4e814",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "american-bison",
+          "name": "American Bison",
+          "latin": "Bison bison"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "arctic-fox": {
+      "verdict": "matches",
+      "subject": "A white fox with a pointed muzzle, small rounded ears and a thick bushy tail, standing on all fours.",
+      "reason": "The white coat with a compact fox body and short rounded ears fits the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/arctic-fox.webp",
+      "imageMd5": "79a67f2946a2691cf2a87538f3ff3b99",
+      "model": "public/models/arctic-fox.glb",
+      "modelSha256": "72ed838e9dd3d6505960a9510664a75ae223d8e5470fbddb872193cad9dfacdc",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "arctic-fox",
+          "name": "Arctic Fox",
+          "latin": "Vulpes lagopus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "axolotl": {
+      "verdict": "matches",
+      "subject": "A white salamander with feathery pink external gills, stubby limbs and a finned tail.",
+      "reason": "The gill frills and salamander body are exactly the animal's form.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/axolotl.webp",
+      "imageMd5": "c30605646f7bbd453da2351047212ec8",
+      "model": "public/models/axolotl.glb",
+      "modelSha256": "dd41379fbb48e5ac64f8b48d87fdf17227c2b268ffcdb0bff581a8bf47c22b6c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "axolotl",
+          "name": "Axolotl",
+          "latin": "Ambystoma mexicanum"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "bald-eagle": {
+      "verdict": "matches",
+      "subject": "A large raptor in flight seen from above, with a white head, dark brown body and yellow beak.",
+      "reason": "White head, dark body and yellow bill identify the bird.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/bald-eagle.webp",
+      "imageMd5": "deccf5f0f26ec462b86efc10726346c8",
+      "model": "public/models/bald-eagle.glb",
+      "modelSha256": "baf6043308d83d05082dc0f32fa7a6f3b4d0383ade239034514025d47643ed1b",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "bald-eagle",
+          "name": "Bald Eagle",
+          "latin": "Haliaeetus leucocephalus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "black-mamba": {
+      "verdict": "mismatch",
+      "subject": "A pale white snake with only the head and forepart visible, mouth open showing a dark lining.",
+      "reason": "The visible serpent is white, not the dark olive-black of the animal claimed, and only a head and neck fragment is shown.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/black-mamba.webp",
+      "imageMd5": "626b08fd3c24fa717897c8cc781b77bc",
+      "model": "public/models/black-mamba.glb",
+      "modelSha256": "63ee46258fee71f2a2085e0dd1728bff51db8cce0ec45f0cab4c12653b4b6d21",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "black-mamba",
+          "name": "Black Mamba",
+          "latin": "Dendroaspis polylepis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "blue-ringed-octopus": {
+      "verdict": "matches",
+      "subject": "An orange cartoon octopus with curly tentacles covered in bright blue ring markings.",
+      "reason": "An octopus whose whole skin is patterned with blue rings is the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/blue-ringed-octopus.webp",
+      "imageMd5": "f2575fe49e61290bd453d07ec7370b9e",
+      "model": "public/models/blue-ringed-octopus.glb",
+      "modelSha256": "5fba3961844b4f5c5064b70c8da00a904fa3d13d095308e3f0b01e917f89871e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "blue-ringed-octopus",
+          "name": "Blue-ringed Octopus",
+          "latin": "Hapalochlaena lunulata"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "blue-whale": {
+      "verdict": "matches",
+      "subject": "A long blue-grey whale with a broad flat head, small dorsal fin and wide flukes.",
+      "reason": "The enormous streamlined body with a broad head and small dorsal fin matches the whale.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/blue-whale.webp",
+      "imageMd5": "57bab7736824021ea90db7c25cd3ef40",
+      "model": "public/models/blue-whale.glb",
+      "modelSha256": "ea159f10c212c145e0f2dbee47c0d8a15f1eb4dcd501359d6488637bbee1179d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "blue-whale",
+          "name": "Blue Whale",
+          "latin": "Balaenoptera musculus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "bottlenose-dolphin": {
+      "verdict": "matches",
+      "subject": "A grey dolphin with a short beak, curved dorsal fin and horizontal tail flukes.",
+      "reason": "The beaked dolphin body and dorsal fin are the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/bottlenose-dolphin.webp",
+      "imageMd5": "e9eb786042cdef0b3a5ccd06b68fc694",
+      "model": "public/models/bottlenose-dolphin.glb",
+      "modelSha256": "262c4f7bf23c5de349cdc805610ac412da71698e3c96cb55b0ea9179e2c3cb0d",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "bottlenose-dolphin",
+          "name": "Bottlenose Dolphin",
+          "latin": "Tursiops truncatus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "california-condor": {
+      "verdict": "matches",
+      "subject": "A huge dark vulture-like bird soaring with its wings fully spread and a bare pinkish head.",
+      "reason": "A giant dark soaring vulture with a naked head is the bird claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/california-condor.webp",
+      "imageMd5": "0437d74f890c40f18496994de7367c16",
+      "model": "public/models/california-condor.glb",
+      "modelSha256": "13ec3eba2a0548a4cb4a169d06c4ff405875b5f025ecd3d196fead38ec817672",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "california-condor",
+          "name": "California Condor",
+          "latin": "Gymnogyps californianus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "california-sea-lion": {
+      "verdict": "matches",
+      "subject": "A pale tan pinniped with a long body, a small visible ear flap and large foreflippers.",
+      "reason": "Eared seal with big foreflippers is the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/california-sea-lion.webp",
+      "imageMd5": "9745fa146bdbfc71d099ce038dfa17ba",
+      "model": "public/models/california-sea-lion.glb",
+      "modelSha256": "a3157db176f4669237c32be5f6c7d29d35255958825bdd6670dc94ee4053da09",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "california-sea-lion",
+          "name": "California Sea Lion",
+          "latin": "Zalophus californianus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "capybara": {
+      "verdict": "matches",
+      "subject": "A bulky barrel-shaped rodent with a blunt square snout, coarse tan fur and short legs.",
+      "reason": "The huge blunt-snouted rodent body is unmistakably the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/capybara.webp",
+      "imageMd5": "4cd1620fa92b52a1163f128c92ab3771",
+      "model": "public/models/capybara.glb",
+      "modelSha256": "9c474f67f7459ab9f038c3c5ad66d3163bf42d904ca4bae459a943cac53aac9e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "capybara",
+          "name": "Capybara",
+          "latin": "Hydrochoerus hydrochaeris"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "cheetah": {
+      "verdict": "matches",
+      "subject": "A slender spotted cat with a small head, black tear stripes on the face, long legs and a ringed tail.",
+      "reason": "Spots, tear stripes and the lean build identify it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/cheetah.webp",
+      "imageMd5": "353885e6af23c51c96eeaa9483139fe9",
+      "model": "public/models/cheetah.glb",
+      "modelSha256": "2ba5137f62b542ac5c42214c253152d8fa61217ab42e0740d8c346ab747e3e98",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "cheetah",
+          "name": "Cheetah",
+          "latin": "Acinonyx jubatus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "chimpanzee": {
+      "verdict": "matches",
+      "subject": "A tailless ape standing upright in a T-pose with long arms and pale hands and feet.",
+      "reason": "A tailless long-armed ape is what the claim names.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/chimpanzee.webp",
+      "imageMd5": "7183855efeffb31a32596bac92f095ae",
+      "model": "public/models/chimpanzee.glb",
+      "modelSha256": "2e0e9310a7dac6e49f693f299cf247e1bd02d7261d9596ff5b6ab183ce66d34e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "chimpanzee",
+          "name": "Chimpanzee",
+          "latin": "Pan troglodytes"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "common-ostrich": {
+      "verdict": "matches",
+      "subject": "A tall flightless bird with a long bare neck, small head, black body plumage, white tail and long bare legs.",
+      "reason": "Long bare neck and legs with a black-and-white body are the bird claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/common-ostrich.webp",
+      "imageMd5": "e5aeba42d8b99311443eca8eff0d6644",
+      "model": "public/models/common-ostrich.glb",
+      "modelSha256": "3742f5f3fcc6a8090d673a964f7a1b22f4aa8cbb907ff199462e32ab9e5ff561",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "common-ostrich",
+          "name": "Common Ostrich",
+          "latin": "Struthio camelus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "deathstalker-scorpion": {
+      "verdict": "matches",
+      "subject": "A scorpion with a pale yellow body and legs and reddish-brown pincers and tail.",
+      "reason": "A pale yellow scorpion with darker claws and tail is the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/deathstalker-scorpion.webp",
+      "imageMd5": "dc1931569a11c371930c117aa0896f79",
+      "model": "public/models/deathstalker-scorpion.glb",
+      "modelSha256": "0a08dbf3d64960c10404ca182cf44a34d84f20bba59e9a149daa852574b09c9a",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "deathstalker-scorpion",
+          "name": "Deathstalker Scorpion",
+          "latin": "Leiurus quinquestriatus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "dodo": {
+      "verdict": "matches",
+      "subject": "A plump white cartoon bird with tiny wings, short legs and a large pale beak ending in a dark tip.",
+      "reason": "A fat, short-legged, small-winged flightless bird with a big hooked beak fits the bird claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/dodo.webp",
+      "imageMd5": "05053c2130e88016f2fcca110a294a53",
+      "model": "public/models/dodo.glb",
+      "modelSha256": "7ebe22f8d75abdd16d4b88eaf360448e4d13beae488ec5f843f91560b69b4d5f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "dodo",
+          "name": "Dodo",
+          "latin": "Raphus cucullatus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "electric-eel": {
+      "verdict": "matches",
+      "subject": "A long dark brown eel-like fish tapering to a point, with an orange throat and underside.",
+      "reason": "The elongated dark body with an orange belly is the fish claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/electric-eel.webp",
+      "imageMd5": "b1cd8503a034102c334803eff63d7a45",
+      "model": "public/models/electric-eel.glb",
+      "modelSha256": "0c50d2b4bdea7a9a9a5b72d13eb1400a541484d805587f5fa825e7fb234327e6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "electric-eel",
+          "name": "Electric Eel",
+          "latin": "Electrophorus electricus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "emperor-dragonfly": {
+      "verdict": "matches",
+      "subject": "A dragonfly with huge compound eyes, a green thorax and a blue banded abdomen, wings spread.",
+      "reason": "Green thorax with a blue banded abdomen and enormous eyes is the insect claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/emperor-dragonfly.webp",
+      "imageMd5": "b85fdece53f4cf4820a748b9958fe93b",
+      "model": "public/models/emperor-dragonfly.glb",
+      "modelSha256": "37b1be9f455f36576c1ad83a670a48ccfba53a2362172a43f3a291065a90a4ff",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "emperor-dragonfly",
+          "name": "Emperor Dragonfly",
+          "latin": "Anax imperator"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "emperor-scorpion": {
+      "verdict": "matches",
+      "subject": "A large glossy black scorpion with thick pincers and a heavy segmented tail ending in a pale bulb and orange stinger.",
+      "reason": "A big black scorpion with massive claws is the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/emperor-scorpion.webp",
+      "imageMd5": "8249c44f8fdbe1f02b1a0d4be8f24d1d",
+      "model": "public/models/emperor-scorpion.glb",
+      "modelSha256": "45289ff68ec7079996bc18b7d66f88a5a73a49217259f79c32bdafd0d5c24b65",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "emperor-scorpion",
+          "name": "Emperor Scorpion",
+          "latin": "Pandinus imperator"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "european-mantis": {
+      "verdict": "matches",
+      "subject": "A green praying mantis with a triangular head, folded spiked forelegs and long wings.",
+      "reason": "The raptorial forelegs and mantis body are exactly the insect claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/european-mantis.webp",
+      "imageMd5": "253470985c48c28feaa8c656c7cbb154",
+      "model": "public/models/european-mantis.glb",
+      "modelSha256": "a1ebe4a3bb58d30fc0a6427e9dbf7c4ea4e6550ef35435153cc8ef030aa9080c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "european-mantis",
+          "name": "European Mantis",
+          "latin": "Mantis religiosa"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "fennec-fox": {
+      "verdict": "matches",
+      "subject": "A white fox-like animal with enormous upright ears with pink inner surfaces and a bushy dark-tipped tail.",
+      "reason": "The outsized ears on a small fox body are the animal's defining feature.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/fennec-fox.webp",
+      "imageMd5": "fcac117fd5c896f759b96bf482b9fb1e",
+      "model": "public/models/fennec-fox.glb",
+      "modelSha256": "fc143736d07f99a5a9e00160d0f83bd370dbaf5305e93bf81b682b98da1f5d94",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "fennec-fox",
+          "name": "Fennec Fox",
+          "latin": "Vulpes zerda"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giant-anteater": {
+      "verdict": "matches",
+      "subject": "A long-snouted animal with a huge bushy tail, white forelegs, black chest band and a dark diagonal stripe over the shoulder.",
+      "reason": "The tube snout, bushy tail and diagonal shoulder stripe identify it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giant-anteater.webp",
+      "imageMd5": "550fc80386bcd50337bba7f11cfde633",
+      "model": "public/models/giant-anteater.glb",
+      "modelSha256": "d11e60cedbf1765469d346326ce1dcbe6d73a34ede27f836d913020ea682a52c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-anteater",
+          "name": "Giant Anteater",
+          "latin": "Myrmecophaga tridactyla"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giant-clam": {
+      "verdict": "matches",
+      "subject": "A heavy ridged bivalve shell in pink and white stripes, lying half-open with a bright blue-green mantle folded inside the gap.",
+      "reason": "The shell form with a fleshy striped mantle showing between the valves is exactly the giant-clam anatomy claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giant-clam.webp",
+      "imageMd5": "57a8742029391e914901eb020c912973",
+      "model": "public/models/giant-clam.glb",
+      "modelSha256": "e3d7e413a7c4d98cfc0e2aa869cb8f405b96a2f89418042ba951717cfcdeeaed",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-clam",
+          "name": "Giant Clam",
+          "latin": "Tridacna gigas"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giant-manta-ray": {
+      "verdict": "matches",
+      "subject": "A black-and-white ray with a broad diamond body and long whip tail gliding above a sandy disc of pebbles, starfish and grass tufts.",
+      "reason": "The triangular pectoral 'wings' and cephalic front identify a manta ray despite the cartoon eyes painted on it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giant-manta-ray.webp",
+      "imageMd5": "c132f6cfa5b0d5b909bc69f593337563",
+      "model": "public/models/giant-manta-ray.glb",
+      "modelSha256": "24ca857ba249e6f3d1bedcd1b8d6b3b52e9f83595118b54eb99b4f2a68364499",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-manta-ray",
+          "name": "Giant Manta Ray",
+          "latin": "Mobula birostris"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giant-panda": {
+      "verdict": "matches",
+      "subject": "A stout bear with white fur, black ears, black eye patches, black limbs and a black shoulder band, standing on all fours.",
+      "reason": "The black-and-white banding on a plantigrade bear body is the giant panda pattern and nothing else.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giant-panda.webp",
+      "imageMd5": "0d3551f55f157d452c6c79594847ae93",
+      "model": "public/models/giant-panda.glb",
+      "modelSha256": "fada53573305125a5796258e856c6b31e84606853fab95ccc274119a8a716a7f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-panda",
+          "name": "Giant Panda",
+          "latin": "Ailuropoda melanoleuca"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giant-squid": {
+      "verdict": "matches",
+      "subject": "A blocky, voxel-style pink-red cephalopod with a finned mantle block and a bundle of long thin arms trailing below.",
+      "reason": "Mantle with fins plus a ring of long arms is the squid body plan the label claims, only rendered in a stylised cubic style.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giant-squid.webp",
+      "imageMd5": "0200108713061731e45df70200acf3ba",
+      "model": "public/models/giant-squid.glb",
+      "modelSha256": "8ae8f1d5481789f3d199c39e889272757d1c27034beaa4a9b29a93994d3407b0",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giant-squid",
+          "name": "Giant Squid",
+          "latin": "Architeuthis dux"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "gila-monster": {
+      "verdict": "matches",
+      "subject": "A fat, short-legged lizard with a blunt tail and a beadwork pattern of broad pink and dark brown bands along its back.",
+      "reason": "The heavy body and contrasting bead-like banding are the gila monster's signature markings.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/gila-monster.webp",
+      "imageMd5": "44d4b26e2173614b0223237cadfe26cd",
+      "model": "public/models/gila-monster.glb",
+      "modelSha256": "aee4c009ce899ba4f64ef203381c892d85d147efe872c24948cf0b53cc7f23e6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "gila-monster",
+          "name": "Gila Monster",
+          "latin": "Heloderma suspectum"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "giraffe": {
+      "verdict": "matches",
+      "subject": "A very tall spotted animal with a long neck, a small horned head and long thin legs standing on a pale disc.",
+      "reason": "Proportions and the reticulated spot pattern are unmistakably giraffe.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/giraffe.webp",
+      "imageMd5": "7a3a842fc1dcd19a290842a01b556795",
+      "model": "public/models/giraffe.glb",
+      "modelSha256": "c2573be8551d22217746b419624a53a36eb76f36e6d8fd69d01771d3c34e6d9e",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "giraffe",
+          "name": "Giraffe",
+          "latin": "Giraffa camelopardalis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "goliath-birdeater": {
+      "verdict": "matches",
+      "subject": "A big hairy spider with a chunky body and eight stout banded legs spread wide.",
+      "reason": "A large tarantula-form spider is what the goliath birdeater is.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/goliath-birdeater.webp",
+      "imageMd5": "f08992374d124912835b5f79597f4aea",
+      "model": "public/models/goliath-birdeater.glb",
+      "modelSha256": "d96fbc5bec64c4328b0661264926961ac525d39de9b74bb341566f98e95e6cc8",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "goliath-birdeater",
+          "name": "Goliath Birdeater",
+          "latin": "Theraphosa blondi"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "gray-wolf": {
+      "verdict": "matches",
+      "subject": "A pale white-grey canine standing with a bushy lowered tail, pointed ears, a long muzzle and furry ruff.",
+      "reason": "Wolf proportions and the pale grey coat fit the grey wolf, not a domestic dog breed shape.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/gray-wolf.webp",
+      "imageMd5": "6b2ceee82c020ceb6f2d03d68567c4f2",
+      "model": "public/models/gray-wolf.glb",
+      "modelSha256": "52fe0927c7ab100c1882969dedcf78e997b5e878b7838acd572080b9d83a1e93",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "gray-wolf",
+          "name": "Gray Wolf",
+          "latin": "Canis lupus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "great-white-shark": {
+      "verdict": "matches",
+      "subject": "A torpedo-shaped shark with dark grey back, white belly, pointed snout and large scythe-like pectoral fins.",
+      "reason": "The countershaded lamnid shark silhouette is exactly the great white form.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/great-white-shark.webp",
+      "imageMd5": "204d00894b75a9c6490c354e6c11c659",
+      "model": "public/models/great-white-shark.glb",
+      "modelSha256": "46b8906506cbc9a179f382ebc8e8f1009982a1a2985fa75c2db0c1ae402656ce",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "great-white-shark",
+          "name": "Great White Shark",
+          "latin": "Carcharodon carcharias"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "greater-flamingo": {
+      "verdict": "matches",
+      "subject": "A pink bird with extremely long thin legs, a long neck bent to the ground, and a dark-tipped downcurved bill.",
+      "reason": "Only a flamingo has that neck, black-tipped bent bill and stilt legs.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/greater-flamingo.webp",
+      "imageMd5": "e7bdb68858e5950952fc4b406c539272",
+      "model": "public/models/greater-flamingo.glb",
+      "modelSha256": "3e7daabd8a0e2473bb17988b3a1d96bb68c0ac5ef98f5f3479f2e2b43fd9d92f",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "greater-flamingo",
+          "name": "Greater Flamingo",
+          "latin": "Phoenicopterus roseus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "green-sea-turtle": {
+      "verdict": "matches",
+      "subject": "A turtle with a domed brown carapace and large flat paddle-shaped front flippers, walking on the ground.",
+      "reason": "Paddle flippers instead of clawed feet make it a sea turtle, matching the claimed species' shape.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/green-sea-turtle.webp",
+      "imageMd5": "34193bd4ad9190218da1919d004019db",
+      "model": "public/models/green-sea-turtle.glb",
+      "modelSha256": "fecb65a0881456e0e01c04056a4517ee43c970c8911be051c63a4d354721c92c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "green-sea-turtle",
+          "name": "Green Sea Turtle",
+          "latin": "Chelonia mydas"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "harpy-eagle": {
+      "verdict": "matches",
+      "subject": "A large eagle in flight with broad spread wings, grey-barred plumage, white underparts and a small crest on the head.",
+      "reason": "A big crested forest eagle with broad rounded wings is consistent with a harpy eagle.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/harpy-eagle.webp",
+      "imageMd5": "7e97bc9ea4ef1318205ca8b566011d42",
+      "model": "public/models/harpy-eagle.glb",
+      "modelSha256": "9ca15c7f518b8fbebd33fbb39394f0e842a095334c0b500188b6028a725781a9",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "harpy-eagle",
+          "name": "Harpy Eagle",
+          "latin": "Harpia harpyja"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "hellbender": {
+      "verdict": "mismatch",
+      "subject": "A pale pink four-legged amphibian-like creature with a wide mouth of small teeth, spikes along its back and shoulders, and a cluster of roughly fifteen eye-like bumps covering its face.",
+      "reason": "A spiny multi-eyed monster toad is not a hellbender, which is a flat-headed aquatic salamander with only two tiny eyes and no spines.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/hellbender.webp",
+      "imageMd5": "8824d67fa47bfd735f0dd9ab589a469c",
+      "model": "public/models/hellbender.glb",
+      "modelSha256": "0bdc5e37f35ffb9560323b7ee2fb74fa89c256b16de9a63216a111928265a959",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hellbender",
+          "name": "Hellbender",
+          "latin": "Cryptobranchus alleganiensis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "hippopotamus": {
+      "verdict": "matches",
+      "subject": "A huge barrel-bodied grey animal with short stubby legs, a broad blunt muzzle and small ears, seen from above.",
+      "reason": "The massive torso with a wide square snout is the hippopotamus silhouette.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/hippopotamus.webp",
+      "imageMd5": "20bc7d18ff9070531fc5a6d80dea6129",
+      "model": "public/models/hippopotamus.glb",
+      "modelSha256": "0e0ea9c63fbbdf261cd6af4b52ffba0674f57d09e3dba19c85b6163b6076eefd",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hippopotamus",
+          "name": "Hippopotamus",
+          "latin": "Hippopotamus amphibius"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "hoatzin": {
+      "verdict": "matches",
+      "subject": "A rufous-brown bird with a spiky shaggy crest, blue skin around the eye and spread wings with orange-brown flight feathers.",
+      "reason": "The spiky crest and blue facial skin are the hoatzin's diagnostic features.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/hoatzin.webp",
+      "imageMd5": "c7efe0548507d72e9f79cb5fa26a3641",
+      "model": "public/models/hoatzin.glb",
+      "modelSha256": "5914d61ac45f3646c458f19a896a456405ceb3637315703bdcab7d955afd3ad4",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "hoatzin",
+          "name": "Hoatzin",
+          "latin": "Opisthocomus hoazin"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "humpback-whale": {
+      "verdict": "matches",
+      "subject": "A stocky dark whale with white patches, a knobbly head, a small dorsal fin and very long white pectoral flippers.",
+      "reason": "The enormous white flippers and tubercled head identify a humpback whale.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/humpback-whale.webp",
+      "imageMd5": "9a70da5ce894b679208f11cb3786acca",
+      "model": "public/models/humpback-whale.glb",
+      "modelSha256": "4d1bd67f032d964b448ba9b130f5ab0d9aab1bfe377c57a24560cf2fafc09617",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "humpback-whale",
+          "name": "Humpback Whale",
+          "latin": "Megaptera novaeangliae"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.211Z"
+    },
+    "jaguar": {
+      "verdict": "matches",
+      "subject": "A muscular spotted cat walking with its head lowered, covered in rosettes that enclose small dark spots, with a long banded tail.",
+      "reason": "The stocky build and rosettes-with-inner-spots are the jaguar coat pattern.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/jaguar.webp",
+      "imageMd5": "dcaa0e0441550ff700776f924e6110b8",
+      "model": "public/models/jaguar.glb",
+      "modelSha256": "6a055a38f2087421d2b5f669a877aae93296589dab0531bb3c249018fc7112b6",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "jaguar",
+          "name": "Jaguar",
+          "latin": "Panthera onca"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "king-cobra": {
+      "verdict": "unclear",
+      "subject": "A tiny pale bluish snake lying in loose loops on a large grey mottled ground plane, its head raised but with no clearly visible spread hood.",
+      "reason": "The snake occupies a few pixels of the frame and is too small and soft to confirm the hood and markings that would fix it as a king cobra.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/king-cobra.webp",
+      "imageMd5": "087ea70e48276cff4af9e93b3668e97a",
+      "model": "public/models/king-cobra.glb",
+      "modelSha256": "d482d800d6a1b4aaaa39641a0e5a5f82baca023cf1729f609f48c14f23031a26",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "king-cobra",
+          "name": "King Cobra",
+          "latin": "Ophiophagus hannah"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "komodo-dragon": {
+      "verdict": "matches",
+      "subject": "A big grey-brown monitor lizard with a long thick tail, splayed legs with clawed feet and a blunt heavy head.",
+      "reason": "The heavy monitor body and long tail are the Komodo dragon's form.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/komodo-dragon.webp",
+      "imageMd5": "dd5e60d647b5cdc3daa79e48f6d4f467",
+      "model": "public/models/komodo-dragon.glb",
+      "modelSha256": "fef1c2761359d9846a08663424da7554653fa24342fb0ede16119d2e14298de3",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "komodo-dragon",
+          "name": "Komodo Dragon",
+          "latin": "Varanus komodoensis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/alhambra": {
+      "verdict": "matches",
+      "subject": "A photogrammetry terrain slab showing a wooded hilltop with a walled complex, towers and a square building enclosing a round colonnaded courtyard.",
+      "reason": "The square building with the circular courtyard beside the fortress walls is the Alhambra's Palace of Charles V on its hill.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/alhambra.webp",
+      "imageMd5": "7ffcd8d19c62078be1dfee3ab0b755cf",
+      "model": "public/models/landmarks/alhambra.glb",
+      "modelSha256": "e2bf29d260a57ebaf2722a5ceb72058e4cc6e3b33de7f26daf4d3c26e70bc01e",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "alhambra",
+          "name": "Alhambra",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/angkor-wat": {
+      "verdict": "matches",
+      "subject": "A dark, blocky photogrammetry tile of a temple complex with several tapering corn-cob towers, galleries and a walled green enclosure.",
+      "reason": "The Khmer-style prasat towers and gallery-on-a-plinth layout match the claimed temple, though the scan tile covers only the central complex.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/angkor-wat.webp",
+      "imageMd5": "06bb33778d36fb1ee2d31fb43392f7bb",
+      "model": "public/models/landmarks/angkor-wat.glb",
+      "modelSha256": "506ebdb8826745e65c36a8f50334837ede64db2869eba35b2bf8c6906a72f787",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "angkor-wat",
+          "name": "Angkor Wat",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/arc-de-triomphe": {
+      "verdict": "matches",
+      "subject": "A crag-like blue-grey stone mass pierced by a large central arch and a smaller arch in its side face, with a ragged broken top.",
+      "reason": "A single grand arch flanked by a transverse arch is the Arc de Triomphe's structure, even though the scan mesh is rough and blue-tinted.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/arc-de-triomphe.webp",
+      "imageMd5": "526d04fd8a192fc532e69b0b3f33f77e",
+      "model": "public/models/landmarks/arc-de-triomphe.glb",
+      "modelSha256": "7d5575f30cb2f223254ef4eeb93a690ee92b0dc12c0307d7e4f7f8d1a2a9abe1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "arc-de-triomphe",
+          "name": "Arc de Triomphe",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/big-ben": {
+      "verdict": "matches",
+      "subject": "A tall ornate tower with four white clock faces, gothic detailing, pinnacles and a steep slated spire topped by a thin finial.",
+      "reason": "A four-faced clock tower with a spire is exactly the Elizabeth Tower the label claims.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/big-ben.webp",
+      "imageMd5": "54eb74136f35ffbf66c008c01bff62ed",
+      "model": "public/models/landmarks/big-ben.glb",
+      "modelSha256": "f87881d5bb58d4f7a203f37207dcb75246e2d9b1ec8bcbf757cb8d184432e099",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "big-ben",
+          "name": "Elizabeth Tower (Big Ben)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/borobudur": {
+      "verdict": "mismatch",
+      "subject": "Three white bell-shaped stupas with diamond lattice perforations and pointed finials, sitting on a blank white background.",
+      "reason": "The render shows only a trio of the monument's perforated stupas, not the stepped temple structure Borobudur is.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/borobudur.webp",
+      "imageMd5": "0c2086af83b045d6ba379f057e9ac73f",
+      "model": "public/models/landmarks/borobudur.glb",
+      "modelSha256": "91ab0883639fbb0b3cc75f97a4eb409563831fd015a86c34d77c8f558862f86d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "borobudur",
+          "name": "Borobudur",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/boudhanath": {
+      "verdict": "matches",
+      "subject": "A hemispherical dome covered in a diamond-lattice pattern, crowned by a small tiered square spire, sitting on a wide square stepped platform with radiating lattice walkways.",
+      "reason": "The whitewashed dome with a tiered spire above it on a square mandala-like plinth is the stupa form claimed, not a different or partial object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/boudhanath.webp",
+      "imageMd5": "c95cd16e0682a130584b558c3d6bcd56",
+      "model": "public/models/landmarks/boudhanath.glb",
+      "modelSha256": "7cbaae1ae0bcb69e86c494a6e5aa83d0dad4f7d11b7bc787876dc97f362146d0",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "boudhanath",
+          "name": "Boudhanath Stupa",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/burj-khalifa": {
+      "verdict": "matches",
+      "subject": "An extremely tall slender tower made of stacked setback blocks that tapers upward into a thin needle spire, with a small low base at ground level.",
+      "reason": "The stepped, tapering supertall silhouette ending in a needle tip is the distinctive form claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/burj-khalifa.webp",
+      "imageMd5": "558b84d0b43e8a4583bac2f56ca897c4",
+      "model": "public/models/landmarks/burj-khalifa.glb",
+      "modelSha256": "cec9567249ee82399b8d08a6254ce4ea57e1568a9b1688c518f2f017b8f83d63",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "burj-khalifa",
+          "name": "Burj Khalifa",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "burj-khalifa",
+          "name": "Burj Khalifa",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/chateau-frontenac": {
+      "verdict": "matches",
+      "subject": "A large multi-winged chateau-style building in red brick with very steep dark teal roofs, a broad central block and several round corner turrets with conical roofs, sitting on a jagged mossy terrain patch.",
+      "reason": "The chateau-form grand hotel with green copper roofs, turrets and a central tower block reads as the claimed building.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/chateau-frontenac.webp",
+      "imageMd5": "ebf97d0f5c4c50def7f95a1c43f687eb",
+      "model": "public/models/landmarks/chateau-frontenac.glb",
+      "modelSha256": "33426751a11c0207152bb083c5c1e4762bebd2a437853e2f07b6a8589695c89d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "chateau-frontenac",
+          "name": "Château Frontenac",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/chichen-itza": {
+      "verdict": "matches",
+      "subject": "A stepped stone pyramid with a single staircase running up its front face and a small temple structure at the summit, placed on a flat green board with a printed backdrop.",
+      "reason": "A terraced pyramid with one axial stair and a summit shrine is exactly the claimed structure, El Castillo.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/chichen-itza.webp",
+      "imageMd5": "ebd33e273a2e8430330c4221c32ee428",
+      "model": "public/models/landmarks/chichen-itza.glb",
+      "modelSha256": "774bd9a32f4db3a19a4aaf1f6823651e4aa0b16e597e9654f84ccaa5630d1a06",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "chichen-itza",
+          "name": "Chichén Itzá",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/christ-the-redeemer": {
+      "verdict": "matches",
+      "subject": "A white robed standing figure with both arms held out horizontally, mounted on a fluted pedestal above a dark stepped base.",
+      "reason": "The robed figure with outstretched arms on a pedestal is the claimed statue, shown complete and clearly.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/christ-the-redeemer.webp",
+      "imageMd5": "b6270c3ce063b7a01e76a419f7e4404c",
+      "model": "public/models/landmarks/christ-the-redeemer.glb",
+      "modelSha256": "7e8de5b993f2974bd4b95d06667af3cfa979dc9b37ca599753802a0f673cc0c7",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "christ-the-redeemer",
+          "name": "Christ the Redeemer",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/cn-tower": {
+      "verdict": "unclear",
+      "subject": "A very small pale tower, essentially a plain white column with a slight widening partway up, standing on a flat aerial-photo plane of a city and waterfront.",
+      "reason": "The tower is blown out to featureless white and occupies a tiny fraction of the frame, so its defining pod and shaft shape cannot be confirmed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/cn-tower.webp",
+      "imageMd5": "75f5977243a7a1b274316dbd7a295b79",
+      "model": "public/models/landmarks/cn-tower.glb",
+      "modelSha256": "bd5ba305a44c7f3b0d56a96f85841364bf21ce720b2f3c19b7987057a62416cb",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "cn-tower",
+          "name": "CN Tower",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "cn-tower",
+          "name": "CN Tower",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/cologne-cathedral": {
+      "verdict": "matches",
+      "subject": "A Gothic cathedral with two very tall openwork spires at one end, a dense field of pinnacles, a steep high nave roof and flying buttresses, on a small ground slab.",
+      "reason": "The twin-lancet-spire Gothic cathedral massing is precisely the claimed building.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/cologne-cathedral.webp",
+      "imageMd5": "a7a8b1751293f5b3ac7b65c15f6b1b64",
+      "model": "public/models/landmarks/cologne-cathedral.glb",
+      "modelSha256": "ab1c89c69379cf9eb58e732a67ad2ee840a33a9daece2ae86a94993c9b267517",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "cologne-cathedral",
+          "name": "Cologne Cathedral",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/colosseum": {
+      "verdict": "mismatch",
+      "subject": "A single curved slice of multi-storey arcaded stone wall with three tiers of arches and ragged torn edges, with no interior, arena floor or opposite side.",
+      "reason": "It is only a scanned fragment of one outer wall section, not the complete elliptical amphitheatre claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/colosseum.webp",
+      "imageMd5": "ee6e48455ba971c5f50cbadb90de6420",
+      "model": "public/models/landmarks/colosseum.glb",
+      "modelSha256": "f9f17d11a6aa1740da6aef1a056b4ecaf53d339b5ee07711e03eaed7bcd981bb",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "colosseum",
+          "name": "Colosseum",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/djenne-mosque": {
+      "verdict": "mismatch",
+      "subject": "A single flat-roofed terracotta-coloured box on a rectangular slab, with vertically ribbed walls, one band of small dark square openings on the front wall, and a paved map-like ground plane with roads and a river around it.",
+      "reason": "The silhouette is a plain rectangular block with no conical towers, no domes and no courtyard, so it reads as a generic extruded footprint rather than the claimed mosque.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/djenne-mosque.webp",
+      "imageMd5": "00952eaacefa4f0c9b6e23b08c9f1093",
+      "model": "public/models/landmarks/djenne-mosque.glb",
+      "modelSha256": "cd5dc91468caa2c2e12001225c9c75028e9ef8616ca201be3c7016f8d1ce58ba",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "djenne-mosque",
+          "name": "Great Mosque of Djenné",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/edinburgh-castle": {
+      "verdict": "unclear",
+      "subject": "A broad, almost entirely white low-detail massing of many small blocks spread over a green-and-white terrain patch, with roads, slopes and a raised central mound but no distinguishable single structure.",
+      "reason": "The washed-out white photogrammetry-style surface merges every building into the ground, so no fortification, curtain wall or crag can be picked out to confirm or deny a castle.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/edinburgh-castle.webp",
+      "imageMd5": "5b6661e90fd571c083d310752b9cd07b",
+      "model": "public/models/landmarks/edinburgh-castle.glb",
+      "modelSha256": "e78a40a2ccaec9f762030ed7c58648efba8fb24f5a6e9322d02b4bf1b9e12df0",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "edinburgh-castle",
+          "name": "Edinburgh Castle",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/eiffel-tower": {
+      "verdict": "matches",
+      "subject": "A tall open-lattice iron tower with four splayed arch-braced legs, two horizontal platforms and a tapering spire ending in a mast, modelled in untextured pale white that is barely visible against the white background.",
+      "reason": "The four-legged lattice silhouette, its two platforms and the tapering top are exactly the claimed tower's form, so the near-invisible white-on-white rendering does not change what the object is.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/eiffel-tower.webp",
+      "imageMd5": "cf5e2ce89fe480bcbfad07502a95ecb0",
+      "model": "public/models/landmarks/eiffel-tower.glb",
+      "modelSha256": "c35c0e6a14cf2de5aae57bdada702b2474b333f2214e34db31863a4e745d8030",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "eiffel-tower",
+          "name": "Eiffel Tower",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "eiffel-tower",
+          "name": "Eiffel Tower",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/empire-state-building": {
+      "verdict": "matches",
+      "subject": "A tall white untextured slab skyscraper with rows of window bands, stepped setbacks near the top and a slender spire or antenna above them, standing on a small street-level base.",
+      "reason": "The vertical mass with graded setbacks crowned by a mast is the claimed building's outline, so the model is the right object despite carrying no colour texture.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/empire-state-building.webp",
+      "imageMd5": "43f959ca469a5e843407fcd683471a4f",
+      "model": "public/models/landmarks/empire-state-building.glb",
+      "modelSha256": "bd04aab7648fe138aea10f5c48d5ee2e374fb2f27f1d0acecc445a93a4cb0e35",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "empire-state-building",
+          "name": "Empire State Building",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "empire-state-building",
+          "name": "Empire State Building",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/golden-gate-bridge": {
+      "verdict": "matches",
+      "subject": "A long orange-red suspension bridge with two braced towers, two main cables sweeping between them, a dense field of vertical suspender cables and a deck that dips toward mid-span.",
+      "reason": "A red-orange steel suspension bridge with paired towers and catenary cables is the claimed structure, and nothing visible contradicts it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/golden-gate-bridge.webp",
+      "imageMd5": "9b20053c83c04d4918cb4d425bd21ba2",
+      "model": "public/models/landmarks/golden-gate-bridge.glb",
+      "modelSha256": "1e8b5f8ac30d04a88f0d3810bc9ad07eb886fd8bb067f9d5b35bb054fcc65b3c",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "golden-gate-bridge",
+          "name": "Golden Gate Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "golden-gate-bridge",
+          "name": "Golden Gate Bridge",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/great-pyramid-of-giza": {
+      "verdict": "matches",
+      "subject": "A group of smooth sand-coloured four-sided pyramids standing on thin slabs, the largest in the middle with a small pyramid perched on its apex, next to a stack of flat platform blocks.",
+      "reason": "A large square-based stone pyramid is present and dominates the group shown, which is what the claim asserts.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/great-pyramid-of-giza.webp",
+      "imageMd5": "58f8e1b4c5a4f770a6d341b33af498db",
+      "model": "public/models/landmarks/great-pyramid-of-giza.glb",
+      "modelSha256": "c6497ecd96b5ab1f29bbc64eba2a8e71451354fec5a57f16edc7c985753e9205",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "great-pyramid-of-giza",
+          "name": "Great Pyramid of Giza",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/great-wall": {
+      "verdict": "matches",
+      "subject": "A white battlemented wall with square watchtowers and gate towers running along the crest of a rocky ridge, with clear crenellations along its walkway.",
+      "reason": "A crenellated defensive wall with watchtowers following a mountain ridge is the claimed structure, and the form is fully modelled even though it is rendered in pale white.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/great-wall.webp",
+      "imageMd5": "7b3e073678a38c9bd021159f845bd8a7",
+      "model": "public/models/landmarks/great-wall.glb",
+      "modelSha256": "34084538763768a70e6850170514f2ce77d322e28cad392f89acdf8ae4c29b64",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "great-wall",
+          "name": "Great Wall of China",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/hagia-sophia": {
+      "verdict": "matches",
+      "subject": "A masonry and plaster building with one large ribbed dome on a window-ringed drum, smaller half-domes and domes cascading around and below it, arched lattice windows and heavy stone walls.",
+      "reason": "The great central dome on its windowed drum with cascading semi-domes is the claimed building's defining massing, so the stylised blue dome colour does not make it a different structure.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/hagia-sophia.webp",
+      "imageMd5": "6e2993a1d9cff3c94ea156bec9e649ac",
+      "model": "public/models/landmarks/hagia-sophia.glb",
+      "modelSha256": "bc28cdc4aee16d4afc14de542abc75cfa1dd84f7a1f41a84a8f4e00350dfdc20",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "hagia-sophia",
+          "name": "Hagia Sophia",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/hassan-ii-mosque": {
+      "verdict": "matches",
+      "subject": "A white stone complex dominated by a tall square minaret topped with a small green-tiled cupola, beside large steeply pitched green-tiled roof sections and arcaded walls with a curved colonnade.",
+      "reason": "The tall square minaret with green tiling attached to a big green-roofed arcaded prayer hall is the recognisable form of the claimed mosque.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/hassan-ii-mosque.webp",
+      "imageMd5": "9c3c18ab891e6fb68226530394fc106c",
+      "model": "public/models/landmarks/hassan-ii-mosque.glb",
+      "modelSha256": "644c6d55306832e896dbaa899ad79fd7e007ca968cacc97691af3316c78a7a1c",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "hassan-ii-mosque",
+          "name": "Hassan II Mosque",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "hassan-ii-mosque",
+          "name": "Hassan II Mosque",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/himeji-castle": {
+      "verdict": "matches",
+      "subject": "A white multi-storey Japanese castle keep with several tiers of curved grey tiled roofs and gables, standing on a rough stone base with a lower attached wing.",
+      "reason": "The stacked white walls with curved grey roofs and gabled dormers are precisely the form of the claimed castle keep.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/himeji-castle.webp",
+      "imageMd5": "1f3722e9511833a950356967a483177a",
+      "model": "public/models/landmarks/himeji-castle.glb",
+      "modelSha256": "8b64947b611f4f58e0c85c94372aa60fe5e68eb2f98e0cf7b9e914be11005344",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "himeji-castle",
+          "name": "Himeji Castle",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/leaning-tower-of-pisa": {
+      "verdict": "matches",
+      "subject": "A cream-coloured cylindrical tower built of stacked arcaded galleries with open colonnaded rings under a small belfry, standing on a rounded grassy base; enlarged, it reads as essentially upright.",
+      "reason": "The round tiered campanile with its characteristic stacked open arcades and belfry is the claimed tower itself, with the absence of a visible lean attributable to this view rather than to a different object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/leaning-tower-of-pisa.webp",
+      "imageMd5": "ee0a2792808400173db626c21b99f428",
+      "model": "public/models/landmarks/leaning-tower-of-pisa.glb",
+      "modelSha256": "30585d78fcc1dd16967053b6abbb641b795c64a84d5597b2bd1fb8544de01166",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "leaning-tower-of-pisa",
+          "name": "Leaning Tower of Pisa",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/machu-picchu": {
+      "verdict": "mismatch",
+      "subject": "A rugged green mountain flank with bare rocky scars and a pale river or track at its foot; even zoomed in, no stone terraces, walls or buildings appear anywhere.",
+      "reason": "The render shows only empty mountain terrain, so the Inca citadel and its stonework the claim names are not present.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/machu-picchu.webp",
+      "imageMd5": "1443f17b4941ac15bef9f69dee2fe212",
+      "model": "public/models/landmarks/machu-picchu.glb",
+      "modelSha256": "e7fabd5a8c125eadb2851dbde74da16591644fddc443053dce4c6630f0323506",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "machu-picchu",
+          "name": "Machu Picchu",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/marina-bay-sands": {
+      "verdict": "matches",
+      "subject": "Three tall slab-shaped towers with blue glazed curtain walls, linked at their tops by a single long cantilevered horizontal platform.",
+      "reason": "Three glazed towers under one continuous roof deck is exactly the claimed hotel complex.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/marina-bay-sands.webp",
+      "imageMd5": "e056a0157e10e755ac0b452c05890885",
+      "model": "public/models/landmarks/marina-bay-sands.glb",
+      "modelSha256": "d9f181a3e34f890bade176289fc7ed9f5b90551f5d592f8a07fc336d87758c9a",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "marina-bay-sands",
+          "name": "Marina Bay Sands",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "marina-bay-sands",
+          "name": "Marina Bay Sands",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/milan-cathedral": {
+      "verdict": "matches",
+      "subject": "A white marble Gothic church with a pinnacled facade and rose window, surrounded by dense low city blocks facing an open piazza.",
+      "reason": "The white spired Gothic cathedral set against the surrounding urban blocks is the claimed cathedral.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/milan-cathedral.webp",
+      "imageMd5": "2db560d28aeb672ad41a750a77de99e0",
+      "model": "public/models/landmarks/milan-cathedral.glb",
+      "modelSha256": "8b3cb79a57ba2bdd0ae3fc994cc3e4c832b5d6813e1ea31a0bfff18f2681764b",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "milan-cathedral",
+          "name": "Milan Cathedral",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/moai": {
+      "verdict": "matches",
+      "subject": "A single oversized stone head with a heavy brow, long broad nose, jutting chin and a flat-topped cap, rendered in smooth untextured beige.",
+      "reason": "The monolithic stylised head with flat cap is the claimed Easter Island statue form.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/moai.webp",
+      "imageMd5": "bda6d8c10e6e5a6e1ba2efd40c26da6a",
+      "model": "public/models/landmarks/moai.glb",
+      "modelSha256": "a49b6835f8fa1212175613f361b44bbf71646e776e68157919ebba86bdb11578",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "moai",
+          "name": "Moai",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/mont-saint-michel": {
+      "verdict": "matches",
+      "subject": "A conical mound densely covered with clustered buildings and topped by a slender spire, ringed by walls and sitting on a flat square patch of ground.",
+      "reason": "The walled, spire-crowned pyramidal cluster of buildings is the claimed abbey island.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/mont-saint-michel.webp",
+      "imageMd5": "84ee3fd78503a864b3be11c5e9348845",
+      "model": "public/models/landmarks/mont-saint-michel.glb",
+      "modelSha256": "1b138e9b992eb2555d225062dbda412b244286a3c8cde5c535bea2e6d6edb5f2",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "mont-saint-michel",
+          "name": "Mont Saint-Michel",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/mount-rushmore": {
+      "verdict": "matches",
+      "subject": "A white souvenir figurine of four carved male heads emerging side by side from a rough rock face, set on an oval base inside a wooden frame with a plaque reading SAVIX / MOUNT RUSHMORE.",
+      "reason": "Four distinct sculpted presidential faces carved into a rock face is precisely the monument, and the render shows it whole and legible.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/mount-rushmore.webp",
+      "imageMd5": "78e7ad25e8cf44897f704667fdf79c61",
+      "model": "public/models/landmarks/mount-rushmore.glb",
+      "modelSha256": "f1da42b8763cf2fc2de772181e59ef8bc22d0b1d8bf091ef828ea509e18d3de1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "mount-rushmore",
+          "name": "Mount Rushmore",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/parthenon": {
+      "verdict": "matches",
+      "subject": "A plain white, untextured rectangular colonnade of many columns standing in a peripteral ring on a stepped platform, with an inner walled chamber and no roof overhead.",
+      "reason": "The geometry is a complete classical peripteral temple platform with colonnade, cella and steps, the massing the claim names, so the object is the thing claimed even though it is rendered in flat white and is barely distinguishable from the white background.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/parthenon.webp",
+      "imageMd5": "004c4d67e39cc117c88b479c8f980603",
+      "model": "public/models/landmarks/parthenon.glb",
+      "modelSha256": "aaa6573952a454c9ba2a77d6c52301899bb01166b9544871ab1226c3c5cc30dc",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "parthenon",
+          "name": "Parthenon",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/petra": {
+      "verdict": "mismatch",
+      "subject": "A flat, jagged photographic cut-out of a sandstone rock-cut facade showing two tiers of engaged columns around a doorway, with irregular holes punched through it and no surrounding geometry.",
+      "reason": "What is on screen is a fragmentary photo billboard of part of one facade with missing patches, not a model of the rock-cut building.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/petra.webp",
+      "imageMd5": "1ec0a28de70ac90fe745db597bc3bdca",
+      "model": "public/models/landmarks/petra.glb",
+      "modelSha256": "adae233b1969f67488d8af96516a46154acf5458af9b216575ac48af5910f553",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "petra",
+          "name": "Petra",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/petronas-towers": {
+      "verdict": "mismatch",
+      "subject": "A smooth white sphere wrapped in a photographic texture of sky, clouds and a distorted slice of buildings and a mast.",
+      "reason": "The object is a textured ball, not a pair of connected towers, so it cannot be either of the two catalogue entries that point at this same render.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/petronas-towers.webp",
+      "imageMd5": "64905724097ebdb09b62da87a368dbc5",
+      "model": "public/models/landmarks/petronas-towers.glb",
+      "modelSha256": "7dd4562cb39b00df2fe1770410cabaa26af0c80d9bb2f7f1067cc3251f2b90a1",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "petronas-towers",
+          "name": "Petronas Towers",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "petronas-towers",
+          "name": "Petronas Towers",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/prague-castle": {
+      "verdict": "mismatch",
+      "subject": "A flat photographic cut-out of a small two-storey stone building facade with two arched windows, a central panelled door and a jagged transparent edge.",
+      "reason": "It is a flat picture fragment of a modest house front, showing no castle, no cathedral and no fortification of any kind.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/prague-castle.webp",
+      "imageMd5": "684126b1b67e8e5db3898b82814b0020",
+      "model": "public/models/landmarks/prague-castle.glb",
+      "modelSha256": "70ae5223e4cd3f3e39e51a2b03a0a577e3b2bb97903311131d7d0b9bee2ed581",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "prague-castle",
+          "name": "Prague Castle",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/prambanan": {
+      "verdict": "matches",
+      "subject": "A detailed carved stone temple tower with a tiered pyramidal roof studded with finials, stairways on a stepped base and small subsidiary shrines at the corners.",
+      "reason": "The whole structure is a Javanese candi of the type and form named by the claim, shown complete with its base, body and roof.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/prambanan.webp",
+      "imageMd5": "20779104d518e591492bd423ceb1c2bb",
+      "model": "public/models/landmarks/prambanan.glb",
+      "modelSha256": "3d8f5907492ad078557cf172c800d9eadb812687f2de37eb5a088bc2938df153",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "prambanan",
+          "name": "Prambanan",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/sagrada-familia": {
+      "verdict": "mismatch",
+      "subject": "A sphere carrying a photographic panoramic city image in which a spired church appears as part of the picture wrapped around the ball.",
+      "reason": "The object is a photo-textured globe, and the building only exists as pixels inside its texture rather than as a model.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/sagrada-familia.webp",
+      "imageMd5": "5c1b9ea613a0b4b2206d21f1fcac23e5",
+      "model": "public/models/landmarks/sagrada-familia.glb",
+      "modelSha256": "df465ce539636c0960fb395cfb98a6f5062b0ff5cda629a1bd045656fae2a87a",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sagrada-familia",
+          "name": "Sagrada Família",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/saint-basils-cathedral": {
+      "verdict": "matches",
+      "subject": "A colourful miniature church with several patterned onion domes, a tall central tent spire, red-and-white decorative bands and a small separate bell tower, sitting on a soft pale base inside a faint wireframe dome.",
+      "reason": "The cluster of differently patterned onion domes around a central tent spire with an attached bell tower is the cathedral the claim names, and it is rendered whole and readable.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/saint-basils-cathedral.webp",
+      "imageMd5": "e5bc6478692c5837286d00a4e051ea4a",
+      "model": "public/models/landmarks/saint-basils-cathedral.glb",
+      "modelSha256": "41ded1f86d4b7ff33552e671aedf757e707089aebc68e02173b693cf14a36706",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "saint-basils-cathedral",
+          "name": "Saint Basil's Cathedral",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/st-peters-basilica": {
+      "verdict": "mismatch",
+      "subject": "A jagged, hole-riddled photogrammetry chunk of white stone wall showing a gold cross emblem, a sculpted figure group, patches of mosaic and sky texture, with a detached torn strip hanging to the left.",
+      "reason": "It is only a broken fragment of a decorated wall with no dome, facade, colonnade or any basilica structure visible, so it is not the building.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/st-peters-basilica.webp",
+      "imageMd5": "25dc96caf025a119b12ece9dfb8e3b66",
+      "model": "public/models/landmarks/st-peters-basilica.glb",
+      "modelSha256": "de0d06fec9f86e15c26da35d7e4ab35cefae0b29c14c74b811f587d7efa6c545",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "st-peters-basilica",
+          "name": "St. Peter's Basilica",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/statue-of-liberty": {
+      "verdict": "matches",
+      "subject": "A green-patina robed female figure with a seven-spiked crown, right arm raised holding a gold-flamed torch, standing on a white blocky pedestal.",
+      "reason": "The robed, crowned figure with raised torch on a pedestal is unmistakably the Statue of Liberty.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/statue-of-liberty.webp",
+      "imageMd5": "ef50d5408af0e481656099e72192e02c",
+      "model": "public/models/landmarks/statue-of-liberty.glb",
+      "modelSha256": "ee81d1989bc1b06588a58fa6b5fa8781a1bdedfb1fdfd3e9c30c3b146f3ad34b",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "statue-of-liberty",
+          "name": "Statue of Liberty",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/stonehenge": {
+      "verdict": "matches",
+      "subject": "A circular arrangement of upright weathered stones, several capped by horizontal lintels, plus inner standing stones, on an irregular patch of grass and earth.",
+      "reason": "A ring of trilithon standing stones on a grassy sarsen setting is exactly the Stonehenge monument.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/stonehenge.webp",
+      "imageMd5": "8c6f83c3257edae35fe218dbb1489f1e",
+      "model": "public/models/landmarks/stonehenge.glb",
+      "modelSha256": "c3f4d2d20c53dd453f8bcdc436c35b0171276be0b89b7e17ea4cfcf5d8624c37",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "stonehenge",
+          "name": "Stonehenge",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/sydney-harbour-bridge": {
+      "verdict": "matches",
+      "subject": "A single large steel arch carrying a flat roadway over a rectangular patch of blue rippled water, with pale approach ramps at both ends and a small white shell-roofed building on the far shore.",
+      "reason": "The big through-arch with a deck suspended from it over the harbour is the Sydney Harbour Bridge.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/sydney-harbour-bridge.webp",
+      "imageMd5": "97feef928d811a85a8e9410f185edf10",
+      "model": "public/models/landmarks/sydney-harbour-bridge.glb",
+      "modelSha256": "0a1b0e165fc727d9ea22a62025c2f4fa1d15e8917aee16efcacb78e376bc9d91",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sydney-harbour-bridge",
+          "name": "Sydney Harbour Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "sydney-harbour-bridge",
+          "name": "Sydney Harbour Bridge",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/sydney-opera-house": {
+      "verdict": "matches",
+      "subject": "A small cluster of white sail-shaped shells sitting on a pale blue peninsula platform surrounded by water, occupying only a corner of an otherwise empty frame.",
+      "reason": "Zooming in shows the interlocking white shell roofs on a waterfront platform that define the Opera House.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/sydney-opera-house.webp",
+      "imageMd5": "d4fc5e3d67459176b7bbf8d6db04f95d",
+      "model": "public/models/landmarks/sydney-opera-house.glb",
+      "modelSha256": "fdf69a9211b5f8451aeeb673241cb4cf2cfb0f52c5072ee88000b6edab0f3bab",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "sydney-opera-house",
+          "name": "Sydney Opera House",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "sydney-opera-house",
+          "name": "Sydney Opera House",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/taj-mahal": {
+      "verdict": "matches",
+      "subject": "A white marble mausoleum with a large bulbous onion dome and finial, four surrounding minarets, arched iwan entrances and chhatri kiosks, on a square plinth.",
+      "reason": "The domed white tomb with four corner minarets is the Taj Mahal.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/taj-mahal.webp",
+      "imageMd5": "a2b4d2eee54de5e14e177e39d6b066bf",
+      "model": "public/models/landmarks/taj-mahal.glb",
+      "modelSha256": "ae422073c366eb52cff95fbe9b3f25e7664ee576930ceb3126e2431caafaf62d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "taj-mahal",
+          "name": "Taj Mahal",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/temple-of-heaven": {
+      "verdict": "unclear",
+      "subject": "A plain white untextured stack of three rounded conical tiers topped by a small finial, over a smooth curved cylindrical drum, with no columns, doorways, tiling or any other surface detail.",
+      "reason": "The blank three-tier conical silhouette could be the Hall of Prayer's massing, but with no roofs, walls, colonnade or texture rendered there is nothing to confirm it is that building rather than any generic tiered cone.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/temple-of-heaven.webp",
+      "imageMd5": "c57bddbedf1d9cc8a0e1a1094969bab6",
+      "model": "public/models/landmarks/temple-of-heaven.glb",
+      "modelSha256": "660fee6db8aa68b51453d978b4ba2e1bfdd86b0cfb1982ec76d27bc339566d59",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "temple-of-heaven",
+          "name": "Temple of Heaven",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/tower-bridge": {
+      "verdict": "matches",
+      "subject": "Two ornate Gothic stone towers with pinnacles joined by a horizontal high-level walkway, with suspension chains and a roadway deck crossing a river between green-banked shores.",
+      "reason": "The paired pinnacled towers linked by an upper walkway with suspension spans over the Thames is Tower Bridge.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/tower-bridge.webp",
+      "imageMd5": "db10275756b0718dcad62d8bb8058274",
+      "model": "public/models/landmarks/tower-bridge.glb",
+      "modelSha256": "51bb731a0fd626b27855e48e89e7fd86cea8dea62cee45157e1c738f1e37153d",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "tower-bridge",
+          "name": "Tower Bridge",
+          "latin": null
+        },
+        {
+          "catalogue": "buildings",
+          "slug": "tower-bridge",
+          "name": "Tower Bridge",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/trevi-fountain": {
+      "verdict": "mismatch",
+      "subject": "A long rectangular slab of pinkish-white city blocks seen from above, like a flat satellite map tile of a dense town.",
+      "reason": "There is no fountain, no baroque facade and no water anywhere in the render, only an aerial city-map tile, so it is not the claimed fountain.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/trevi-fountain.webp",
+      "imageMd5": "06481b1df9087b2a54c48766db6693c7",
+      "model": "public/models/landmarks/trevi-fountain.glb",
+      "modelSha256": "7db5dcef6239db3353f5dc0d4f582c05920cd997aad70490ab7c6d220013dd43",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "trevi-fountain",
+          "name": "Trevi Fountain",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "landmarks/uluru": {
+      "verdict": "matches",
+      "subject": "A flat rectangular patch of red desert ground with a large fluted red sandstone dome rising from its middle.",
+      "reason": "The single huge red rock monolith on a flat desert plain is exactly the formation claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/landmarks/uluru.webp",
+      "imageMd5": "13fb3b5eedad0c2b8dc931c5f23915f5",
+      "model": "public/models/landmarks/uluru.glb",
+      "modelSha256": "60d7bf3044c0cce29104b0ee0cffbd015eff38ba38d28fda436444f60d7f6e22",
+      "claims": [
+        {
+          "catalogue": "architecture",
+          "slug": "uluru",
+          "name": "Uluru",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "leopard-seal": {
+      "verdict": "matches",
+      "subject": "A streamlined grey and white marine mammal with flippers, a blunt snout and a forked tail, floating on white.",
+      "reason": "The body shape, flippers and grey mottled hide are those of a seal, the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/leopard-seal.webp",
+      "imageMd5": "6a735c9d0157ad71a213d7a5ca99dc9d",
+      "model": "public/models/leopard-seal.glb",
+      "modelSha256": "f79c7b1d5e1ccffe217ac61590cd44f9fc8cce75d80cc151d9f4f0e1f0739c46",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "leopard-seal",
+          "name": "Leopard Seal",
+          "latin": "Hydrurga leptonyx"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "lion": {
+      "verdict": "matches",
+      "subject": "A tawny four-legged big cat with a heavy dark mane around its head and a long tail ending in a dark tuft.",
+      "reason": "The maned, tufted-tail feline body is unmistakably the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/lion.webp",
+      "imageMd5": "1b0dcbe30f169bcad745ee60cbfc2ea2",
+      "model": "public/models/lion.glb",
+      "modelSha256": "c1490f3ed91576afe9c4de24824f4f9c6db9b067dea9edc2edce5bb73179952c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "lion",
+          "name": "Lion",
+          "latin": "Panthera leo"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "luna-moth": {
+      "verdict": "matches",
+      "subject": "A pale green moth with broad wings, small eyespots and long slender tails trailing from the hindwings.",
+      "reason": "The pale green wings with long hindwing tails are the distinctive form of the moth claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/luna-moth.webp",
+      "imageMd5": "c50e2c801fdfa011e497d0d9bafd087a",
+      "model": "public/models/luna-moth.glb",
+      "modelSha256": "194655e1f442a372eb173aad3b5c7d94efd905df883a4341e2285875e9639398",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "luna-moth",
+          "name": "Luna Moth",
+          "latin": "Actias luna"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "megalodon": {
+      "verdict": "matches",
+      "subject": "A stocky grey shark with a broad head, a tall dorsal fin, large pectoral fins and a crescent tail.",
+      "reason": "The render clearly shows a large predatory shark, the kind of animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/megalodon.webp",
+      "imageMd5": "eefdba3b41e4f655df8b7a115266da7e",
+      "model": "public/models/megalodon.glb",
+      "modelSha256": "da1b73f48f6dac6f145e85f26402c58b3ac5a9eb9bc7dda5ab2a078fc7c951e0",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "megalodon",
+          "name": "Megalodon",
+          "latin": "Otodus megalodon"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "monarch-butterfly": {
+      "verdict": "matches",
+      "subject": "An orange butterfly with black wing veins and a black border dotted with white spots, wings spread mid-flight.",
+      "reason": "The orange-and-black veined wings with white-spotted margins are the pattern of the butterfly claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/monarch-butterfly.webp",
+      "imageMd5": "8934433325edc6775eb7ee55edaea668",
+      "model": "public/models/monarch-butterfly.glb",
+      "modelSha256": "09df216231b793c5faf0d571d49a53af0809581205356f7768887b620243bf21",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "monarch-butterfly",
+          "name": "Monarch Butterfly",
+          "latin": "Danaus plexippus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "moose": {
+      "verdict": "matches",
+      "subject": "A brown, long-legged deer-like animal with a long drooping snout, a throat dewlap and huge palmate antlers.",
+      "reason": "The broad palmate antlers combined with the long snout and dewlap identify the animal claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/moose.webp",
+      "imageMd5": "509213d8cf19b6d8c3ac8303609b82c9",
+      "model": "public/models/moose.glb",
+      "modelSha256": "489b07697a171da06e4a5a93bd9099af2b7cb07527b6db8d51580b55dd01ab54",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "moose",
+          "name": "Moose",
+          "latin": "Alces alces"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "narwhal": {
+      "verdict": "matches",
+      "subject": "A soft, pale-white rounded marine-animal body seen at a steep angle, with one long tapered spiral tusk jutting up from the head area and a small dark eye-like opening on the upper mass.",
+      "reason": "A white whale-shaped body carrying a single long spiral tusk is the diagnostic form of the claimed animal, and the body is a single coherent creature, not a part or an abstract shape.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/narwhal.webp",
+      "imageMd5": "dd75b008d0d5fc7c362d926d015afea6",
+      "model": "public/models/narwhal.glb",
+      "modelSha256": "364541abaaaa0779f2cff4ad867ee86a00c191e0cd2db3866852d71c794c6160",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "narwhal",
+          "name": "Narwhal",
+          "latin": "Monodon monoceros"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "ocelot": {
+      "verdict": "matches",
+      "subject": "A slender tawny spotted cat standing with its head lowered, coat marked with dark blotchy rosettes in broken chains, pale underside and legs, and a long thin ringed tail.",
+      "reason": "The render is a complete small spotted wild cat whose chain-like rosettes and build fit the claimed species rather than a mere head or skin fragment.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/ocelot.webp",
+      "imageMd5": "d5be1a97d7f143f3471388a32f1ef339",
+      "model": "public/models/ocelot.glb",
+      "modelSha256": "47b90cd1e71d151a38058064f6545e9fa7c01cccf8e28cc9e871e0af34381280",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "ocelot",
+          "name": "Ocelot",
+          "latin": "Leopardus pardalis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "orca": {
+      "verdict": "mismatch",
+      "subject": "A jumble of glossy indigo-purple and white surfaces: one long whip-like tapering appendage, stubby limb-like tubes with purple patches, and a flattened six-armed star of pointed prongs at the bottom, with gaps as if the parts are exploded or clipped.",
+      "reason": "Nothing in the image has the black-and-white torpedo body, dorsal fin or flukes of a killer whale, so the object shown is not the claimed animal.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/orca.webp",
+      "imageMd5": "f8cfbbbfff4dea74ca649aab2b2fe9bf",
+      "model": "public/models/orca.glb",
+      "modelSha256": "1713a9282013a2628028356896431ca8a53ec35533705250cc22e905349d3e92",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "orca",
+          "name": "Orca",
+          "latin": "Orcinus orca"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "peregrine-falcon": {
+      "verdict": "matches",
+      "subject": "A bird of prey in a stooping pose with a dark hood over crown and nape, white cheek crossed by a dark stripe, yellow cere and eye-ring, grey barred underparts, and yellow legs with black talons extended.",
+      "reason": "The whole bird is present with the hooded head pattern, barred plumage and yellow feet characteristic of the claimed falcon.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/peregrine-falcon.webp",
+      "imageMd5": "91d7e60691c14abddff722dee39ddf15",
+      "model": "public/models/peregrine-falcon.glb",
+      "modelSha256": "82ac85b138da77ba1328f8e793ea920e3ea534c97015e9e5ee1a9f6c591864d5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "peregrine-falcon",
+          "name": "Peregrine Falcon",
+          "latin": "Falco peregrinus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plains-zebra": {
+      "verdict": "matches",
+      "subject": "A horse-like animal in profile with narrow black-and-white stripes wrapping its barrel, neck and legs, an upright striped mane, and a dark muzzle and hooves.",
+      "reason": "A complete striped equine with mane, legs and hooves is exactly the claimed animal.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plains-zebra.webp",
+      "imageMd5": "405503faf73c2a5bf893de9210a27c11",
+      "model": "public/models/plains-zebra.glb",
+      "modelSha256": "7e458106d713a2c38011403334630def297572f22c5154411eee4d14671d6554",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "plains-zebra",
+          "name": "Plains Zebra",
+          "latin": "Equus quagga"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/bamboo": {
+      "verdict": "mismatch",
+      "subject": "A few thin, smooth, uniform-thickness green rods standing in a dark glazed vase, bent into tight corkscrews and loops, with no leaves, nodes or side branches anywhere.",
+      "reason": "The object is bare spiralling wire-like stems in a pot rather than a jointed, leafy cane-bearing plant, so it is a different thing from what is claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/bamboo.webp",
+      "imageMd5": "80e46f4ef663d89cd3e19e8ba4da59de",
+      "model": "public/models/plants/bamboo.glb",
+      "modelSha256": "84a6691051d64c100bae3c6c43a41ba42efc084e4a94d30718a7a1620bf5897a",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "bamboo",
+          "name": "Bamboo",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/banana": {
+      "verdict": "matches",
+      "subject": "A hand of pale-yellow finger-shaped fruits joined at a cut crown stem, the skin lightly speckled with small brown dots.",
+      "reason": "The render is a complete, textured bunch of the fruit that the entry names, not a fragment or an untextured diagram.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/banana.webp",
+      "imageMd5": "b7358dfd22cc863844cc04dc5f89eb6e",
+      "model": "public/models/plants/banana.glb",
+      "modelSha256": "d0c3bead32d5870ace10c2bc4c40bfb9e3e33921172afd7dce569d90255b4407",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "banana",
+          "name": "Banana",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/baobab": {
+      "verdict": "matches",
+      "subject": "A tree with an enormous smooth white-grey bottle-shaped trunk swollen at the middle and flaring at the root, short thick limbs at the top, and a broad flat crown of palmate star-shaped green leaves.",
+      "reason": "The bloated water-storing trunk topped by a wide flat canopy of digitate leaflets is the distinctive silhouette of the claimed tree.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/baobab.webp",
+      "imageMd5": "408961cf96e384caab8e7a9c6d0e4a85",
+      "model": "public/models/plants/baobab.glb",
+      "modelSha256": "9b2a8370e5c76c2e98abeb6d374a72b681654e4f43c79f0a9ece1ca72508f744",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "baobab",
+          "name": "Baobab",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/cactus": {
+      "verdict": "matches",
+      "subject": "A peach-coloured pot holding a single upright, ribbed columnar plant whose body is studded with pale spines.",
+      "reason": "A spiny columnar succulent of this form in a pot is plainly a cactus, with nothing in the render contradicting the claim.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/cactus.webp",
+      "imageMd5": "c8abb0a65705012f3155eac9b2566a6a",
+      "model": "public/models/plants/cactus.glb",
+      "modelSha256": "d3d25e4703cdea07c7d6594b5abe8f6dc6ea61710dae9a134bb2feaf1f954337",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "cactus",
+          "name": "Cactus",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/cactus-pack": {
+      "verdict": "matches",
+      "subject": "One upright spiny columnar plant in a peach pot on a plain white background, the frame otherwise empty.",
+      "reason": "The single object shown is unquestionably a cactus, although the file is byte-identical to cactus.webp (same MD5 c8abb0a6...), so only one specimen is rendered and no multi-plant pack is visible.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/cactus-pack.webp",
+      "imageMd5": "c8abb0a65705012f3155eac9b2566a6a",
+      "model": "public/models/plants/cactus-pack.glb",
+      "modelSha256": "d3d25e4703cdea07c7d6594b5abe8f6dc6ea61710dae9a134bb2feaf1f954337",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "cactus-pack",
+          "name": "Cactus",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/coffee": {
+      "verdict": "matches",
+      "subject": "A low-poly potted shrub with large oval green leaves and clusters of small pink-red berries sitting in the leaf axils of its branches.",
+      "reason": "Broad paired leaves with tight clusters of red fruit set against the stems is the characteristic look of a fruiting coffee plant, and nothing in the render points to a different species.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/coffee.webp",
+      "imageMd5": "e28fc73794d86037b440a0b0f641640d",
+      "model": "public/models/plants/coffee.glb",
+      "modelSha256": "d2575e4a3f5a2c37e9da9390bffb8e7a8f867c86b06656f69088dba61c4ca9a4",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "coffee",
+          "name": "Coffee",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/fig-tree": {
+      "verdict": "matches",
+      "subject": "A potted woody tree with many thick, glossy dark-green oval leaves on bare reddish stems, standing in a bright orange-red pot.",
+      "reason": "Thick glossy simple leaves borne on a woody indoor tree of this shape are exactly the rubber-plant type of Ficus, so the claim is consistent with what is rendered.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/fig-tree.webp",
+      "imageMd5": "ea41a335f8f703bd2756cfa9240e2087",
+      "model": "public/models/plants/fig-tree.glb",
+      "modelSha256": "5be28f076c4ba41f4bfba3955b061a5ca02a30c4e7a88903d1eeb2ad2f6b8aaf",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "fig-tree",
+          "name": "Ficus",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/gazebo": {
+      "verdict": "matches",
+      "subject": "A completely white, untextured octagonal garden pavilion with a domed roof and finial, open columned sides and a square base, with a shrub beside it.",
+      "reason": "The render is almost invisibly white-on-white, but after compositing the transparent image over a grey background the geometry is unmistakably an octagonal gazebo, so the object is the thing claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/gazebo.webp",
+      "imageMd5": "04f6c194cb21f8f34d9fa4d24c440b92",
+      "model": "public/models/plants/gazebo.glb",
+      "modelSha256": "9ea8ff09552156623ef8a4a16399a35cca77723e50fafb0c7371a94bde17f399",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "gazebo",
+          "name": "Gazebo",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/giant-sequoia": {
+      "verdict": "mismatch",
+      "subject": "A photogrammetry scan of a massive weathered trunk broken off flat at the top, standing on a patch of scanned ground with no branches, foliage or canopy.",
+      "reason": "What is shown is only the stump and base of a tree, a fragment of the claimed organism rather than a whole giant sequoia.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/giant-sequoia.webp",
+      "imageMd5": "25178fe77319fae7197d20d0740f520f",
+      "model": "public/models/plants/giant-sequoia.glb",
+      "modelSha256": "13bc71bf5d18c50f0cce2f47abb966e7989140ac5217c3b83852bf3960168aa3",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "giant-sequoia",
+          "name": "Giant Sequoia",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/ginkgo": {
+      "verdict": "matches",
+      "subject": "A tree almost entirely covered by a dense mass of uniform pale golden-yellow leaves, with the trunk barely visible through the canopy.",
+      "reason": "The object is a single tree in overall golden autumn foliage of the kind that is the visual signature of the claimed species, and no feature of the render contradicts that identification.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/ginkgo.webp",
+      "imageMd5": "45e99f64ed7212720af054adf846b2aa",
+      "model": "public/models/plants/ginkgo.glb",
+      "modelSha256": "51543d1c5d8ab75043eed295ccc1658a1e5bc49537c6e847f0a34fc47d180e21",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "ginkgo",
+          "name": "Ginkgo",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/hollow-knight-33-34-moss-charger": {
+      "verdict": "unclear",
+      "subject": "A small stylized insect-like creature on a white display base: a pale mask-like head with one dark eye, a long white curled plume, layers of white frond-like plates around the body, a large dark-blue oval shell and thin dark legs.",
+      "reason": "The render is clean and complete, but it shows only an unnamed game-style creature with no recognisable character design tying it to the claimed franchise, so the identity cannot be confirmed from the image alone.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/hollow-knight-33-34-moss-charger.webp",
+      "imageMd5": "f9642a1220a3be84938e64a4a7d69ff9",
+      "model": "public/models/plants/hollow-knight-33-34-moss-charger.glb",
+      "modelSha256": "6913a7009bd7942241e0fc52f7292fcaf53aba31cb098dd5efc2e8228e8bf09a",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "hollow-knight-33-34-moss-charger",
+          "name": "Hollow Knight",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/ivy": {
+      "verdict": "matches",
+      "subject": "A trailing leafy plant with small lobed green leaves spilling over the rim of a round terracotta pot.",
+      "reason": "A potted trailing vine with many small lobed leaves is plainly the kind of plant claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/ivy.webp",
+      "imageMd5": "5649aef5d904681039370579e7d52f91",
+      "model": "public/models/plants/ivy.glb",
+      "modelSha256": "2e3b5fcde2a590592b584bc20fb6b0612733861f1e05237f3bd574469de7b50d",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "ivy",
+          "name": "Ivy",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/kelp": {
+      "verdict": "unclear",
+      "subject": "Two extremely faint, almost white thin vertical strands against a plain white background, with no discernible blades or colour.",
+      "reason": "The render is washed out nearly to nothing, so no recognizable plant form can be confirmed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/kelp.webp",
+      "imageMd5": "5888450b41ec5c7b5f7011ff56416a0c",
+      "model": "public/models/plants/kelp.glb",
+      "modelSha256": "73c61bf9300364757fbb433af45b6e10f48ceb3ef5353ae0311ba7403dcd7ee2",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "kelp",
+          "name": "Kelp",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/lavender": {
+      "verdict": "matches",
+      "subject": "A clump of narrow grey-green foliage in a square grey planter topped by several upright spikes of small purple flowers.",
+      "reason": "Purple flower spikes over narrow silver-green leaves in a pot is exactly the claimed plant.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/lavender.webp",
+      "imageMd5": "a6614a430d08a5ec6e8591cfabac4f2f",
+      "model": "public/models/plants/lavender.glb",
+      "modelSha256": "9f0bed87aa0a2f0f07c215246a51d78f22165b4ae1790bdca0121bab98c46c63",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lavender",
+          "name": "Lavender",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/lily-of-the-valley": {
+      "verdict": "unclear",
+      "subject": "Six or seven pale pink translucent spheres floating in a loose diagonal line on a white background, with only the faintest suggestion of foliage.",
+      "reason": "The near-white-on-white render shows only isolated blobs, so no bell-flower stem structure or leaves can be judged.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/lily-of-the-valley.webp",
+      "imageMd5": "3ae9f1792a5c70f61c8b96fbc4de4e40",
+      "model": "public/models/plants/lily-of-the-valley.glb",
+      "modelSha256": "31ce1fd9bd66e52757fc5c5a3f039929e95dc59d544a98b107cec0da8c638c23",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lily-of-the-valley",
+          "name": "Lily of the valley",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/lotus": {
+      "verdict": "matches",
+      "subject": "Scattered round green lily pads floating on an invisible surface, with several pink star-petalled flowers among them.",
+      "reason": "A floating aquatic plant with pads and pink blooms is the claimed object as commonly understood.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/lotus.webp",
+      "imageMd5": "2029fa1b7ec4c9fba43322648465a2a6",
+      "model": "public/models/plants/lotus.glb",
+      "modelSha256": "b9a009de0bdbc9743fb78ebfc97aa03de0d9b8136185ae30da7a1568fe27de80",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "lotus",
+          "name": "Lotus",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/maple-tree": {
+      "verdict": "matches",
+      "subject": "A single broadleaf tree with a slender pale trunk and a dense rounded crown of small green leaves, standing on a flat green square.",
+      "reason": "The image is a complete deciduous tree, which is the claimed object; nothing contradicts it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/maple-tree.webp",
+      "imageMd5": "971af456ec02c85b2fb5eea63933b534",
+      "model": "public/models/plants/maple-tree.glb",
+      "modelSha256": "92bdfcc6d98c11dc3c08263d4d0b60ecbe040bd94fbfdf84dfadeb3d0d9c6794",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "maple-tree",
+          "name": "Maple",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/mediterranean-metalurgy-ue5-gate-ornamen": {
+      "verdict": "mismatch",
+      "subject": "A white humanoid figure in a glossy sci-fi bodysuit with a helmet, gloves and boots, standing in a neutral pose.",
+      "reason": "The render is a full humanoid character, not a gate ornament or any piece of architectural metalwork.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/mediterranean-metalurgy-ue5-gate-ornamen.webp",
+      "imageMd5": "8941310a12f3ee4795e2e4adc1df9720",
+      "model": "public/models/plants/mediterranean-metalurgy-ue5-gate-ornamen.glb",
+      "modelSha256": "5fe7443684926ee886a17c158d232d2fdee6a6461a297de8999220859e1caf70",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "mediterranean-metalurgy-ue5-gate-ornamen",
+          "name": "Unreal Engine 5",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/oak": {
+      "verdict": "matches",
+      "subject": "Two or three slender deciduous trees with pale whitish trunks and sparse light yellow-green foliage, shown together on white.",
+      "reason": "The render shows leafy deciduous trees at a size where species details are not resolvable, which is consistent with the claim.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/oak.webp",
+      "imageMd5": "513aea4c4cc316cd61c8186d7f9b1dc0",
+      "model": "public/models/plants/oak.glb",
+      "modelSha256": "818eb837582c57e3f59d5f7b942a65d2d2a2a96016c99791db47dc2a395539e7",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "oak",
+          "name": "Oak",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/orchid": {
+      "verdict": "matches",
+      "subject": "Two pink orchid blooms with yellow-and-white centers attached to a thin bare branch against a white background.",
+      "reason": "The flowers are plainly moth-orchid blooms with the characteristic petals, lip and column, so the object is the claimed flower.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/orchid.webp",
+      "imageMd5": "288400fda5c5845aea9c728c546c5cf9",
+      "model": "public/models/plants/orchid.glb",
+      "modelSha256": "55aa9f5c5e213cb20025300989d7f5e6e294ebcc7ba52070156162fb2f69b91e",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "orchid",
+          "name": "Orchid",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/poppy-playtime-daisy-the-flower-updated": {
+      "verdict": "matches",
+      "subject": "A stylised daisy head with white petals and a yellow face bearing cartoon eyes and a smile, mounted on a green stem with leaf-arms and a two-legged lower body.",
+      "reason": "The smiling white daisy character on a stem is exactly the Daisy the Flower character the catalogue claims.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/poppy-playtime-daisy-the-flower-updated.webp",
+      "imageMd5": "d0e65090dc69acb3427bbb47541e34fb",
+      "model": "public/models/plants/poppy-playtime-daisy-the-flower-updated.glb",
+      "modelSha256": "4cad14da2b0f201fd55c035aa0575c841a2c954f7ee048dd747f0f8e005d0a23",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "poppy-playtime-daisy-the-flower-updated",
+          "name": "Poppy Playtime",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/saguaro": {
+      "verdict": "matches",
+      "subject": "A tall ribbed columnar cactus with one arm bending upward, standing on a small square patch of sandy ground.",
+      "reason": "A single-trunked columnar cactus with a bent arm is the classic saguaro silhouette the claim describes.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/saguaro.webp",
+      "imageMd5": "89680109f7f38202ca1ae4d8454bda0e",
+      "model": "public/models/plants/saguaro.glb",
+      "modelSha256": "dbd32fb7f64a871e91b0e478067d76c4a8fe5fb223c010dcaf984fbd4e601d4d",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "saguaro",
+          "name": "Saguaro",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/sunflower": {
+      "verdict": "matches",
+      "subject": "A single flower with yellow ray petals around a large brown seed head on a green stem with two broad leaves.",
+      "reason": "The yellow-petalled head with a brown disc on a leafy stalk is unambiguously a sunflower.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/sunflower.webp",
+      "imageMd5": "ddcae4378472680512c15ace832b926c",
+      "model": "public/models/plants/sunflower.glb",
+      "modelSha256": "c45bfbbfc1e487e6e19970a6ae520335bb161b11fff5f1b05f1982d4231b52bb",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "sunflower",
+          "name": "Sunflower",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/tulip": {
+      "verdict": "matches",
+      "subject": "A closed cup-shaped pink blossom on a short green stem flanked by two strap-like leaves.",
+      "reason": "The smooth closed pink cup on a stem with two leaves is the standard tulip form.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/tulip.webp",
+      "imageMd5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "model": "public/models/plants/tulip.glb",
+      "modelSha256": "d9f66162c9571055b5102beefcf368140bea47c3e24f5aafdfd4e7dfca4be559",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "tulip",
+          "name": "Tulip",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/tulip-flower": {
+      "verdict": "matches",
+      "subject": "The same closed pink cup-shaped blossom on a green stem with two leaves, pixel-identical to the other tulip render.",
+      "reason": "Whatever the duplication, the object shown is a tulip matching the claimed label.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/tulip-flower.webp",
+      "imageMd5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "model": "public/models/plants/tulip-flower.glb",
+      "modelSha256": "d9f66162c9571055b5102beefcf368140bea47c3e24f5aafdfd4e7dfca4be559",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "tulip-flower",
+          "name": "Tulip",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/venus-flytrap": {
+      "verdict": "unclear",
+      "subject": "A potted plant in a pale pot with a sandy soil disc, a few flat rounded green leaves lying on the soil and several long slender stalks tipped with small greenish heads flecked with orange.",
+      "reason": "At this size and resolution no hinged two-lobed trap with marginal teeth can be resolved, so the plant could be a flytrap with flat open traps or an unrelated rosette plant.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/venus-flytrap.webp",
+      "imageMd5": "7eb2d7a0e8e5aa87856a7aa0713ed551",
+      "model": "public/models/plants/venus-flytrap.glb",
+      "modelSha256": "9c7ded5a20282b5837db7c22d6dfc9f90dba27529bad24b57467389aa4c3a27e",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "venus-flytrap",
+          "name": "Venus Flytrap",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "plants/wheat": {
+      "verdict": "matches",
+      "subject": "Roughly ten golden-tan bearded grain ears with long awns arranged in a rising row, without stems or leaves.",
+      "reason": "The awned golden ears are recognisable wheat spikes, which is what the claim names.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/plants/wheat.webp",
+      "imageMd5": "a8e5139636590fe8c593d6697a1fa710",
+      "model": "public/models/plants/wheat.glb",
+      "modelSha256": "583b2edfa4b7d08374d1407a1e85ddf9dae9992cf6e1cebddef2b3650fc823f6",
+      "claims": [
+        {
+          "catalogue": "plants",
+          "slug": "wheat",
+          "name": "Wheat",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "poison-dart-frog": {
+      "verdict": "matches",
+      "subject": "A squat four-legged frog with pale orange-tan skin, black blotches and bars, and blue-black speckled hind legs, seen from a three-quarter angle.",
+      "reason": "The render shows a complete, textured frog whose black-on-orange pattern is exactly the aposematic colouring of a poison dart frog.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/poison-dart-frog.webp",
+      "imageMd5": "9ba46b7c61e28b85cf7f1966a03db2c9",
+      "model": "public/models/poison-dart-frog.glb",
+      "modelSha256": "0fc7d1cda023b3a62ba00cf279b85797f4995a11631baad090b5b539b594e463",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "poison-dart-frog",
+          "name": "Poison Dart Frog",
+          "latin": "Dendrobatidae"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "polar-bear": {
+      "verdict": "matches",
+      "subject": "A large white bear standing on all fours in a walking pose with mouth open, black nose and eyes, and heavy paws.",
+      "reason": "The whole animal is visible and is plainly a white-furred bear, the thing claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/polar-bear.webp",
+      "imageMd5": "47d1ab2dda003ba190991ec9ba31ba46",
+      "model": "public/models/polar-bear.glb",
+      "modelSha256": "0312464169061114e4cfa06ceb22018a759a8d554588dd063d2b426739aea153",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "polar-bear",
+          "name": "Polar Bear",
+          "latin": "Ursus maritimus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "quagga": {
+      "verdict": "matches",
+      "subject": "A zebra-like horse standing sideways whose brown-and-cream stripes cover only the head, neck and front body, fading away toward white hindquarters and legs.",
+      "reason": "The front-half-only striping with a plain white rear is the defining quagga pattern, so the animal shown is the one claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/quagga.webp",
+      "imageMd5": "ab11159be6ef714fee7dcbe0df9ef383",
+      "model": "public/models/quagga.glb",
+      "modelSha256": "63ef8d571e7b238215280ec7fe58f409afe3977164565397ab30642235a33ed5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "quagga",
+          "name": "Quagga",
+          "latin": "Equus quagga quagga"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "saltwater-crocodile": {
+      "verdict": "matches",
+      "subject": "A green scaly crocodilian in a low walking posture with a long snout, open toothy jaws and a tail curving up behind it.",
+      "reason": "The render is a complete textured crocodile of the claimed kind, with nothing but the animal in frame.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/saltwater-crocodile.webp",
+      "imageMd5": "e8ba6bd564bb5cab828e63848bad57f1",
+      "model": "public/models/saltwater-crocodile.glb",
+      "modelSha256": "5e25e4b76da8f6ddec4f163fce1cfc2bafcea804be8db76b2f096c90690fec2c",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "saltwater-crocodile",
+          "name": "Saltwater Crocodile",
+          "latin": "Crocodylus porosus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "scarlet-macaw": {
+      "verdict": "matches",
+      "subject": "A macaw in mid-flight seen from above-front, with a red body and head, white face patch, and wings banded red, yellow and blue, a green patch on the upper back and grey feet.",
+      "reason": "The bird is a full, recognisable macaw in the claimed red-yellow-blue plumage, not a different species or a fragment.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/scarlet-macaw.webp",
+      "imageMd5": "ae9cf7eee5e345c4c53186ca26b083c5",
+      "model": "public/models/scarlet-macaw.glb",
+      "modelSha256": "e0ae70d4bfe4f8e4a48c330ec1e68b158d9390239ea63a14ec0f3dd3d1113df5",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "scarlet-macaw",
+          "name": "Scarlet Macaw",
+          "latin": "Ara macao"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "serval": {
+      "verdict": "mismatch",
+      "subject": "An upright anime-style humanoid girl with pale skin, tall animal ears, a white top, spotted skirt and spotted stockings, arms out in a T-pose.",
+      "reason": "What is shown is a stylised human character with spotted clothing, not the four-legged spotted wild cat claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/serval.webp",
+      "imageMd5": "bc14a9d4d2e5bf9a8814466729e1deb3",
+      "model": "public/models/serval.glb",
+      "modelSha256": "f4c6da12fd58665a8aed018f70332067bf98dedcbdcb1f2a6b9a2d1248efaeaa",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "serval",
+          "name": "Serval",
+          "latin": "Leptailurus serval"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "smilodon": {
+      "verdict": "mismatch",
+      "subject": "A bleached fossil skull viewed from the front-left, with a deep lower jaw and two long curved canine teeth hanging down.",
+      "reason": "Only the animal's skull is present, and a skull is not the animal itself.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/smilodon.webp",
+      "imageMd5": "f957022fb5ee5d961992162886474f2e",
+      "model": "public/models/smilodon.glb",
+      "modelSha256": "73aa3cf42cf298f08f79743564c4564320f83e231df254f0611cb1e7098f48dd",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "smilodon",
+          "name": "Smilodon",
+          "latin": "Smilodon fatalis"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "snow-leopard": {
+      "verdict": "matches",
+      "subject": "A pale grey-white big cat standing with its head lowered, its body covered in dark spots and rosettes and a thick tail curling behind.",
+      "reason": "The complete animal shown is a spotted pale-coated felid matching the claimed species.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/snow-leopard.webp",
+      "imageMd5": "eccc4225a6d8bd5fcc11c9711175deff",
+      "model": "public/models/snow-leopard.glb",
+      "modelSha256": "61b5d392bbeda670ca06a817ab9f957fc68c187ae0703984733c0011a6dc3048",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "snow-leopard",
+          "name": "Snow Leopard",
+          "latin": "Panthera uncia"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "snowy-owl": {
+      "verdict": "matches",
+      "subject": "A white owl with a rounded head, yellow eyes, and faint dark barring on its wings, perched on a short snag over a small snow-coloured base.",
+      "reason": "The rendered object is plainly a complete white owl figure perched on a branch, which is the claimed animal.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/snowy-owl.webp",
+      "imageMd5": "8e25e997dbee2268d4a4453a675a1f51",
+      "model": "public/models/snowy-owl.glb",
+      "modelSha256": "aeb8b6b5acb0cfcc25841b7b35ec5c0dcdf391c3ce2f4a5db806ac1f64108009",
+      "claims": [
+        {
+          "catalogue": "animals",
+          "slug": "snowy-owl",
+          "name": "Snowy Owl",
+          "latin": "Bubo scandiacus"
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/advanced-composition-explorer": {
+      "verdict": "matches",
+      "subject": "A small satellite with a boxy white central body carrying four flat blue solar arrays arranged in an X, plus two thin whip booms.",
+      "reason": "The four-panel cross-shaped spacecraft with a cylindrical body is the claimed explorer satellite's own configuration, complete and not a fragment.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/advanced-composition-explorer.webp",
+      "imageMd5": "3e0adc6aaf5be061b0529d4f3ccf5cd1",
+      "model": "public/models/space/advanced-composition-explorer.glb",
+      "modelSha256": "2d8fc3356656d115b99f0a20f49c2ba2eb61dc905dcd60966737d893f5a82130",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "advanced-composition-explorer",
+          "name": "Advanced Composition Explorer",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/advanced-crew-escape-suit": {
+      "verdict": "matches",
+      "subject": "A human figure seen from behind wearing an orange and dark-grey full-body pressure garment with a clear bubble helmet, gloves, and a black backpack-like unit.",
+      "reason": "The image shows a complete worn escape/pressure suit ensemble matching the claimed suit, not merely a component of it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/advanced-crew-escape-suit.webp",
+      "imageMd5": "d74aed887f939d70cf664fb1117277f9",
+      "model": "public/models/space/advanced-crew-escape-suit.glb",
+      "modelSha256": "cde481ca5f2c968fda8312a2d063fb35d3eed054fac9293e65c84401c87e1bef",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "advanced-crew-escape-suit",
+          "name": "Advanced Crew Escape Suit",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/aeronomy-of-ice-in-the-mesosphere": {
+      "verdict": "matches",
+      "subject": "A compact white box-shaped spacecraft with a small instrument deck and two long multi-segment blue solar wings extending on either side.",
+      "reason": "The centred body flanked by two segmented solar arrays is the whole claimed spacecraft, so nothing is missing or substituted.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/aeronomy-of-ice-in-the-mesosphere.webp",
+      "imageMd5": "d46a1fb3644a57ad295b5166b8b9f1e9",
+      "model": "public/models/space/aeronomy-of-ice-in-the-mesosphere.glb",
+      "modelSha256": "cfc0bdfdc04d4ea2a646df4a671f360bb1bcc71663ccffe68e979994903ab4aa",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "aeronomy-of-ice-in-the-mesosphere",
+          "name": "Aeronomy of Ice in the Mesosphere",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/agena-target-vehicle": {
+      "verdict": "matches",
+      "subject": "A long white cylindrical rocket stage with a docking cone and antenna at one end and a bell-shaped engine nozzle at the other, floating diagonally.",
+      "reason": "The cylindrical stage ending in a docking adapter and rocket nozzle is the claimed target vehicle as a whole object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/agena-target-vehicle.webp",
+      "imageMd5": "76f98d2ce5889d8f12c27a99fe0efe04",
+      "model": "public/models/space/agena-target-vehicle.glb",
+      "modelSha256": "5594bc86b4e71e4bda7505ec277d69eb3360407afcba88d276d180b6edcb065e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "agena-target-vehicle",
+          "name": "Agena target vehicle",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/apollo-lunar-excursion-module": {
+      "verdict": "mismatch",
+      "subject": "A single flat triangular window pane in a riveted metal frame with an orange seal around the inner edge, shown in isolation.",
+      "reason": "Only a detached triangular window is visible, which is one small part of the craft rather than the craft itself.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/apollo-lunar-excursion-module.webp",
+      "imageMd5": "8c4f5b2c98162a9a072b1b927a1b0e7d",
+      "model": "public/models/space/apollo-lunar-excursion-module.glb",
+      "modelSha256": "ad24a244e52fad83c5b541085452b782448aef1056732adf297cd0adba8f54f0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "apollo-lunar-excursion-module",
+          "name": "Apollo Lunar Module",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/apollo-lunar-module": {
+      "verdict": "mismatch",
+      "subject": "The same lone flat triangular window with a riveted frame and orange gasket against a blank background, with no vehicle body, legs, or ascent stage.",
+      "reason": "A single window pane is a component of the vehicle, not the complete two-stage landing craft claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/apollo-lunar-module.webp",
+      "imageMd5": "8c4f5b2c98162a9a072b1b927a1b0e7d",
+      "model": "public/models/space/apollo-lunar-module.glb",
+      "modelSha256": "ad24a244e52fad83c5b541085452b782448aef1056732adf297cd0adba8f54f0",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "apollo-lunar-module",
+          "name": "Apollo Lunar Module",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/ares-1-b": {
+      "verdict": "mismatch",
+      "subject": "A pale structure built around a large spoked torus or wheel ring, with a long slender tapered boom and a small lobed module at the far end, plus thin antenna rods.",
+      "reason": "The rendered object is a wheel-and-boom assembly with no stacked cylindrical rocket stages or launch-vehicle form, so it is a different object from the claimed rocket.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/ares-1-b.webp",
+      "imageMd5": "6cd475e0a597d0facc6e57ff97e84cee",
+      "model": "public/models/space/ares-1-b.glb",
+      "modelSha256": "9ae3794fa1010501d41dd28b4a4c1ec8f14367664483a7a44156e416a632656a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ares-1-b",
+          "name": "Ares I",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/argo": {
+      "verdict": "matches",
+      "subject": "A grey and red sci-fi spacecraft with swept-back wings, a dark cockpit canopy and small teal glowing accents, shown in three-quarter view against a blank background.",
+      "reason": "The render is unambiguously a winged spacecraft, which is exactly the kind of object this name denotes, and no part of it is missing or substituted.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/argo.webp",
+      "imageMd5": "224d511fecd26be002589821965b9b9b",
+      "model": "public/models/space/argo.glb",
+      "modelSha256": "a83aa314d47fbef723283b0336495d7ae8048d44accdb8c4b7aaa0b95b2c6f5e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "argo",
+          "name": "Argo",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/astronaut": {
+      "verdict": "matches",
+      "subject": "A full-body white spacesuit figure in a T-pose with helmet, backpack life-support unit, gloves and boots.",
+      "reason": "A complete suited human figure in a space suit is plainly the claimed subject, not a fragment or a different object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/astronaut.webp",
+      "imageMd5": "3c84fef926298ab47856668ecc6e8eb9",
+      "model": "public/models/space/astronaut.glb",
+      "modelSha256": "6749744032426b2e99ad2d8a7779f6f510ce609a75d2718189c72fd2b5619f02",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "astronaut",
+          "name": "Astronaut",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/base-station": {
+      "verdict": "unclear",
+      "subject": "A nearly blank white frame containing only a small, thin pale sliver of flat geometry - an angular panel with a narrow triangular frame and a single long needle-like line - sitting low and right of centre.",
+      "reason": "The render is almost entirely empty, with the visible geometry an isolated flat fragment far too small and washed-out to identify as any structure at all.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/base-station.webp",
+      "imageMd5": "caf31b80b28161863162af5897e1eb4e",
+      "model": "public/models/space/base-station.glb",
+      "modelSha256": "0496efce8a16bbeef74bfe57b6f2243f1fddb24e583c7d96754bb4d912f8c459",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "base-station",
+          "name": "Base station",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/black-hole": {
+      "verdict": "unclear",
+      "subject": "A very faint white elliptical disc seen nearly edge-on, with a small pale bump at its centre and a thin dark arc partly visible there; everything is white on white.",
+      "reason": "The shape is a low-contrast flat disc with no discernible dark hole, horizon or ring, so the render is too washed-out and edge-on to tell what it depicts.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/black-hole.webp",
+      "imageMd5": "af7f5c2b8ae3ac9e9b05082098c51880",
+      "model": "public/models/space/black-hole.glb",
+      "modelSha256": "fcf6096fda84dc1900dd85fcb3a8348a0c1031730c9748b9c48904f40d0bf9cb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "black-hole",
+          "name": "Black hole",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/black-hole-astroriah": {
+      "verdict": "matches",
+      "subject": "A dark sphere surrounded by a grey accretion disc, with two long tapering grey jets shooting out along the rotation axis in opposite directions.",
+      "reason": "The dark central sphere with a surrounding disc and bipolar jets is a clear, complete depiction of the claimed object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/black-hole-astroriah.webp",
+      "imageMd5": "f6c2a219acdbaf96be74ac5ef5bb54cb",
+      "model": "public/models/space/black-hole-astroriah.glb",
+      "modelSha256": "d01b025d70b40dfe10170df39f48cf9c13221ca0c829e31c4fe8f60709b52313",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "black-hole-astroriah",
+          "name": "Black hole",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/bp-tauri": {
+      "verdict": "matches",
+      "subject": "A large plain white sphere filling the frame, with faint grey mottled markings concentrated on the part of its surface facing the viewer.",
+      "reason": "The object is a single spherical celestial body, which is what the claim denotes, and the faint mottling reads as surface features rather than a missing or different object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/bp-tauri.webp",
+      "imageMd5": "70dc951b4322c788afaf92680c206a1f",
+      "model": "public/models/space/bp-tauri.glb",
+      "modelSha256": "96e7f6e3aee19b5d075ada9979ad88e4eaad79288951b450e2c1b989247d3cc3",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "bp-tauri",
+          "name": "BP Tauri",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/callisto-moon": {
+      "verdict": "matches",
+      "subject": "A heavily cratered brownish-grey sphere with a bright speckled cratered surface, lit from the front-left against a blank background.",
+      "reason": "A complete, textured cratered moon is precisely the claimed body and is rendered in full.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/callisto-moon.webp",
+      "imageMd5": "696699356a1766a1a2e0e0be871e5765",
+      "model": "public/models/space/callisto-moon.glb",
+      "modelSha256": "53fb7ac3896438eb9e27cecb3cbe9057b88eb9bffa254d0cba07b74a601bde10",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "callisto-moon",
+          "name": "Callisto (moon)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/chandra-x-ray-observatory": {
+      "verdict": "matches",
+      "subject": "A small plain white cylindrical spacecraft with a yellow-ringed open end, a flat panel and a stubby module attached near its middle, and a thin dark rod crossing behind it.",
+      "reason": "The object is a complete cylindrical telescope-type satellite with attached panel and structure, which is the claimed kind of orbiting observatory.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/chandra-x-ray-observatory.webp",
+      "imageMd5": "5f8a4fd6affdf5ec6a2b865a2f2e63c4",
+      "model": "public/models/space/chandra-x-ray-observatory.glb",
+      "modelSha256": "e312944866fda56d57343cf9f27bc636b0f0f16ca61af13070cc826171b9fffd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "chandra-x-ray-observatory",
+          "name": "Chandra X-ray Observatory",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/clementine": {
+      "verdict": "matches",
+      "subject": "A stylised young girl standing with arms outstretched, wearing a grey baseball cap, a blue windbreaker with a rainbow stripe, jeans and dark shoes.",
+      "reason": "The render is a full textured human character figure of the girl the entry names, with the cap and jacket that identify her, not a spacecraft or an empty scene.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/clementine.webp",
+      "imageMd5": "878ff092e4456f584a5dc741050e174a",
+      "model": "public/models/space/clementine.glb",
+      "modelSha256": "dbbd5b71b6f366b045a9ddddc7728635c11c588113e4bc2716d49a2678ae471f",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "clementine",
+          "name": "Clementine",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/cloudsat-a": {
+      "verdict": "matches",
+      "subject": "A satellite with a light octagonal body bearing a circular dish on top and two three-section solar wings spread either side, in pale blue-grey and teal with gold foil accents.",
+      "reason": "The object is a complete Earth-observation satellite with exactly the twin three-panel arrays and body-mounted antenna of the claimed spacecraft.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/cloudsat-a.webp",
+      "imageMd5": "ce7299b6fbed196474a0d1fe9e1a8cbb",
+      "model": "public/models/space/cloudsat-a.glb",
+      "modelSha256": "67207ee49753814c79bf33f4ff21d3b9480bedd7663d3a95427fef4e58ea30bf",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-a",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/cloudsat-b": {
+      "verdict": "matches",
+      "subject": "The same satellite in plain grey clay shading — two three-section solar wings on a boxy body with a circular dish on the top face, with no colour textures.",
+      "reason": "It is the same 3D geometry as the textured version, only uncoloured, so the object is still the claimed satellite rather than a different thing or a 2D diagram.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/cloudsat-b.webp",
+      "imageMd5": "bd7a2a6d0686706846111e8e77e9b270",
+      "model": "public/models/space/cloudsat-b.glb",
+      "modelSha256": "db466de7ddc5b74ab42c4824a999ea8e459b430e664fdf9bf292dfdf8e55b777",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-b",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/cloudsat-c": {
+      "verdict": "matches",
+      "subject": "A dark box-shaped spacecraft bus under a flat circular dish, with two very thin white solar-array wings seen almost edge-on, sitting on a white and gold thermal base.",
+      "reason": "Seen from a different azimuth with its panels edge-on, it is the same satellite body-and-twin-array configuration as the other views of this spacecraft.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/cloudsat-c.webp",
+      "imageMd5": "67df66289cefa8b1af3a18dd8b1a843a",
+      "model": "public/models/space/cloudsat-c.glb",
+      "modelSha256": "1daa29b00a56b063a2aac77221d679a35c216ce17538b59d77e5ed550c195790",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cloudsat-c",
+          "name": "CloudSat",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/curiosity-rover": {
+      "verdict": "matches",
+      "subject": "A six-wheeled rover chassis with grouser-treaded wheels on rocker-bogie arms, exposed white deck structure and instrument boxes, viewed from underneath.",
+      "reason": "The six-wheel rocker-bogie mobility system and Mars-rover wheels and avionics boxes are unmistakably that rover, even though the view is from below and the mast and arm are barely visible.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/curiosity-rover.webp",
+      "imageMd5": "f512ccd63ffeed8b8106aca0addc023a",
+      "model": "public/models/space/curiosity-rover.glb",
+      "modelSha256": "4cde15b8746c6f1bd3956d2bbf89e2cb44fbaf35ab8ad3d5a5b544cfc73f87d1",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "curiosity-rover",
+          "name": "Curiosity",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/curiosity-rover-msl": {
+      "verdict": "matches",
+      "subject": "The same rover seen almost from directly above: six treaded wheels, suspension arms, a fanned white top deck and a jointed arm ending in a round instrument turret.",
+      "reason": "The full rover is present with chassis, wheels and the arm-mounted turret, matching the claimed vehicle rather than a fragment of it.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/curiosity-rover-msl.webp",
+      "imageMd5": "10b4f9dc7d6a9de40c608d4e5350e15f",
+      "model": "public/models/space/curiosity-rover-msl.glb",
+      "modelSha256": "bc77b2411c5f503c1d3771f45727174aa2821e6c5b680cc8246d3029c7396dee",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "curiosity-rover-msl",
+          "name": "Curiosity (rover)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/cyclone-global-navigation-satellite-syst": {
+      "verdict": "matches",
+      "subject": "A small white box-shaped satellite with two deployable solar wings and gold circular patch antennas on a flat nadir panel, plus a gold-panelled instrument side.",
+      "reason": "The compact bus, twin deployable arrays and gold patch-antenna array are the configuration of the claimed cyclone-tracking microsatellite.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/cyclone-global-navigation-satellite-syst.webp",
+      "imageMd5": "7ad1b0014a603ee221f198e316cddbb1",
+      "model": "public/models/space/cyclone-global-navigation-satellite-syst.glb",
+      "modelSha256": "79cd25f0d29cf28bd9d3bf7c4902a9f99d7ae5709a4aa39e384d2393cfeb0a2d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "cyclone-global-navigation-satellite-syst",
+          "name": "Cyclone Global Navigation Satellite System",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/deep-space-1": {
+      "verdict": "matches",
+      "subject": "A gold-foil spacecraft bus with a small dish and narrow body flanked by two long multi-section solar arrays of pale blue cells.",
+      "reason": "The golden body with twin long solar arrays and a small high-gain dish is the distinctive layout of the claimed comet-and-asteroid probe.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/deep-space-1.webp",
+      "imageMd5": "ef9b96a15c814b30ebe351a08da0167b",
+      "model": "public/models/space/deep-space-1.glb",
+      "modelSha256": "9bbb51c696b31b32c8972ec5f52bc9ae726c1fb8469f65a8c029b3be391330a9",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "deep-space-1",
+          "name": "Deep Space 1",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/deep-space-climate-observatory-dscovr-tr": {
+      "verdict": "matches",
+      "subject": "A white boxy spacecraft body carrying a parabolic dish on top and two flat solar-array wings spread to either side.",
+      "reason": "The rendered craft is a satellite with a dish antenna and paired solar wings, exactly the kind of object claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/deep-space-climate-observatory-dscovr-tr.webp",
+      "imageMd5": "15560429f1000cb1a52b3be976bebe15",
+      "model": "public/models/space/deep-space-climate-observatory-dscovr-tr.glb",
+      "modelSha256": "8ea5f5a2f630778da460391139e193484c47749da03a49320660da80c72ce125",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "deep-space-climate-observatory-dscovr-tr",
+          "name": "Deep Space Climate Observatory",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/earth": {
+      "verdict": "matches",
+      "subject": "A sphere showing blue oceans, dark grey-green landmasses and swirling white cloud cover.",
+      "reason": "It is a textured globe of a cloud-covered ocean planet, i.e. Earth.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/earth.webp",
+      "imageMd5": "383087f076281c1ab9bfa25adbed74f6",
+      "model": "public/models/space/earth.glb",
+      "modelSha256": "b50d8e35cf9dcd92ae1c6fe9751f908fe1097cc8dfb732097b3141648482746e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "earth",
+          "name": "Earth",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/earth-observing-1-eo-1": {
+      "verdict": "matches",
+      "subject": "A pale box-shaped satellite bus topped with instruments and one long, multi-segment solar array stretched out to the side.",
+      "reason": "The object is a small Earth-observation-style satellite with a large deployed solar panel, matching the claim.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/earth-observing-1-eo-1.webp",
+      "imageMd5": "9cdc7b632807fd0162cb06cb7c29029a",
+      "model": "public/models/space/earth-observing-1-eo-1.glb",
+      "modelSha256": "35d9b385a5c6e511adde9d409278e00f90cd79ba7f4a44b31d75de0ae70ee280",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "earth-observing-1-eo-1",
+          "name": "Earth Observing-1",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/extravehicular-mobility-unit": {
+      "verdict": "mismatch",
+      "subject": "A flat, jagged, flesh-brown slab with gear-tooth-like edges seen nearly edge-on, plus a few detached scraps and a small orange-yellow cap floating beside it.",
+      "reason": "No suit, torso, arms, helmet or humanoid form is visible anywhere in the render; the mesh reads as a collapsed flat plate, not a spacesuit.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/extravehicular-mobility-unit.webp",
+      "imageMd5": "6b6729d7d14eeeb99e83d255ccb2fc1d",
+      "model": "public/models/space/extravehicular-mobility-unit.glb",
+      "modelSha256": "a697427a88238d54f36889d8af1c6060c8d8542e49d0f5c3cfe5d924f30cd23d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "extravehicular-mobility-unit",
+          "name": "Extravehicular Mobility Unit",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/far-ultraviolet-spectroscopic-explorer": {
+      "verdict": "matches",
+      "subject": "A tall beige rectangular satellite bus with grey angled instrument/solar panels on its upper face and a small box mounted at its base.",
+      "reason": "It is a boxy spacecraft bus with panels and instruments, which is the object claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/far-ultraviolet-spectroscopic-explorer.webp",
+      "imageMd5": "dd37a2555c2d22676c8414e8dddd756c",
+      "model": "public/models/space/far-ultraviolet-spectroscopic-explorer.glb",
+      "modelSha256": "55d7d0a0c253b1c73ccd3ef0a8b8ea489d11c0e04f8faa0d8e589211132084cd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "far-ultraviolet-spectroscopic-explorer",
+          "name": "Far Ultraviolet Spectroscopic Explorer",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/galaxy": {
+      "verdict": "mismatch",
+      "subject": "A large dark sphere speckled with tiny stars, with a small flat octagonal spiral-galaxy image pasted near its centre and a dark octagonal plate just below it.",
+      "reason": "What is rendered is a star-dusted celestial sphere carrying a flat galaxy decal, not a galaxy itself.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/galaxy.webp",
+      "imageMd5": "13567cb7eaa30272b975e9608cb08298",
+      "model": "public/models/space/galaxy.glb",
+      "modelSha256": "62d348c29cd28568c1dffc8f04c8320d46cf62025311ed2baff3407d70644ea4",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "galaxy",
+          "name": "Galaxy",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/ganymede-moon": {
+      "verdict": "matches",
+      "subject": "A heavily cratered sphere of mottled grey and brown terrain with brighter icy patches.",
+      "reason": "The object is a cratered rocky/icy moon globe as claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/ganymede-moon.webp",
+      "imageMd5": "a18475a3ce841b43e54ddfd84e2f6328",
+      "model": "public/models/space/ganymede-moon.glb",
+      "modelSha256": "db6a028a7564709114ba5ac30583fa7d2775b5474c29254003d78392977196d6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ganymede-moon",
+          "name": "Ganymede (moon)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/gemini-spacesuit": {
+      "verdict": "matches",
+      "subject": "A standing human figure in a white hard helmet with blue trim, a black coverall with white harness straps, and black gloves.",
+      "reason": "The render shows a person wearing a sealed pressure-suit outfit, which is the object claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/gemini-spacesuit.webp",
+      "imageMd5": "690a08d1f59e77efa3986e343c3c5726",
+      "model": "public/models/space/gemini-spacesuit.glb",
+      "modelSha256": "ad109f71fb23c964d78258b1cc8df448b142504b61aecfe5029675f1e9decbfb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "gemini-spacesuit",
+          "name": "Gemini spacesuit",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/gingerbread-man": {
+      "verdict": "matches",
+      "subject": "A brown gingerbread cookie figure decorated with a red-and-white Santa hat, a pink icing scarf, black icing eyes and buttons, and a small orange nose.",
+      "reason": "It is a gingerbread cookie baked into a decorated humanoid figure, which is what the claim names.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/gingerbread-man.webp",
+      "imageMd5": "c8471f358e1b6c28a1c97fe740ebfead",
+      "model": "public/models/space/gingerbread-man.glb",
+      "modelSha256": "fbefcc137ccefb45c8527c475880170316032ed79db0e6ecb17d1f64e7123fb6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "gingerbread-man",
+          "name": "Gingerbread man",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/hammer": {
+      "verdict": "matches",
+      "subject": "A heavy blocky hammer head studded with spikes along its top, mounted on a shaft that ends in a ringed, hole-pierced pommel.",
+      "reason": "The silhouette is unmistakably a hammer/maul with head, spikes and handle.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/hammer.webp",
+      "imageMd5": "6fd86ecef22be2a6a1a00f5434a48bc9",
+      "model": "public/models/space/hammer.glb",
+      "modelSha256": "ef59a9298f7e9ce182f81ca32c06ce818fda532c3ed79232158cce0b5461c405",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hammer",
+          "name": "Hammer",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/helmet": {
+      "verdict": "matches",
+      "subject": "Two weathered, fabric-and-metal textured dome shells lying together, one with a ribbed rim and a strap band running around it, the other a rounded disc with a circular boss and a protruding peg.",
+      "reason": "The worn domed shells with strap and rim read as headgear of the claimed type rather than an unrelated object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/helmet.webp",
+      "imageMd5": "a2c53f75ac040e998c055bb1e6ad32bc",
+      "model": "public/models/space/helmet.glb",
+      "modelSha256": "64aed10d9a34b14ef4650267aa3c82ecd89dd84060b2b0cb5639268e26d43a84",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "helmet",
+          "name": "Helmet",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/hubble": {
+      "verdict": "matches",
+      "subject": "An open-ended cylindrical telescope tube with a secondary mirror held on struts above the aperture and flat solar panels along its flanks, plus a second tube section below.",
+      "reason": "The layout of tube, strut-mounted secondary mirror and solar wings is the claimed space telescope.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/hubble.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/hubble-space-telescope": {
+      "verdict": "matches",
+      "subject": "An exploded view of a white cylindrical telescope tube with an open aperture at one end, two flat solar-array wings and a detached lower instrument section floating apart.",
+      "reason": "The cylindrical optical tube, twin solar arrays and aft equipment bay are Hubble's configuration, shown disassembled rather than as a wrong object.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/hubble-space-telescope.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble-space-telescope.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/hubble-space-telescope-a": {
+      "verdict": "matches",
+      "subject": "The same exploded white cylindrical telescope with two solar-array wings and a separated lower bay, pixel-for-pixel identical to the previous file.",
+      "reason": "It is the same Hubble configuration render duplicated under a second id, so the object shown is still a Hubble.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/hubble-space-telescope-a.webp",
+      "imageMd5": "429ca380f3a3bef731587380526b2d33",
+      "model": "public/models/space/hubble-space-telescope-a.glb",
+      "modelSha256": "024552af8d2e10c448dfe9dc4420bf03240b5834283d38bbf4ad583c92d8059c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope-a",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/hubble-space-telescope-b": {
+      "verdict": "matches",
+      "subject": "An assembled white cylindrical telescope with an open aperture door on top, two rectangular solar panels, and black instrument bays at the bottom.",
+      "reason": "The cylindrical OTA, open aperture door, twin solar arrays and aft instrument section are unmistakably the Hubble Space Telescope.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/hubble-space-telescope-b.webp",
+      "imageMd5": "bfffb26248089886dd9a0cdd8a2370e4",
+      "model": "public/models/space/hubble-space-telescope-b.glb",
+      "modelSha256": "95b70bacccd6a501f66e58d63e33c5ffeef4deba9b6156d7f509187c2074b46d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "hubble-space-telescope-b",
+          "name": "Hubble Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/international-space-station-iss-b": {
+      "verdict": "matches",
+      "subject": "A long straight truss carrying four pairs of large rectangular solar arrays, with clustered white pressurised modules and radiators at its centre.",
+      "reason": "The integrated truss with four solar-array pairs and central module stack is the ISS's distinctive layout.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/international-space-station-iss-b.webp",
+      "imageMd5": "97c034dce0d7543811bf919b953ca89b",
+      "model": "public/models/space/international-space-station-iss-b.glb",
+      "modelSha256": "351a1bbc64c94f18c2735d2ca23db49a653c1cdf96b8bb95121533b95be43836",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-space-station-iss-b",
+          "name": "International Space Station",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/international-x-ray-observatory": {
+      "verdict": "matches",
+      "subject": "A tall ribbed white cylinder capped at the top, with two circular patterned panels and a boxy section attached near its base.",
+      "reason": "A long cylindrical X-ray optics assembly with deployable radiator/array panels at the service end is consistent with the IXO concept spacecraft.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/international-x-ray-observatory.webp",
+      "imageMd5": "f23e5e698eb3edaf8a8064eaab6eec0c",
+      "model": "public/models/space/international-x-ray-observatory.glb",
+      "modelSha256": "a504267370d26d3fd5862ee074ca222767b6ee5d7dc9eebefde499e880ac84cc",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "international-x-ray-observatory",
+          "name": "International X-ray Observatory",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/interstellar-boundary-explorer-ibex": {
+      "verdict": "matches",
+      "subject": "A dark hexagonal spacecraft bus tiled with solar cells on its top face, carrying a thin boom and two large circular instrument apertures on opposite sides.",
+      "reason": "The hexagonal solar-cell-covered bus with opposed large-aperture particle sensors matches IBEX's design.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/interstellar-boundary-explorer-ibex.webp",
+      "imageMd5": "dc7529c39c9ae10800d4d8665bc3650c",
+      "model": "public/models/space/interstellar-boundary-explorer-ibex.glb",
+      "modelSha256": "253d1ab7fbe700a9ca0400944600780957bdc973e93b861f5f499d9876c066b2",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "interstellar-boundary-explorer-ibex",
+          "name": "Interstellar Boundary Explorer",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/james-webb-space-telescope": {
+      "verdict": "matches",
+      "subject": "A large hexagonal honeycomb mirror of dark segments on booms above a long flat layered sunshield, with a small secondary mirror assembly in front.",
+      "reason": "The segmented hexagonal primary, boom-mounted secondary and layered sunshield are the James Webb Space Telescope's signature structure.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/james-webb-space-telescope.webp",
+      "imageMd5": "80145611067512616bffb74e45f125e1",
+      "model": "public/models/space/james-webb-space-telescope.glb",
+      "modelSha256": "10147b596306f8ec2990d8528773ca04d26a5939891a843874a33dd1390e5463",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "james-webb-space-telescope",
+          "name": "James Webb Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/jupiter": {
+      "verdict": "matches",
+      "subject": "A smooth sphere with cream, orange and white latitudinal cloud bands and the faint oval markings of a great storm.",
+      "reason": "A banded gas-giant globe with the Great Red Spot is Jupiter and nothing else.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/jupiter.webp",
+      "imageMd5": "2ac2c08807a3e70aca230fc6a999a1c6",
+      "model": "public/models/space/jupiter.glb",
+      "modelSha256": "36edd4c936dd20ef9e6c2269acc66399866489b324eabc6696cc8e8bee6b614a",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "jupiter",
+          "name": "Jupiter",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/landsat-7": {
+      "verdict": "matches",
+      "subject": "A pale, washed-out angular satellite body with a stack of boxy modules and one long flat solar-array wing extending to the side.",
+      "reason": "The boxy multi-module bus with a single long solar wing matches Landsat 7's shape, though the render is very faint and low-contrast.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/landsat-7.webp",
+      "imageMd5": "dcec872bd7645411c55d0cd77f79e7c9",
+      "model": "public/models/space/landsat-7.glb",
+      "modelSha256": "653bac21943c1e00c585fd23183accac779d609f22268774b16d2719b853ff72",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "landsat-7",
+          "name": "Landsat 7",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/landsat-8": {
+      "verdict": "matches",
+      "subject": "A gold-and-white boxy satellite bus with a single very large blue solar array extending from one side and instruments on the nadir face.",
+      "reason": "Landsat 8's boxy bus with one large deployable solar array is exactly what is shown.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/landsat-8.webp",
+      "imageMd5": "22c648db2a13a1810c2993fe3032b419",
+      "model": "public/models/space/landsat-8.glb",
+      "modelSha256": "cea55a00dd5cc1be6817636973044cbbc2051a3c0e799b923b7e5a6932b47f2d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "landsat-8",
+          "name": "Landsat 8",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/laser-interferometer-space-antenna-lisa": {
+      "verdict": "matches",
+      "subject": "A shallow white cylindrical drum whose recessed face holds a pale dish with a central column, ringed by a raised rim and small fittings.",
+      "reason": "The flat disc-shaped telescope unit with central obscuration and rim fittings matches LISA's disc-like telescope/spacecraft design.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/laser-interferometer-space-antenna-lisa.webp",
+      "imageMd5": "c9597b3225e9ac03de30d0905ed8348d",
+      "model": "public/models/space/laser-interferometer-space-antenna-lisa.glb",
+      "modelSha256": "4331ee0294fb16f4a368dbdf84807ea312349fe5edd8591a1cad2d9b30743a7f",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "laser-interferometer-space-antenna-lisa",
+          "name": "Laser Interferometer Space Antenna",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/lunar-atmosphere-and-dust-environment-ex": {
+      "verdict": "matches",
+      "subject": "An octagonal spacecraft body tiled with blue solar cells, with instrument boxes and a tilted panel on top and a bell-shaped thruster below.",
+      "reason": "A solar-cell-clad polygonal bus with top-mounted sensors and a bottom thruster is consistent with LADEE's configuration.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/lunar-atmosphere-and-dust-environment-ex.webp",
+      "imageMd5": "1469ecdc28cb680f427fa618b1b43813",
+      "model": "public/models/space/lunar-atmosphere-and-dust-environment-ex.glb",
+      "modelSha256": "60665167a6fe3350af101acfad5300b85a446700c3d1d833c6d6021ca25cd46e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "lunar-atmosphere-and-dust-environment-ex",
+          "name": "LADEE",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/lunar-reconnaissance-orbiter-a": {
+      "verdict": "matches",
+      "subject": "A boxy satellite bus with one long solar panel wing extended to the left, topped by an articulated instrument deck, a mast and thin antennas, rendered almost entirely in blown-out white.",
+      "reason": "The single-solar-array, instrument-deck spacecraft form is the claimed lunar orbiter's configuration, though the overexposed white render hides most surface detail.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/lunar-reconnaissance-orbiter-a.webp",
+      "imageMd5": "2476d6a4e5c6ce65ad04857fb6cb4b44",
+      "model": "public/models/space/lunar-reconnaissance-orbiter-a.glb",
+      "modelSha256": "088aa7c0f15345f3145b46e271bf2fe6f969b4d38369113b6dc8a10ba920fd74",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "lunar-reconnaissance-orbiter-a",
+          "name": "Lunar Reconnaissance Orbiter",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars": {
+      "verdict": "unclear",
+      "subject": "A plain white sphere with faint shading on its right limb and virtually no surface markings, colour or albedo features.",
+      "reason": "The globe is blown out to near-white and completely featureless, so nothing in the image identifies it as the claimed planet rather than any other ball.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars.webp",
+      "imageMd5": "f2fcac170c0cfdd41038f1452bdf1071",
+      "model": "public/models/space/mars.glb",
+      "modelSha256": "594a4b9d733b59af9d3e998238ba6787ad38a93d392725fa0a02e440e7af92bb",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars",
+          "name": "Mars",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars-atmosphere-and-volatile-evolution-m": {
+      "verdict": "mismatch",
+      "subject": "A humanoid character standing upright, wearing a dark helmet, a black chest harness, red gloves, brown trousers and heavy boots.",
+      "reason": "The render is a person in outdoor gear, not the claimed spacecraft.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars-atmosphere-and-volatile-evolution-m.webp",
+      "imageMd5": "af45a31d74f6d5f445562a5922cceeb4",
+      "model": "public/models/space/mars-atmosphere-and-volatile-evolution-m.glb",
+      "modelSha256": "58ad1be887021015d10eb6eafbbb789c7a4e23eba6a677905422ad08abe79da6",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-atmosphere-and-volatile-evolution-m",
+          "name": "MAVEN",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars-global-surveyor": {
+      "verdict": "matches",
+      "subject": "A satellite with a compact box bus and two long rectangular solar array wings on either side, all rendered in near-white with very low contrast.",
+      "reason": "A twin-solar-array orbiter bus matches the claimed surveyor's configuration, and the washed-out render still leaves the structure legible.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars-global-surveyor.webp",
+      "imageMd5": "80a808088f2aefadc781a3d515633227",
+      "model": "public/models/space/mars-global-surveyor.glb",
+      "modelSha256": "c53b60e9afd521ada722784868153b5f13e89f2814b36eb017eaab10d1cec412",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-global-surveyor",
+          "name": "Mars Global Surveyor",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars-reconnaissance-orbiter-mro-a": {
+      "verdict": "matches",
+      "subject": "A foil-wrapped spacecraft body with two dark blue rectangular solar panels and a large dish antenna mounted on a mast.",
+      "reason": "Gold thermal blanketing, twin solar arrays and the big high-gain dish are precisely the claimed orbiter's configuration.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars-reconnaissance-orbiter-mro-a.webp",
+      "imageMd5": "f0d09bb9e1676a647ea2ce306f3a45c5",
+      "model": "public/models/space/mars-reconnaissance-orbiter-mro-a.glb",
+      "modelSha256": "3db683dad23b8c84053c14cfa1eee5675ecf46480b360ecc1d9572edcc82267d",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-reconnaissance-orbiter-mro-a",
+          "name": "Mars Reconnaissance Orbiter",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars-reconnaissance-orbiter-mro-c": {
+      "verdict": "matches",
+      "subject": "A small satellite with a gold-foil cylindrical body topped by a domed cap, carrying two flat dark solar panel wings on thin booms and a slender antenna.",
+      "reason": "It is a Mars-orbiter-class spacecraft with twin solar arrays and gold thermal blanketing, consistent with the claimed craft even though the large dish is not visible from this angle.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars-reconnaissance-orbiter-mro-c.webp",
+      "imageMd5": "5dd2832a77eee4571ef542d10d663832",
+      "model": "public/models/space/mars-reconnaissance-orbiter-mro-c.glb",
+      "modelSha256": "109b08d08f7639106563f43df4a44ec1b44290a4200fd24b1f0df1640d2c5cd8",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-reconnaissance-orbiter-mro-c",
+          "name": "Mars Reconnaissance Orbiter",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mars-rover": {
+      "verdict": "matches",
+      "subject": "A six-wheeled wheeled chassis with a flat deck, folded side panels and rocker-style suspension arms, sitting on a black ground plane.",
+      "reason": "A six-wheeled rover chassis is the claimed vehicle, and the wheel count and suspension layout fit a Mars rover.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mars-rover.webp",
+      "imageMd5": "ab872761a6dbb8ce7db3c15a3cef0049",
+      "model": "public/models/space/mars-rover.glb",
+      "modelSha256": "6dfd16466beb5c61ecfafc6898e326cc3b24fb088e3ae7d9023bcda0fbf8eded",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mars-rover",
+          "name": "Mars rover",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mercury": {
+      "verdict": "unclear",
+      "subject": "A near-white sphere with barely visible shading and no craters, terrain or colour variation.",
+      "reason": "The ball is effectively blank and overexposed, so it cannot be distinguished from any other featureless planet.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mercury.webp",
+      "imageMd5": "8002d9a3bafb9203db2818b4f7e559be",
+      "model": "public/models/space/mercury.glb",
+      "modelSha256": "f15ccd39e8b77904e7d0daa80d2a2bb1f06ba9e51de14aa1459a001c5096f571",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury",
+          "name": "Mercury",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mercury-planet": {
+      "verdict": "matches",
+      "subject": "A grey, heavily cratered spherical body with a mottled surface and several distinct impact craters, including a bright rayed one near the centre-right.",
+      "reason": "A densely cratered, grey, airless-looking globe is exactly the claimed innermost planet.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mercury-planet.webp",
+      "imageMd5": "871666ee26d67f03dcf746414c02a161",
+      "model": "public/models/space/mercury-planet.glb",
+      "modelSha256": "fc98663e3775d7c94592f82c7c5ebc5680d9ab722056ef608c43310ac581515c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-planet",
+          "name": "Mercury (planet)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mercury-planet-brass-stylised": {
+      "verdict": "matches",
+      "subject": "The same grey cratered sphere as the plain planet render, with no brass or metallic colouring and no stylised treatment.",
+      "reason": "The object shown is still a cratered Mercury-like planet, although it is a byte-identical duplicate of the plain planet file and so carries none of the brass-stylised look its own name promises.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mercury-planet-brass-stylised.webp",
+      "imageMd5": "871666ee26d67f03dcf746414c02a161",
+      "model": "public/models/space/mercury-planet-brass-stylised.glb",
+      "modelSha256": "fc98663e3775d7c94592f82c7c5ebc5680d9ab722056ef608c43310ac581515c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-planet-brass-stylised",
+          "name": "Mercury (planet)",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mercury-spacesuit": {
+      "verdict": "matches",
+      "subject": "A white full-body pressure suit with a bubble helmet, blue chest and shoulder harness straps and gloves, viewed from behind.",
+      "reason": "It is plainly a worn spacesuit garment, which is what is claimed.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mercury-spacesuit.webp",
+      "imageMd5": "4ff006b4fdc528d62266047855744e66",
+      "model": "public/models/space/mercury-spacesuit.glb",
+      "modelSha256": "b90a4f083874f4e9fe17dab0506fd049ed4d57bc7ea42a5e33b8f80c6a09cd76",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mercury-spacesuit",
+          "name": "Mercury spacesuit",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/meteorite": {
+      "verdict": "matches",
+      "subject": "An irregular pale stone mass covered in shallow round pits and dimples, with a weathered tan-grey surface.",
+      "reason": "A pitted stony body is the claimed meteorite, and the dimpled surface reads as the regmaglypt pitting of a meteorite rather than plain rock.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/meteorite.webp",
+      "imageMd5": "27e5ef9fd4f46c2c29766318811a458e",
+      "model": "public/models/space/meteorite.glb",
+      "modelSha256": "e1a6b02bc84e2a326357af2a7d28ceede06bf8e4014f783c4d43e94efc5d72b5",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "meteorite",
+          "name": "Meteorite",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/meteorites": {
+      "verdict": "matches",
+      "subject": "A single pale, beige-grey rock covered in shallow round pits and dents, lit from the upper left.",
+      "reason": "A regmaglypted, crater-pitted stony mass is exactly the shape and surface a meteorite specimen model should have.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/meteorites.webp",
+      "imageMd5": "27e5ef9fd4f46c2c29766318811a458e",
+      "model": "public/models/space/meteorites.glb",
+      "modelSha256": "e1a6b02bc84e2a326357af2a7d28ceede06bf8e4014f783c4d43e94efc5d72b5",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "meteorites",
+          "name": "Meteorite",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/mir": {
+      "verdict": "unclear",
+      "subject": "An untextured, essentially pure-white model of stacked cylindrical modules crossed by flat slab-like panels, rendered white-on-white against a white background so it is barely visible at all.",
+      "reason": "The geometry is a generic modular spacecraft silhouette with no markings, solar-cell detail, or contrast, so I cannot confirm it is Mir rather than any other station or an abstract assembly.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/mir.webp",
+      "imageMd5": "ea27ad84e9939256313bedb3bc4c39d3",
+      "model": "public/models/space/mir.glb",
+      "modelSha256": "f5f7ee13631f69370af29b6ccac41309789556cbb079e80d769c8d2eab19bef3",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "mir",
+          "name": "Mir",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/moon": {
+      "verdict": "unclear",
+      "subject": "A plain white ball with a single soft specular highlight and a faint grey rim, with no craters, maria, or any surface marking whatsoever.",
+      "reason": "Once contrast is stretched the object is confirmed to be a featureless sphere, which is indistinguishable from a blank ball and shows nothing lunar to verify.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/moon.webp",
+      "imageMd5": "8002d9a3bafb9203db2818b4f7e559be",
+      "model": "public/models/space/moon.glb",
+      "modelSha256": "de86e8723e998bac53b16cf497b1014440c84de0cd7be29cf9e7274ec817160e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "moon",
+          "name": "Moon",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/nancy-grace-roman-space-telescope-a": {
+      "verdict": "matches",
+      "subject": "A cylindrical spacecraft with one large rectangular purple-blue solar array, an octagonal open barrel showing an interior mirror, and a small dish antenna on a boom.",
+      "reason": "The layout of a cylindrical bus, single wide solar array, and large open telescope aperture matches the Roman Space Telescope observatory.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/nancy-grace-roman-space-telescope-a.webp",
+      "imageMd5": "07bff8cf67d219bce4d8502ccf544ce6",
+      "model": "public/models/space/nancy-grace-roman-space-telescope-a.glb",
+      "modelSha256": "9a58d97d1dc8fb8ea7b7b774bdef3c75b15ce6a2b89538405f93a0245085c39b",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "nancy-grace-roman-space-telescope-a",
+          "name": "Nancy Grace Roman Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/nancy-grace-roman-space-telescope-b": {
+      "verdict": "matches",
+      "subject": "The same cylindrical spacecraft from a different angle: a blue-and-white solar array panel covering the body, an octagonal aperture with a mirror at the front, and two long antenna booms.",
+      "reason": "Same distinctive combination of a single large solar array and a large open telescope aperture, consistent with the claimed observatory seen from the opposite side.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/nancy-grace-roman-space-telescope-b.webp",
+      "imageMd5": "8684d3c52794fb14d1c261f594da80b8",
+      "model": "public/models/space/nancy-grace-roman-space-telescope-b.glb",
+      "modelSha256": "bcdb6b74c974c397c003a643fa6fd3669cd249d62ef04f14e9df3f273f26ffcd",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "nancy-grace-roman-space-telescope-b",
+          "name": "Nancy Grace Roman Space Telescope",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/near-shoemaker": {
+      "verdict": "matches",
+      "subject": "A gold-foil-wrapped box-shaped satellite with four dark blue rectangular solar panels arranged in a cross and a white dish antenna on top.",
+      "reason": "The gold body, four-panel cross array, and top-mounted high-gain dish are the defining features of the NEAR Shoemaker spacecraft.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/near-shoemaker.webp",
+      "imageMd5": "715ead5ae8fcc980a75d51b03ef9a632",
+      "model": "public/models/space/near-shoemaker.glb",
+      "modelSha256": "47f02b52932642f43562d1944867fb03d650d78046964d2822cb02e17dfc1e87",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "near-shoemaker",
+          "name": "NEAR Shoemaker",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/neptune": {
+      "verdict": "matches",
+      "subject": "A deep blue sphere with soft horizontal cloud bands and a bright specular highlight on its upper-right side.",
+      "reason": "A blue, banded, cloud-covered gas-giant globe is what Neptune looks like.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/neptune.webp",
+      "imageMd5": "6b3c1ab79bfefe836423119baaed60a4",
+      "model": "public/models/space/neptune.glb",
+      "modelSha256": "34334859bfd990aef12f641479dd022e37617f0e45be1e2474cb925f770eed22",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "neptune",
+          "name": "Neptune",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/neptune-v2": {
+      "verdict": "matches",
+      "subject": "A deep blue banded sphere with a bright highlight, pixel-for-pixel the same render as the other Neptune file.",
+      "reason": "The image is byte-identical to the Neptune preview and shows the same blue banded gas giant.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/neptune-v2.webp",
+      "imageMd5": "6b3c1ab79bfefe836423119baaed60a4",
+      "model": "public/models/space/neptune-v2.glb",
+      "modelSha256": "34334859bfd990aef12f641479dd022e37617f0e45be1e2474cb925f770eed22",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "neptune-v2",
+          "name": "Neptune",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/ocean-surface-topography-mission-ostm-ja": {
+      "verdict": "matches",
+      "subject": "A small satellite with two long, laterally extending solar wings of segmented blue cells, a brownish-gold body, an instrument dish, and a protruding altimeter antenna.",
+      "reason": "The twin long solar arrays and body-mounted radar altimeter hardware correspond to the OSTM/Jason-2 ocean topography satellite.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/ocean-surface-topography-mission-ostm-ja.webp",
+      "imageMd5": "fa18a5f9cc6fc26640f3f5e58bee8246",
+      "model": "public/models/space/ocean-surface-topography-mission-ostm-ja.glb",
+      "modelSha256": "8ac9347769325d345601ad1fb8c31ed5378301d047ac1a63101326b16fbdac4c",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "ocean-surface-topography-mission-ostm-ja",
+          "name": "OSTM/Jason-2",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/parker-solar-probe": {
+      "verdict": "matches",
+      "subject": "A white boxy spacecraft with a dark angled solar array, a flat shield plate, and a very long thin boom carrying small sensors to one side.",
+      "reason": "The white body, heat-shield plate, and distinctive long magnetometer boom with sensor packages are characteristic of Parker Solar Probe.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/parker-solar-probe.webp",
+      "imageMd5": "69d259d48b57d83d223937011cc22a2f",
+      "model": "public/models/space/parker-solar-probe.glb",
+      "modelSha256": "cf63419d097a2b0d1df88d764a1a3174115357f2f1f287293ec4bf55ef18d5db",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "parker-solar-probe",
+          "name": "Parker Solar Probe",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/parker-solar-probe-suns-kisser": {
+      "verdict": "matches",
+      "subject": "A white spacecraft with a boxy body, a large dark heat-shield disc, striped radiator/array panels, and thin struts and booms.",
+      "reason": "The large dark thermal protection shield plus white bus and deployed arrays match the claimed solar probe's sun-facing configuration.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/parker-solar-probe-suns-kisser.webp",
+      "imageMd5": "b91d90809fb1faab8b0cdd9d0cde415e",
+      "model": "public/models/space/parker-solar-probe-suns-kisser.glb",
+      "modelSha256": "708f6b7046a2c89ff7289ac1424d0e132b3970204803a00d9ce77f10b204df7e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "parker-solar-probe-suns-kisser",
+          "name": "Parker Solar Probe",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    },
+    "space/planet-earth": {
+      "verdict": "matches",
+      "subject": "A globe with green-brown landmasses, dark blue oceans, and scattered white cloud cover, lit from the left.",
+      "reason": "Continents, oceans, and atmospheric clouds make this unmistakably a model of Earth.",
+      "reviewer": "deepseek-v4-flash-vision-exp",
+      "image": "public/previews/space/planet-earth.webp",
+      "imageMd5": "383087f076281c1ab9bfa25adbed74f6",
+      "model": "public/models/space/planet-earth.glb",
+      "modelSha256": "b50d8e35cf9dcd92ae1c6fe9751f908fe1097cc8dfb732097b3141648482746e",
+      "claims": [
+        {
+          "catalogue": "space",
+          "slug": "planet-earth",
+          "name": "Earth",
+          "latin": null
+        }
+      ],
+      "checkedAt": "2026-10-07T21:59:09.212Z"
+    }
+  }
+}

@@ -25,7 +25,7 @@ const run = promisify(execFile);
  * worst case and the settle writes the real number afterwards.
  */
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
   const blocked = guardWrite(request, { name: "admin-search", rule: { limit: 10, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
   if (blocked) return blocked;

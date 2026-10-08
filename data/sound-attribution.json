@@ -16,7 +16,7 @@
     "mime": "audio/mpeg",
     "downloadedAt": "2026-09-20T14:24:04.510Z",
     "storagePath": "bald-eagle.mp3",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/bald-eagle.mp3"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/bald-eagle.mp3"
   },
   "blue-whale": {
     "slug": "blue-whale",
@@ -35,7 +35,7 @@
     "mime": "audio/ogg",
     "downloadedAt": "2026-09-20T14:24:17.845Z",
     "storagePath": "blue-whale.ogg",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/blue-whale.ogg"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/blue-whale.ogg"
   },
   "giant-panda": {
     "slug": "giant-panda",
@@ -54,7 +54,7 @@
     "mime": "audio/ogg",
     "downloadedAt": "2026-09-20T14:24:32.821Z",
     "storagePath": "giant-panda.ogg",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/giant-panda.ogg"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/giant-panda.ogg"
   },
   "gray-wolf": {
     "slug": "gray-wolf",
@@ -73,7 +73,7 @@
     "mime": "audio/ogg",
     "downloadedAt": "2026-09-20T14:24:47.093Z",
     "storagePath": "gray-wolf.ogg",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/gray-wolf.ogg"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/gray-wolf.ogg"
   },
   "lion": {
     "slug": "lion",
@@ -92,7 +92,7 @@
     "mime": "audio/ogg",
     "downloadedAt": "2026-09-20T14:25:04.809Z",
     "storagePath": "lion.ogg",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/lion.ogg"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/lion.ogg"
   },
   "toco-toucan": {
     "slug": "toco-toucan",
@@ -111,6 +111,6 @@
     "mime": "audio/ogg",
     "downloadedAt": "2026-09-20T14:25:31.045Z",
     "storagePath": "toco-toucan.ogg",
-    "publicUrl": "https://ztihljcpeylprcgblnpv.supabase.co/storage/v1/object/public/animal-sounds/toco-toucan.ogg"
+    "publicUrl": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev/sounds/toco-toucan.ogg"
   }
 }

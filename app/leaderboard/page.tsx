@@ -2,7 +2,7 @@ import { BarChart3, Eye, TrendingDown, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { AdSlot } from "@/components/ads/AdSlot";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { DailyBars } from "@/components/stats/DailyBars";
 import { LeaderboardList } from "@/components/stats/LeaderboardList";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -199,7 +199,7 @@ export default async function LeaderboardPage() {
         </section>
       )}
 
-      <AdSlot format="leaderboard" note="Below the ranking and the charts, never over them." />
+      <AdBanner placement="below-content" note="Below the ranking and the charts, never over them." />
     </div>
   );
 }

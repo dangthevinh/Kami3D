@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { ANIMALS } from "@/data/animals";
+import { assetUrl } from "@/lib/r2";
 import { ANIMAL_COLUMNS, TABLES, getSupabase } from "@/lib/supabase";
 import {
   CONSERVATION_STATUSES,
@@ -94,8 +95,28 @@ async function queryAnimals(): Promise<Animal[]> {
 /** Deduped per request by React `cache`. */
 export const getAllAnimals = cache(async (): Promise<Animal[]> => {
   const animals = await queryAnimals();
-  return [...animals].sort((a, b) => b.popularity - a.popularity);
+  return [...animals]
+    .sort((a, b) => b.popularity - a.popularity)
+    // The asset host is decided once, here, rather than by each card and each viewer. It runs after the
+    // database-or-bundled choice, so both sources get the same treatment and Demo Mode is not a special
+    // case: the bundled rows carry the same host-free `/models/…` paths the database does.
+    .map((animal) => withAssetHost(animal));
 });
+
+/**
+ * The three URL fields on a species, pointed at whichever host is serving assets (lib/r2.ts).
+ *
+ * A spread rather than a mutation: `ANIMALS` is a module-level constant, and rewriting it in place
+ * would make the first request's choice permanent for every request after it.
+ */
+function withAssetHost(animal: Animal): Animal {
+  return {
+    ...animal,
+    model_url: assetUrl(animal.model_url),
+    image_url: assetUrl(animal.image_url),
+    sound_url: assetUrl(animal.sound_url),
+  };
+}
 
 export const getAnimalBySlug = cache(async (slug: string): Promise<Animal | null> => {
   const animals = await getAllAnimals();

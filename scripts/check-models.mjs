@@ -11,6 +11,8 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 
 import {
@@ -22,7 +24,7 @@ import {
   scoreModelQuality,
 } from "../lib/model-quality.ts";
 
-const { rankCandidates, modelFileName, modelCredit } = await import("../scripts/fetch-models.mjs");
+const { CONFIG, rankCandidates, modelFileName, modelCredit } = await import("../scripts/fetch-models.mjs");
 
 const animal = {
   slug: "bengal-tiger",
@@ -212,6 +214,58 @@ test("equal scores are ordered by title, so runs cannot reorder", () => {
   assert.deepEqual(first, second);
 });
 
+test("the 25 MB ceiling is applied to the file that ships, not to the number the provider published", () => {
+  // Measured, not reasoned about: the Milan and Cologne cathedrals and Prambanan were all refused for
+  // declaring 33.8, 39.3 and 29.9 MB, and the files this project would have shipped are 3.94, 3.87 and
+  // 6.89 MB after DRACO. A ceiling on a pre-compression number refuses models the site can afford, so
+  // the declared size only has to clear headroom to earn a download, and the compressed file has to
+  // clear the ceiling itself.
+  assert.equal(CONFIG.maxBytes, 40 * 1024 * 1024, "the ceiling is the documented 40 MB");
+  assert.ok(CONFIG.declaredHeadroom > 1, "a declared size above the ceiling can still earn a download");
+
+  const cli = readFileSync(join(process.cwd(), "scripts", "fetch-models.mjs"), "utf8");
+  assert.match(
+    cli,
+    /entry\.size > CONFIG\.maxBytes \* CONFIG\.declaredHeadroom/,
+    "the pre-download gate multiplies by the headroom rather than comparing to the ceiling",
+  );
+
+  // The landmark pipeline is read, never imported: importing it runs its main body, which downloads
+  // models. The order of the three steps is the rule - compress, measure the shipped file, delete it
+  // if it is still over - and a reordering that measured before compressing would pass a file the
+  // site cannot serve.
+  const pipeline = readFileSync(join(process.cwd(), "scripts", "fetch-landmark-models.mjs"), "utf8");
+  const compress = pipeline.indexOf("await compressGlb(result.file)");
+  const measure = pipeline.indexOf("shipped > CONFIG.maxBytes");
+  const remove = pipeline.indexOf("await rm(result.file, { force: true });", measure);
+  assert.ok(compress > 0 && measure > compress, "the file is compressed before it is measured");
+  assert.ok(remove > measure, "a file still over the ceiling is removed rather than credited");
+});
+
+test("a monument with no geometry and no texture is refused, and the rule needs both halves", async () => {
+  const { CRUDE_MONUMENT_FACES, modelHasNoTexture } = await import("../lib/model-quality.ts");
+
+  // Triangles alone would delete the Moai (2,210) and the Himeji keep (2,536), whose textures carry the
+  // detail; textures alone would keep a photograph wrapped round a box. Both, together, describe the
+  // one model measured in this catalogue that is indefensible either way.
+  assert.ok(CRUDE_MONUMENT_FACES >= 1000, "a floor of a few hundred triangles would catch nothing real");
+  assert.ok(CRUDE_MONUMENT_FACES <= 50000, "a floor this high would refuse good models");
+  assert.equal(modelHasNoTexture({}), true, "a glTF with no images has no texture");
+  assert.equal(modelHasNoTexture({ images: [] }), true);
+  assert.equal(modelHasNoTexture({ images: [{}] }), false);
+
+  const pipeline = readFileSync(join(process.cwd(), "scripts", "fetch-landmark-models.mjs"), "utf8");
+  assert.match(
+    pipeline,
+    /faces < CRUDE_MONUMENT_FACES && modelHasNoTexture\(parsed\)/,
+    "the pipeline must ask both questions, and ask them of the downloaded file",
+  );
+  assert.ok(
+    pipeline.indexOf("modelHasNoTexture(parsed)") > pipeline.indexOf("await PROVIDERS.sketchfab.download"),
+    "the check happens after the download: a search result does not say whether the file has a texture",
+  );
+});
+
 test("models are filed as <slug>.glb, then <slug>-alt2.glb", () => {
   assert.equal(modelFileName("bengal-tiger", 0), "bengal-tiger.glb");
   assert.equal(modelFileName("bengal-tiger", 1), "bengal-tiger-alt2.glb");
@@ -225,4 +279,54 @@ test("the credit line names the model, the author, the licence and the provider"
   assert.match(credit, /A\. Scanner/);
   assert.match(credit, /CC-BY-4\.0/);
   assert.match(credit, /sketchfab/);
+});
+
+/* ------------------------------------------------------------------ generated models */
+
+/**
+ * A model nobody scanned.
+ *
+ * Meshy and Tripo generate a mesh from a sentence. Meshy's **Free plan licenses its output CC BY
+ * 4.0**, which is on this project's allow-list; Tripo's free plan keeps every right, which is not.
+ * The rules below are the ones that would be expensive to get wrong:
+ *
+ *   1. **the licence is hard-coded, not a flag.** A `--license` option is how a paid key - whose
+ *      output is private and carries no standard licence - would quietly record a licence it does not
+ *      have. The generator writes `CC-BY-4.0` and the only way to change it is to edit the file and
+ *      this test with it;
+ *   2. **the licence it writes is on the allow-list.** A generator is a new door into the catalogue,
+ *      and every door has to obey `lib/model-quality.ts`;
+ *   3. **a generated model says so.** The manifest entry carries a `generated` record and the species
+ *      page prints it, because a synthesised animal shown as a scanned one is the same lie as an
+ *      invented statistic.
+ */
+test("the generator cannot record a licence the project does not accept", () => {
+  const source = readFileSync(join(process.cwd(), "scripts", "generate-models.mjs"), "utf8");
+
+  assert.ok(!/--license/.test(source), "the licence must not be a flag a paid key can flip");
+  const licence = /const LICENSE = "([^"]+)"/.exec(source)?.[1];
+  assert.ok(licence, "the generator must state the licence it records");
+  assert.deepEqual(
+    MODEL_LICENSES,
+    [...MODEL_LICENSES],
+    "the allow-list is CC0 and CC BY; a third entry is a policy change, not a refactor",
+  );
+  assert.ok(
+    MODEL_LICENSES.some((allowed) => licence.startsWith(allowed)),
+    "the generator records " + licence + ", which is not on the allow-list " + MODEL_LICENSES.join("/"),
+  );
+
+  // Meshy's free plan is the only plan whose output is CC BY. Paying for it removes the licence
+  // rather than improving it, which is the opposite of what a reader would assume.
+  assert.match(source, /MESHY_API_KEY/, "and it must refuse without a key rather than half-run");
+  assert.match(source, /generated: \{ provider/, "every entry must carry its provenance");
+});
+
+test("a generated model is labelled as one, everywhere it is read", () => {
+  const types = readFileSync(join(process.cwd(), "lib", "attribution.ts"), "utf8");
+  assert.match(types, /generated\?:/, "the credit type must carry the record");
+
+  const page = readFileSync(join(process.cwd(), "app", "animal", "[slug]", "page.tsx"), "utf8");
+  assert.match(page, /attribution\.generated \?/, "and the species page must render it");
+  assert.match(page, /not a scan of a real animal/, "in words a reader cannot mistake");
 });

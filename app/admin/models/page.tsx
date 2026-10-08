@@ -455,6 +455,10 @@ export default async function AdminModelsPage() {
             <Link href="/admin/geodata" className="underline decoration-white/20 underline-offset-2">
               Geodata
             </Link>
+            {" · "}
+            <Link href="/admin/security" className="underline decoration-white/20 underline-offset-2">
+              Security log
+            </Link>
           </p>
         </div>
       </section>

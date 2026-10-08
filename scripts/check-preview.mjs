@@ -113,7 +113,8 @@ test("the preview draws the real file, and hands its GPU memory back", () => {
   // One canvas per tile: the preview is an alternative to the silhouette, never a sibling.
   assert.equal((component.match(/<CanvasShell/g) ?? []).length, 1, "exactly one canvas belongs in this component");
   assert.ok(component.includes("posedBounds("), "and it frames the asset by the box it is drawn with");
-  assert.ok(component.includes("anchorOffset"), "placed by the shared, tested arithmetic");
+  assert.ok(component.includes("floorOffset"), "placed by the shared, tested arithmetic");
+  assert.ok(!component.includes("anchorOffset"), "and there is only one copy of that arithmetic");
 });
 
 test("the index the card reads cannot drift from the manifest", () => {
@@ -147,13 +148,24 @@ test("the gate does not drag the credit manifest into the browser", () => {
   );
 });
 
-test("the card chooses exactly one preview", () => {
+test("the card mounts the real model or nothing at all", () => {
   assert.ok(card.includes("isPreviewableModel(animal.slug)"), "the card asks the index before fetching");
   assert.ok(card.includes("const realModel ="), "and states the decision once");
-  assert.ok(card.includes("showModel ?") && card.includes("showSilhouette ?"), "then mounts one of the two");
+  assert.ok(card.includes("showModel ?"), "then mounts the model when the catalogue has one");
 
-  // The two previews must be mutually exclusive: two live contexts in one tile is the thing
-  // every 3D surface in this project is arranged to avoid.
-  const modelBlock = card.slice(card.indexOf("{showModel ?"), card.indexOf("{showSilhouette ?"));
-  assert.ok(!modelBlock.includes("AnimalPreview"), "the model branch must not also mount the silhouette");
+  // There used to be a second branch: a procedural rig - spheres, capsules and cones - drawn for
+  // every species outside the hover budget and for every species with no file. A visitor read that
+  // as a model of the animal, which is what it was not. The emoji plate is what a card shows now
+  // when there is no real model to show, so the two things this test refuses are the import coming
+  // back and a second canvas sharing the tile.
+  assert.ok(!card.includes("AnimalPreview"), "the procedural stand-in must not come back to the card");
+  assert.ok(!card.includes("showSilhouette"), "and neither must the branch that mounted it");
+  assert.ok(!existsSync(join(root, "components", "3d", "AnimalPreview.tsx")), "the component itself is gone");
+
+  // One live context per tile is the rule every 3D surface here is arranged around; the card still
+  // mounts exactly one thing, and only after a hover.
+  const mounts = card.match(/<AnimalModelPreview/g) ?? [];
+  assert.equal(mounts.length, 1, "the tile mounts exactly one 3D preview");
+  assert.ok(card.includes("const showModel = previewRequested &&"), "and only once the visitor asked for it");
+  assert.ok(card.includes("const covered = showModel && modelReady"), "the plate keeps the emoji until the file lands");
 });

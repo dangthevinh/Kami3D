@@ -15,6 +15,7 @@ import type { QuizMode } from "@/types/animal";
  */
 
 const FAVORITES_COOKIE = "kami3d.favorites";
+const SAVED_COOKIE = "kami3d.saved";
 const QUIZ_COOKIE = "kami3d.quiz";
 const MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -45,6 +46,24 @@ export async function readFavoriteIds(): Promise<string[]> {
 export async function writeFavoriteIds(ids: string[]): Promise<void> {
   const store = await cookies();
   store.set(FAVORITES_COOKIE, JSON.stringify([...new Set(ids)].slice(0, 200)), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
+}
+
+/** The catalogue keys this visitor saved, in the same shape the signed-in path stores. */
+export async function readSavedKeys(): Promise<string[]> {
+  const store = await cookies();
+  const keys = parseJson<string[]>(store.get(SAVED_COOKIE)?.value, []);
+  return Array.isArray(keys) ? keys.filter((key) => typeof key === "string") : [];
+}
+
+export async function writeSavedKeys(keys: string[]): Promise<void> {
+  const store = await cookies();
+  store.set(SAVED_COOKIE, JSON.stringify([...new Set(keys)].slice(0, 500)), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

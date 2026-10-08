@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AdSlot } from "@/components/ads/AdSlot";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { QuizGame } from "@/components/quiz/QuizGame";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getAllAnimals } from "@/lib/animals";
@@ -66,7 +66,7 @@ export default async function QuizPage() {
       </div>
 
       <div className="mx-auto max-w-3xl">
-        <AdSlot format="in-article" note="Between rounds only — the quiz silhouette is never covered." />
+        <AdBanner placement="below-content" note="Between rounds only — the quiz silhouette is never covered." />
       </div>
     </div>
   );

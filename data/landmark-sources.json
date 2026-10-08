@@ -1,0 +1,7 @@
+{
+  "eiffel-tower": {
+    "sketchfabUid": "6830e60d2c1048f2a33e92679664f652",
+    "sourceUrl": "https://sketchfab.com/3d-models/eiffel-tower-6830e60d2c1048f2a33e92679664f652",
+    "why": "Named by the project owner on 2026-10-06 in place of the model the search had picked (dannzjs, uid 935473631ca54558b4194d06944cb797, 131,510 faces, 571 KB). Gates passed: title \"Eiffel Tower\", CC BY 4.0, downloadable, 453,421 faces inside the 800k budget, 1.61 MB after DRACO. Two measured differences worth knowing before keeping it: (1) the file carries NO textures and no COLOR_0 vertex colours - only POSITION and NORMAL - so it renders as a single flat colour, and the two authors' own thumbnails measure mean saturation 0.007 for this one against 0.509 for the one it replaced (mean RGB 206,206,206 against 198,180,97: grey against the tower's brown iron); (2) its colour sits in KHR_materials_pbrSpecularGlossiness, which three.js removed, so scripts/fix-model-materials.mjs converted it to metallic-roughness before it could ship - unconverted it would render white AND fail npm run check:model-materials."
+  }
+}

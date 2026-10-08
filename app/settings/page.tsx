@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
-import { SettingsScreen } from "@/components/settings/SettingsScreen";
+import { SettingsScreen, type SettingsPayments } from "@/components/settings/SettingsScreen";
 import { getCurrentUser } from "@/lib/auth";
 import { activeAuthProvider } from "@/lib/auth-provider";
+import { accountEntitlements } from "@/lib/payments/account";
+import { readPaymentsConfig } from "@/lib/payments/config";
 
 /**
  * `/settings` — the full preferences panel (Phase 11).
@@ -29,7 +31,26 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const [user, provider] = await Promise.all([getCurrentUser(), Promise.resolve(activeAuthProvider())]);
+  const [user, provider, account] = await Promise.all([
+    getCurrentUser(),
+    Promise.resolve(activeAuthProvider()),
+    // Phase 32: the subscription card is rendered from the server's answer, so it cannot flicker from
+    // "no subscription" to "Premium" a second after the page appears.
+    accountEntitlements(),
+  ]);
 
-  return <SettingsScreen user={user} provider={provider} />;
+  const config = readPaymentsConfig();
+  const payments: SettingsPayments = {
+    checkout: config.checkoutConfigured,
+    reason: config.reason,
+    signedIn: account.signedIn,
+    checked: account.checked,
+    premium: account.premium,
+    planName: account.subscription?.name ?? null,
+    statusReason: account.subscription?.reason ?? account.reason,
+    periodEnd: account.subscription?.current_period_end ?? null,
+    entitlements: account.entitlements,
+  };
+
+  return <SettingsScreen user={user} provider={provider} payments={payments} />;
 }

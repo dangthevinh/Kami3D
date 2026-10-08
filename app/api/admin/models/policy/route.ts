@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * and the counters are all still enforced by the database.
  */
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
   const blocked = guardWrite(request, { name: "admin-policy", rule: { limit: 20, windowMs: 60_000 }, expectedHost: hostOfRequest(request) });
   if (blocked) return blocked;

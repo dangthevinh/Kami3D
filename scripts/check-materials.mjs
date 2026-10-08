@@ -164,7 +164,7 @@ test("a skinned model is cloned with its own bones", async () => {
 
 test("a model is anchored by the box it is drawn with, not its bind pose", async () => {
   const THREE = await import("three");
-  const { anchorOffset } = await import("../components/3d/clone-model.ts");
+  const { floorOffset: anchorOffset } = await import("../lib/model-floor.ts");
 
   // The lion, measured in the running viewer: the bind box sits at y -30..-82 while the pose it is
   // drawn in sits at y -68..-121. Centring by the first left the animal about 38 units under the
@@ -189,10 +189,17 @@ test("the species viewer no longer centres by the bind pose", () => {
     !/^\s*<Center[\s>]/m.test(scene),
     "drei's Center measures the bind pose; ModelAnchor measures the pose actually drawn",
   );
-  assert.ok(scene.includes("<ModelAnchor>"), "so the model is wrapped in the anchor instead");
+  assert.ok(/<ModelAnchor[\s>]/.test(scene), "so the model is wrapped in the anchor instead");
   const anchor = read("components/3d/ModelAnchor.tsx");
   assert.ok(anchor.includes("posedBounds("), "and the anchor measures the posed box");
-  assert.ok(anchor.includes("anchorOffset("), "through the shared, tested arithmetic");
+  assert.ok(anchor.includes("floorOffset("), "through the shared, tested arithmetic");
+
+  // And the second half: a posed box is still one pose. The anchor must scan the clip it will play
+  // and keep a guard under that scan - 19 of 74 models went under the floor without it (check:floor).
+  assert.ok(anchor.includes("sampleTimes("), "the clip is sampled, not just the mounted pose");
+  assert.ok(anchor.includes("unionBoxes("), "so the anchor is the space over the whole clip");
+  assert.ok(anchor.includes("useFrame("), "with a guard that runs while the clip plays");
+  assert.ok(anchor.includes("ratchet("), "which may raise the anchor and never lower it");
 
   // Both names appear in the comments that explain the bug, so the assertions read the code only.
   const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");

@@ -15,8 +15,8 @@ export const maxDuration = 300;
  * Both this route and the clock call `ingestInbox()`, which calls the same publish function the
  * manual form calls, so there is one set of rules rather than two.
  */
-export async function GET() {
-  const gate = await requireAdmin();
+export async function GET(request: Request) {
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   const items = await readInbox();
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   const blocked = guardWrite(request, {

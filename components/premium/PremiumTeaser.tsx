@@ -37,9 +37,13 @@ export function PremiumTeaser({ premiumAnimals }: { premiumAnimals: Animal[] }) 
             <h2 className="mt-3 font-display text-2xl font-bold text-white sm:text-3xl">
               Bring extinct giants back into the room
             </h2>
+            {/* The count is read from the catalogue rather than written down: the list of extinct species
+                has grown since this card was first written, and a sentence that names four of seven reads
+                as if those four were all of them. */}
             <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/60">
-              Tyrannosaurus, Megalodon, Smilodon and the Woolly Mammoth are modelled in full 3D.
-              Watch a short sponsored clip to unlock them for your session — no account required.
+              {premiumAnimals.length} species lost to extinction — Tyrannosaurus, Megalodon, Smilodon and the
+              Woolly Mammoth among them — are modelled in full 3D and measured like the rest of the
+              catalogue. Watch a short sponsored clip to unlock them for your session; no account required.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Button type="button" onClick={openReward} variant="default">

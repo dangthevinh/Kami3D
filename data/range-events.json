@@ -49,15 +49,6 @@
       "sourceUrl": "https://cites.org/eng/disc/what.php"
     },
     {
-      "slug": "bengal-tiger",
-      "year": 1973,
-      "kind": "protection",
-      "title": "Project Tiger begins",
-      "summary": "India launches Project Tiger, creating reserves that are still the backbone of tiger conservation.",
-      "source": "Project Tiger, Government of India",
-      "sourceUrl": "https://projecttiger.nic.in/"
-    },
-    {
       "slug": "blue-whale",
       "year": 1982,
       "kind": "protection",
@@ -121,15 +112,6 @@
       "sourceUrl": "https://www.iucnredlist.org/species/109/3013717"
     },
     {
-      "slug": "red-kangaroo",
-      "year": 2020,
-      "kind": "decline",
-      "title": "Three billion animals in the bushfires",
-      "summary": "The 2019-20 Australian bushfire season is estimated to have affected three billion animals, including kangaroos, koalas and reptiles.",
-      "source": "WWF-Australia",
-      "sourceUrl": "https://www.wwf.org.au/news/news/2020/3-billion-animals-impacted-by-australia-bushfire-crisis"
-    },
-    {
       "slug": "giant-panda",
       "year": 2021,
       "kind": "recovery",
@@ -146,15 +128,6 @@
       "summary": "The IUCN lists the migratory monarch butterfly as Endangered, citing habitat loss and climate-driven extremes at its overwintering sites.",
       "source": "IUCN",
       "sourceUrl": "https://www.iucn.org/news/202207/migratory-monarch-butterfly-endangered-iucn-red-list"
-    },
-    {
-      "slug": "emperor-penguin",
-      "year": 2022,
-      "kind": "decline",
-      "title": "Emperor penguin listed as threatened",
-      "summary": "The US Fish & Wildlife Service lists the emperor penguin as threatened under the Endangered Species Act, with sea-ice loss as the driving risk.",
-      "source": "US Fish & Wildlife Service",
-      "sourceUrl": "https://www.fws.gov/press-release/2022-10/emperor-penguin-listed-threatened-under-endangered-species-act"
     },
     {
       "slug": null,

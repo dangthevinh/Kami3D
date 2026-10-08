@@ -30,6 +30,19 @@ export interface ModelAttribution {
   fetchedAt: string;
   /** Triangle count as the provider reported it; absent on entries fetched before it was recorded. */
   faceCount?: number | null;
+  /**
+   * Present when the model was **generated from a text prompt** rather than sourced from a scan or a
+   * photographed asset - Meshy's free plan licences its output CC BY 4.0, which is on this project's
+   * allow-list, but a synthesised animal is not a specimen and the credit line has to say so. See
+   * `scripts/generate-models.mjs`.
+   */
+  generated?: {
+    provider: string;
+    model: string;
+    prompt: string;
+    taskId: string;
+    at: string;
+  } | null;
 }
 
 const manifest = rawManifest as Record<string, ModelAttribution>;

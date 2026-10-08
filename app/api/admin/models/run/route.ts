@@ -19,7 +19,7 @@ export const runtime = "nodejs";
  * command instead of pretending something happened.
  */
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   // Each call starts a child process, so the bucket is the tightest in the app: six a minute

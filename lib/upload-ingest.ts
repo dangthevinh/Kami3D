@@ -2,7 +2,7 @@ import "server-only";
 
 import { publishUploadedModel, type PublishReport } from "@/lib/model-publish";
 import { UPLOAD_PREFIXES, sidecarName, slugFromFilename, validateUploadMeta } from "@/lib/model-upload";
-import { ASSET_BUCKET } from "@/lib/supabase";
+import { getR2Store, r2StorageStatus, type R2Store } from "@/lib/r2-storage";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 /**
@@ -14,10 +14,11 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
  * `publishUploadedModel()`, so the budget, the licence rule, the DRACO step and the card decision are
  * the ones that always apply.
  *
- * The folder *is* the permission: only the service role can write there, and a file is processed by
- * being **moved out** of the inbox, which is also what stops a second run from publishing it twice.
- * A file without a usable sidecar is moved to `rejected/` with a `.reason.txt` beside it, because a
- * silent refusal is the one outcome an admin cannot act on.
+ * The folder *is* the permission: the inbox lives in the R2 bucket, which only this server can write
+ * to (the credentials never leave the server), and a file is processed by being **moved out** of the
+ * inbox, which is also what stops a second run from publishing it twice. A file without a usable
+ * sidecar is moved to `rejected/` with a `.reason.txt` beside it, because a silent refusal is the one
+ * outcome an admin cannot act on.
  */
 
 export interface InboxItem {
@@ -51,42 +52,45 @@ const EMPTY: IngestReport = { ok: false, reason: null, seen: 0, published: 0, re
 
 /** What is in the inbox right now, without touching any of it. */
 export async function readInbox(): Promise<InboxItem[]> {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return [];
+  const store = getR2Store();
+  if (!store) return [];
 
-  const { data, error } = await supabase.storage.from(ASSET_BUCKET).list(UPLOAD_PREFIXES.inbox, { limit: 200, sortBy: { column: "name", order: "asc" } });
-  if (error || !data) return [];
+  const listed = await store.list(UPLOAD_PREFIXES.inbox, 200);
+  if (!listed.ok) return [];
 
-  const names = data.map((entry) => entry.name);
-  const sidecars = new Set(names.filter((name) => name.endsWith(".json")));
+  const entries = listed.value;
+  const sidecars = new Set(entries.filter((entry) => entry.name.endsWith(".json")).map((entry) => entry.name));
 
-  return names
-    .filter((name) => name.toLowerCase().endsWith(".glb"))
-    .map((name) => {
-      const slug = slugFromFilename(name);
-      const entry = data.find((candidate) => candidate.name === name);
-      const size = entry?.metadata && typeof entry.metadata.size === "number" ? entry.metadata.size : null;
-      return { name, slug, bytes: size, hasSidecar: sidecars.has(sidecarName(slug)) };
+  return entries
+    .filter((entry) => entry.name.toLowerCase().endsWith(".glb"))
+    .map((entry) => {
+      const slug = slugFromFilename(entry.name);
+      return { name: entry.name, slug, bytes: entry.size, hasSidecar: sidecars.has(sidecarName(slug)) };
     });
 }
 
-async function moveObject(from: string, to: string): Promise<{ ok: boolean; reason: string | null }> {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return { ok: false, reason: "no storage client" };
+/**
+ * Move one object: read it, write it, then clear the original.
+ *
+ * The order is the whole safety argument. A delete-first move would lose the file if the write failed,
+ * and a write without a delete would publish it twice on the next tick. If the write succeeds and the
+ * delete does not, the caller is told **exactly that** — "copied, could not clear" is a different
+ * situation from "nothing happened", and an admin can only act on the difference.
+ */
+async function moveObject(store: R2Store, from: string, to: string): Promise<{ ok: boolean; reason: string | null }> {
+  const source = await store.get(from);
+  if (!source.ok) return { ok: false, reason: "could not read " + from + ": " + source.reason };
 
-  const { data, error } = await supabase.storage.from(ASSET_BUCKET).download(from);
-  if (error || !data) return { ok: false, reason: "could not read " + from + ": " + (error?.message ?? "no data") };
-
-  const bytes = new Uint8Array(await data.arrayBuffer());
-  const isJson = to.endsWith(".json") || to.endsWith(".txt");
-  const uploaded = await supabase.storage.from(ASSET_BUCKET).upload(to, bytes, {
-    contentType: isJson ? "application/json" : "model/gltf-binary",
-    upsert: true,
+  const isText = to.endsWith(".json") || to.endsWith(".txt");
+  const written = await store.put(to, source.value, {
+    contentType: isText ? "application/json" : "model/gltf-binary",
+    // The inbox is a staging area, not a CDN: what lands here must never be cached by a browser.
+    cacheControl: "no-store",
   });
-  if (uploaded.error) return { ok: false, reason: "could not write " + to + ": " + uploaded.error.message };
+  if (!written.ok) return { ok: false, reason: "could not write " + to + ": " + written.reason };
 
-  const removed = await supabase.storage.from(ASSET_BUCKET).remove([from]);
-  if (removed.error) return { ok: false, reason: "copied to " + to + " but could not clear " + from + ": " + removed.error.message };
+  const cleared = await store.remove([from]);
+  if (!cleared.ok) return { ok: false, reason: "copied to " + to + " but could not clear " + from + ": " + cleared.reason };
   return { ok: true, reason: null };
 }
 
@@ -97,8 +101,14 @@ async function moveObject(from: string, to: string): Promise<{ ok: boolean; reas
  * with a real id rather than "the system".
  */
 export async function ingestInbox({ actor }: { actor: string }): Promise<IngestReport> {
+  // Two systems, two failures, two sentences: Supabase owns the budget and the catalogue, R2 owns the
+  // bytes. Saying "Supabase is missing" when R2 is what is missing would send an operator to the wrong
+  // dashboard.
   const supabase = getSupabaseAdmin();
-  if (!supabase) return { ...EMPTY, reason: "the inbox needs Supabase: the budget and the bucket are both there" };
+  if (!supabase) return { ...EMPTY, reason: "the inbox needs Supabase: the download budget and the catalogue are both there" };
+
+  const store = getR2Store();
+  if (!store) return { ...EMPTY, reason: "the inbox needs an object store: " + r2StorageStatus() };
 
   const items = await readInbox();
   if (items.length === 0) return { ...EMPTY, ok: true, reason: "the inbox is empty" };
@@ -110,9 +120,15 @@ export async function ingestInbox({ actor }: { actor: string }): Promise<IngestR
     const sidecarPath = UPLOAD_PREFIXES.inbox + "/" + sidecarName(item.slug);
 
     const reject = async (reason: string, outcome: IngestItemReport["outcome"] = "rejected") => {
-      await supabase.storage.from(ASSET_BUCKET).upload(UPLOAD_PREFIXES.rejected + "/" + item.name + ".reason.txt", new Blob([reason]), { contentType: "text/plain", upsert: true });
-      await moveObject(modelPath, UPLOAD_PREFIXES.rejected + "/" + item.name);
-      if (item.hasSidecar) await moveObject(sidecarPath, UPLOAD_PREFIXES.rejected + "/" + sidecarName(item.slug));
+      const rejectedName = UPLOAD_PREFIXES.rejected + "/" + item.name;
+      // The reason first, and deliberately: if moving the file then fails, the explanation is already
+      // sitting next to it, which is the only thing that makes a failed move diagnosable.
+      await store.put(rejectedName + ".reason.txt", new TextEncoder().encode(reason), {
+        contentType: "text/plain",
+        cacheControl: "no-store",
+      });
+      await moveObject(store, modelPath, rejectedName);
+      if (item.hasSidecar) await moveObject(store, sidecarPath, UPLOAD_PREFIXES.rejected + "/" + sidecarName(item.slug));
       report[outcome === "failed" ? "failed" : "rejected"] += 1;
       report.items.push({ name: item.name, slug: item.slug, outcome, reason, cardEligible: false, storedBytes: 0 });
     };
@@ -124,15 +140,15 @@ export async function ingestInbox({ actor }: { actor: string }): Promise<IngestR
       continue;
     }
 
-    const sidecar = await supabase.storage.from(ASSET_BUCKET).download(sidecarPath);
-    if (sidecar.error || !sidecar.data) {
-      await reject("the sidecar could not be read: " + (sidecar.error?.message ?? "no data"));
+    const sidecar = await store.get(sidecarPath);
+    if (!sidecar.ok) {
+      await reject("the sidecar could not be read: " + sidecar.reason);
       continue;
     }
 
     let sidecarJson: unknown;
     try {
-      sidecarJson = JSON.parse(await sidecar.data.text());
+      sidecarJson = JSON.parse(new TextDecoder().decode(sidecar.value));
     } catch (error) {
       await reject("the sidecar is not valid JSON: " + String(error).split("\n")[0]);
       continue;
@@ -144,13 +160,13 @@ export async function ingestInbox({ actor }: { actor: string }): Promise<IngestR
       continue;
     }
 
-    const file = await supabase.storage.from(ASSET_BUCKET).download(modelPath);
-    if (file.error || !file.data) {
-      await reject("the model could not be read: " + (file.error?.message ?? "no data"), "failed");
+    const file = await store.get(modelPath);
+    if (!file.ok) {
+      await reject("the model could not be read: " + file.reason, "failed");
       continue;
     }
 
-    const bytes = new Uint8Array(await file.data.arrayBuffer());
+    const bytes = file.value;
     const published: PublishReport = await publishUploadedModel({
       actor,
       slug: item.slug,
@@ -166,8 +182,8 @@ export async function ingestInbox({ actor }: { actor: string }): Promise<IngestR
       continue;
     }
 
-    await moveObject(modelPath, UPLOAD_PREFIXES.published + "/" + item.name);
-    await moveObject(sidecarPath, UPLOAD_PREFIXES.published + "/" + sidecarName(item.slug));
+    await moveObject(store, modelPath, UPLOAD_PREFIXES.published + "/" + item.name);
+    await moveObject(store, sidecarPath, UPLOAD_PREFIXES.published + "/" + sidecarName(item.slug));
 
     report.published += 1;
     report.items.push({

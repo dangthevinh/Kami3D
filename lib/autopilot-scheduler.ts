@@ -1,5 +1,6 @@
 import "server-only";
 
+import { autopilotClockVerdict, autopilotTickMs } from "@/lib/autopilot-clock";
 import { runAutopilotRound } from "@/lib/autopilot-runner";
 import { ingestInbox, readInbox } from "@/lib/upload-ingest";
 
@@ -24,7 +25,8 @@ import { ingestInbox, readInbox } from "@/lib/upload-ingest";
  *     scheduler that can crash the process it lives in is worse than no scheduler.
  */
 
-const TICK_MS = Number(process.env.MODEL_AUTOPILOT_TICK_MS ?? 300_000);
+/** How long between ticks: five minutes unless MODEL_AUTOPILOT_TICK_MS says otherwise, floor 60 s. */
+const TICK_MS = autopilotTickMs(process.env);
 /** How long a round started by the clock may hold the process's attention. */
 const WAIT_MS = Number(process.env.MODEL_AUTOPILOT_WAIT_MS ?? 600_000);
 
@@ -36,16 +38,15 @@ interface SchedulerState {
 const globalState = globalThis as typeof globalThis & { __kamiAutopilot?: SchedulerState };
 
 export function startAutopilotScheduler(): { started: boolean; reason: string } {
-  if (process.env.MODEL_AUTOPILOT === "off") {
-    return { started: false, reason: "MODEL_AUTOPILOT=off" };
-  }
-  if (process.env.NEXT_PHASE === "phase-production-build" || process.env.npm_lifecycle_event === "build") {
-    return { started: false, reason: "this is a build, not a server" };
-  }
+  // Whether to start at all is a pure decision, and it lives in lib/autopilot-clock.ts for one
+  // reason: this module begins with `server-only`, which throws outside a React Server Component
+  // bundle, so no `node --test` file can import it. Keeping the rule there means the test locks the
+  // rule that really runs here rather than a copy of it that can drift.
+  const verdict = autopilotClockVerdict(process.env, Boolean(globalState.__kamiAutopilot?.timer));
+  if (!verdict.start) return { started: false, reason: verdict.reason };
 
   const state = globalState.__kamiAutopilot ?? { timer: null, running: false };
   globalState.__kamiAutopilot = state;
-  if (state.timer) return { started: false, reason: "already started" };
 
   const tick = async () => {
     if (state.running) return;
@@ -82,11 +83,11 @@ export function startAutopilotScheduler(): { started: boolean; reason: string } 
     state.running = false;
   };
 
-  state.timer = setInterval(tick, Math.max(60_000, TICK_MS));
+  state.timer = setInterval(tick, TICK_MS);
   // Do not hold the event loop open on shutdown.
   state.timer.unref?.();
 
-  return { started: true, reason: "ticking every " + Math.round(Math.max(60_000, TICK_MS) / 1000) + "s" };
+  return { started: true, reason: "ticking every " + Math.round(TICK_MS / 1000) + "s" };
 }
 
 /** Exported for the tests and for a page that wants to say whether the clock is here or outside. */

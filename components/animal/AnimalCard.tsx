@@ -8,16 +8,12 @@ import * as React from "react";
 import { FavoriteButton } from "@/components/animal/FavoriteButton";
 import { useMeasurementUnit } from "@/components/animal/Measurement";
 import { Badge } from "@/components/ui/badge";
+import { previewImageFor } from "@/lib/model-previews";
 import { isPreviewableModel } from "@/lib/model-preview-index";
 import { cn, formatCount, formatWeight } from "@/lib/utils";
 import { statusToTailwind, type Animal } from "@/types/animal";
 
-// Both previews are pulled in only when a card is actually hovered.
-const AnimalPreview = dynamic(() => import("@/components/3d/AnimalPreview").then((mod) => mod.AnimalPreview), {
-  ssr: false,
-  loading: () => null,
-});
-
+// The preview is pulled in only when a card is actually hovered.
 const AnimalModelPreview = dynamic(
   () => import("@/components/3d/AnimalModelPreview").then((mod) => mod.AnimalModelPreview),
   { ssr: false, loading: () => null },
@@ -51,18 +47,31 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
   const locked = animal.premium && !unlocked;
 
   // The real model when the catalogue has one that is small enough to fetch on a hover
-  // (see isPreviewableModel), the procedural silhouette otherwise. One canvas either way:
-  // the two are alternatives, never siblings.
+  // (see isPreviewableModel). When it does not, the card draws nothing: the emoji plate stays.
   // The database's own decision wins when there is one: a model published in Phase 22 carries the
   // measurement it was published with, so an admin's upload reaches the card without a rebuild. The
   // build-time index stays as the fallback for rows that predate it (and for the bundled dataset).
   const previewAllowed = animal.preview_eligible ?? isPreviewableModel(animal.slug);
   const realModel = Boolean(animal.model_url) && previewAllowed && !locked;
   const showModel = previewRequested && realModel;
-  const showSilhouette = previewRequested && !realModel;
-  // The plate keeps its emoji until there is something to look at: the silhouette appears
-  // at once, the model only once its file has arrived.
-  const covered = showModel ? modelReady : showSilhouette;
+  // The plate keeps its emoji until the real file has arrived. There is no second, drawn preview:
+  // a card whose species has no model inside the hover budget shows the emoji and nothing else,
+  // because a body assembled from spheres and cones is not a picture of the animal.
+  const covered = showModel && modelReady;
+
+  /**
+   * The model's own picture — rendered once by `scripts/render-model-previews.mjs`.
+   *
+   * It is what the card shows *without fetching anything*, which is the point: the plate used to be the
+   * species' emoji, and for most of the catalogue it stayed the emoji, because a hover is not a reason to
+   * download a 3 MB elephant. The picture is a few kilobytes and is a real likeness of the model, so the
+   * card gets a face either way — and a hover inside the preview budget still upgrades to the live model
+   * below, exactly as before.
+   */
+  const preview = previewImageFor(animal.model_url);
+  // No existence check is done up front (that would ship the whole preview index to the browser), so a
+  // model with no rendered picture is discovered here and the emoji plate simply stays.
+  const [previewBroken, setPreviewBroken] = React.useState(false);
 
   const onModelReady = React.useCallback(() => setModelReady(true), []);
 
@@ -146,16 +155,32 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
       >
         <div
           className={cn(
-            "absolute inset-0 grid place-items-center transition-all duration-500",
+            "absolute inset-0 transition-all duration-500",
             covered ? "scale-100 opacity-0" : "opacity-100",
           )}
         >
-          <span
-            className="text-5xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)] transition-transform duration-500 group-hover:scale-110"
-            aria-hidden
-          >
-            {animal.emoji}
-          </span>
+          {preview && !previewBroken ? (
+            <img
+              src={preview}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              decoding="async"
+              width={512}
+              height={512}
+              onError={() => setPreviewBroken(true)}
+              // object-contain, not cover: a transparent 3/4 render of the whole model, so nothing is
+              // cropped. cover would fill the tile by cutting off whichever end is longest.
+              className="size-full object-contain p-4 drop-shadow-[0_18px_30px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-[1.06]"
+            />
+          ) : (
+            <span
+              className="grid size-full place-items-center text-5xl drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)] transition-transform duration-500 group-hover:scale-110"
+              aria-hidden
+            >
+              {animal.emoji}
+            </span>
+          )}
         </div>
 
         {/* The species' own model, drawn from the catalogue's .glb — the same file the
@@ -168,13 +193,6 @@ export function AnimalCard({ animal, unlocked = true, onLockedActivate, classNam
               className="h-full w-full"
               onReady={onModelReady}
             />
-          </div>
-        ) : null}
-
-        {/* Everything outside the shipping budget keeps the procedural silhouette. */}
-        {showSilhouette ? (
-          <div className="absolute inset-0" aria-hidden>
-            <AnimalPreview kind={animal.silhouette} accent={animal.accent} className="h-full w-full" />
           </div>
         ) : null}
 

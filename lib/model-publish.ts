@@ -12,7 +12,7 @@ import {
   type GlbFacts,
   type UploadMeta,
 } from "@/lib/model-upload";
-import { ASSET_BUCKET } from "@/lib/supabase";
+import { getR2Store, r2StorageStatus } from "@/lib/r2-storage";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 /**
@@ -28,7 +28,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
  *   2. **measure** the file itself - the triangle count comes from the GLB's own JSON chunk;
  *   3. **compress** with the same DRACO step the pipeline uses, when the tool is installed, and only
  *      if it actually makes the file smaller;
- *   4. **store** the model at a timestamped path, so replacing a model is never a stale CDN hit;
+ *   4. **store** the model in R2 at a timestamped path, so replacing a model is never a stale CDN hit;
  *   5. **record** it in `model_assets` (licence, credit, face count, bytes, path) as the primary one;
  *   6. **wire** `animals.model_url` to the public URL and `animals.preview_eligible` to whether the
  *      card may draw it - the second one is why an upload shows up on a card without a rebuild;
@@ -185,18 +185,25 @@ export async function publishUploadedModel(input: PublishInput): Promise<Publish
   const storagePath = servedPath(slug);
   const card = cardEligible(finalBytes.byteLength, finalParse.facts.triangles) && drawOnCard;
 
-  const upload = await supabase.storage.from(ASSET_BUCKET).upload(storagePath, finalBytes, {
+  // 4. Store it in R2 — the only object store this app writes to (lib/r2-storage.ts). Supabase still
+  //    owns the database and the budget; it no longer owns a byte of the model.
+  const store = getR2Store();
+  if (!store) {
+    if (reservationId) await supabase.rpc("settle_model_download", { p_id: reservationId, p_outcome: "failed", p_bytes: null, p_storage_path: null, p_reason: "no object store" });
+    return fail(slug, r2StorageStatus(), { bytes: input.bytes.byteLength, facts: parsed.facts });
+  }
+
+  const upload = await store.put(storagePath, finalBytes, {
     contentType: "model/gltf-binary",
-    upsert: true,
     cacheControl: "public, max-age=31536000, immutable",
   });
 
-  if (upload.error) {
+  if (!upload.ok) {
     if (reservationId) await supabase.rpc("settle_model_download", { p_id: reservationId, p_outcome: "failed", p_bytes: null, p_storage_path: null, p_reason: "the upload did not finish" });
-    return fail(slug, "the bucket refused the file: " + upload.error.message, { bytes: input.bytes.byteLength, facts: parsed.facts });
+    return fail(slug, "R2 refused the file: " + upload.reason, { bytes: input.bytes.byteLength, facts: parsed.facts });
   }
 
-  const publicUrl = supabase.storage.from(ASSET_BUCKET).getPublicUrl(storagePath).data.publicUrl;
+  const publicUrl = upload.value.publicUrl;
 
   // 5. The record. The quality score uses the same function the provider pipeline ranks with, so an
   //    uploaded model is comparable with a fetched one instead of living outside the ranking.

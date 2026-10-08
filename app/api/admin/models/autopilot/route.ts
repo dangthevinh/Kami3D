@@ -24,8 +24,8 @@ export const maxDuration = 300;
  * request to the database, not a permission: the download budget is still spent by
  * `reserve_model_download()` and nowhere else.
  */
-export async function GET() {
-  const gate = await requireAdmin();
+export async function GET(request: Request) {
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   const [policy, gaps, orders] = await Promise.all([readAutopilot(), readGapReport(), readOrders(3)]);
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const gate = await requireAdmin();
+  const gate = await requireAdmin(request);
   if (!gate.ok) return gate.response;
 
   const body = await readJson(request);
