@@ -93,3 +93,24 @@ is user-initiated only, so nothing plays on page load.
 
 Record the licence and source for every uploaded asset in the commit message or a sibling `.license` file.
 Model licences vary per species — a CC0 skeleton and a CC-BY-NC museum scan are not interchangeable.
+
+## Backing the bucket up
+
+A copy of the bucket does not need the token. The token only buys the object *index* — ListObjectsV2 — and
+`data/r2-manifest.json` already is one: `npm run r2:push` records every object's key, byte length and md5 as it
+uploads, so the manifest describes the bucket exactly as it was last written to. `npm run r2:backup` walks that
+manifest, fetches each key from the public URL, and checks the byte length and md5 against it. It never lists the
+bucket, so it runs with no key at all, and it treats a failed check as a failed file: anything that does not match
+is deleted and fetched again rather than trusted.
+
+Re-running is safe and cheap. Anything already on disk with the right size and md5 is skipped, so an interrupted
+run resumes instead of starting over — long transfers do drop occasionally, and a single re-run normally clears
+them. `--limit=N` fetches a sample, `--concurrency=N` trades bandwidth for gentleness (the default is 8), and
+`--dry-run` reports what would happen. The exit code is 1 if anything failed, so the script chains in a shell.
+
+The mirror lands in `kami3d-storage-backup/`, which `.gitignore` blocks. It is a copy — mostly of assets the
+repository already ships under `public/`, plus the CDN-only orphans the manifest records — and never a source.
+
+`rclone` is the obvious tool right up until the token dies: `rclone copy r2:kami3d-storage` needs that same key.
+`rclone lsf r2:kami3d-storage` lists with it, but `rclone lsd r2:` never will — a bucket-scoped token is not
+granted `ListBuckets`.

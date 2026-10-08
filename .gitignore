@@ -21,3 +21,8 @@ supabase/.temp/
 # Guard rail: every value lives in .env.local. A tracked template in this
 # project twice collected real keys, so the filename is blocked outright.
 .env.example
+
+# Local mirror of the R2 bucket, rebuilt from data/r2-manifest.json over the public
+# endpoint (669 MB; mostly assets the repository already ships under public/, plus the
+# CDN-only orphans the manifest records). A backup, not a source — never commit it.
+kami3d-storage-backup/
