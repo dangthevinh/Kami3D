@@ -1,7 +1,7 @@
 "use client";
 
 import { useGLTF, useProgress } from "@react-three/drei";
-import { Camera, Download, Maximize2, Pause, Play, RotateCcw, RotateCw, Ruler, Sparkles, Sun, Waves } from "lucide-react";
+import { Boxes, Camera, Download, Maximize2, Pause, Play, RotateCcw, RotateCw, Ruler, Sparkles, Sun, Waves } from "lucide-react";
 import * as React from "react";
 
 import { CanvasFallback, CanvasShell } from "@/components/3d/CanvasShell";
@@ -11,8 +11,8 @@ import { useSettings } from "@/components/settings/SettingsProvider";
 import { Button } from "@/components/ui/button";
 import { CAMERA_PRESETS, type CameraPresetId } from "@/lib/camera-presets";
 import { publicEnv } from "@/lib/env";
-import { cn, seededRandom } from "@/lib/utils";
-import type { Animal } from "@/types/animal";
+import { cn } from "@/lib/utils";
+import type { ViewableModel } from "@/types/viewable";
 
 /**
  * Full-size 3D model viewer for a species page.
@@ -148,13 +148,17 @@ function LoadingOverlay() {
 }
 
 export interface ModelViewerProps {
-  animal: Animal;
+  /** Anything the scene can draw: see `types/viewable.ts` for the five fields it reads. */
+  animal: ViewableModel;
   className?: string;
-  /** Silhouette mode: flat black shading, used by the quiz. */
-  silhouette?: boolean;
+  /**
+   * There is deliberately no "silhouette mode" any more. The viewer used to draw a procedural rig
+   * when a species had no file - spheres, capsules and cones under the animal's name - and a visitor
+   * read that as a model of the animal. It never was one.
+   */
 }
 
-export function ModelViewer({ animal, className, silhouette = false }: ModelViewerProps) {
+export function ModelViewer({ animal, className }: ModelViewerProps) {
   const [preset, setPreset] = React.useState<LightPreset>("studio");
   const [wireframe, setWireframe] = React.useState(false);
   /**
@@ -190,7 +194,6 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
   const { settings } = useSettings();
   const autoRotate = (spinOverride ?? settings.autoRotate) && !settings.reduceMotion;
   const config = PRESETS[preset];
-  const phase = React.useMemo(() => seededRandom(animal.slug) * 6, [animal.slug]);
 
   // Warm the cache so returning to this species is instant.
   React.useEffect(() => {
@@ -307,6 +310,25 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
     event.preventDefault();
   }
 
+  // A species with no file gets a plain panel, not a stage with something invented on it. The
+  // sentence names the reason, because "no model" on its own reads like a bug rather than a
+  // deliberate "we would rather show nothing than a stand-in".
+  if (!animal.model_url) {
+    return (
+      <div className={cn("relative overflow-hidden rounded-[var(--radius-card)] ring-1 ring-white/10", className)}>
+        <div className="flex h-[380px] w-full flex-col items-center justify-center gap-2 bg-white/4 px-6 text-center sm:h-[500px] lg:h-[620px]">
+          <Boxes aria-hidden className="size-6 text-white/30" />
+          <p className="text-sm font-medium text-white/80">No 3D model for this species yet</p>
+          <p className="max-w-sm text-xs leading-relaxed text-white/45">
+            Kami3D only shows a model it can credit to a real author, and none of the sources this
+            project accepts has one for {animal.name}. The facts, the range map and the size chart on
+            this page are unaffected — this panel is the one thing missing.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -323,6 +345,27 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
         className="h-[380px] w-full rounded-[var(--radius-card)] ring-1 ring-white/10 sm:h-[500px] lg:h-[620px]"
         camera={{ position: [3.2, 2.2, 3.6], fov: 40, near: 0.05, far: 400 }}
         shadows
+        /**
+         * Frames are drawn **on demand**, the way Sketchfab's viewer stops rendering once you let go:
+         * an untouched model costs nothing, which is the difference between a page that spins a laptop
+         * fan while somebody reads and one that does not.
+         *
+         * What keeps working without a continuous loop, and why:
+         *
+         *   - **orbit, zoom and the damping tail.** drei's OrbitControls calls `invalidate()` from its
+         *     `change` handler, and three fires `change` on every damped step, so the glide after a
+         *     drag requests its own next frame until it settles — the thing that would otherwise freeze
+         *     mid-glide.
+         *   - **auto-spin.** Same mechanism: each rotated step is a `change`.
+         *   - **camera preset flights** ask for a frame themselves (see `SceneRig`).
+         *   - **everything React renders** invalidates, so the model landing, the measurement overlay
+         *     appearing and a settings change all draw.
+         *
+         * The one thing that genuinely needs every frame is a **playing animation clip**: drei's
+         * `useAnimations` advances its mixer in a frame callback and does not request frames itself, so
+         * the loop goes back to `always` while a clip runs — and only then.
+         */
+        frameloop={playing ? "always" : "demand"}
         label={`Interactive 3D model of ${animal.name}. Use the arrow keys to rotate and +/- to zoom.`}
         fallback={<CanvasFallback message="WebGL is unavailable, so the 3D model cannot be shown." />}
       >
@@ -331,7 +374,6 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
           quality={quality}
           light={config}
           wireframe={wireframe}
-          silhouette={silhouette}
           autoRotate={autoRotate}
           showMeasurements={showMeasurements}
           resetKey={resetKey}
@@ -346,7 +388,6 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
           clip={clip}
           playing={playing}
           slug={animal.slug}
-          phase={phase}
         />
       </CanvasShell>
 
@@ -484,8 +525,8 @@ export function ModelViewer({ animal, className, silhouette = false }: ModelView
           <div className="glass flex flex-wrap items-center justify-center gap-2 rounded-full px-4 py-2 text-[11px] text-white/70">
             <span>
               {modelState === "failed"
-                ? "The uploaded model could not be loaded — showing the procedural rig instead."
-                : "This model is taking longer than expected — the procedural rig is ready to explore meanwhile."}
+                ? "This species' model could not be loaded. There is no stand-in: this project shows the real asset or nothing."
+                : "This model is taking longer than expected — it is still on its way."}
             </span>
             <button
               type="button"

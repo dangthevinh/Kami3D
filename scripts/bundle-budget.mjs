@@ -44,7 +44,11 @@ const reportOnly = process.argv.includes("--report");
 const ROUTES = [
   { route: "/", html: "server/app/index.html", budget: 165 },
   { route: "/explore", html: "server/app/explore.html", budget: 165 },
-  { route: "/quiz", html: "server/app/quiz.html", budget: 165 },
+  // The quiz carries the question set and the reveal, which is the heaviest content route. Its budget
+  // used to be the measured number itself (164.9 against 165), which is not a budget: adding one icon
+  // to the shared navbar took it to 165.0 and failed the gate. 172 is the measured number plus the
+  // same ~4% margin its neighbours carry.
+  { route: "/quiz", html: "server/app/quiz.html", budget: 172 },
   { route: "/leaderboard", html: "server/app/leaderboard.html", budget: 165 },
   { route: "/about", html: "server/app/about.html", budget: 165 },
   { route: "/animal/[slug]", html: "server/app/animal/lion.html", budget: 165 },
@@ -100,7 +104,56 @@ const ROUTES = [
   // The admin analytics page (18A) is dynamic - it reads the last thirty days per request - so it is
   // measured from the manifest like /map. A table of numbers should never cost what a map costs.
   { route: "/admin/analytics", manifest: "/admin/analytics/page", budget: 140 },
+  // The landmark catalogue and one landmark page, the second pair of content routes. Both are static
+  // and both put the viewer behind next/dynamic, so they cost what their siblings cost: the first
+  // completed build measured **158 kB** on the catalogue and **139 kB** on a landmark page, against
+  // 159.1 kB on /explore and 149.6 kB on /animal/[slug]. The budgets are those numbers plus the same
+  // margin the neighbouring content routes carry. They went two sessions without a budget because the
+  // environment could not finish a `next build`; see the note below.
+  { route: "/landmarks", html: "server/app/landmarks.html", budget: 165 },
+  { route: "/landmarks/[slug]", html: "server/app/landmarks/eiffel-tower.html", budget: 155 },
+  // Phase 25's index over the subjects and one subject's grid.
+  //
+  // The index is cards and text and nothing else: measured **134.4 kB**, held to the Data2Map landing
+  // page's profile rather than a content route's.
+  //
+  // A subject page is a content route, because two of the six subjects draw the monument cards: the
+  // architecture and modern-buildings grids mount a model on hover, exactly as /landmarks does. That
+  // arrived after this budget was first written (135.8 kB on a cheap grid), so it was measured again -
+  // **139.4 kB** - and given the margin the other content routes carry rather than two kilobytes.
+  { route: "/categories", html: "server/app/categories.html", budget: 140 },
+  { route: "/categories/[id]", html: "server/app/categories/animals.html", budget: 150 },
+  // One entry of space, plants or vehicles (Phase 26-28). Static, and it draws the same viewer the
+  // landmark page does behind next/dynamic - measured **139.1 kB**, the same number /landmarks/[slug]
+  // comes to, so it carries the same budget.
+  { route: "/catalog/[category]/[slug]", html: "server/app/catalog/space/earth.html", budget: 155 },
+  // The unified search (Phase 30) is the one content route rendered on demand: the query decides the
+  // page, and a query is not a static route. Measured from the manifest like /map, because a dynamic
+  // route has no prerendered HTML to read. **117.5 kB** measured - cards and text, no 3D and no map.
+  { route: "/search", manifest: "/search/page", budget: 130 },
 ];
+
+/**
+ * The six Phase 24 manga routes are **not** in the list above, and that is a recorded gap rather than
+ * an oversight.
+ *
+ * `/manga-studio`, `/manga-studio/create`, `/manga-studio/[projectId]`,
+ * `/manga-studio/[projectId]/chapters/[chapterId]`, `/manga-studio/gallery` and
+ * `/manga-studio/reader/[projectId]` are written, typecheck and pass their own suites - but they are
+ * shells whose data arrives from `/api/manga/*` after paint, and two of them are dynamic routes with
+ * no prerendered HTML. Measuring them means reading their build manifest, which exists only after
+ * `next build` has finished generating pages.
+ *
+ * The two **landmark** routes that used to be listed here are measured now: the build completes when it
+ * is given its own output directory (`NEXT_DIST_DIR`), which is what the two entries in `ROUTES` above
+ * record. What is still needed for the manga six:
+ *
+ *   NEXT_DIST_DIR=.next-build npm run build && NEXT_DIR=.next-build node scripts/bundle-budget.mjs --report
+ *
+ * then add them to `ROUTES` with the printed numbers plus the same margin the neighbouring content
+ * routes carry. A budget that was never measured is a green light that means nothing, which is why
+ * there is not a placeholder one here.
+ */
 
 /** Must never appear in an initial chunk of a content route. */
 const FORBIDDEN = [

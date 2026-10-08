@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Kami3D — one model, one preview</title>
+
+<!--
+  The page Chrome loads to turn ONE .glb into ONE 512x512 WebP with a transparent background.
+
+  It is deliberately not the app. The app is React + React Three Fiber + drei, and booting a whole
+  Next.js route 236 times to take 236 pictures would be a worse pipeline than this file. What it
+  *does* share with the app is every decision that changes what the model looks like:
+
+    - the repository's own three.js and its GLTFLoader/DRACOLoader, wired through the import map
+      below and served out of node_modules by scripts/render-model-previews.mjs. Nothing is fetched
+      from a CDN, and the DRACO decoder is the vendored copy in public/draco/ — most models here are
+      DRACO-compressed, so the decoder is not optional.
+    - the camera: components/3d/ModelViewer.tsx passes camera={{ position: [3.2, 2.2, 3.6], fov: 40,
+      near: 0.05, far: 400 }}, <Bounds fit clip observe margin={1.25}> reframes it to the model, and
+      lib/camera-presets.ts holds the "3/4" heading applied on top. Both the fit arithmetic and the
+      preset direction are copied from those files rather than re-derived, including drei's
+      maxSize / (2 * atan(PI * fov / 360)) — which is not the textbook fit, and is what the app
+      actually draws.
+    - the lighting: the "studio" preset in ModelViewer.tsx (ambient 1.05, key 3.1 white, fill 1.15
+      #9fd8ff, rim 2.2 #a97bff), plus the procedural studio environment from
+      components/3d/StudioEnvironment.tsx — a HalfFloat cube render target lit by emissive panels
+      over a #e8eefb room. Without it a metallic asset reflects nothing and reads as a black blob.
+    - the two material corrections in lib/model-materials.ts, and the skinned-safe clone from
+      components/3d/clone-model.ts (a plain Object3D.clone shares the source skeleton and draws a
+      rigged animal with stale bone matrices).
+    - ACES filmic tone mapping and an sRGB output colour space, which is what R3F sets by default.
+
+  The ONE deliberate difference is the background: transparent, not the app's #04060f fog. The
+  studio's grid, mirror floor and contact shadow are props that exist to sit on that dark floor;
+  drawn onto transparency they would be a floating grid inside every card, so they are left out.
+
+  Contract with the driver:
+    window.__rendererReady  true once the renderer is up
+    window.__rendererInfo   { gpu, three, size, fov, margin }
+    window.renderModel(url) -> Promise<{ ok, dataUrl?, reason?, coverage, luma, ms, triangles }>
+  A model that does not load, or that draws nothing, resolves to ok:false with a reason. It never
+  resolves to a blank image: the caller is the one that writes files, and it must never be handed
+  a square of nothing to write.
+-->
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/build/three.module.js",
+    "three/addons/": "/vendor/three/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  #view { display: block; width: 512px; height: 512px; }
+</style>
+</head>
+<body>
+<canvas id="view" width="512" height="512"></canvas>
+
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { clone as cloneSkinned } from "three/addons/utils/SkeletonUtils.js";
+
+/* -------------------------------------------------------------------------- */
+/* Constants, all of them copied from the app                                 */
+/* -------------------------------------------------------------------------- */
+
+const SIZE = 512;
+const FOV = 40;                     // ModelViewer.tsx -> <CanvasShell camera={{ fov: 40 ... }}>
+const MARGIN = 1.25;                // ModelScene.tsx -> <Bounds fit clip observe margin={1.25}>
+const THREE_QUARTER = { x: 0.62, y: 0.42, z: 0.66 }; // lib/camera-presets.ts -> "3/4"
+const MAX_ELEVATION = 0.94;         // lib/camera-presets.ts -> MAX_ELEVATION
+const WEBP_QUALITY = 0.85;
+
+/** ModelViewer.tsx -> PRESETS.studio. */
+const STUDIO = {
+  ambient: 1.05,
+  key: 3.1,
+  keyColor: "#ffffff",
+  fill: 1.15,
+  fillColor: "#9fd8ff",
+  rim: 2.2,
+  rimColor: "#a97bff",
+  fog: "#04060f",
+};
+
+/** ModelScene.tsx -> <StudioEnvironment intensity={0.9} ...>. */
+const ENV_INTENSITY = 0.9;
+const ENV_FILL = "#9fd8ff";
+
+/** lib/model-materials.ts. */
+const DIELECTRIC_ENV_INTENSITY = 1.15;
+const METAL_ENV_INTENSITY_PER_METALNESS = 3.85;
+
+/**
+ * Below this share of covered pixels the frame counts as empty. A framed model fills a good
+ * fraction of a 512 square — the fit puts its longest side across roughly 74% of the frame — so
+ * anything under a fifth of a percent is a model that failed to draw, not a thin one.
+ */
+const MIN_COVERAGE = 0.002;
+
+let loadTimeoutMs = 120000;
+
+/* -------------------------------------------------------------------------- */
+/* The arithmetic lifted out of lib/ and components/                          */
+/* -------------------------------------------------------------------------- */
+
+/** lib/camera-presets.ts -> normalizeDirection. */
+function normalizeDirection(direction) {
+  const size = Math.hypot(direction.x, direction.y, direction.z);
+  if (!Number.isFinite(size) || size < 1e-6) return { x: 0, y: 0, z: 1 };
+
+  let { x, y, z } = { x: direction.x / size, y: direction.y / size, z: direction.z / size };
+  if (Math.abs(y) > MAX_ELEVATION) {
+    y = Math.sign(y) * MAX_ELEVATION;
+    const horizontal = Math.hypot(x, z);
+    const budget = Math.sqrt(1 - y * y);
+    if (horizontal < 1e-6) {
+      x = 0;
+      z = budget;
+    } else {
+      x = (x / horizontal) * budget;
+      z = (z / horizontal) * budget;
+    }
+  }
+  return { x, y, z };
+}
+
+/** lib/model-floor.ts -> floorOffset. */
+function floorOffset(box) {
+  if (box.isEmpty()) return [0, 0, 0];
+  const centre = box.getCenter(new THREE.Vector3());
+  return [-centre.x, -box.min.y, -centre.z];
+}
+
+/** lib/model-materials.ts -> envIntensityFor. */
+function envIntensityFor(metalness) {
+  const m = Number.isFinite(metalness) ? Math.min(Math.max(metalness, 0), 1) : 0;
+  return DIELECTRIC_ENV_INTENSITY + METAL_ENV_INTENSITY_PER_METALNESS * m;
+}
+
+/**
+ * components/3d/clone-model.ts -> posedBounds.
+ *
+ * Box3.setFromObject measures the geometry's **bind** pose, which for a skinned asset is not the
+ * shape on screen: the app's own notes record a whale whose bind box the model is not inside. Every
+ * vertex goes through the skinning instead, so what gets framed is what gets drawn.
+ */
+function posedBounds(root) {
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  const local = new THREE.Box3();
+
+  root.traverse((object) => {
+    if (object.isSkinnedMesh) {
+      object.computeBoundingBox();
+      if (object.boundingBox) {
+        local.copy(object.boundingBox).applyMatrix4(object.matrixWorld);
+        box.union(local);
+      }
+      return;
+    }
+    if (!object.isMesh) return;
+    if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+    if (object.geometry.boundingBox) {
+      local.copy(object.geometry.boundingBox).applyMatrix4(object.matrixWorld);
+      box.union(local);
+    }
+  });
+
+  return box;
+}
+
+/** components/3d/apply-model-materials.ts -> applyMaterialFix, over a whole subtree. */
+function applyMaterialFixes(root) {
+  root.traverse((object) => {
+    if (!object.isMesh) return;
+    object.castShadow = true;
+    object.receiveShadow = true;
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    for (const material of materials) {
+      if (!material || !material.isMeshStandardMaterial) continue;
+      material.wireframe = false;
+
+      const opaque =
+        material.transparent && !material.alphaMap && material.opacity >= 1 && material.alphaTest === 0;
+      if (opaque) {
+        material.transparent = false;
+        material.depthWrite = true;
+        material.needsUpdate = true;
+      }
+      // Mirrors applyMaterialFix, with one caveat worth writing down: on three r186 this value is
+      // inert for a material that has no envMap of its own. WebGLRenderer.setProgram overwrites the
+      // envMapIntensity uniform with scene.environmentIntensity whenever the material is standard,
+      // material.envMap is null and scene.environment is set — so the studio is applied at strength
+      // 1, here and in the app alike. See the note on environmentIntensity below.
+      material.envMapIntensity = envIntensityFor(material.metalness);
+    }
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Renderer                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const canvas = document.getElementById("view");
+
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  // CanvasShell.tsx -> gl={{ antialias, alpha, powerPreference, stencil: false, depth: true }}.
+  antialias: true,
+  alpha: true,
+  powerPreference: "high-performance",
+  stencil: false,
+  depth: true,
+  // Ours alone: the picture is read back with toDataURL after the frame, and a preserved drawing
+  // buffer is what makes that a promise rather than a hope.
+  preserveDrawingBuffer: true,
+});
+
+renderer.setPixelRatio(1);
+renderer.setSize(SIZE, SIZE, false);
+// R3F's defaults, which the app never overrides: ColorManagement on, sRGB out, ACES filmic tone map.
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1;
+// CanvasShell.tsx -> shadows (quality.high: shadowMapSize 1024).
+renderer.shadowMap.enabled = true;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+// No scene.background: the whole point of this page. The environment is a separate thing.
+// This is the number that actually lights a metallic model: three r186 ignores material
+// .envMapIntensity for any material without its own envMap and uses this instead, so the app's
+// metalness-proportional boost in lib/model-materials.ts is currently inert. It is set here to the
+// value the app renders with (drei's Environment defaults scene.environmentIntensity to 1), because
+// matching the viewer is the point — not improving on it.
+scene.environmentIntensity = 1;
+
+const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 400);
+camera.position.set(3.2, 2.2, 3.6); // ModelViewer.tsx's initial framing; the fit replaces it.
+
+/**
+ * components/3d/StudioEnvironment.tsx, rebuilt without drei.
+ *
+ * drei's <Environment> with children renders them into a HalfFloat cube render target through a
+ * CubeCamera and assigns the texture to scene.environment; three then prefilters that cube into its
+ * CubeUV form on first use. The panels are Lightformers: plane meshes facing the origin whose base
+ * colour has been multiplied by an intensity, so the "room" is bright enough for a mirror to show
+ * something (the lion is metalness 0.52, roughness 0).
+ */
+function buildStudioEnvironment() {
+  const envScene = new THREE.Scene();
+  envScene.background = new THREE.Color("#e8eefb");
+
+  const target = new THREE.WebGLCubeRenderTarget(128);
+  target.texture.type = THREE.HalfFloatType;
+
+  const cubeCamera = new THREE.CubeCamera(0.1, 1000, target);
+  envScene.add(cubeCamera);
+
+  const panel = ({ form = "rect", intensity, color, position, scale }) => {
+    const geometry = form === "circle" ? new THREE.RingGeometry(0, 0.5, 64) : new THREE.PlaneGeometry(1, 1);
+    const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, toneMapped: false });
+    material.color.set(color).multiplyScalar(intensity);
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(position[0], position[1], position[2]);
+    mesh.scale.set(scale[0], scale[1], scale[2]);
+    mesh.quaternion.identity();
+    mesh.lookAt(0, 0, 0); // Lightformer faces the origin, which is what the box faces are lit by.
+    envScene.add(mesh);
+  };
+
+  const i = ENV_INTENSITY;
+  panel({ intensity: 6 * i, color: STUDIO.keyColor, position: [0, 3.2, 2], scale: [10, 5, 1] });
+  panel({ intensity: 3.4 * i, color: ENV_FILL, position: [-4, 1.4, 0.6], scale: [7, 4, 1] });
+  panel({ intensity: 2.2 * i, color: STUDIO.keyColor, position: [4.2, 1.1, -0.4], scale: [7, 4, 1] });
+  panel({ form: "circle", intensity: 1.8 * i, color: ENV_FILL, position: [0, -3, 0.5], scale: [6, 6, 6] });
+
+  cubeCamera.update(renderer, envScene);
+  // The **texture**, not the render target: scene.environment is sampled as a texture, and handing
+  // it the WebGLCubeRenderTarget itself silently lights nothing at all (three's WebGLEnvironments
+  // passes a non-texture straight through, so the shader is bound to an object with no pixels).
+  return target.texture;
+}
+
+scene.add(new THREE.AmbientLight(0xffffff, STUDIO.ambient));
+scene.add(new THREE.HemisphereLight(STUDIO.keyColor, STUDIO.fog, 0.55));
+
+const keyLight = new THREE.DirectionalLight(STUDIO.keyColor, STUDIO.key);
+keyLight.position.set(4, 6, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024, 1024);
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(STUDIO.fillColor, STUDIO.fill);
+fillLight.position.set(-5, 1.5, -4);
+scene.add(fillLight);
+
+// SpotLight(color, intensity, distance, angle, penumbra) with three's default decay of 2, matching
+// the app's <spotLight position={[0, 4.5, -6]} intensity={2.2} angle={0.9} penumbra={1} />.
+const rimLight = new THREE.SpotLight(STUDIO.rimColor, STUDIO.rim, 0, 0.9, 1);
+rimLight.position.set(0, 4.5, -6);
+scene.add(rimLight);
+
+/* -------------------------------------------------------------------------- */
+/* Loading                                                                    */
+/* -------------------------------------------------------------------------- */
+
+const dracoLoader = new DRACOLoader();
+// public/draco/, as the driver serves it and as publicEnv.dracoDecoderPath points the app at it.
+dracoLoader.setDecoderPath("/draco/");
+
+const loader = new GLTFLoader();
+loader.setDRACOLoader(dracoLoader);
+
+/* -------------------------------------------------------------------------- */
+/* One model at a time                                                        */
+/* -------------------------------------------------------------------------- */
+
+const measureCanvas = document.createElement("canvas");
+measureCanvas.width = SIZE;
+measureCanvas.height = SIZE;
+const measureContext = measureCanvas.getContext("2d", { willReadFrequently: true });
+
+let mounted = null; // { wrapper, gltf }
+
+/** Give the GPU its memory back between models — 236 models would otherwise accumulate all of it. */
+function unmountCurrent() {
+  if (!mounted) return;
+  const { wrapper } = mounted;
+  scene.remove(wrapper);
+
+  const materials = new Set();
+  const textures = new Set();
+  // Geometry first, for anything that has one — several assets carry LineSegments (an edge overlay
+  // in the GLB), and a mesh-only walk would leave those buffers on the GPU for the whole run.
+  wrapper.traverse((object) => {
+    if (object.geometry) object.geometry.dispose();
+    const material = object.material;
+    if (!material) return;
+    const list = Array.isArray(material) ? material : [material];
+    for (const entry of list) if (entry) materials.add(entry);
+  });
+  for (const material of materials) {
+    for (const value of Object.values(material)) {
+      if (value && value.isTexture) textures.add(value);
+    }
+    material.dispose();
+  }
+  for (const texture of textures) texture.dispose();
+  materials.clear();
+  textures.clear();
+
+  mounted = null;
+}
+
+/** Measure what came out of the encoder, not what went into it. */
+async function measureImage(dataUrl) {
+  const image = new Image();
+  image.src = dataUrl;
+  await image.decode();
+
+  measureContext.clearRect(0, 0, SIZE, SIZE);
+  measureContext.drawImage(image, 0, 0, SIZE, SIZE);
+
+  const pixels = measureContext.getImageData(0, 0, SIZE, SIZE).data;
+  let covered = 0;
+  let luma = 0;
+  for (let index = 0; index < pixels.length; index += 4) {
+    const alpha = pixels[index + 3];
+    if (alpha <= 8) continue;
+    covered += 1;
+    luma += 0.2126 * pixels[index] + 0.7152 * pixels[index + 1] + 0.0722 * pixels[index + 2];
+  }
+
+  return {
+    coverage: covered / (SIZE * SIZE),
+    luma: covered > 0 ? luma / covered : 0,
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+  };
+}
+
+/**
+ * Render one model and hand back the pixels.
+ *
+ * Resolves — never rejects — so the driver always has something to print. Anything that is not a
+ * picture with something in it comes back as ok:false and a reason a human can act on.
+ */
+async function renderModel(url, options) {
+  const started = performance.now();
+  const requested = options && Number.isFinite(options.timeoutMs) ? options.timeoutMs : loadTimeoutMs;
+  unmountCurrent();
+
+  const fail = (reason) => {
+    unmountCurrent();
+    return { ok: false, reason, ms: Math.round(performance.now() - started) };
+  };
+
+  let gltf;
+  try {
+    gltf = await Promise.race([
+      loader.loadAsync(url),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timed out after " + requested + " ms")), requested),
+      ),
+    ]);
+  } catch (error) {
+    return fail("load failed: " + String((error && error.message) || error));
+  }
+
+  try {
+    // components/3d/clone-model.ts: a plain clone shares the source skeleton, and a rigged asset
+    // drawn with stale bone matrices collapses into flat slices.
+    const model = cloneSkinned(gltf.scene);
+    applyMaterialFixes(model);
+
+    const wrapper = new THREE.Group();
+    wrapper.add(model);
+    scene.add(wrapper);
+    mounted = { wrapper, gltf };
+
+    wrapper.updateMatrixWorld(true);
+    const raw = posedBounds(wrapper);
+    if (raw.isEmpty()) return fail("no geometry: the model's bounding box is empty");
+
+    // components/3d/ModelAnchor.tsx: the model stands on y = 0, centred over the origin. It does not
+    // change the picture — the camera is fitted to the box either way — but it is where the app puts
+    // the model, and the punctual lights sit at absolute positions.
+    wrapper.position.set(floorOffset(raw)[0], floorOffset(raw)[1], floorOffset(raw)[2]);
+    wrapper.updateMatrixWorld(true);
+
+    const box = posedBounds(wrapper);
+    const size = box.getSize(new THREE.Vector3());
+    const maxSize = Math.max(size.x, size.y, size.z);
+    if (!(maxSize > 0) || !Number.isFinite(maxSize)) {
+      return fail("degenerate bounds: longest side is " + maxSize);
+    }
+
+    const centre = box.getCenter(new THREE.Vector3());
+    // drei's <Bounds fit>: maxSize / (2 * atan(PI * fov / 360)), then the margin, then the aspect
+    // term — 1 here, because a preview is square. Swapping in the textbook 2 * tan(fov / 2) would
+    // frame the model slightly tighter than the app does.
+    const fitHeight = maxSize / (2 * Math.atan((Math.PI * camera.fov) / 360));
+    const distance = MARGIN * fitHeight;
+
+    // <Bounds fit> lands the camera on the heading it already had; pressing "3/4" — the preset the
+    // viewer opens on — swings it to lib/camera-presets.ts' direction at the same distance.
+    const unit = normalizeDirection(THREE_QUARTER);
+    camera.position.set(
+      centre.x + unit.x * distance,
+      centre.y + unit.y * distance,
+      centre.z + unit.z * distance,
+    );
+    camera.up.set(0, 1, 0);
+    camera.lookAt(centre);
+    // <Bounds clip>: near = distance / 100, far = distance * 100.
+    camera.near = distance / 100;
+    camera.far = distance * 100;
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear(true, true, true);
+    renderer.render(scene, camera);
+
+    const triangles = renderer.info.render.triangles;
+    const dataUrl = canvas.toDataURL("image/webp", WEBP_QUALITY);
+
+    if (!dataUrl.startsWith("data:image/webp")) {
+      return fail("the canvas encoded " + dataUrl.slice(0, 24) + ", not image/webp");
+    }
+
+    let measured;
+    try {
+      measured = await measureImage(dataUrl);
+    } catch (error) {
+      return fail("the encoded image would not decode: " + String((error && error.message) || error));
+    }
+
+    if (measured.coverage < MIN_COVERAGE) {
+      return fail("rendered nothing: " + (measured.coverage * 100).toFixed(3) + "% of the frame is covered");
+    }
+
+    return {
+      ok: true,
+      dataUrl,
+      coverage: measured.coverage,
+      luma: measured.luma,
+      width: measured.width,
+      height: measured.height,
+      triangles,
+      ms: Math.round(performance.now() - started),
+    };
+  } catch (error) {
+    return fail("render failed: " + String((error && error.message) || error));
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Boot                                                                       */
+/* -------------------------------------------------------------------------- */
+
+try {
+  scene.environment = buildStudioEnvironment();
+  // Warm the decoder, so the first DRACO model does not pay for it inside its own timeout.
+  try {
+    await dracoLoader.preload();
+  } catch {
+    // A decoder that will not preload will fail loudly on the first model that needs it instead.
+  }
+
+  const gl = renderer.getContext();
+  const debug = gl.getExtension("WEBGL_debug_renderer_info");
+
+  window.renderModel = renderModel;
+  window.setLoadTimeout = (ms) => {
+    loadTimeoutMs = ms;
+  };
+  window.__rendererInfo = {
+    gpu: debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    three: THREE.REVISION,
+    size: SIZE,
+    fov: FOV,
+  };
+  window.__rendererReady = true;
+} catch (error) {
+  window.__rendererError = String((error && error.stack) || error);
+  window.__rendererReady = false;
+}
+</script>
+</body>
+</html>

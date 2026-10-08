@@ -13,7 +13,15 @@ import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 
 export const TABLES = {
   animals: "animals",
+  // Phase 25: the general catalogue. The animals keep their own table and are projected into
+  // `catalog_items` rather than copied into `items` - see supabase/schema.sql.
+  categories: "categories",
+  items: "items",
+  catalogItems: "catalog_items",
   favorites: "user_favorites",
+  // Phase 30: a saved catalogue item, keyed by <category>:<slug> - most of the catalogue is not a row
+  // in any table. See app/api/saved/route.ts.
+  savedItems: "saved_items",
   quizScores: "quiz_scores",
   viewsDaily: "animal_views_daily",
   settings: "user_settings",
@@ -68,12 +76,12 @@ export function getSupabaseUncached(): SupabaseClient | null {
   return uncached;
 }
 
-/** Storage bucket that holds uploaded .glb models and call recordings. */
-export const ASSET_BUCKET = "animal-assets";
-
-/** Public URL for a file in the asset bucket (used when seeding `model_url`). */
-export function publicAssetUrl(path: string) {
-  const client = getSupabase();
-  if (!client) return null;
-  return client.storage.from(ASSET_BUCKET).getPublicUrl(path).data.publicUrl;
-}
+/**
+ * Supabase is a database here, not a file host.
+ *
+ * `ASSET_BUCKET` and `publicAssetUrl()` used to live at the end of this file, and every writer
+ * imported them. They are gone on purpose rather than re-pointed: a helper named after "the asset
+ * bucket" is exactly what would let a fifth call site quietly start writing to Supabase Storage again
+ * after the move to R2. Files now go through `lib/r2-storage.ts`, which is the only module that
+ * holds object-store credentials.
+ */

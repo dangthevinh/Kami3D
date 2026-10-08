@@ -94,7 +94,12 @@ export function CanvasShell({ children, className, fallback, label, ...canvasPro
         ) : (
         <Canvas
           dpr={canvasProps.dpr ?? quality.dpr}
-          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          // `stencil: false`: nothing in these scenes masks with the stencil buffer (three's own
+          // renderer, drei's reflector and the contact shadows all manage without one), and the buffer
+          // costs memory and bandwidth on every frame on exactly the devices that can least afford it.
+          // A scene that ever needs one has to put this back - it is not a default that can be left
+          // to drift.
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance", stencil: false, depth: true }}
           {...canvasProps}
           shadows={quality.shadows && canvasProps.shadows !== false}
         >

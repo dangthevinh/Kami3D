@@ -18,7 +18,6 @@ import * as THREE from "three";
 import { applyMaterialFix } from "@/components/3d/apply-model-materials";
 import { cloneModel, posedBounds } from "@/components/3d/clone-model";
 import { ModelAnchor } from "@/components/3d/ModelAnchor";
-import { ProceduralAnimal } from "@/components/3d/ProceduralAnimal";
 import { StudioEnvironment } from "@/components/3d/StudioEnvironment";
 import type { QualityProfile } from "@/lib/quality";
 import {
@@ -33,7 +32,7 @@ import {
 import { publicEnv } from "@/lib/env";
 import { disposeClone } from "@/lib/three-dispose";
 import { dataUrlToBytes, formatHeight, formatLength, isPngBytes, pngFileName } from "@/lib/utils";
-import type { Animal } from "@/types/animal";
+import type { ViewableModel } from "@/types/viewable";
 
 /**
  * Everything that lives **inside** the canvas: lights, the model (real or
@@ -57,6 +56,16 @@ import type { Animal } from "@/types/animal";
 const FOG_NEAR_RATIO = 1.7;
 const FOG_FAR_RATIO = 6;
 const ORIGIN = new THREE.Vector3(0, 0, 0);
+
+/**
+ * The size the studio was drawn for, in world units: the median longest side of the animal catalogue,
+ * 4.36. Every absolute prop below is that number's multiple, so multiplying them back gives the
+ * numbers the pages already had - see the measurement in `ModelScene`.
+ */
+const STUDIO_UNIT = 4.36;
+
+/** A studio prop as a multiple of the model's own size. */
+const studio = (multiple: number, unit: number) => multiple * unit;
 
 export interface ModelViewerApi {
   /** Swing the camera to a preset heading, keeping the current distance. */
@@ -86,9 +95,9 @@ export interface LightPresetConfig {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Isolates the real model so a broken asset degrades into the procedural rig
- * instead of taking the whole viewer down — and reports it, so the viewer can
- * offer a retry rather than leaving the visitor with a silent downgrade.
+ * Isolates the real model so a broken asset shows an empty stage and a retry
+ * instead of taking the whole viewer down, and reports it, so the viewer can say
+ * what happened rather than leaving the visitor with a silent blank.
  */
 class ModelBoundary extends React.Component<
   {
@@ -125,11 +134,13 @@ export interface GltfModelProps {
   clip?: string | null;
   playing?: boolean;
   onClips?: (names: string[]) => void;
+  /** The clips themselves, so the anchor can check the floor across the one that will play. */
+  onAnimations?: (clips: THREE.AnimationClip[]) => void;
   /** Fired once the model is actually in the scene, so the viewer can stop its watchdog. */
   onReady?: () => void;
 }
 
-function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onReady }: GltfModelProps) {
+function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onAnimations, onReady }: GltfModelProps) {
   // The second argument is the DRACO decoder location; vendor it into /public/draco
   // and set NEXT_PUBLIC_DRACO_DECODER_PATH for a fully offline deployment.
   const gltf = useGLTF(url, publicEnv.dracoDecoderPath);
@@ -176,6 +187,13 @@ function GltfModel({ url, wireframe, clip = null, playing = false, onClips, onRe
     onClips?.(names ?? []);
   }, [names, onClips]);
 
+  // The clips go up to the anchor, which scans them once to find the lowest pose the animal reaches.
+  // Without this the model is anchored to the pose it was mounted in, and any clip that dips lower
+  // walks it through the studio floor - measured on 19 of the 74 shipped models.
+  React.useEffect(() => {
+    onAnimations?.(gltf.animations ?? []);
+  }, [gltf.animations, onAnimations]);
+
   React.useEffect(() => {
     onReady?.();
   }, [onReady]);
@@ -218,7 +236,7 @@ function MeasurementOverlay({
   visible,
 }: {
   target: React.RefObject<THREE.Object3D | null>;
-  animal: Animal;
+  animal: ViewableModel;
   visible: boolean;
 }) {
   const [box, setBox] = React.useState<{ size: THREE.Vector3; min: THREE.Vector3; max: THREE.Vector3 } | null>(null);
@@ -247,27 +265,34 @@ function MeasurementOverlay({
   const midZ = (min.z + max.z) / 2;
   const midY = (min.y + max.y) / 2;
 
-  const lengthLabel = formatLength(animal.length_m);
+  // A measurement that is not recorded draws no ruler. This used to print "0 m" across the front of
+  // anything without a length - a wrong number next to a right one, which is the failure this overlay
+  // exists to avoid. A tower has a height and no length; a wall has neither in the catalogue's terms.
+  const lengthLabel = animal.length_m > 0 ? formatLength(animal.length_m) : null;
   const heightLabel = animal.height_m > 0 ? formatHeight(animal.height_m) : null;
 
   return (
     <group>
-      {/* Length: across the model's X extent, in front of it. */}
-      <Line
-        points={[
-          [min.x, min.y - pad, midZ],
-          [max.x, min.y - pad, midZ],
-        ]}
-        color="#0f7d61"
-        lineWidth={1.5}
-      />
-      <Html position={[midX, min.y - pad * 1.6, midZ]} center distanceFactor={9} zIndexRange={[20, 0]}>
-        <span className="whitespace-nowrap rounded-full bg-void/80 px-2 py-0.5 text-[10px] font-medium text-neon ring-1 ring-neon/40">
-          {lengthLabel} long
-        </span>
-      </Html>
+      {/* Length: across the model's X extent, in front of it - only when there is a length to print. */}
+      {lengthLabel ? (
+        <>
+          <Line
+            points={[
+              [min.x, min.y - pad, midZ],
+              [max.x, min.y - pad, midZ],
+            ]}
+            color="#0f7d61"
+            lineWidth={1.5}
+          />
+          <Html position={[midX, min.y - pad * 1.6, midZ]} center distanceFactor={9} zIndexRange={[20, 0]}>
+            <span className="whitespace-nowrap rounded-full bg-void/80 px-2 py-0.5 text-[10px] font-medium text-neon ring-1 ring-neon/40">
+              {lengthLabel} long
+            </span>
+          </Html>
+        </>
+      ) : null}
 
-      {/* Height: up the side, only for species that have one. */}
+      {/* Height: up the side, only for a subject that has one. */}
       {heightLabel ? (
         <>
           <Line
@@ -324,6 +349,8 @@ function SceneRig({
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
+  /** Frames are drawn on demand, so anything that animates itself has to ask for the next one. */
+  const invalidate = useThree((state) => state.invalidate);
   const controls = useThree((state) => state.controls) as { target: THREE.Vector3; update: () => void; autoRotate: boolean } | null;
 
   const flight = React.useRef<FlightState | null>(null);
@@ -458,6 +485,11 @@ function SceneRig({
 
     if (!current) return;
 
+    // The canvas draws on demand (see ModelViewer): a flight is the one camera move that is driven
+    // from here rather than by a control event, so it has to ask for its own next frame or it would
+    // stop after the first step and leave the camera halfway to the preset.
+    invalidate();
+
     const stepped = approach(camera.position, current.target, delta);
     camera.position.set(stepped.x, stepped.y, stepped.z);
     camera.lookAt(focus());
@@ -477,11 +509,10 @@ function SceneRig({
 /* -------------------------------------------------------------------------- */
 
 export interface ModelSceneProps {
-  animal: Animal;
+  animal: ViewableModel;
   quality: QualityProfile;
   light: LightPresetConfig;
   wireframe: boolean;
-  silhouette: boolean;
   autoRotate: boolean;
   showMeasurements: boolean;
   resetKey: number;
@@ -500,7 +531,6 @@ export interface ModelSceneProps {
   clip?: string | null;
   playing?: boolean;
   slug: string;
-  phase: number;
 }
 
 export function ModelScene({
@@ -508,7 +538,6 @@ export function ModelScene({
   quality,
   light,
   wireframe,
-  silhouette,
   autoRotate,
   showMeasurements,
   resetKey,
@@ -523,10 +552,41 @@ export function ModelScene({
   clip = null,
   playing = false,
   slug,
-  phase,
 }: ModelSceneProps) {
   const modelRef = React.useRef<THREE.Object3D>(null);
   const [flying, setFlying] = React.useState(false);
+
+  /**
+   * The model's own size, and the reason the studio has one.
+   *
+   * Every prop around a model - the grid's cells, the mirror floor's plane, the contact shadow, the
+   * orbit limits - was written as an **absolute** number tuned on the animals, whose longest side is a
+   * median of 4.36 units. The catalogue no longer holds only animals: measured across all 166 shipped
+   * models the longest side runs from **0.014 units** (green sea turtle) to **200,000** (Uranus), and a
+   * floor drawn at a fixed 48 units is *invisible* under a skyscraper and a continent under a flower.
+   * A model with no visible floor under it is a model that looks like it is floating, which is exactly
+   * what a reader reported seeing.
+   *
+   * So the unit is measured, once per model, from the same posed box the anchor uses, and every studio
+   * prop is a **multiple of it**. The ratios are the old absolute numbers divided by 4.36, so the
+   * animals - and every page that was already right - look exactly as they did.
+   */
+  const [subjectSize, setSubjectSize] = React.useState(0);
+  useFrame(() => {
+    if (subjectSize > 0) return;
+    const group = modelRef.current;
+    if (!group) return;
+    const bounds = posedBounds(group);
+    if (bounds.isEmpty()) return;
+    const size = bounds.getSize(new THREE.Vector3());
+    const longest = Math.max(size.x, size.y, size.z);
+    if (longest > 0 && Number.isFinite(longest)) setSubjectSize(longest);
+  });
+
+  /** The unit the studio is drawn in: the model's longest side, or the animals' median until known. */
+  const unit = subjectSize > 0 ? subjectSize : STUDIO_UNIT;
+  /** Reported by the model once it is loaded; the anchor scans these to find the lowest pose. */
+  const [animations, setAnimations] = React.useState<THREE.AnimationClip[]>([]);
 
   // Stable identities: an inline arrow here would recreate the rig's whole
   // imperative API on every parent render, and a click landing in that window
@@ -541,11 +601,11 @@ export function ModelScene({
     onFlightChange?.(false);
   }, [onFlightChange]);
 
-  const procedural = (
-    <ProceduralAnimal kind={animal.silhouette} accent={animal.accent} wireframe={wireframe} silhouette={silhouette} phase={phase} />
-  );
-
-
+  // No procedural stand-in. A species whose file is missing, or whose file fails to load, gets an
+  // empty stage and the viewer says so: a body assembled from spheres and cones is not a picture of
+  // the animal, and showing one under the animal's name is the one thing this page must not do.
+  // `components/3d/ProceduralAnimal.tsx` still exists for the places where a shape is honestly a
+  // shape - the silhouette quiz and the size chart - never here.
   return (
     <>
       <color attach="background" args={[light.fog]} />
@@ -573,43 +633,49 @@ export function ModelScene({
       <Bounds key={`${resetKey}-${attempt}`} fit clip observe margin={1.25}>
         <group ref={modelRef}>
           {animal.model_url ? (
-            <ModelBoundary key={attempt} fallback={procedural} onFail={onModelFailed}>
+            <ModelBoundary key={attempt} fallback={null} onFail={onModelFailed}>
               {/* Not `<Center bottom>`: it centres by the **bind pose**, which for a rigged asset is
                   a different box from the one on screen, and it left the model under the floor.
                   See components/3d/ModelAnchor.tsx for the measurement. */}
-              <ModelAnchor>
+              <ModelAnchor animations={animations} clip={clip} cacheKey={animal.model_url}>
                 <GltfModel
                   url={animal.model_url}
                   wireframe={wireframe}
                   clip={clip}
                   playing={playing}
                   onClips={onClips}
+                  onAnimations={setAnimations}
                   onReady={onModelReady}
                 />
               </ModelAnchor>
             </ModelBoundary>
-          ) : (
-            procedural
-          )}
+          ) : null}
         </group>
       </Bounds>
 
       <MeasurementOverlay target={modelRef} animal={animal} visible={showMeasurements} />
 
       {quality.contactShadows ? (
-        <ContactShadows position={[0, -0.01, 0]} opacity={0.42} scale={16} blur={2.6} far={5} color="#000000" />
+        <ContactShadows
+          position={[0, studio(-0.0023, unit), 0]}
+          opacity={0.42}
+          scale={studio(3.67, unit)}
+          blur={2.6}
+          far={studio(1.15, unit)}
+          color="#000000"
+        />
       ) : null}
 
       <Grid
-        position={[0, -0.02, 0]}
-        args={[24, 24]}
-        cellSize={0.5}
+        position={[0, studio(-0.0046, unit), 0]}
+        args={[studio(5.5, unit), studio(5.5, unit)]}
+        cellSize={studio(0.115, unit)}
         cellThickness={0.5}
         cellColor={light.grid}
-        sectionSize={2.5}
+        sectionSize={studio(0.573, unit)}
         sectionThickness={1}
         sectionColor={light.rimColor}
-        fadeDistance={26}
+        fadeDistance={studio(5.96, unit)}
         fadeStrength={1.4}
         infiniteGrid
       />
@@ -620,8 +686,8 @@ export function ModelScene({
           plain studio floor it had before. */}
       {quality.reflections ? (
         <ModelBoundary label="floor reflection" fallback={null}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 0]}>
-            <planeGeometry args={[48, 48]} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, studio(-0.0092, unit), 0]}>
+            <planeGeometry args={[studio(11, unit), studio(11, unit)]} />
             <MeshReflectorMaterial
               resolution={quality.reflectorResolution}
               mirror={0.35}
@@ -639,18 +705,27 @@ export function ModelScene({
         </ModelBoundary>
       ) : null}
 
+      {/* The controls, tuned for the feel of a real viewer rather than for a demo:
+          `enableDamping` plus a 0.07 factor is the glide that keeps a drag from stopping dead;
+          `zoomToCursor` is what makes a scroll wheel feel like it is moving the model under the pointer
+          rather than pulling the camera along its own axis; `maxPolarAngle` stops the camera from
+          swinging under the studio floor, where the grid and the mirror plane cut through the model and
+          the "floor" stops being a floor. The limit is just past the horizon (103°), so looking up at a
+          tower is still possible and looking at it from below is not. */}
       <OrbitControls
         makeDefault
         enablePan
         enableDamping
         dampingFactor={0.07}
-        rotateSpeed={0.85}
+        rotateSpeed={0.7}
         zoomSpeed={0.8}
         panSpeed={0.7}
+        zoomToCursor
+        maxPolarAngle={Math.PI / 1.75}
         autoRotate={autoRotate}
         autoRotateSpeed={0.9}
-        minDistance={0.6}
-        maxDistance={26}
+        minDistance={studio(0.138, unit)}
+        maxDistance={studio(5.96, unit)}
       />
 
       <SceneRig

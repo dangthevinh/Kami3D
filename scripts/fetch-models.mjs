@@ -42,7 +42,8 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 import { ANIMALS } from "../data/animals.ts";
-import { describeQuality, modelLicenseFromSpdx, scoreModelQuality } from "../lib/model-quality.ts";
+import { describeQuality, modelCanShowColour, modelLicenseFromSpdx, scoreModelQuality } from "../lib/model-quality.ts";
+import { createR2, readR2Config } from "./r2.mjs";
 import { fetchWithRetry } from "../lib/net-retry.ts";
 
 const run = promisify(execFile);
@@ -55,14 +56,31 @@ const DIRECT_SOURCES_FILE = join(ROOT, "data", "model-sources.json");
 const QUERY_OVERRIDES_FILE = join(ROOT, "data", "model-queries.json");
 
 const USER_AGENT = "Kami3D-model-fetcher/1.0 (+https://github.com/dangthevinh/Kami3D)";
-/** One bucket for every asset the product ships; storage paths keep them apart. */
-const ASSET_BUCKET = "animal-assets";
 const REQUEST_DELAY_MS = 350;
 
-/** Mutable run configuration, populated from the CLI flags. */
-const CONFIG = {
-  /** 12 MB: comfortably inside the documented per-model budget. */
-  maxBytes: 25 * 1024 * 1024,
+/**
+ * Mutable run configuration, populated from the CLI flags.
+ *
+ * `maxBytes` is the **shipped** ceiling: 25 MB, the documented per-model budget and the asset
+ * bucket's own `file_size_limit`. It is enforced in two places, because the size a provider declares
+ * is not the size of the file this project serves:
+ *
+ *   1. before the download, against the declared size **times `declaredHeadroom`**. A 39 MB glTF that
+ *      DRACO and WebP cut to a few megabytes is a model the catalogue wants, and refusing it on the
+ *      number the provider happened to publish was measured to cost three real monuments - the Milan
+ *      and Cologne cathedrals and Prambanan, refused at 33.8, 39.3 and 29.9 MB while every model the
+ *      site actually serves is under 13 MB;
+ *   2. after compression, against `maxBytes` itself - the number a browser and the bucket both have
+ *      to live with, and the only one that describes what ships.
+ */
+export const CONFIG = {
+  // Raised from 25 MB on 2026-10-06 together with FACE_BUDGET.max: the two together decide which
+  // models exist for the site at all, and a 25 MB / 800k pair was refusing real, correctly licensed
+  // models of real subjects. The bucket's own file_size_limit is raised to match in supabase/schema.sql
+  // - a number here that the bucket refuses is a download that fails after it was paid for.
+  maxBytes: 40 * 1024 * 1024,
+  /** How far above the ceiling a declared size may sit before the download is refused outright. */
+  declaredHeadroom: 2,
 };
 
 /**
@@ -235,7 +253,12 @@ const sketchfab = {
   async describe(uid) {
     const model = await fetchJson(`https://api.sketchfab.com/v3/models/${uid}`);
     return {
+      // A candidate, not just a description: a model named by hand (data/landmark-sources.json) has to
+      // come back in the same shape a search result does, or the gates downstream cannot read it.
+      provider: "sketchfab",
+      id: uid,
       uid,
+      downloadable: Boolean(model.isDownloadable),
       title: model.name ?? "Untitled",
       author: model.user?.displayName ?? model.user?.username ?? "Unknown",
       authorUrl: model.user?.profileUrl ?? null,
@@ -267,10 +290,11 @@ const sketchfab = {
     const entry = manifest.glb ?? manifest.gltf;
     if (!entry?.url) throw new Error("Sketchfab returned no downloadable glb/gltf for this model");
 
-    if (typeof entry.size === "number" && entry.size > CONFIG.maxBytes) {
+    if (typeof entry.size === "number" && entry.size > CONFIG.maxBytes * CONFIG.declaredHeadroom) {
       throw new Error(
-        `declared size ${(entry.size / 1048576).toFixed(1)} MB exceeds the ${(CONFIG.maxBytes / 1048576).toFixed(0)} MB budget` +
-          " (raise it with --max-mb if you really want this model)",
+        `declared size ${(entry.size / 1048576).toFixed(1)} MB is over ${CONFIG.declaredHeadroom}x the ` +
+          `${(CONFIG.maxBytes / 1048576).toFixed(0)} MB ceiling` +
+          " (the compressed file is measured against the ceiling itself; raise it with --max-mb if you really want this model)",
       );
     }
 
@@ -902,7 +926,7 @@ export function rankCandidates(candidates, animal) {
  */
 const GLTF_TRANSFORM = join(ROOT, "node_modules", ".bin", "gltf-transform");
 
-async function compressGlb(file) {
+export async function compressGlb(file) {
   if (!existsSync(GLTF_TRANSFORM)) {
     throw new Error(
       "DRACO compression needs @gltf-transform/cli — run: npm install --save-dev @gltf-transform/cli",
@@ -943,29 +967,30 @@ export function supabaseConfig() {
 }
 
 /**
- * Uploads into `animal-assets`, the bucket models already live in.
+ * Cloudflare R2, which is now the only object store this project writes to.
  *
- * The project has exactly one asset bucket (see `lib/supabase.ts` and
- * `docs/ASSETS.md`); adding a second one for models would mean two places to look
- * and two policies to keep in step, so the storage path — `models/<file>` — is what
- * separates a model from an image or a call recording.
+ * The key is still `models/<file>` — the same relative path the repository keeps under
+ * `public/models/`, and the same one `model_assets.storage_path` has recorded since the first
+ * download. Changing the host and keeping the path is what makes the move cheap: every row written
+ * before today already names a key that exists, so nothing had to be re-keyed.
  */
-async function uploadToStorage(supabase, path, bytes) {
-  const response = await fetch(`${supabase.url}/storage/v1/object/${ASSET_BUCKET}/${path}`, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${supabase.key}`,
-      apikey: supabase.key,
-      "content-type": "model/gltf-binary",
-      "x-upsert": "true",
-      "cache-control": "public, max-age=31536000, immutable",
-    },
-    body: bytes,
-    signal: AbortSignal.timeout(120_000),
-  });
+let r2Client = null;
 
-  if (!response.ok) throw new Error(`storage upload failed: ${response.status} ${await response.text()}`);
-  return `${supabase.url}/storage/v1/object/public/${ASSET_BUCKET}/${path}`;
+function requireR2() {
+  if (r2Client) return r2Client;
+
+  const config = readR2Config();
+  if (!config.configured) {
+    throw new Error("Cloudflare R2 is not configured — missing " + config.missing.join(", ") + " (see README.md)");
+  }
+  r2Client = createR2(config);
+  return r2Client;
+}
+
+/** Uploads a model and returns the URL a browser can fetch it from. */
+async function uploadToStorage(r2, path, bytes) {
+  const put = await r2.put(path, bytes, "model/gltf-binary", "public, max-age=31536000, immutable");
+  return put.publicUrl;
 }
 
 export async function rest(supabase, path, init = {}) {
@@ -1297,7 +1322,7 @@ async function storeModel({ supabase, animal, file, entry, index }) {
 
   const storagePath = `models/${basename(file)}`;
   const bytes = await readFile(file);
-  const publicUrl = await uploadToStorage(supabase, storagePath, bytes);
+  const publicUrl = await uploadToStorage(requireR2(), storagePath, bytes);
 
   await recordInDatabase(supabase, animal, {
     provider: entry.provider ?? "unknown",
@@ -1439,9 +1464,17 @@ async function fetchModels(flags) {
 
   const supabase = flags.upload ? supabaseConfig() : null;
   if (flags.upload && !supabase.ready) {
-    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see README).");
+    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for the row (see README).");
     process.exitCode = 2;
     return;
+  }
+  if (flags.upload) {
+    const config = readR2Config();
+    if (!config.configured) {
+      console.error("--upload needs Cloudflare R2 for the file: missing " + config.missing.join(", ") + " (see README).");
+      process.exitCode = 2;
+      return;
+    }
   }
 
   const animals = flags.all
@@ -1510,12 +1543,22 @@ async function fetchModels(flags) {
     // One model per source: two providers can return the same asset, and
     // `model_assets` is keyed on (animal_id, source_url).
     const seen = new Set();
+    /**
+     * `flags.count` is how many models to **keep**; two more are carried as fallbacks.
+     *
+     * A candidate can now be refused *after* it is downloaded — the colour gate deletes a file that
+     * declares no colour at all and moves on — and when that happens to the top-ranked model there has
+     * to be something behind it. Without the spares, `--count=1` on a species whose best model is
+     * textureless ends with nothing stored and the budget spent. The extras are never written: the loop
+     * below stops once `flags.count` models have been accepted.
+     */
+    const wanted = flags.count + 2;
     const chosen = [];
     for (const entry of ranked) {
       if (seen.has(entry.candidate.sourceUrl)) continue;
       seen.add(entry.candidate.sourceUrl);
       chosen.push(entry);
-      if (chosen.length >= flags.count) break;
+      if (chosen.length >= wanted) break;
     }
 
     if (chosen.length === 0) {
@@ -1547,9 +1590,20 @@ async function fetchModels(flags) {
     /** Key for an alternate model: the manifest already owns the plain slug. */
     const manifestKey = (index) => (index === 0 ? animal.slug : `${animal.slug}-alt${index + 1}`);
 
+    /**
+     * Which candidate ends up as the primary model.
+     *
+     * `index` counts attempts; `slot` counts what was actually accepted. They are the same number until
+     * a candidate is refused after download — which now happens, because the colour gate rejects a file
+     * that declares no colour at all. Without this the next candidate would be filed as `-alt2`, stored
+     * as a non-primary, and the species would be left with no primary model at all: the first meerkat
+     * this script picked was textureless, and its replacement was about to become "meerkat-alt2".
+     */
+    let slot = 0;
+
     for (const [index, entry] of chosen.entries()) {
       const { candidate, licence, quality } = entry;
-      const destination = join(MODEL_DIR, modelFileName(animal.slug, index));
+      const destination = join(MODEL_DIR, modelFileName(animal.slug, slot));
       const provider = PROVIDERS[providerKeyFor(candidate.provider)];
 
       // Nothing is downloaded before the database says it may be. This is the only
@@ -1564,6 +1618,25 @@ async function fetchModels(flags) {
       try {
         const result = await provider.download(candidate, destination);
         let bytes = result.bytes;
+
+        // The colour gate, which this pipeline was missing while the catalogue and landmark pipelines
+        // both had it. Found the hard way: the first meerkat this script selected was textureless and
+        // declared no colour factor, so it could only ever render grey — and `check-model-materials.mjs`
+        // caught it *after* it had been downloaded, compressed, credited and uploaded. The file is
+        // deleted here so the next candidate is tried, and the download budget is settled as failed
+        // rather than spent on something the project's own rule refuses.
+        if (result.format === "glb") {
+          const glb = await readFile(result.file);
+          const parsed = JSON.parse(glb.slice(20, 20 + glb.readUInt32LE(12)).toString("utf8"));
+
+          if (!modelCanShowColour(parsed)) {
+            await rm(result.file, { force: true });
+            // Hand the slot back: the budget must not be spent on a file the project's own rule refuses.
+            await settleDownload(reservation.id, "failed", null, "the file declares no colour at all");
+            console.log("   ✘ " + candidate.title + ": the file declares no colour at all — trying the next candidate");
+            continue;
+          }
+        }
 
         if (flags.compress && result.format === "glb") {
           const compressed = await compressGlb(result.file);
@@ -1600,14 +1673,14 @@ async function fetchModels(flags) {
           fetchedAt: new Date().toISOString(),
         };
 
-        manifest[manifestKey(index)] = record;
+        manifest[manifestKey(slot)] = record;
         manifestDirty = true;
         downloaded += 1;
         console.log(`   saved ${result.file.replace(ROOT + "/", "")} (${(bytes / 1024).toFixed(0)} KB, quality ${quality.total})`);
 
         if (result.format === "zip") {
           console.log("   note: this provider returned an archive; extract the .glb and wire model_url by hand.");
-        } else if (flags.wire && index === 0) {
+        } else if (flags.wire && slot === 0) {
           const wired = await wireModelUrl(animal.slug, file);
           console.log(
             wired
@@ -1617,10 +1690,16 @@ async function fetchModels(flags) {
         }
 
         if (flags.upload) {
-          await storeModel({ supabase, animal, file: result.file, entry: record, index });
+          await storeModel({ supabase, animal, file: result.file, entry: record, index: slot });
           stored += 1;
-          console.log(`   stored ${file} and recorded it in model_assets${index === 0 ? " (primary)" : ""}`);
+          console.log(`   stored ${file} and recorded it in model_assets${slot === 0 ? " (primary)" : ""}`);
         }
+
+        // The attempt produced a usable model, so the next one is an alternate rather than the primary.
+        slot += 1;
+        // Stop once enough models have been kept. Everything past this point is a fallback that was only
+        // there in case an earlier candidate was refused after download.
+        if (slot >= flags.count) break;
 
         // The real size, not the ceiling the reservation was made at.
         await settleDownload(reservation.id, "downloaded", bytes);
@@ -1701,7 +1780,7 @@ async function refreshQuality(flags) {
   const manifest = await readAttribution();
   const supabase = flags.upload ? supabaseConfig() : null;
   if (flags.upload && !supabase.ready) {
-    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (see README).");
+    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for the rows (see README).");
     process.exitCode = 2;
     return;
   }

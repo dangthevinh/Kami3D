@@ -1,0 +1,2474 @@
+{
+  "generatedAt": "2026-10-07T15:37:28.146Z",
+  "size": 512,
+  "count": 274,
+  "bytes": 2861590,
+  "entries": [
+    {
+      "key": "african-bush-elephant",
+      "source": "public/models/african-bush-elephant.glb",
+      "file": "public/previews/african-bush-elephant.webp",
+      "bytes": 9970,
+      "width": 512,
+      "height": 512,
+      "md5": "841e648269cd672a540fe01e1b076f48"
+    },
+    {
+      "key": "american-alligator",
+      "source": "public/models/american-alligator.glb",
+      "file": "public/previews/american-alligator.webp",
+      "bytes": 5778,
+      "width": 512,
+      "height": 512,
+      "md5": "8d465c2fb674366e6e9440fda632f185"
+    },
+    {
+      "key": "american-bison",
+      "source": "public/models/american-bison.glb",
+      "file": "public/previews/american-bison.webp",
+      "bytes": 7880,
+      "width": 512,
+      "height": 512,
+      "md5": "3548c5e1e879ebf6b6a94553a288727b"
+    },
+    {
+      "key": "arctic-fox",
+      "source": "public/models/arctic-fox.glb",
+      "file": "public/previews/arctic-fox.webp",
+      "bytes": 5102,
+      "width": 512,
+      "height": 512,
+      "md5": "79a67f2946a2691cf2a87538f3ff3b99"
+    },
+    {
+      "key": "axolotl",
+      "source": "public/models/axolotl.glb",
+      "file": "public/previews/axolotl.webp",
+      "bytes": 6708,
+      "width": 512,
+      "height": 512,
+      "md5": "c30605646f7bbd453da2351047212ec8"
+    },
+    {
+      "key": "bald-eagle",
+      "source": "public/models/bald-eagle.glb",
+      "file": "public/previews/bald-eagle.webp",
+      "bytes": 9704,
+      "width": 512,
+      "height": 512,
+      "md5": "deccf5f0f26ec462b86efc10726346c8"
+    },
+    {
+      "key": "black-mamba",
+      "source": "public/models/black-mamba.glb",
+      "file": "public/previews/black-mamba.webp",
+      "bytes": 9486,
+      "width": 512,
+      "height": 512,
+      "md5": "626b08fd3c24fa717897c8cc781b77bc"
+    },
+    {
+      "key": "blue-ringed-octopus",
+      "source": "public/models/blue-ringed-octopus.glb",
+      "file": "public/previews/blue-ringed-octopus.webp",
+      "bytes": 12638,
+      "width": 512,
+      "height": 512,
+      "md5": "f2575fe49e61290bd453d07ec7370b9e"
+    },
+    {
+      "key": "blue-whale",
+      "source": "public/models/blue-whale.glb",
+      "file": "public/previews/blue-whale.webp",
+      "bytes": 3990,
+      "width": 512,
+      "height": 512,
+      "md5": "57bab7736824021ea90db7c25cd3ef40"
+    },
+    {
+      "key": "bottlenose-dolphin",
+      "source": "public/models/bottlenose-dolphin.glb",
+      "file": "public/previews/bottlenose-dolphin.webp",
+      "bytes": 3558,
+      "width": 512,
+      "height": 512,
+      "md5": "e9eb786042cdef0b3a5ccd06b68fc694"
+    },
+    {
+      "key": "california-condor",
+      "source": "public/models/california-condor.glb",
+      "file": "public/previews/california-condor.webp",
+      "bytes": 5630,
+      "width": 512,
+      "height": 512,
+      "md5": "0437d74f890c40f18496994de7367c16"
+    },
+    {
+      "key": "california-sea-lion",
+      "source": "public/models/california-sea-lion.glb",
+      "file": "public/previews/california-sea-lion.webp",
+      "bytes": 5572,
+      "width": 512,
+      "height": 512,
+      "md5": "9745fa146bdbfc71d099ce038dfa17ba"
+    },
+    {
+      "key": "capybara",
+      "source": "public/models/capybara.glb",
+      "file": "public/previews/capybara.webp",
+      "bytes": 8836,
+      "width": 512,
+      "height": 512,
+      "md5": "4cd1620fa92b52a1163f128c92ab3771"
+    },
+    {
+      "key": "cheetah",
+      "source": "public/models/cheetah.glb",
+      "file": "public/previews/cheetah.webp",
+      "bytes": 15930,
+      "width": 512,
+      "height": 512,
+      "md5": "353885e6af23c51c96eeaa9483139fe9"
+    },
+    {
+      "key": "chimpanzee",
+      "source": "public/models/chimpanzee.glb",
+      "file": "public/previews/chimpanzee.webp",
+      "bytes": 6138,
+      "width": 512,
+      "height": 512,
+      "md5": "7183855efeffb31a32596bac92f095ae"
+    },
+    {
+      "key": "common-ostrich",
+      "source": "public/models/common-ostrich.glb",
+      "file": "public/previews/common-ostrich.webp",
+      "bytes": 10132,
+      "width": 512,
+      "height": 512,
+      "md5": "e5aeba42d8b99311443eca8eff0d6644"
+    },
+    {
+      "key": "deathstalker-scorpion",
+      "source": "public/models/deathstalker-scorpion.glb",
+      "file": "public/previews/deathstalker-scorpion.webp",
+      "bytes": 12662,
+      "width": 512,
+      "height": 512,
+      "md5": "dc1931569a11c371930c117aa0896f79"
+    },
+    {
+      "key": "dodo",
+      "source": "public/models/dodo.glb",
+      "file": "public/previews/dodo.webp",
+      "bytes": 5444,
+      "width": 512,
+      "height": 512,
+      "md5": "05053c2130e88016f2fcca110a294a53"
+    },
+    {
+      "key": "electric-eel",
+      "source": "public/models/electric-eel.glb",
+      "file": "public/previews/electric-eel.webp",
+      "bytes": 3844,
+      "width": 512,
+      "height": 512,
+      "md5": "b1cd8503a034102c334803eff63d7a45"
+    },
+    {
+      "key": "emperor-dragonfly",
+      "source": "public/models/emperor-dragonfly.glb",
+      "file": "public/previews/emperor-dragonfly.webp",
+      "bytes": 7402,
+      "width": 512,
+      "height": 512,
+      "md5": "b85fdece53f4cf4820a748b9958fe93b"
+    },
+    {
+      "key": "emperor-scorpion",
+      "source": "public/models/emperor-scorpion.glb",
+      "file": "public/previews/emperor-scorpion.webp",
+      "bytes": 14244,
+      "width": 512,
+      "height": 512,
+      "md5": "8249c44f8fdbe1f02b1a0d4be8f24d1d"
+    },
+    {
+      "key": "european-mantis",
+      "source": "public/models/european-mantis.glb",
+      "file": "public/previews/european-mantis.webp",
+      "bytes": 10040,
+      "width": 512,
+      "height": 512,
+      "md5": "253470985c48c28feaa8c656c7cbb154"
+    },
+    {
+      "key": "fennec-fox",
+      "source": "public/models/fennec-fox.glb",
+      "file": "public/previews/fennec-fox.webp",
+      "bytes": 6754,
+      "width": 512,
+      "height": 512,
+      "md5": "fcac117fd5c896f759b96bf482b9fb1e"
+    },
+    {
+      "key": "giant-anteater",
+      "source": "public/models/giant-anteater.glb",
+      "file": "public/previews/giant-anteater.webp",
+      "bytes": 8348,
+      "width": 512,
+      "height": 512,
+      "md5": "550fc80386bcd50337bba7f11cfde633"
+    },
+    {
+      "key": "giant-clam",
+      "source": "public/models/giant-clam.glb",
+      "file": "public/previews/giant-clam.webp",
+      "bytes": 16804,
+      "width": 512,
+      "height": 512,
+      "md5": "57a8742029391e914901eb020c912973"
+    },
+    {
+      "key": "giant-manta-ray",
+      "source": "public/models/giant-manta-ray.glb",
+      "file": "public/previews/giant-manta-ray.webp",
+      "bytes": 9118,
+      "width": 512,
+      "height": 512,
+      "md5": "c132f6cfa5b0d5b909bc69f593337563"
+    },
+    {
+      "key": "giant-panda",
+      "source": "public/models/giant-panda.glb",
+      "file": "public/previews/giant-panda.webp",
+      "bytes": 5508,
+      "width": 512,
+      "height": 512,
+      "md5": "0d3551f55f157d452c6c79594847ae93"
+    },
+    {
+      "key": "giant-squid",
+      "source": "public/models/giant-squid.glb",
+      "file": "public/previews/giant-squid.webp",
+      "bytes": 14826,
+      "width": 512,
+      "height": 512,
+      "md5": "0200108713061731e45df70200acf3ba"
+    },
+    {
+      "key": "gila-monster",
+      "source": "public/models/gila-monster.glb",
+      "file": "public/previews/gila-monster.webp",
+      "bytes": 5248,
+      "width": 512,
+      "height": 512,
+      "md5": "44d4b26e2173614b0223237cadfe26cd"
+    },
+    {
+      "key": "giraffe",
+      "source": "public/models/giraffe.glb",
+      "file": "public/previews/giraffe.webp",
+      "bytes": 10968,
+      "width": 512,
+      "height": 512,
+      "md5": "7a3a842fc1dcd19a290842a01b556795"
+    },
+    {
+      "key": "goliath-birdeater",
+      "source": "public/models/goliath-birdeater.glb",
+      "file": "public/previews/goliath-birdeater.webp",
+      "bytes": 12400,
+      "width": 512,
+      "height": 512,
+      "md5": "f08992374d124912835b5f79597f4aea"
+    },
+    {
+      "key": "gray-wolf",
+      "source": "public/models/gray-wolf.glb",
+      "file": "public/previews/gray-wolf.webp",
+      "bytes": 7336,
+      "width": 512,
+      "height": 512,
+      "md5": "6b2ceee82c020ceb6f2d03d68567c4f2"
+    },
+    {
+      "key": "great-white-shark",
+      "source": "public/models/great-white-shark.glb",
+      "file": "public/previews/great-white-shark.webp",
+      "bytes": 4392,
+      "width": 512,
+      "height": 512,
+      "md5": "204d00894b75a9c6490c354e6c11c659"
+    },
+    {
+      "key": "greater-flamingo",
+      "source": "public/models/greater-flamingo.glb",
+      "file": "public/previews/greater-flamingo.webp",
+      "bytes": 7786,
+      "width": 512,
+      "height": 512,
+      "md5": "e7bdb68858e5950952fc4b406c539272"
+    },
+    {
+      "key": "green-sea-turtle",
+      "source": "public/models/green-sea-turtle.glb",
+      "file": "public/previews/green-sea-turtle.webp",
+      "bytes": 8188,
+      "width": 512,
+      "height": 512,
+      "md5": "34193bd4ad9190218da1919d004019db"
+    },
+    {
+      "key": "harpy-eagle",
+      "source": "public/models/harpy-eagle.glb",
+      "file": "public/previews/harpy-eagle.webp",
+      "bytes": 7562,
+      "width": 512,
+      "height": 512,
+      "md5": "7e97bc9ea4ef1318205ca8b566011d42"
+    },
+    {
+      "key": "hellbender",
+      "source": "public/models/hellbender.glb",
+      "file": "public/previews/hellbender.webp",
+      "bytes": 10764,
+      "width": 512,
+      "height": 512,
+      "md5": "8824d67fa47bfd735f0dd9ab589a469c"
+    },
+    {
+      "key": "hippopotamus",
+      "source": "public/models/hippopotamus.glb",
+      "file": "public/previews/hippopotamus.webp",
+      "bytes": 10776,
+      "width": 512,
+      "height": 512,
+      "md5": "20bc7d18ff9070531fc5a6d80dea6129"
+    },
+    {
+      "key": "hoatzin",
+      "source": "public/models/hoatzin.glb",
+      "file": "public/previews/hoatzin.webp",
+      "bytes": 8514,
+      "width": 512,
+      "height": 512,
+      "md5": "c7efe0548507d72e9f79cb5fa26a3641"
+    },
+    {
+      "key": "humpback-whale",
+      "source": "public/models/humpback-whale.glb",
+      "file": "public/previews/humpback-whale.webp",
+      "bytes": 6218,
+      "width": 512,
+      "height": 512,
+      "md5": "9a70da5ce894b679208f11cb3786acca"
+    },
+    {
+      "key": "jaguar",
+      "source": "public/models/jaguar.glb",
+      "file": "public/previews/jaguar.webp",
+      "bytes": 20706,
+      "width": 512,
+      "height": 512,
+      "md5": "dcaa0e0441550ff700776f924e6110b8"
+    },
+    {
+      "key": "king-cobra",
+      "source": "public/models/king-cobra.glb",
+      "file": "public/previews/king-cobra.webp",
+      "bytes": 9794,
+      "width": 512,
+      "height": 512,
+      "md5": "087ea70e48276cff4af9e93b3668e97a"
+    },
+    {
+      "key": "komodo-dragon",
+      "source": "public/models/komodo-dragon.glb",
+      "file": "public/previews/komodo-dragon.webp",
+      "bytes": 7140,
+      "width": 512,
+      "height": 512,
+      "md5": "dd5e60d647b5cdc3daa79e48f6d4f467"
+    },
+    {
+      "key": "landmarks/alhambra",
+      "source": "public/models/landmarks/alhambra.glb",
+      "file": "public/previews/landmarks/alhambra.webp",
+      "bytes": 25082,
+      "width": 512,
+      "height": 512,
+      "md5": "7ffcd8d19c62078be1dfee3ab0b755cf"
+    },
+    {
+      "key": "landmarks/angkor-wat",
+      "source": "public/models/landmarks/angkor-wat.glb",
+      "file": "public/previews/landmarks/angkor-wat.webp",
+      "bytes": 10698,
+      "width": 512,
+      "height": 512,
+      "md5": "06bb33778d36fb1ee2d31fb43392f7bb"
+    },
+    {
+      "key": "landmarks/arc-de-triomphe",
+      "source": "public/models/landmarks/arc-de-triomphe.glb",
+      "file": "public/previews/landmarks/arc-de-triomphe.webp",
+      "bytes": 30276,
+      "width": 512,
+      "height": 512,
+      "md5": "526d04fd8a192fc532e69b0b3f33f77e"
+    },
+    {
+      "key": "landmarks/big-ben",
+      "source": "public/models/landmarks/big-ben.glb",
+      "file": "public/previews/landmarks/big-ben.webp",
+      "bytes": 7020,
+      "width": 512,
+      "height": 512,
+      "md5": "54eb74136f35ffbf66c008c01bff62ed"
+    },
+    {
+      "key": "landmarks/borobudur",
+      "source": "public/models/landmarks/borobudur.glb",
+      "file": "public/previews/landmarks/borobudur.webp",
+      "bytes": 8246,
+      "width": 512,
+      "height": 512,
+      "md5": "0c2086af83b045d6ba379f057e9ac73f"
+    },
+    {
+      "key": "landmarks/boudhanath",
+      "source": "public/models/landmarks/boudhanath.glb",
+      "file": "public/previews/landmarks/boudhanath.webp",
+      "bytes": 18454,
+      "width": 512,
+      "height": 512,
+      "md5": "c95cd16e0682a130584b558c3d6bcd56"
+    },
+    {
+      "key": "landmarks/burj-khalifa",
+      "source": "public/models/landmarks/burj-khalifa.glb",
+      "file": "public/previews/landmarks/burj-khalifa.webp",
+      "bytes": 3166,
+      "width": 512,
+      "height": 512,
+      "md5": "558b84d0b43e8a4583bac2f56ca897c4"
+    },
+    {
+      "key": "landmarks/chateau-frontenac",
+      "source": "public/models/landmarks/chateau-frontenac.glb",
+      "file": "public/previews/landmarks/chateau-frontenac.webp",
+      "bytes": 12034,
+      "width": 512,
+      "height": 512,
+      "md5": "ebf97d0f5c4c50def7f95a1c43f687eb"
+    },
+    {
+      "key": "landmarks/chichen-itza",
+      "source": "public/models/landmarks/chichen-itza.glb",
+      "file": "public/previews/landmarks/chichen-itza.webp",
+      "bytes": 22718,
+      "width": 512,
+      "height": 512,
+      "md5": "ebd33e273a2e8430330c4221c32ee428"
+    },
+    {
+      "key": "landmarks/christ-the-redeemer",
+      "source": "public/models/landmarks/christ-the-redeemer.glb",
+      "file": "public/previews/landmarks/christ-the-redeemer.webp",
+      "bytes": 5852,
+      "width": 512,
+      "height": 512,
+      "md5": "b6270c3ce063b7a01e76a419f7e4404c"
+    },
+    {
+      "key": "landmarks/cn-tower",
+      "source": "public/models/landmarks/cn-tower.glb",
+      "file": "public/previews/landmarks/cn-tower.webp",
+      "bytes": 10254,
+      "width": 512,
+      "height": 512,
+      "md5": "75f5977243a7a1b274316dbd7a295b79"
+    },
+    {
+      "key": "landmarks/cologne-cathedral",
+      "source": "public/models/landmarks/cologne-cathedral.glb",
+      "file": "public/previews/landmarks/cologne-cathedral.webp",
+      "bytes": 27702,
+      "width": 512,
+      "height": 512,
+      "md5": "a7a8b1751293f5b3ac7b65c15f6b1b64"
+    },
+    {
+      "key": "landmarks/colosseum",
+      "source": "public/models/landmarks/colosseum.glb",
+      "file": "public/previews/landmarks/colosseum.webp",
+      "bytes": 18468,
+      "width": 512,
+      "height": 512,
+      "md5": "ee6e48455ba971c5f50cbadb90de6420"
+    },
+    {
+      "key": "landmarks/djenne-mosque",
+      "source": "public/models/landmarks/djenne-mosque.glb",
+      "file": "public/previews/landmarks/djenne-mosque.webp",
+      "bytes": 10604,
+      "width": 512,
+      "height": 512,
+      "md5": "00952eaacefa4f0c9b6e23b08c9f1093"
+    },
+    {
+      "key": "landmarks/edinburgh-castle",
+      "source": "public/models/landmarks/edinburgh-castle.glb",
+      "file": "public/previews/landmarks/edinburgh-castle.webp",
+      "bytes": 7110,
+      "width": 512,
+      "height": 512,
+      "md5": "5b6661e90fd571c083d310752b9cd07b"
+    },
+    {
+      "key": "landmarks/eiffel-tower",
+      "source": "public/models/landmarks/eiffel-tower.glb",
+      "file": "public/previews/landmarks/eiffel-tower.webp",
+      "bytes": 7006,
+      "width": 512,
+      "height": 512,
+      "md5": "cf5e2ce89fe480bcbfad07502a95ecb0"
+    },
+    {
+      "key": "landmarks/empire-state-building",
+      "source": "public/models/landmarks/empire-state-building.glb",
+      "file": "public/previews/landmarks/empire-state-building.webp",
+      "bytes": 3490,
+      "width": 512,
+      "height": 512,
+      "md5": "43f959ca469a5e843407fcd683471a4f"
+    },
+    {
+      "key": "landmarks/golden-gate-bridge",
+      "source": "public/models/landmarks/golden-gate-bridge.glb",
+      "file": "public/previews/landmarks/golden-gate-bridge.webp",
+      "bytes": 7070,
+      "width": 512,
+      "height": 512,
+      "md5": "9b20053c83c04d4918cb4d425bd21ba2"
+    },
+    {
+      "key": "landmarks/great-pyramid-of-giza",
+      "source": "public/models/landmarks/great-pyramid-of-giza.glb",
+      "file": "public/previews/landmarks/great-pyramid-of-giza.webp",
+      "bytes": 5220,
+      "width": 512,
+      "height": 512,
+      "md5": "58f8e1b4c5a4f770a6d341b33af498db"
+    },
+    {
+      "key": "landmarks/great-wall",
+      "source": "public/models/landmarks/great-wall.glb",
+      "file": "public/previews/landmarks/great-wall.webp",
+      "bytes": 3942,
+      "width": 512,
+      "height": 512,
+      "md5": "7b3e073678a38c9bd021159f845bd8a7"
+    },
+    {
+      "key": "landmarks/hagia-sophia",
+      "source": "public/models/landmarks/hagia-sophia.glb",
+      "file": "public/previews/landmarks/hagia-sophia.webp",
+      "bytes": 19446,
+      "width": 512,
+      "height": 512,
+      "md5": "6e2993a1d9cff3c94ea156bec9e649ac"
+    },
+    {
+      "key": "landmarks/hassan-ii-mosque",
+      "source": "public/models/landmarks/hassan-ii-mosque.glb",
+      "file": "public/previews/landmarks/hassan-ii-mosque.webp",
+      "bytes": 12548,
+      "width": 512,
+      "height": 512,
+      "md5": "9c3c18ab891e6fb68226530394fc106c"
+    },
+    {
+      "key": "landmarks/himeji-castle",
+      "source": "public/models/landmarks/himeji-castle.glb",
+      "file": "public/previews/landmarks/himeji-castle.webp",
+      "bytes": 11144,
+      "width": 512,
+      "height": 512,
+      "md5": "1f3722e9511833a950356967a483177a"
+    },
+    {
+      "key": "landmarks/leaning-tower-of-pisa",
+      "source": "public/models/landmarks/leaning-tower-of-pisa.glb",
+      "file": "public/previews/landmarks/leaning-tower-of-pisa.webp",
+      "bytes": 15528,
+      "width": 512,
+      "height": 512,
+      "md5": "ee0a2792808400173db626c21b99f428"
+    },
+    {
+      "key": "landmarks/machu-picchu",
+      "source": "public/models/landmarks/machu-picchu.glb",
+      "file": "public/previews/landmarks/machu-picchu.webp",
+      "bytes": 15068,
+      "width": 512,
+      "height": 512,
+      "md5": "1443f17b4941ac15bef9f69dee2fe212"
+    },
+    {
+      "key": "landmarks/marina-bay-sands",
+      "source": "public/models/landmarks/marina-bay-sands.glb",
+      "file": "public/previews/landmarks/marina-bay-sands.webp",
+      "bytes": 6680,
+      "width": 512,
+      "height": 512,
+      "md5": "e056a0157e10e755ac0b452c05890885"
+    },
+    {
+      "key": "landmarks/milan-cathedral",
+      "source": "public/models/landmarks/milan-cathedral.glb",
+      "file": "public/previews/landmarks/milan-cathedral.webp",
+      "bytes": 19352,
+      "width": 512,
+      "height": 512,
+      "md5": "2db560d28aeb672ad41a750a77de99e0"
+    },
+    {
+      "key": "landmarks/moai",
+      "source": "public/models/landmarks/moai.glb",
+      "file": "public/previews/landmarks/moai.webp",
+      "bytes": 5720,
+      "width": 512,
+      "height": 512,
+      "md5": "bda6d8c10e6e5a6e1ba2efd40c26da6a"
+    },
+    {
+      "key": "landmarks/mont-saint-michel",
+      "source": "public/models/landmarks/mont-saint-michel.glb",
+      "file": "public/previews/landmarks/mont-saint-michel.webp",
+      "bytes": 10892,
+      "width": 512,
+      "height": 512,
+      "md5": "84ee3fd78503a864b3be11c5e9348845"
+    },
+    {
+      "key": "landmarks/mount-rushmore",
+      "source": "public/models/landmarks/mount-rushmore.glb",
+      "file": "public/previews/landmarks/mount-rushmore.webp",
+      "bytes": 18914,
+      "width": 512,
+      "height": 512,
+      "md5": "78e7ad25e8cf44897f704667fdf79c61"
+    },
+    {
+      "key": "landmarks/parthenon",
+      "source": "public/models/landmarks/parthenon.glb",
+      "file": "public/previews/landmarks/parthenon.webp",
+      "bytes": 4118,
+      "width": 512,
+      "height": 512,
+      "md5": "004c4d67e39cc117c88b479c8f980603"
+    },
+    {
+      "key": "landmarks/petra",
+      "source": "public/models/landmarks/petra.glb",
+      "file": "public/previews/landmarks/petra.webp",
+      "bytes": 13806,
+      "width": 512,
+      "height": 512,
+      "md5": "1ec0a28de70ac90fe745db597bc3bdca"
+    },
+    {
+      "key": "landmarks/petronas-towers",
+      "source": "public/models/landmarks/petronas-towers.glb",
+      "file": "public/previews/landmarks/petronas-towers.webp",
+      "bytes": 11698,
+      "width": 512,
+      "height": 512,
+      "md5": "64905724097ebdb09b62da87a368dbc5"
+    },
+    {
+      "key": "landmarks/prague-castle",
+      "source": "public/models/landmarks/prague-castle.glb",
+      "file": "public/previews/landmarks/prague-castle.webp",
+      "bytes": 19836,
+      "width": 512,
+      "height": 512,
+      "md5": "684126b1b67e8e5db3898b82814b0020"
+    },
+    {
+      "key": "landmarks/prambanan",
+      "source": "public/models/landmarks/prambanan.glb",
+      "file": "public/previews/landmarks/prambanan.webp",
+      "bytes": 21832,
+      "width": 512,
+      "height": 512,
+      "md5": "20779104d518e591492bd423ceb1c2bb"
+    },
+    {
+      "key": "landmarks/sagrada-familia",
+      "source": "public/models/landmarks/sagrada-familia.glb",
+      "file": "public/previews/landmarks/sagrada-familia.webp",
+      "bytes": 28896,
+      "width": 512,
+      "height": 512,
+      "md5": "5c1b9ea613a0b4b2206d21f1fcac23e5"
+    },
+    {
+      "key": "landmarks/saint-basils-cathedral",
+      "source": "public/models/landmarks/saint-basils-cathedral.glb",
+      "file": "public/previews/landmarks/saint-basils-cathedral.webp",
+      "bytes": 19392,
+      "width": 512,
+      "height": 512,
+      "md5": "e5bc6478692c5837286d00a4e051ea4a"
+    },
+    {
+      "key": "landmarks/st-peters-basilica",
+      "source": "public/models/landmarks/st-peters-basilica.glb",
+      "file": "public/previews/landmarks/st-peters-basilica.webp",
+      "bytes": 23058,
+      "width": 512,
+      "height": 512,
+      "md5": "25dc96caf025a119b12ece9dfb8e3b66"
+    },
+    {
+      "key": "landmarks/statue-of-liberty",
+      "source": "public/models/landmarks/statue-of-liberty.glb",
+      "file": "public/previews/landmarks/statue-of-liberty.webp",
+      "bytes": 4528,
+      "width": 512,
+      "height": 512,
+      "md5": "ef50d5408af0e481656099e72192e02c"
+    },
+    {
+      "key": "landmarks/stonehenge",
+      "source": "public/models/landmarks/stonehenge.glb",
+      "file": "public/previews/landmarks/stonehenge.webp",
+      "bytes": 11634,
+      "width": 512,
+      "height": 512,
+      "md5": "8c6f83c3257edae35fe218dbb1489f1e"
+    },
+    {
+      "key": "landmarks/sydney-harbour-bridge",
+      "source": "public/models/landmarks/sydney-harbour-bridge.glb",
+      "file": "public/previews/landmarks/sydney-harbour-bridge.webp",
+      "bytes": 7968,
+      "width": 512,
+      "height": 512,
+      "md5": "97feef928d811a85a8e9410f185edf10"
+    },
+    {
+      "key": "landmarks/sydney-opera-house",
+      "source": "public/models/landmarks/sydney-opera-house.glb",
+      "file": "public/previews/landmarks/sydney-opera-house.webp",
+      "bytes": 3032,
+      "width": 512,
+      "height": 512,
+      "md5": "d4fc5e3d67459176b7bbf8d6db04f95d"
+    },
+    {
+      "key": "landmarks/taj-mahal",
+      "source": "public/models/landmarks/taj-mahal.glb",
+      "file": "public/previews/landmarks/taj-mahal.webp",
+      "bytes": 9698,
+      "width": 512,
+      "height": 512,
+      "md5": "a2b4d2eee54de5e14e177e39d6b066bf"
+    },
+    {
+      "key": "landmarks/temple-of-heaven",
+      "source": "public/models/landmarks/temple-of-heaven.glb",
+      "file": "public/previews/landmarks/temple-of-heaven.webp",
+      "bytes": 3874,
+      "width": 512,
+      "height": 512,
+      "md5": "c57bddbedf1d9cc8a0e1a1094969bab6"
+    },
+    {
+      "key": "landmarks/tower-bridge",
+      "source": "public/models/landmarks/tower-bridge.glb",
+      "file": "public/previews/landmarks/tower-bridge.webp",
+      "bytes": 10502,
+      "width": 512,
+      "height": 512,
+      "md5": "db10275756b0718dcad62d8bb8058274"
+    },
+    {
+      "key": "landmarks/trevi-fountain",
+      "source": "public/models/landmarks/trevi-fountain.glb",
+      "file": "public/previews/landmarks/trevi-fountain.webp",
+      "bytes": 13010,
+      "width": 512,
+      "height": 512,
+      "md5": "06481b1df9087b2a54c48766db6693c7"
+    },
+    {
+      "key": "landmarks/uluru",
+      "source": "public/models/landmarks/uluru.glb",
+      "file": "public/previews/landmarks/uluru.webp",
+      "bytes": 11294,
+      "width": 512,
+      "height": 512,
+      "md5": "13fb3b5eedad0c2b8dc931c5f23915f5"
+    },
+    {
+      "key": "leopard-seal",
+      "source": "public/models/leopard-seal.glb",
+      "file": "public/previews/leopard-seal.webp",
+      "bytes": 5904,
+      "width": 512,
+      "height": 512,
+      "md5": "6a735c9d0157ad71a213d7a5ca99dc9d"
+    },
+    {
+      "key": "lion",
+      "source": "public/models/lion.glb",
+      "file": "public/previews/lion.webp",
+      "bytes": 11500,
+      "width": 512,
+      "height": 512,
+      "md5": "1b0dcbe30f169bcad745ee60cbfc2ea2"
+    },
+    {
+      "key": "luna-moth",
+      "source": "public/models/luna-moth.glb",
+      "file": "public/previews/luna-moth.webp",
+      "bytes": 5444,
+      "width": 512,
+      "height": 512,
+      "md5": "c50e2c801fdfa011e497d0d9bafd087a"
+    },
+    {
+      "key": "megalodon",
+      "source": "public/models/megalodon.glb",
+      "file": "public/previews/megalodon.webp",
+      "bytes": 5102,
+      "width": 512,
+      "height": 512,
+      "md5": "eefdba3b41e4f655df8b7a115266da7e"
+    },
+    {
+      "key": "monarch-butterfly",
+      "source": "public/models/monarch-butterfly.glb",
+      "file": "public/previews/monarch-butterfly.webp",
+      "bytes": 10100,
+      "width": 512,
+      "height": 512,
+      "md5": "8934433325edc6775eb7ee55edaea668"
+    },
+    {
+      "key": "moose",
+      "source": "public/models/moose.glb",
+      "file": "public/previews/moose.webp",
+      "bytes": 13036,
+      "width": 512,
+      "height": 512,
+      "md5": "509213d8cf19b6d8c3ac8303609b82c9"
+    },
+    {
+      "key": "narwhal",
+      "source": "public/models/narwhal.glb",
+      "file": "public/previews/narwhal.webp",
+      "bytes": 3720,
+      "width": 512,
+      "height": 512,
+      "md5": "dd75b008d0d5fc7c362d926d015afea6"
+    },
+    {
+      "key": "ocelot",
+      "source": "public/models/ocelot.glb",
+      "file": "public/previews/ocelot.webp",
+      "bytes": 9190,
+      "width": 512,
+      "height": 512,
+      "md5": "d5be1a97d7f143f3471388a32f1ef339"
+    },
+    {
+      "key": "orca",
+      "source": "public/models/orca.glb",
+      "file": "public/previews/orca.webp",
+      "bytes": 20314,
+      "width": 512,
+      "height": 512,
+      "md5": "f8cfbbbfff4dea74ca649aab2b2fe9bf"
+    },
+    {
+      "key": "peregrine-falcon",
+      "source": "public/models/peregrine-falcon.glb",
+      "file": "public/previews/peregrine-falcon.webp",
+      "bytes": 10756,
+      "width": 512,
+      "height": 512,
+      "md5": "91d7e60691c14abddff722dee39ddf15"
+    },
+    {
+      "key": "plains-zebra",
+      "source": "public/models/plains-zebra.glb",
+      "file": "public/previews/plains-zebra.webp",
+      "bytes": 14512,
+      "width": 512,
+      "height": 512,
+      "md5": "405503faf73c2a5bf893de9210a27c11"
+    },
+    {
+      "key": "plants/bamboo",
+      "source": "public/models/plants/bamboo.glb",
+      "file": "public/previews/plants/bamboo.webp",
+      "bytes": 6872,
+      "width": 512,
+      "height": 512,
+      "md5": "80e46f4ef663d89cd3e19e8ba4da59de"
+    },
+    {
+      "key": "plants/banana",
+      "source": "public/models/plants/banana.glb",
+      "file": "public/previews/plants/banana.webp",
+      "bytes": 7608,
+      "width": 512,
+      "height": 512,
+      "md5": "b7358dfd22cc863844cc04dc5f89eb6e"
+    },
+    {
+      "key": "plants/baobab",
+      "source": "public/models/plants/baobab.glb",
+      "file": "public/previews/plants/baobab.webp",
+      "bytes": 23330,
+      "width": 512,
+      "height": 512,
+      "md5": "408961cf96e384caab8e7a9c6d0e4a85"
+    },
+    {
+      "key": "plants/cactus",
+      "source": "public/models/plants/cactus.glb",
+      "file": "public/previews/plants/cactus.webp",
+      "bytes": 10056,
+      "width": 512,
+      "height": 512,
+      "md5": "c8abb0a65705012f3155eac9b2566a6a"
+    },
+    {
+      "key": "plants/cactus-pack",
+      "source": "public/models/plants/cactus-pack.glb",
+      "file": "public/previews/plants/cactus-pack.webp",
+      "bytes": 10056,
+      "width": 512,
+      "height": 512,
+      "md5": "c8abb0a65705012f3155eac9b2566a6a"
+    },
+    {
+      "key": "plants/coffee",
+      "source": "public/models/plants/coffee.glb",
+      "file": "public/previews/plants/coffee.webp",
+      "bytes": 13230,
+      "width": 512,
+      "height": 512,
+      "md5": "e28fc73794d86037b440a0b0f641640d"
+    },
+    {
+      "key": "plants/fig-tree",
+      "source": "public/models/plants/fig-tree.glb",
+      "file": "public/previews/plants/fig-tree.webp",
+      "bytes": 21454,
+      "width": 512,
+      "height": 512,
+      "md5": "ea41a335f8f703bd2756cfa9240e2087"
+    },
+    {
+      "key": "plants/gazebo",
+      "source": "public/models/plants/gazebo.glb",
+      "file": "public/previews/plants/gazebo.webp",
+      "bytes": 5888,
+      "width": 512,
+      "height": 512,
+      "md5": "04f6c194cb21f8f34d9fa4d24c440b92"
+    },
+    {
+      "key": "plants/giant-sequoia",
+      "source": "public/models/plants/giant-sequoia.glb",
+      "file": "public/previews/plants/giant-sequoia.webp",
+      "bytes": 27320,
+      "width": 512,
+      "height": 512,
+      "md5": "25178fe77319fae7197d20d0740f520f"
+    },
+    {
+      "key": "plants/ginkgo",
+      "source": "public/models/plants/ginkgo.glb",
+      "file": "public/previews/plants/ginkgo.webp",
+      "bytes": 17794,
+      "width": 512,
+      "height": 512,
+      "md5": "45e99f64ed7212720af054adf846b2aa"
+    },
+    {
+      "key": "plants/hollow-knight-33-34-moss-charger",
+      "source": "public/models/plants/hollow-knight-33-34-moss-charger.glb",
+      "file": "public/previews/plants/hollow-knight-33-34-moss-charger.webp",
+      "bytes": 6166,
+      "width": 512,
+      "height": 512,
+      "md5": "f9642a1220a3be84938e64a4a7d69ff9"
+    },
+    {
+      "key": "plants/ivy",
+      "source": "public/models/plants/ivy.glb",
+      "file": "public/previews/plants/ivy.webp",
+      "bytes": 25346,
+      "width": 512,
+      "height": 512,
+      "md5": "5649aef5d904681039370579e7d52f91"
+    },
+    {
+      "key": "plants/kelp",
+      "source": "public/models/plants/kelp.glb",
+      "file": "public/previews/plants/kelp.webp",
+      "bytes": 4868,
+      "width": 512,
+      "height": 512,
+      "md5": "5888450b41ec5c7b5f7011ff56416a0c"
+    },
+    {
+      "key": "plants/lavender",
+      "source": "public/models/plants/lavender.glb",
+      "file": "public/previews/plants/lavender.webp",
+      "bytes": 9164,
+      "width": 512,
+      "height": 512,
+      "md5": "a6614a430d08a5ec6e8591cfabac4f2f"
+    },
+    {
+      "key": "plants/lily-of-the-valley",
+      "source": "public/models/plants/lily-of-the-valley.glb",
+      "file": "public/previews/plants/lily-of-the-valley.webp",
+      "bytes": 3944,
+      "width": 512,
+      "height": 512,
+      "md5": "3ae9f1792a5c70f61c8b96fbc4de4e40"
+    },
+    {
+      "key": "plants/lotus",
+      "source": "public/models/plants/lotus.glb",
+      "file": "public/previews/plants/lotus.webp",
+      "bytes": 5288,
+      "width": 512,
+      "height": 512,
+      "md5": "2029fa1b7ec4c9fba43322648465a2a6"
+    },
+    {
+      "key": "plants/maple-tree",
+      "source": "public/models/plants/maple-tree.glb",
+      "file": "public/previews/plants/maple-tree.webp",
+      "bytes": 37806,
+      "width": 512,
+      "height": 512,
+      "md5": "971af456ec02c85b2fb5eea63933b534"
+    },
+    {
+      "key": "plants/mediterranean-metalurgy-ue5-gate-ornamen",
+      "source": "public/models/plants/mediterranean-metalurgy-ue5-gate-ornamen.glb",
+      "file": "public/previews/plants/mediterranean-metalurgy-ue5-gate-ornamen.webp",
+      "bytes": 9168,
+      "width": 512,
+      "height": 512,
+      "md5": "8941310a12f3ee4795e2e4adc1df9720"
+    },
+    {
+      "key": "plants/oak",
+      "source": "public/models/plants/oak.glb",
+      "file": "public/previews/plants/oak.webp",
+      "bytes": 29862,
+      "width": 512,
+      "height": 512,
+      "md5": "513aea4c4cc316cd61c8186d7f9b1dc0"
+    },
+    {
+      "key": "plants/orchid",
+      "source": "public/models/plants/orchid.glb",
+      "file": "public/previews/plants/orchid.webp",
+      "bytes": 13240,
+      "width": 512,
+      "height": 512,
+      "md5": "288400fda5c5845aea9c728c546c5cf9"
+    },
+    {
+      "key": "plants/poppy-playtime-daisy-the-flower-updated",
+      "source": "public/models/plants/poppy-playtime-daisy-the-flower-updated.glb",
+      "file": "public/previews/plants/poppy-playtime-daisy-the-flower-updated.webp",
+      "bytes": 5548,
+      "width": 512,
+      "height": 512,
+      "md5": "d0e65090dc69acb3427bbb47541e34fb"
+    },
+    {
+      "key": "plants/saguaro",
+      "source": "public/models/plants/saguaro.glb",
+      "file": "public/previews/plants/saguaro.webp",
+      "bytes": 8310,
+      "width": 512,
+      "height": 512,
+      "md5": "89680109f7f38202ca1ae4d8454bda0e"
+    },
+    {
+      "key": "plants/sunflower",
+      "source": "public/models/plants/sunflower.glb",
+      "file": "public/previews/plants/sunflower.webp",
+      "bytes": 5988,
+      "width": 512,
+      "height": 512,
+      "md5": "ddcae4378472680512c15ace832b926c"
+    },
+    {
+      "key": "plants/tulip",
+      "source": "public/models/plants/tulip.glb",
+      "file": "public/previews/plants/tulip.webp",
+      "bytes": 6556,
+      "width": 512,
+      "height": 512,
+      "md5": "d7ad6501ee730dc6cdd585a2fc846d52"
+    },
+    {
+      "key": "plants/tulip-flower",
+      "source": "public/models/plants/tulip-flower.glb",
+      "file": "public/previews/plants/tulip-flower.webp",
+      "bytes": 6556,
+      "width": 512,
+      "height": 512,
+      "md5": "d7ad6501ee730dc6cdd585a2fc846d52"
+    },
+    {
+      "key": "plants/venus-flytrap",
+      "source": "public/models/plants/venus-flytrap.glb",
+      "file": "public/previews/plants/venus-flytrap.webp",
+      "bytes": 10130,
+      "width": 512,
+      "height": 512,
+      "md5": "7eb2d7a0e8e5aa87856a7aa0713ed551"
+    },
+    {
+      "key": "plants/wheat",
+      "source": "public/models/plants/wheat.glb",
+      "file": "public/previews/plants/wheat.webp",
+      "bytes": 10836,
+      "width": 512,
+      "height": 512,
+      "md5": "a8e5139636590fe8c593d6697a1fa710"
+    },
+    {
+      "key": "poison-dart-frog",
+      "source": "public/models/poison-dart-frog.glb",
+      "file": "public/previews/poison-dart-frog.webp",
+      "bytes": 16368,
+      "width": 512,
+      "height": 512,
+      "md5": "9ba46b7c61e28b85cf7f1966a03db2c9"
+    },
+    {
+      "key": "polar-bear",
+      "source": "public/models/polar-bear.glb",
+      "file": "public/previews/polar-bear.webp",
+      "bytes": 4496,
+      "width": 512,
+      "height": 512,
+      "md5": "47d1ab2dda003ba190991ec9ba31ba46"
+    },
+    {
+      "key": "quagga",
+      "source": "public/models/quagga.glb",
+      "file": "public/previews/quagga.webp",
+      "bytes": 12190,
+      "width": 512,
+      "height": 512,
+      "md5": "ab11159be6ef714fee7dcbe0df9ef383"
+    },
+    {
+      "key": "saltwater-crocodile",
+      "source": "public/models/saltwater-crocodile.glb",
+      "file": "public/previews/saltwater-crocodile.webp",
+      "bytes": 8618,
+      "width": 512,
+      "height": 512,
+      "md5": "e8ba6bd564bb5cab828e63848bad57f1"
+    },
+    {
+      "key": "scarlet-macaw",
+      "source": "public/models/scarlet-macaw.glb",
+      "file": "public/previews/scarlet-macaw.webp",
+      "bytes": 6334,
+      "width": 512,
+      "height": 512,
+      "md5": "ae9cf7eee5e345c4c53186ca26b083c5"
+    },
+    {
+      "key": "serval",
+      "source": "public/models/serval.glb",
+      "file": "public/previews/serval.webp",
+      "bytes": 6222,
+      "width": 512,
+      "height": 512,
+      "md5": "bc14a9d4d2e5bf9a8814466729e1deb3"
+    },
+    {
+      "key": "smilodon",
+      "source": "public/models/smilodon.glb",
+      "file": "public/previews/smilodon.webp",
+      "bytes": 12920,
+      "width": 512,
+      "height": 512,
+      "md5": "f957022fb5ee5d961992162886474f2e"
+    },
+    {
+      "key": "snow-leopard",
+      "source": "public/models/snow-leopard.glb",
+      "file": "public/previews/snow-leopard.webp",
+      "bytes": 8936,
+      "width": 512,
+      "height": 512,
+      "md5": "eccc4225a6d8bd5fcc11c9711175deff"
+    },
+    {
+      "key": "snowy-owl",
+      "source": "public/models/snowy-owl.glb",
+      "file": "public/previews/snowy-owl.webp",
+      "bytes": 7118,
+      "width": 512,
+      "height": 512,
+      "md5": "8e25e997dbee2268d4a4453a675a1f51"
+    },
+    {
+      "key": "space/advanced-composition-explorer",
+      "source": "public/models/space/advanced-composition-explorer.glb",
+      "file": "public/previews/space/advanced-composition-explorer.webp",
+      "bytes": 4298,
+      "width": 512,
+      "height": 512,
+      "md5": "3e0adc6aaf5be061b0529d4f3ccf5cd1"
+    },
+    {
+      "key": "space/advanced-crew-escape-suit",
+      "source": "public/models/space/advanced-crew-escape-suit.glb",
+      "file": "public/previews/space/advanced-crew-escape-suit.webp",
+      "bytes": 13142,
+      "width": 512,
+      "height": 512,
+      "md5": "d74aed887f939d70cf664fb1117277f9"
+    },
+    {
+      "key": "space/aeronomy-of-ice-in-the-mesosphere",
+      "source": "public/models/space/aeronomy-of-ice-in-the-mesosphere.glb",
+      "file": "public/previews/space/aeronomy-of-ice-in-the-mesosphere.webp",
+      "bytes": 11270,
+      "width": 512,
+      "height": 512,
+      "md5": "d46a1fb3644a57ad295b5166b8b9f1e9"
+    },
+    {
+      "key": "space/agena-target-vehicle",
+      "source": "public/models/space/agena-target-vehicle.glb",
+      "file": "public/previews/space/agena-target-vehicle.webp",
+      "bytes": 4420,
+      "width": 512,
+      "height": 512,
+      "md5": "76f98d2ce5889d8f12c27a99fe0efe04"
+    },
+    {
+      "key": "space/apollo-lunar-excursion-module",
+      "source": "public/models/space/apollo-lunar-excursion-module.glb",
+      "file": "public/previews/space/apollo-lunar-excursion-module.webp",
+      "bytes": 16098,
+      "width": 512,
+      "height": 512,
+      "md5": "8c4f5b2c98162a9a072b1b927a1b0e7d"
+    },
+    {
+      "key": "space/apollo-lunar-module",
+      "source": "public/models/space/apollo-lunar-module.glb",
+      "file": "public/previews/space/apollo-lunar-module.webp",
+      "bytes": 16098,
+      "width": 512,
+      "height": 512,
+      "md5": "8c4f5b2c98162a9a072b1b927a1b0e7d"
+    },
+    {
+      "key": "space/ares-1-b",
+      "source": "public/models/space/ares-1-b.glb",
+      "file": "public/previews/space/ares-1-b.webp",
+      "bytes": 5186,
+      "width": 512,
+      "height": 512,
+      "md5": "6cd475e0a597d0facc6e57ff97e84cee"
+    },
+    {
+      "key": "space/argo",
+      "source": "public/models/space/argo.glb",
+      "file": "public/previews/space/argo.webp",
+      "bytes": 10710,
+      "width": 512,
+      "height": 512,
+      "md5": "224d511fecd26be002589821965b9b9b"
+    },
+    {
+      "key": "space/astronaut",
+      "source": "public/models/space/astronaut.glb",
+      "file": "public/previews/space/astronaut.webp",
+      "bytes": 4312,
+      "width": 512,
+      "height": 512,
+      "md5": "3c84fef926298ab47856668ecc6e8eb9"
+    },
+    {
+      "key": "space/base-station",
+      "source": "public/models/space/base-station.glb",
+      "file": "public/previews/space/base-station.webp",
+      "bytes": 2682,
+      "width": 512,
+      "height": 512,
+      "md5": "caf31b80b28161863162af5897e1eb4e"
+    },
+    {
+      "key": "space/black-hole",
+      "source": "public/models/space/black-hole.glb",
+      "file": "public/previews/space/black-hole.webp",
+      "bytes": 2840,
+      "width": 512,
+      "height": 512,
+      "md5": "af7f5c2b8ae3ac9e9b05082098c51880"
+    },
+    {
+      "key": "space/black-hole-astroriah",
+      "source": "public/models/space/black-hole-astroriah.glb",
+      "file": "public/previews/space/black-hole-astroriah.webp",
+      "bytes": 3960,
+      "width": 512,
+      "height": 512,
+      "md5": "f6c2a219acdbaf96be74ac5ef5bb54cb"
+    },
+    {
+      "key": "space/bp-tauri",
+      "source": "public/models/space/bp-tauri.glb",
+      "file": "public/previews/space/bp-tauri.webp",
+      "bytes": 3934,
+      "width": 512,
+      "height": 512,
+      "md5": "70dc951b4322c788afaf92680c206a1f"
+    },
+    {
+      "key": "space/callisto-moon",
+      "source": "public/models/space/callisto-moon.glb",
+      "file": "public/previews/space/callisto-moon.webp",
+      "bytes": 27878,
+      "width": 512,
+      "height": 512,
+      "md5": "696699356a1766a1a2e0e0be871e5765"
+    },
+    {
+      "key": "space/chandra-x-ray-observatory",
+      "source": "public/models/space/chandra-x-ray-observatory.glb",
+      "file": "public/previews/space/chandra-x-ray-observatory.webp",
+      "bytes": 3618,
+      "width": 512,
+      "height": 512,
+      "md5": "5f8a4fd6affdf5ec6a2b865a2f2e63c4"
+    },
+    {
+      "key": "space/clementine",
+      "source": "public/models/space/clementine.glb",
+      "file": "public/previews/space/clementine.webp",
+      "bytes": 8584,
+      "width": 512,
+      "height": 512,
+      "md5": "878ff092e4456f584a5dc741050e174a"
+    },
+    {
+      "key": "space/cloudsat-a",
+      "source": "public/models/space/cloudsat-a.glb",
+      "file": "public/previews/space/cloudsat-a.webp",
+      "bytes": 7898,
+      "width": 512,
+      "height": 512,
+      "md5": "ce7299b6fbed196474a0d1fe9e1a8cbb"
+    },
+    {
+      "key": "space/cloudsat-b",
+      "source": "public/models/space/cloudsat-b.glb",
+      "file": "public/previews/space/cloudsat-b.webp",
+      "bytes": 10306,
+      "width": 512,
+      "height": 512,
+      "md5": "bd7a2a6d0686706846111e8e77e9b270"
+    },
+    {
+      "key": "space/cloudsat-c",
+      "source": "public/models/space/cloudsat-c.glb",
+      "file": "public/previews/space/cloudsat-c.webp",
+      "bytes": 7108,
+      "width": 512,
+      "height": 512,
+      "md5": "67df66289cefa8b1af3a18dd8b1a843a"
+    },
+    {
+      "key": "space/curiosity-rover",
+      "source": "public/models/space/curiosity-rover.glb",
+      "file": "public/previews/space/curiosity-rover.webp",
+      "bytes": 18692,
+      "width": 512,
+      "height": 512,
+      "md5": "f512ccd63ffeed8b8106aca0addc023a"
+    },
+    {
+      "key": "space/curiosity-rover-msl",
+      "source": "public/models/space/curiosity-rover-msl.glb",
+      "file": "public/previews/space/curiosity-rover-msl.webp",
+      "bytes": 16228,
+      "width": 512,
+      "height": 512,
+      "md5": "10b4f9dc7d6a9de40c608d4e5350e15f"
+    },
+    {
+      "key": "space/cyclone-global-navigation-satellite-syst",
+      "source": "public/models/space/cyclone-global-navigation-satellite-syst.glb",
+      "file": "public/previews/space/cyclone-global-navigation-satellite-syst.webp",
+      "bytes": 5412,
+      "width": 512,
+      "height": 512,
+      "md5": "7ad1b0014a603ee221f198e316cddbb1"
+    },
+    {
+      "key": "space/deep-space-1",
+      "source": "public/models/space/deep-space-1.glb",
+      "file": "public/previews/space/deep-space-1.webp",
+      "bytes": 8198,
+      "width": 512,
+      "height": 512,
+      "md5": "ef9b96a15c814b30ebe351a08da0167b"
+    },
+    {
+      "key": "space/deep-space-climate-observatory-dscovr-tr",
+      "source": "public/models/space/deep-space-climate-observatory-dscovr-tr.glb",
+      "file": "public/previews/space/deep-space-climate-observatory-dscovr-tr.webp",
+      "bytes": 3254,
+      "width": 512,
+      "height": 512,
+      "md5": "15560429f1000cb1a52b3be976bebe15"
+    },
+    {
+      "key": "space/earth",
+      "source": "public/models/space/earth.glb",
+      "file": "public/previews/space/earth.webp",
+      "bytes": 18804,
+      "width": 512,
+      "height": 512,
+      "md5": "383087f076281c1ab9bfa25adbed74f6"
+    },
+    {
+      "key": "space/earth-observing-1-eo-1",
+      "source": "public/models/space/earth-observing-1-eo-1.glb",
+      "file": "public/previews/space/earth-observing-1-eo-1.webp",
+      "bytes": 10134,
+      "width": 512,
+      "height": 512,
+      "md5": "9cdc7b632807fd0162cb06cb7c29029a"
+    },
+    {
+      "key": "space/extravehicular-mobility-unit",
+      "source": "public/models/space/extravehicular-mobility-unit.glb",
+      "file": "public/previews/space/extravehicular-mobility-unit.webp",
+      "bytes": 17980,
+      "width": 512,
+      "height": 512,
+      "md5": "6b6729d7d14eeeb99e83d255ccb2fc1d"
+    },
+    {
+      "key": "space/far-ultraviolet-spectroscopic-explorer",
+      "source": "public/models/space/far-ultraviolet-spectroscopic-explorer.glb",
+      "file": "public/previews/space/far-ultraviolet-spectroscopic-explorer.webp",
+      "bytes": 3928,
+      "width": 512,
+      "height": 512,
+      "md5": "dd37a2555c2d22676c8414e8dddd756c"
+    },
+    {
+      "key": "space/galaxy",
+      "source": "public/models/space/galaxy.glb",
+      "file": "public/previews/space/galaxy.webp",
+      "bytes": 6140,
+      "width": 512,
+      "height": 512,
+      "md5": "13567cb7eaa30272b975e9608cb08298"
+    },
+    {
+      "key": "space/ganymede-moon",
+      "source": "public/models/space/ganymede-moon.glb",
+      "file": "public/previews/space/ganymede-moon.webp",
+      "bytes": 18036,
+      "width": 512,
+      "height": 512,
+      "md5": "a18475a3ce841b43e54ddfd84e2f6328"
+    },
+    {
+      "key": "space/gemini-spacesuit",
+      "source": "public/models/space/gemini-spacesuit.glb",
+      "file": "public/previews/space/gemini-spacesuit.webp",
+      "bytes": 7442,
+      "width": 512,
+      "height": 512,
+      "md5": "690a08d1f59e77efa3986e343c3c5726"
+    },
+    {
+      "key": "space/gingerbread-man",
+      "source": "public/models/space/gingerbread-man.glb",
+      "file": "public/previews/space/gingerbread-man.webp",
+      "bytes": 10862,
+      "width": 512,
+      "height": 512,
+      "md5": "c8471f358e1b6c28a1c97fe740ebfead"
+    },
+    {
+      "key": "space/hammer",
+      "source": "public/models/space/hammer.glb",
+      "file": "public/previews/space/hammer.webp",
+      "bytes": 4220,
+      "width": 512,
+      "height": 512,
+      "md5": "6fd86ecef22be2a6a1a00f5434a48bc9"
+    },
+    {
+      "key": "space/helmet",
+      "source": "public/models/space/helmet.glb",
+      "file": "public/previews/space/helmet.webp",
+      "bytes": 20476,
+      "width": 512,
+      "height": 512,
+      "md5": "a2c53f75ac040e998c055bb1e6ad32bc"
+    },
+    {
+      "key": "space/hubble",
+      "source": "public/models/space/hubble.glb",
+      "file": "public/previews/space/hubble.webp",
+      "bytes": 12812,
+      "width": 512,
+      "height": 512,
+      "md5": "429ca380f3a3bef731587380526b2d33"
+    },
+    {
+      "key": "space/hubble-space-telescope",
+      "source": "public/models/space/hubble-space-telescope.glb",
+      "file": "public/previews/space/hubble-space-telescope.webp",
+      "bytes": 12812,
+      "width": 512,
+      "height": 512,
+      "md5": "429ca380f3a3bef731587380526b2d33"
+    },
+    {
+      "key": "space/hubble-space-telescope-a",
+      "source": "public/models/space/hubble-space-telescope-a.glb",
+      "file": "public/previews/space/hubble-space-telescope-a.webp",
+      "bytes": 12812,
+      "width": 512,
+      "height": 512,
+      "md5": "429ca380f3a3bef731587380526b2d33"
+    },
+    {
+      "key": "space/hubble-space-telescope-b",
+      "source": "public/models/space/hubble-space-telescope-b.glb",
+      "file": "public/previews/space/hubble-space-telescope-b.webp",
+      "bytes": 10476,
+      "width": 512,
+      "height": 512,
+      "md5": "bfffb26248089886dd9a0cdd8a2370e4"
+    },
+    {
+      "key": "space/international-space-station-iss-b",
+      "source": "public/models/space/international-space-station-iss-b.glb",
+      "file": "public/previews/space/international-space-station-iss-b.webp",
+      "bytes": 6774,
+      "width": 512,
+      "height": 512,
+      "md5": "97c034dce0d7543811bf919b953ca89b"
+    },
+    {
+      "key": "space/international-x-ray-observatory",
+      "source": "public/models/space/international-x-ray-observatory.glb",
+      "file": "public/previews/space/international-x-ray-observatory.webp",
+      "bytes": 6970,
+      "width": 512,
+      "height": 512,
+      "md5": "f23e5e698eb3edaf8a8064eaab6eec0c"
+    },
+    {
+      "key": "space/interstellar-boundary-explorer-ibex",
+      "source": "public/models/space/interstellar-boundary-explorer-ibex.glb",
+      "file": "public/previews/space/interstellar-boundary-explorer-ibex.webp",
+      "bytes": 12722,
+      "width": 512,
+      "height": 512,
+      "md5": "dc7529c39c9ae10800d4d8665bc3650c"
+    },
+    {
+      "key": "space/james-webb-space-telescope",
+      "source": "public/models/space/james-webb-space-telescope.glb",
+      "file": "public/previews/space/james-webb-space-telescope.webp",
+      "bytes": 10266,
+      "width": 512,
+      "height": 512,
+      "md5": "80145611067512616bffb74e45f125e1"
+    },
+    {
+      "key": "space/jupiter",
+      "source": "public/models/space/jupiter.glb",
+      "file": "public/previews/space/jupiter.webp",
+      "bytes": 7136,
+      "width": 512,
+      "height": 512,
+      "md5": "2ac2c08807a3e70aca230fc6a999a1c6"
+    },
+    {
+      "key": "space/landsat-7",
+      "source": "public/models/space/landsat-7.glb",
+      "file": "public/previews/space/landsat-7.webp",
+      "bytes": 4180,
+      "width": 512,
+      "height": 512,
+      "md5": "dcec872bd7645411c55d0cd77f79e7c9"
+    },
+    {
+      "key": "space/landsat-8",
+      "source": "public/models/space/landsat-8.glb",
+      "file": "public/previews/space/landsat-8.webp",
+      "bytes": 13458,
+      "width": 512,
+      "height": 512,
+      "md5": "22c648db2a13a1810c2993fe3032b419"
+    },
+    {
+      "key": "space/laser-interferometer-space-antenna-lisa",
+      "source": "public/models/space/laser-interferometer-space-antenna-lisa.glb",
+      "file": "public/previews/space/laser-interferometer-space-antenna-lisa.webp",
+      "bytes": 5892,
+      "width": 512,
+      "height": 512,
+      "md5": "c9597b3225e9ac03de30d0905ed8348d"
+    },
+    {
+      "key": "space/lunar-atmosphere-and-dust-environment-ex",
+      "source": "public/models/space/lunar-atmosphere-and-dust-environment-ex.glb",
+      "file": "public/previews/space/lunar-atmosphere-and-dust-environment-ex.webp",
+      "bytes": 10918,
+      "width": 512,
+      "height": 512,
+      "md5": "1469ecdc28cb680f427fa618b1b43813"
+    },
+    {
+      "key": "space/lunar-reconnaissance-orbiter-a",
+      "source": "public/models/space/lunar-reconnaissance-orbiter-a.glb",
+      "file": "public/previews/space/lunar-reconnaissance-orbiter-a.webp",
+      "bytes": 7088,
+      "width": 512,
+      "height": 512,
+      "md5": "2476d6a4e5c6ce65ad04857fb6cb4b44"
+    },
+    {
+      "key": "space/mars",
+      "source": "public/models/space/mars.glb",
+      "file": "public/previews/space/mars.webp",
+      "bytes": 3034,
+      "width": 512,
+      "height": 512,
+      "md5": "f2fcac170c0cfdd41038f1452bdf1071"
+    },
+    {
+      "key": "space/mars-atmosphere-and-volatile-evolution-m",
+      "source": "public/models/space/mars-atmosphere-and-volatile-evolution-m.glb",
+      "file": "public/previews/space/mars-atmosphere-and-volatile-evolution-m.webp",
+      "bytes": 8756,
+      "width": 512,
+      "height": 512,
+      "md5": "af45a31d74f6d5f445562a5922cceeb4"
+    },
+    {
+      "key": "space/mars-global-surveyor",
+      "source": "public/models/space/mars-global-surveyor.glb",
+      "file": "public/previews/space/mars-global-surveyor.webp",
+      "bytes": 3206,
+      "width": 512,
+      "height": 512,
+      "md5": "80a808088f2aefadc781a3d515633227"
+    },
+    {
+      "key": "space/mars-reconnaissance-orbiter-mro-a",
+      "source": "public/models/space/mars-reconnaissance-orbiter-mro-a.glb",
+      "file": "public/previews/space/mars-reconnaissance-orbiter-mro-a.webp",
+      "bytes": 12746,
+      "width": 512,
+      "height": 512,
+      "md5": "f0d09bb9e1676a647ea2ce306f3a45c5"
+    },
+    {
+      "key": "space/mars-reconnaissance-orbiter-mro-c",
+      "source": "public/models/space/mars-reconnaissance-orbiter-mro-c.glb",
+      "file": "public/previews/space/mars-reconnaissance-orbiter-mro-c.webp",
+      "bytes": 7714,
+      "width": 512,
+      "height": 512,
+      "md5": "5dd2832a77eee4571ef542d10d663832"
+    },
+    {
+      "key": "space/mars-rover",
+      "source": "public/models/space/mars-rover.glb",
+      "file": "public/previews/space/mars-rover.webp",
+      "bytes": 8818,
+      "width": 512,
+      "height": 512,
+      "md5": "ab872761a6dbb8ce7db3c15a3cef0049"
+    },
+    {
+      "key": "space/mercury",
+      "source": "public/models/space/mercury.glb",
+      "file": "public/previews/space/mercury.webp",
+      "bytes": 3174,
+      "width": 512,
+      "height": 512,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be"
+    },
+    {
+      "key": "space/mercury-planet",
+      "source": "public/models/space/mercury-planet.glb",
+      "file": "public/previews/space/mercury-planet.webp",
+      "bytes": 12512,
+      "width": 512,
+      "height": 512,
+      "md5": "871666ee26d67f03dcf746414c02a161"
+    },
+    {
+      "key": "space/mercury-planet-brass-stylised",
+      "source": "public/models/space/mercury-planet-brass-stylised.glb",
+      "file": "public/previews/space/mercury-planet-brass-stylised.webp",
+      "bytes": 12512,
+      "width": 512,
+      "height": 512,
+      "md5": "871666ee26d67f03dcf746414c02a161"
+    },
+    {
+      "key": "space/mercury-spacesuit",
+      "source": "public/models/space/mercury-spacesuit.glb",
+      "file": "public/previews/space/mercury-spacesuit.webp",
+      "bytes": 5304,
+      "width": 512,
+      "height": 512,
+      "md5": "4ff006b4fdc528d62266047855744e66"
+    },
+    {
+      "key": "space/meteorite",
+      "source": "public/models/space/meteorite.glb",
+      "file": "public/previews/space/meteorite.webp",
+      "bytes": 9516,
+      "width": 512,
+      "height": 512,
+      "md5": "27e5ef9fd4f46c2c29766318811a458e"
+    },
+    {
+      "key": "space/meteorites",
+      "source": "public/models/space/meteorites.glb",
+      "file": "public/previews/space/meteorites.webp",
+      "bytes": 9516,
+      "width": 512,
+      "height": 512,
+      "md5": "27e5ef9fd4f46c2c29766318811a458e"
+    },
+    {
+      "key": "space/mir",
+      "source": "public/models/space/mir.glb",
+      "file": "public/previews/space/mir.webp",
+      "bytes": 3892,
+      "width": 512,
+      "height": 512,
+      "md5": "ea27ad84e9939256313bedb3bc4c39d3"
+    },
+    {
+      "key": "space/moon",
+      "source": "public/models/space/moon.glb",
+      "file": "public/previews/space/moon.webp",
+      "bytes": 3174,
+      "width": 512,
+      "height": 512,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be"
+    },
+    {
+      "key": "space/nancy-grace-roman-space-telescope-a",
+      "source": "public/models/space/nancy-grace-roman-space-telescope-a.glb",
+      "file": "public/previews/space/nancy-grace-roman-space-telescope-a.webp",
+      "bytes": 8426,
+      "width": 512,
+      "height": 512,
+      "md5": "07bff8cf67d219bce4d8502ccf544ce6"
+    },
+    {
+      "key": "space/nancy-grace-roman-space-telescope-b",
+      "source": "public/models/space/nancy-grace-roman-space-telescope-b.glb",
+      "file": "public/previews/space/nancy-grace-roman-space-telescope-b.webp",
+      "bytes": 13720,
+      "width": 512,
+      "height": 512,
+      "md5": "8684d3c52794fb14d1c261f594da80b8"
+    },
+    {
+      "key": "space/near-shoemaker",
+      "source": "public/models/space/near-shoemaker.glb",
+      "file": "public/previews/space/near-shoemaker.webp",
+      "bytes": 9358,
+      "width": 512,
+      "height": 512,
+      "md5": "715ead5ae8fcc980a75d51b03ef9a632"
+    },
+    {
+      "key": "space/neptune",
+      "source": "public/models/space/neptune.glb",
+      "file": "public/previews/space/neptune.webp",
+      "bytes": 12284,
+      "width": 512,
+      "height": 512,
+      "md5": "6b3c1ab79bfefe836423119baaed60a4"
+    },
+    {
+      "key": "space/neptune-v2",
+      "source": "public/models/space/neptune-v2.glb",
+      "file": "public/previews/space/neptune-v2.webp",
+      "bytes": 12284,
+      "width": 512,
+      "height": 512,
+      "md5": "6b3c1ab79bfefe836423119baaed60a4"
+    },
+    {
+      "key": "space/ocean-surface-topography-mission-ostm-ja",
+      "source": "public/models/space/ocean-surface-topography-mission-ostm-ja.glb",
+      "file": "public/previews/space/ocean-surface-topography-mission-ostm-ja.webp",
+      "bytes": 8442,
+      "width": 512,
+      "height": 512,
+      "md5": "fa18a5f9cc6fc26640f3f5e58bee8246"
+    },
+    {
+      "key": "space/parker-solar-probe",
+      "source": "public/models/space/parker-solar-probe.glb",
+      "file": "public/previews/space/parker-solar-probe.webp",
+      "bytes": 6826,
+      "width": 512,
+      "height": 512,
+      "md5": "69d259d48b57d83d223937011cc22a2f"
+    },
+    {
+      "key": "space/parker-solar-probe-suns-kisser",
+      "source": "public/models/space/parker-solar-probe-suns-kisser.glb",
+      "file": "public/previews/space/parker-solar-probe-suns-kisser.webp",
+      "bytes": 20056,
+      "width": 512,
+      "height": 512,
+      "md5": "b91d90809fb1faab8b0cdd9d0cde415e"
+    },
+    {
+      "key": "space/planet-earth",
+      "source": "public/models/space/planet-earth.glb",
+      "file": "public/previews/space/planet-earth.webp",
+      "bytes": 18804,
+      "width": 512,
+      "height": 512,
+      "md5": "383087f076281c1ab9bfa25adbed74f6"
+    },
+    {
+      "key": "space/planet-earth-alt-drag-to-change-lighting",
+      "source": "public/models/space/planet-earth-alt-drag-to-change-lighting.glb",
+      "file": "public/previews/space/planet-earth-alt-drag-to-change-lighting.webp",
+      "bytes": 18804,
+      "width": 512,
+      "height": 512,
+      "md5": "383087f076281c1ab9bfa25adbed74f6"
+    },
+    {
+      "key": "space/planet-neptune",
+      "source": "public/models/space/planet-neptune.glb",
+      "file": "public/previews/space/planet-neptune.webp",
+      "bytes": 12284,
+      "width": 512,
+      "height": 512,
+      "md5": "6b3c1ab79bfefe836423119baaed60a4"
+    },
+    {
+      "key": "space/planet-nine",
+      "source": "public/models/space/planet-nine.glb",
+      "file": "public/previews/space/planet-nine.webp",
+      "bytes": 4490,
+      "width": 512,
+      "height": 512,
+      "md5": "3c47a687af07f7b88319d2ea57bb9fa8"
+    },
+    {
+      "key": "space/planet-saturn",
+      "source": "public/models/space/planet-saturn.glb",
+      "file": "public/previews/space/planet-saturn.webp",
+      "bytes": 4568,
+      "width": 512,
+      "height": 512,
+      "md5": "069e010cbc779e4ecb9b419ec25bc3a2"
+    },
+    {
+      "key": "space/planetary-nebula",
+      "source": "public/models/space/planetary-nebula.glb",
+      "file": "public/previews/space/planetary-nebula.webp",
+      "bytes": 69366,
+      "width": 512,
+      "height": 512,
+      "md5": "cc5c2a2d9eb28b6974481038f4602de2"
+    },
+    {
+      "key": "space/quick-scatterometer-quikscat",
+      "source": "public/models/space/quick-scatterometer-quikscat.glb",
+      "file": "public/previews/space/quick-scatterometer-quikscat.webp",
+      "bytes": 17568,
+      "width": 512,
+      "height": 512,
+      "md5": "8838c24151d0d278c10524f377a42728"
+    },
+    {
+      "key": "space/radome",
+      "source": "public/models/space/radome.glb",
+      "file": "public/previews/space/radome.webp",
+      "bytes": 12522,
+      "width": 512,
+      "height": 512,
+      "md5": "06374855d41ffa99bc373273570f44c9"
+    },
+    {
+      "key": "space/robonaut-2",
+      "source": "public/models/space/robonaut-2.glb",
+      "file": "public/previews/space/robonaut-2.webp",
+      "bytes": 4560,
+      "width": 512,
+      "height": 512,
+      "md5": "1d064d32d0ce6578a285b4214897652e"
+    },
+    {
+      "key": "space/rocket-engine",
+      "source": "public/models/space/rocket-engine.glb",
+      "file": "public/previews/space/rocket-engine.webp",
+      "bytes": 16054,
+      "width": 512,
+      "height": 512,
+      "md5": "b1824a096aee3b61b3cb69cae07045c5"
+    },
+    {
+      "key": "space/rosetta",
+      "source": "public/models/space/rosetta.glb",
+      "file": "public/previews/space/rosetta.webp",
+      "bytes": 5278,
+      "width": 512,
+      "height": 512,
+      "md5": "0b8437c34582532d5e213b9d5eb1a3ed"
+    },
+    {
+      "key": "space/rs-2200",
+      "source": "public/models/space/rs-2200.glb",
+      "file": "public/previews/space/rs-2200.webp",
+      "bytes": 28024,
+      "width": 512,
+      "height": 512,
+      "md5": "d6f6ec4e3b8cac5e3aca732a96a944c8"
+    },
+    {
+      "key": "space/saturn",
+      "source": "public/models/space/saturn.glb",
+      "file": "public/previews/space/saturn.webp",
+      "bytes": 4568,
+      "width": 512,
+      "height": 512,
+      "md5": "069e010cbc779e4ecb9b419ec25bc3a2"
+    },
+    {
+      "key": "space/saturn-v",
+      "source": "public/models/space/saturn-v.glb",
+      "file": "public/previews/space/saturn-v.webp",
+      "bytes": 1808,
+      "width": 512,
+      "height": 512,
+      "md5": "9592fdc028c5fb9b03522aa338fb11da"
+    },
+    {
+      "key": "space/skylab",
+      "source": "public/models/space/skylab.glb",
+      "file": "public/previews/space/skylab.webp",
+      "bytes": 9082,
+      "width": 512,
+      "height": 512,
+      "md5": "e8013275166e1f040994f10f7c61c3f5"
+    },
+    {
+      "key": "space/solar-and-heliospheric-observatory",
+      "source": "public/models/space/solar-and-heliospheric-observatory.glb",
+      "file": "public/previews/space/solar-and-heliospheric-observatory.webp",
+      "bytes": 9030,
+      "width": 512,
+      "height": 512,
+      "md5": "524863ccb9af923dd4b53377244ebe25"
+    },
+    {
+      "key": "space/solar-dynamics-observatory",
+      "source": "public/models/space/solar-dynamics-observatory.glb",
+      "file": "public/previews/space/solar-dynamics-observatory.webp",
+      "bytes": 12326,
+      "width": 512,
+      "height": 512,
+      "md5": "ee087728c1bda7b807f3e4af639099ac"
+    },
+    {
+      "key": "space/solar-radiation-and-climate-experiment-s",
+      "source": "public/models/space/solar-radiation-and-climate-experiment-s.glb",
+      "file": "public/previews/space/solar-radiation-and-climate-experiment-s.webp",
+      "bytes": 5092,
+      "width": 512,
+      "height": 512,
+      "md5": "94c6a4105104bf6bc46d7778a72e7f35"
+    },
+    {
+      "key": "space/solar-system",
+      "source": "public/models/space/solar-system.glb",
+      "file": "public/previews/space/solar-system.webp",
+      "bytes": 5904,
+      "width": 512,
+      "height": 512,
+      "md5": "ebf61c10eeb969e5ed058667da1b6d6f"
+    },
+    {
+      "key": "space/solar-terrestrial-relations-observatory",
+      "source": "public/models/space/solar-terrestrial-relations-observatory.glb",
+      "file": "public/previews/space/solar-terrestrial-relations-observatory.webp",
+      "bytes": 5682,
+      "width": 512,
+      "height": 512,
+      "md5": "0dc737814df3792ed46ec81692bacd4d"
+    },
+    {
+      "key": "space/space-shuttle-c",
+      "source": "public/models/space/space-shuttle-c.glb",
+      "file": "public/previews/space/space-shuttle-c.webp",
+      "bytes": 7710,
+      "width": 512,
+      "height": 512,
+      "md5": "76266bd0dee4283f62a19f72c8849015"
+    },
+    {
+      "key": "space/space-shuttle-challenger",
+      "source": "public/models/space/space-shuttle-challenger.glb",
+      "file": "public/previews/space/space-shuttle-challenger.webp",
+      "bytes": 8052,
+      "width": 512,
+      "height": 512,
+      "md5": "f53add46be666f531df6b99c51fe6501"
+    },
+    {
+      "key": "space/space-shuttle-d",
+      "source": "public/models/space/space-shuttle-d.glb",
+      "file": "public/previews/space/space-shuttle-d.webp",
+      "bytes": 6356,
+      "width": 512,
+      "height": 512,
+      "md5": "229bb3736bbc4f095f590a584dc3a45b"
+    },
+    {
+      "key": "space/space-shuttle-discovery",
+      "source": "public/models/space/space-shuttle-discovery.glb",
+      "file": "public/previews/space/space-shuttle-discovery.webp",
+      "bytes": 7710,
+      "width": 512,
+      "height": 512,
+      "md5": "76266bd0dee4283f62a19f72c8849015"
+    },
+    {
+      "key": "space/space-station",
+      "source": "public/models/space/space-station.glb",
+      "file": "public/previews/space/space-station.webp",
+      "bytes": 13600,
+      "width": 512,
+      "height": 512,
+      "md5": "0ef6398955033a87d5546f9f5e1d7695"
+    },
+    {
+      "key": "space/space-suit",
+      "source": "public/models/space/space-suit.glb",
+      "file": "public/previews/space/space-suit.webp",
+      "bytes": 7850,
+      "width": 512,
+      "height": 512,
+      "md5": "a914588dc20327051acfaffbd86dfebf"
+    },
+    {
+      "key": "space/spitzer-space-telescope",
+      "source": "public/models/space/spitzer-space-telescope.glb",
+      "file": "public/previews/space/spitzer-space-telescope.webp",
+      "bytes": 7990,
+      "width": 512,
+      "height": 512,
+      "md5": "60eec384c3f7b265406fc0b338bc0b28"
+    },
+    {
+      "key": "space/submillimeter-wave-astronomy-satellite-s",
+      "source": "public/models/space/submillimeter-wave-astronomy-satellite-s.glb",
+      "file": "public/previews/space/submillimeter-wave-astronomy-satellite-s.webp",
+      "bytes": 3454,
+      "width": 512,
+      "height": 512,
+      "md5": "138e0f31936b719b325afbb57c0ff4c8"
+    },
+    {
+      "key": "space/sun",
+      "source": "public/models/space/sun.glb",
+      "file": "public/previews/space/sun.webp",
+      "bytes": 31748,
+      "width": 512,
+      "height": 512,
+      "md5": "b1d42bdd58eb6c0c341961ff74497931"
+    },
+    {
+      "key": "space/telescope",
+      "source": "public/models/space/telescope.glb",
+      "file": "public/previews/space/telescope.webp",
+      "bytes": 8442,
+      "width": 512,
+      "height": 512,
+      "md5": "7f6d5e19e7f4b926b565524757e8cdde"
+    },
+    {
+      "key": "space/titan",
+      "source": "public/models/space/titan.glb",
+      "file": "public/previews/space/titan.webp",
+      "bytes": 6644,
+      "width": 512,
+      "height": 512,
+      "md5": "4fc4ee4643e0b0dd1b57bef0bc31705d"
+    },
+    {
+      "key": "space/total-ozone-mapping-spectrometer-toms",
+      "source": "public/models/space/total-ozone-mapping-spectrometer-toms.glb",
+      "file": "public/previews/space/total-ozone-mapping-spectrometer-toms.webp",
+      "bytes": 7516,
+      "width": 512,
+      "height": 512,
+      "md5": "485995d8a2ae611067170320ee1cdfa0"
+    },
+    {
+      "key": "space/transiting-exoplanet-survey-satellite-te",
+      "source": "public/models/space/transiting-exoplanet-survey-satellite-te.glb",
+      "file": "public/previews/space/transiting-exoplanet-survey-satellite-te.webp",
+      "bytes": 4572,
+      "width": 512,
+      "height": 512,
+      "md5": "10f3fcc6db4b50e93e80fa2cf17e3fc2"
+    },
+    {
+      "key": "space/tropical-rainfall-measuring-mission-trmm",
+      "source": "public/models/space/tropical-rainfall-measuring-mission-trmm.glb",
+      "file": "public/previews/space/tropical-rainfall-measuring-mission-trmm.webp",
+      "bytes": 3716,
+      "width": 512,
+      "height": 512,
+      "md5": "70a33226b2020a32c1eb78c7ae4952ca"
+    },
+    {
+      "key": "space/umbriel",
+      "source": "public/models/space/umbriel.glb",
+      "file": "public/previews/space/umbriel.webp",
+      "bytes": 11776,
+      "width": 512,
+      "height": 512,
+      "md5": "16474119169a6bfa87ec2c06b12759eb"
+    },
+    {
+      "key": "space/uranus",
+      "source": "public/models/space/uranus.glb",
+      "file": "public/previews/space/uranus.webp",
+      "bytes": 22258,
+      "width": 512,
+      "height": 512,
+      "md5": "741aa5f9fc36d698f3ef3794b74f13fc"
+    },
+    {
+      "key": "space/van-allen-probes",
+      "source": "public/models/space/van-allen-probes.glb",
+      "file": "public/previews/space/van-allen-probes.webp",
+      "bytes": 2576,
+      "width": 512,
+      "height": 512,
+      "md5": "a857f0708009514ad42e4fe75fbc0140"
+    },
+    {
+      "key": "space/vehicle-assembly-building-vab",
+      "source": "public/models/space/vehicle-assembly-building-vab.glb",
+      "file": "public/previews/space/vehicle-assembly-building-vab.webp",
+      "bytes": 1676,
+      "width": 512,
+      "height": 512,
+      "md5": "032f6ea58873655ab3f56644868ca602"
+    },
+    {
+      "key": "space/venus",
+      "source": "public/models/space/venus.glb",
+      "file": "public/previews/space/venus.webp",
+      "bytes": 3174,
+      "width": 512,
+      "height": 512,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be"
+    },
+    {
+      "key": "space/voyager-1",
+      "source": "public/models/space/voyager-1.glb",
+      "file": "public/previews/space/voyager-1.webp",
+      "bytes": 6736,
+      "width": 512,
+      "height": 512,
+      "md5": "bbff97ba595c66eb30662a465fc482e8"
+    },
+    {
+      "key": "space/wilkinson-microwave-anisotropy-probe-wma",
+      "source": "public/models/space/wilkinson-microwave-anisotropy-probe-wma.glb",
+      "file": "public/previews/space/wilkinson-microwave-anisotropy-probe-wma.webp",
+      "bytes": 4838,
+      "width": 512,
+      "height": 512,
+      "md5": "145ded24bc91da5b3c745ef35441406b"
+    },
+    {
+      "key": "space/wind",
+      "source": "public/models/space/wind.glb",
+      "file": "public/previews/space/wind.webp",
+      "bytes": 6496,
+      "width": 512,
+      "height": 512,
+      "md5": "480b15452a4f7a16d2379434ba643229"
+    },
+    {
+      "key": "space/wrench",
+      "source": "public/models/space/wrench.glb",
+      "file": "public/previews/space/wrench.webp",
+      "bytes": 6002,
+      "width": 512,
+      "height": 512,
+      "md5": "c85f699abfab62ae4e87f92004727ce5"
+    },
+    {
+      "key": "sperm-whale",
+      "source": "public/models/sperm-whale.glb",
+      "file": "public/previews/sperm-whale.webp",
+      "bytes": 4678,
+      "width": 512,
+      "height": 512,
+      "md5": "c55fce889b3fc7e5dfec3cf5639f3eae"
+    },
+    {
+      "key": "spotted-hyena",
+      "source": "public/models/spotted-hyena.glb",
+      "file": "public/previews/spotted-hyena.webp",
+      "bytes": 8352,
+      "width": 512,
+      "height": 512,
+      "md5": "bfe01c417f0b838b2a9be0e95d809bbf"
+    },
+    {
+      "key": "stellers-sea-cow",
+      "source": "public/models/stellers-sea-cow.glb",
+      "file": "public/previews/stellers-sea-cow.webp",
+      "bytes": 6150,
+      "width": 512,
+      "height": 512,
+      "md5": "40fd16183b1bf6563b05ad72db3e6457"
+    },
+    {
+      "key": "toco-toucan",
+      "source": "public/models/toco-toucan.glb",
+      "file": "public/previews/toco-toucan.webp",
+      "bytes": 15750,
+      "width": 512,
+      "height": 512,
+      "md5": "385d129440ef5aee66a01977467a7978"
+    },
+    {
+      "key": "tyrannosaurus-rex",
+      "source": "public/models/tyrannosaurus-rex.glb",
+      "file": "public/previews/tyrannosaurus-rex.webp",
+      "bytes": 5866,
+      "width": 512,
+      "height": 512,
+      "md5": "f8ffdc67bfbb566f0c8d988de79270bb"
+    },
+    {
+      "key": "vehicles/airbus-a380",
+      "source": "public/models/vehicles/airbus-a380.glb",
+      "file": "public/previews/vehicles/airbus-a380.webp",
+      "bytes": 3202,
+      "width": 512,
+      "height": 512,
+      "md5": "4532e0da1f8b99f0e287d1b9564c9dad"
+    },
+    {
+      "key": "vehicles/bell-uh-1",
+      "source": "public/models/vehicles/bell-uh-1.glb",
+      "file": "public/previews/vehicles/bell-uh-1.webp",
+      "bytes": 7454,
+      "width": 512,
+      "height": 512,
+      "md5": "f2c7d4d11945949722f3dbf5b4b6c3b6"
+    },
+    {
+      "key": "vehicles/boeing-747",
+      "source": "public/models/vehicles/boeing-747.glb",
+      "file": "public/previews/vehicles/boeing-747.webp",
+      "bytes": 6952,
+      "width": 512,
+      "height": 512,
+      "md5": "e2ce6e2c2e8104e5170ed6bc78afba96"
+    },
+    {
+      "key": "vehicles/concorde",
+      "source": "public/models/vehicles/concorde.glb",
+      "file": "public/previews/vehicles/concorde.webp",
+      "bytes": 4346,
+      "width": 512,
+      "height": 512,
+      "md5": "c0341bece9ca687b9c4a71fb38d0f022"
+    },
+    {
+      "key": "vehicles/fire-engine",
+      "source": "public/models/vehicles/fire-engine.glb",
+      "file": "public/previews/vehicles/fire-engine.webp",
+      "bytes": 14100,
+      "width": 512,
+      "height": 512,
+      "md5": "54ed15e3e87c7d8f0fa508d361f7bcfe"
+    },
+    {
+      "key": "vehicles/formula-1-car",
+      "source": "public/models/vehicles/formula-1-car.glb",
+      "file": "public/previews/vehicles/formula-1-car.webp",
+      "bytes": 12940,
+      "width": 512,
+      "height": 512,
+      "md5": "e1415464e29a899d1aba6f646c0594ca"
+    },
+    {
+      "key": "vehicles/harley-davidson",
+      "source": "public/models/vehicles/harley-davidson.glb",
+      "file": "public/previews/vehicles/harley-davidson.webp",
+      "bytes": 14552,
+      "width": 512,
+      "height": 512,
+      "md5": "115049791cc6cd0573abecede7a70a2b"
+    },
+    {
+      "key": "vehicles/hot-air-balloon",
+      "source": "public/models/vehicles/hot-air-balloon.glb",
+      "file": "public/previews/vehicles/hot-air-balloon.webp",
+      "bytes": 10236,
+      "width": 512,
+      "height": 512,
+      "md5": "b9809dfd82d189ac96285ec7318c1789"
+    },
+    {
+      "key": "vehicles/road-bicycle",
+      "source": "public/models/vehicles/road-bicycle.glb",
+      "file": "public/previews/vehicles/road-bicycle.webp",
+      "bytes": 19188,
+      "width": 512,
+      "height": 512,
+      "md5": "4d47a6d51ca39dcdb272165fb57e8022"
+    },
+    {
+      "key": "vehicles/routemaster",
+      "source": "public/models/vehicles/routemaster.glb",
+      "file": "public/previews/vehicles/routemaster.webp",
+      "bytes": 19530,
+      "width": 512,
+      "height": 512,
+      "md5": "8743ffec6d5e295142ea1a9c5426bd88"
+    },
+    {
+      "key": "vehicles/shinkansen",
+      "source": "public/models/vehicles/shinkansen.glb",
+      "file": "public/previews/vehicles/shinkansen.webp",
+      "bytes": 4634,
+      "width": 512,
+      "height": 512,
+      "md5": "8b39aef65e8f7234fbe4bbe918450d17"
+    },
+    {
+      "key": "vehicles/tesla-model-s",
+      "source": "public/models/vehicles/tesla-model-s.glb",
+      "file": "public/previews/vehicles/tesla-model-s.webp",
+      "bytes": 8396,
+      "width": 512,
+      "height": 512,
+      "md5": "bc99b19a5e827f5ddac3b9f75667635f"
+    },
+    {
+      "key": "vehicles/titanic",
+      "source": "public/models/vehicles/titanic.glb",
+      "file": "public/previews/vehicles/titanic.webp",
+      "bytes": 6864,
+      "width": 512,
+      "height": 512,
+      "md5": "d85309210cd430703fc46fe786de8c7c"
+    },
+    {
+      "key": "vehicles/toyota-corolla",
+      "source": "public/models/vehicles/toyota-corolla.glb",
+      "file": "public/previews/vehicles/toyota-corolla.webp",
+      "bytes": 8562,
+      "width": 512,
+      "height": 512,
+      "md5": "4506e28ee6efb87213fe357319271a9f"
+    },
+    {
+      "key": "weddell-seal",
+      "source": "public/models/weddell-seal.glb",
+      "file": "public/previews/weddell-seal.webp",
+      "bytes": 3662,
+      "width": 512,
+      "height": 512,
+      "md5": "b6b5521632d361c31021f3ef8a903c3b"
+    },
+    {
+      "key": "whale-shark",
+      "source": "public/models/whale-shark.glb",
+      "file": "public/previews/whale-shark.webp",
+      "bytes": 4370,
+      "width": 512,
+      "height": 512,
+      "md5": "5eed46ddf4a9d6cbf01502e02e512593"
+    },
+    {
+      "key": "white-rhinoceros",
+      "source": "public/models/white-rhinoceros.glb",
+      "file": "public/previews/white-rhinoceros.webp",
+      "bytes": 7756,
+      "width": 512,
+      "height": 512,
+      "md5": "7301f0993077a8c5127029819392f1b9"
+    },
+    {
+      "key": "wolverine",
+      "source": "public/models/wolverine.glb",
+      "file": "public/previews/wolverine.webp",
+      "bytes": 9498,
+      "width": 512,
+      "height": 512,
+      "md5": "5ad22138c9a9db858b11e89aa282d01b"
+    },
+    {
+      "key": "woolly-mammoth",
+      "source": "public/models/woolly-mammoth.glb",
+      "file": "public/previews/woolly-mammoth.webp",
+      "bytes": 21230,
+      "width": 512,
+      "height": 512,
+      "md5": "0b605dd6c8f5b9996bb70fba4163c125"
+    }
+  ]
+}

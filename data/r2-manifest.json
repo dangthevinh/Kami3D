@@ -1,0 +1,4042 @@
+{
+  "generatedAt": "2026-10-08T00:30:56.561Z",
+  "bucket": "kami3d-storage",
+  "publicBase": "https://pub-21950d790e26424e88e48e5a3e512c9d.r2.dev",
+  "note": "Written by scripts/r2-push.mjs (routes: --push from public/**, --index from the bucket itself). md5 is the ETag R2 reported, so this is a byte-level receipt, not a claim. An entry with source: null is on R2 but was not produced from public/** — copied in by the Storage migration, or written by a pipeline.",
+  "count": 564,
+  "bytes": 701843535,
+  "objects": [
+    {
+      "key": "models/african-bush-elephant.glb",
+      "source": "public/models/african-bush-elephant.glb",
+      "bytes": 2808528,
+      "md5": "b94722481dbc17c24903a5729a8aef14",
+      "uploadedAt": "2026-10-07T05:47:01.827Z"
+    },
+    {
+      "key": "models/african-penguin.glb",
+      "source": null,
+      "bytes": 4756352,
+      "md5": "792603b58a9b5d88cd4696f6067e3751",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/american-alligator.glb",
+      "source": "public/models/american-alligator.glb",
+      "bytes": 5691976,
+      "md5": "c02bc8f12d0b10755e5ce02c3f2635a4",
+      "uploadedAt": "2026-10-07T05:46:37.991Z"
+    },
+    {
+      "key": "models/american-bison.glb",
+      "source": "public/models/american-bison.glb",
+      "bytes": 954264,
+      "md5": "6a3cd66421db3384c12adf50f7d983df",
+      "uploadedAt": "2026-10-07T05:47:17.835Z"
+    },
+    {
+      "key": "models/andean-condor.glb",
+      "source": null,
+      "bytes": 1468888,
+      "md5": "94de22bbd2d4e24bca0c81d2ff4e9af4",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/arctic-fox.glb",
+      "source": "public/models/arctic-fox.glb",
+      "bytes": 581684,
+      "md5": "fe09e6d88bdfd92ffad44656cc6d21d6",
+      "uploadedAt": "2026-10-07T05:47:22.050Z"
+    },
+    {
+      "key": "models/atlantic-puffin.glb",
+      "source": null,
+      "bytes": 663684,
+      "md5": "f8c20210b063d1320809fbf7eff58fac",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/atlas-moth.glb",
+      "source": null,
+      "bytes": 3188220,
+      "md5": "18667b9a1e116cbe00caf84929929cd4",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/axolotl.glb",
+      "source": "public/models/axolotl.glb",
+      "bytes": 504392,
+      "md5": "cd69cfb80328bdd46714d572716c62af",
+      "uploadedAt": "2026-10-07T05:47:22.763Z"
+    },
+    {
+      "key": "models/bactrian-camel.glb",
+      "source": null,
+      "bytes": 502876,
+      "md5": "f17f472859ebb6a808d993371783c7c1",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/bald-eagle.glb",
+      "source": "public/models/bald-eagle.glb",
+      "bytes": 662516,
+      "md5": "8aef5dd62f88bf219aec69fd7b675b5e",
+      "uploadedAt": "2026-10-07T05:47:20.298Z"
+    },
+    {
+      "key": "models/bengal-tiger.glb",
+      "source": null,
+      "bytes": 2364776,
+      "md5": "f3861ff916645a140ede695023a4b867",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/black-mamba.glb",
+      "source": "public/models/black-mamba.glb",
+      "bytes": 2454780,
+      "md5": "b02fa874f2dc4c6a0c35ad5819f61cef",
+      "uploadedAt": "2026-10-07T05:47:03.917Z"
+    },
+    {
+      "key": "models/blue-ringed-octopus.glb",
+      "source": "public/models/blue-ringed-octopus.glb",
+      "bytes": 9210448,
+      "md5": "7ef34621c48510dd9c812715d8c0b3ee",
+      "uploadedAt": "2026-10-07T05:46:25.288Z"
+    },
+    {
+      "key": "models/blue-whale.glb",
+      "source": "public/models/blue-whale.glb",
+      "bytes": 298040,
+      "md5": "626364eadd5d1ce352f1d7fef0b2f73a",
+      "uploadedAt": "2026-10-07T05:47:26.345Z"
+    },
+    {
+      "key": "models/bottlenose-dolphin.glb",
+      "source": "public/models/bottlenose-dolphin.glb",
+      "bytes": 2383912,
+      "md5": "660e9f883cb9a81e22a6cd9129cf93b0",
+      "uploadedAt": "2026-10-07T05:47:05.667Z"
+    },
+    {
+      "key": "models/bullet-ant.glb",
+      "source": null,
+      "bytes": 3658424,
+      "md5": "3a916b6729bd7364e76b19bf37e3fcb3",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/california-condor.glb",
+      "source": "public/models/california-condor.glb",
+      "bytes": 3021480,
+      "md5": "030edea27eeca070b08bcddadcb0e546",
+      "uploadedAt": "2026-10-07T05:46:59.540Z"
+    },
+    {
+      "key": "models/california-sea-lion.glb",
+      "source": "public/models/california-sea-lion.glb",
+      "bytes": 230392,
+      "md5": "b0d3b876fb84cd4294fe0d17359fe9ce",
+      "uploadedAt": "2026-10-07T05:47:27.456Z"
+    },
+    {
+      "key": "models/capybara.glb",
+      "source": "public/models/capybara.glb",
+      "bytes": 2609736,
+      "md5": "1920a9447fad93a6fe9d88c5906a68dd",
+      "uploadedAt": "2026-10-07T05:47:03.520Z"
+    },
+    {
+      "key": "models/caracal.glb",
+      "source": null,
+      "bytes": 268740,
+      "md5": "2799dcf4bcf0ef25c34d10a8992e15e7",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/cheetah.glb",
+      "source": "public/models/cheetah.glb",
+      "bytes": 2151244,
+      "md5": "0c63e5e0fd20c4d0461880aaf3bea5f6",
+      "uploadedAt": "2026-10-07T05:47:06.396Z"
+    },
+    {
+      "key": "models/chimpanzee.glb",
+      "source": "public/models/chimpanzee.glb",
+      "bytes": 216480,
+      "md5": "e08c31d9c0a83c43a8fd658f132cb720",
+      "uploadedAt": "2026-10-07T05:47:27.872Z"
+    },
+    {
+      "key": "models/chinese-giant-salamander.glb",
+      "source": null,
+      "bytes": 3875824,
+      "md5": "902e251f809a0af1d6e8eeed0ce4de95",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/common-octopus.glb",
+      "source": "public/models/common-octopus.glb",
+      "bytes": 8941436,
+      "md5": "bdb9e4d499cd65a83bf1b1fe7db2dd21",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/common-ostrich.glb",
+      "source": "public/models/common-ostrich.glb",
+      "bytes": 2929736,
+      "md5": "4990be7e9891638770b9dea8bf74f34d",
+      "uploadedAt": "2026-10-07T05:47:01.114Z"
+    },
+    {
+      "key": "models/common-seahorse.glb",
+      "source": null,
+      "bytes": 5255056,
+      "md5": "abfc423fa9a5afa20321896d48442248",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/deathstalker-scorpion.glb",
+      "source": "public/models/deathstalker-scorpion.glb",
+      "bytes": 1351100,
+      "md5": "bed77165150915e87e1debbaa1be770d",
+      "uploadedAt": "2026-10-07T05:47:11.969Z"
+    },
+    {
+      "key": "models/dodo.glb",
+      "source": "public/models/dodo.glb",
+      "bytes": 55840,
+      "md5": "ee35d66ad96195d3bc9c0c7786a25218",
+      "uploadedAt": "2026-10-07T05:47:29.625Z"
+    },
+    {
+      "key": "models/electric-eel.glb",
+      "source": "public/models/electric-eel.glb",
+      "bytes": 1321520,
+      "md5": "eba3f46a31fdedf895d832a4eb0b6a5c",
+      "uploadedAt": "2026-10-07T05:47:12.534Z"
+    },
+    {
+      "key": "models/emperor-dragonfly.glb",
+      "source": "public/models/emperor-dragonfly.glb",
+      "bytes": 1742684,
+      "md5": "b1188fe646e4f74b78330336ee41cee0",
+      "uploadedAt": "2026-10-07T05:47:09.403Z"
+    },
+    {
+      "key": "models/emperor-penguin.glb",
+      "source": "public/models/emperor-penguin.glb",
+      "bytes": 1728156,
+      "md5": "d75a2c7efd70b4cbc60ca965835f5572",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/emperor-scorpion.glb",
+      "source": "public/models/emperor-scorpion.glb",
+      "bytes": 2138460,
+      "md5": "11a9eefc7369071b83eafc5812d46b5a",
+      "uploadedAt": "2026-10-07T05:47:06.395Z"
+    },
+    {
+      "key": "models/european-mantis.glb",
+      "source": "public/models/european-mantis.glb",
+      "bytes": 3139180,
+      "md5": "d6c7aa72a3f3ff7b19baf5876e30a2d7",
+      "uploadedAt": "2026-10-07T05:46:59.317Z"
+    },
+    {
+      "key": "models/fennec-fox.glb",
+      "source": "public/models/fennec-fox.glb",
+      "bytes": 3227500,
+      "md5": "ed05f98907900cdc3162130fa96a9bf5",
+      "uploadedAt": "2026-10-07T05:46:57.303Z"
+    },
+    {
+      "key": "models/galapagos-tortoise.glb",
+      "source": null,
+      "bytes": 7763356,
+      "md5": "bf4ab6838cd0c4e10e1d5ccf57d71541",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/giant-anteater.glb",
+      "source": "public/models/giant-anteater.glb",
+      "bytes": 995728,
+      "md5": "e6ea0006e21a5699c0847c765d5d8db2",
+      "uploadedAt": "2026-10-07T05:47:16.830Z"
+    },
+    {
+      "key": "models/giant-clam.glb",
+      "source": "public/models/giant-clam.glb",
+      "bytes": 670568,
+      "md5": "b2025bad3b8daaf95b09b00834ad5ea0",
+      "uploadedAt": "2026-10-07T05:47:20.013Z"
+    },
+    {
+      "key": "models/giant-manta-ray.glb",
+      "source": "public/models/giant-manta-ray.glb",
+      "bytes": 1250908,
+      "md5": "9dcf6a42f14fe9254e81feb0412578ca",
+      "uploadedAt": "2026-10-07T05:47:12.830Z"
+    },
+    {
+      "key": "models/giant-panda.glb",
+      "source": "public/models/giant-panda.glb",
+      "bytes": 52048,
+      "md5": "2bbf803f1d3bbf448469416d17b1f930",
+      "uploadedAt": "2026-10-07T05:47:29.703Z"
+    },
+    {
+      "key": "models/giant-squid.glb",
+      "source": "public/models/giant-squid.glb",
+      "bytes": 55876,
+      "md5": "7cb3a53bfca924280b69a5f8ab759012",
+      "uploadedAt": "2026-10-07T05:47:29.604Z"
+    },
+    {
+      "key": "models/gila-monster.glb",
+      "source": "public/models/gila-monster.glb",
+      "bytes": 370940,
+      "md5": "fcd4217847e52768a10bfa252e37a1a8",
+      "uploadedAt": "2026-10-07T05:47:25.381Z"
+    },
+    {
+      "key": "models/giraffe.glb",
+      "source": "public/models/giraffe.glb",
+      "bytes": 260716,
+      "md5": "37f9bb56dcf17c3c1aa62404560eb426",
+      "uploadedAt": "2026-10-07T05:47:26.773Z"
+    },
+    {
+      "key": "models/golden-toad.glb",
+      "source": null,
+      "bytes": 4300516,
+      "md5": "2c3935f305c2841707fc88a0c1fea6fc",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/goliath-birdeater.glb",
+      "source": "public/models/goliath-birdeater.glb",
+      "bytes": 4356636,
+      "md5": "e90c64f69edee7b7b9115d01b99aaabf",
+      "uploadedAt": "2026-10-07T05:46:48.633Z"
+    },
+    {
+      "key": "models/gooty-tarantula.glb",
+      "source": null,
+      "bytes": 441312,
+      "md5": "81294e3d228a749a7b3b2c86fc0727f1",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/gray-wolf.glb",
+      "source": "public/models/gray-wolf.glb",
+      "bytes": 203740,
+      "md5": "25508bdedcd3feb515083cfa5a28bd93",
+      "uploadedAt": "2026-10-07T05:47:28.131Z"
+    },
+    {
+      "key": "models/great-white-shark.glb",
+      "source": "public/models/great-white-shark.glb",
+      "bytes": 377460,
+      "md5": "15d43fbf6c45e996ca261c1a49d73e8b",
+      "uploadedAt": "2026-10-07T05:47:25.254Z"
+    },
+    {
+      "key": "models/greater-flamingo.glb",
+      "source": "public/models/greater-flamingo.glb",
+      "bytes": 78264,
+      "md5": "7379f654024694e53af5d791a92a70b2",
+      "uploadedAt": "2026-10-07T05:47:29.346Z"
+    },
+    {
+      "key": "models/green-anaconda.glb",
+      "source": null,
+      "bytes": 44460,
+      "md5": "fe29f99f031d91b826b844097256884f",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/green-sea-turtle.glb",
+      "source": "public/models/green-sea-turtle.glb",
+      "bytes": 3717560,
+      "md5": "3252643816fa83e04222d22427ae302d",
+      "uploadedAt": "2026-10-07T05:46:52.530Z"
+    },
+    {
+      "key": "models/harpy-eagle.glb",
+      "source": "public/models/harpy-eagle.glb",
+      "bytes": 2945264,
+      "md5": "90733e90841c41ff660fc9e7a0c12e38",
+      "uploadedAt": "2026-10-07T05:46:59.836Z"
+    },
+    {
+      "key": "models/hellbender.glb",
+      "source": "public/models/hellbender.glb",
+      "bytes": 21289240,
+      "md5": "230ce47bcf17db6a612c27039ed9a04c",
+      "uploadedAt": "2026-10-07T05:46:12.629Z"
+    },
+    {
+      "key": "models/hippopotamus.glb",
+      "source": "public/models/hippopotamus.glb",
+      "bytes": 4034516,
+      "md5": "cef4d9baa327914e66c669d5922977ea",
+      "uploadedAt": "2026-10-07T05:46:51.712Z"
+    },
+    {
+      "key": "models/hoatzin.glb",
+      "source": "public/models/hoatzin.glb",
+      "bytes": 2769376,
+      "md5": "7e6bc475bd72e1ffcbcda0d0bcb6b1e6",
+      "uploadedAt": "2026-10-07T05:47:01.891Z"
+    },
+    {
+      "key": "models/humpback-whale.glb",
+      "source": "public/models/humpback-whale.glb",
+      "bytes": 3558220,
+      "md5": "40e65e4b049bde4d6638a64355a54efb",
+      "uploadedAt": "2026-10-07T05:46:54.655Z"
+    },
+    {
+      "key": "models/hyacinth-macaw.glb",
+      "source": null,
+      "bytes": 309456,
+      "md5": "181fcdd97cab89d379061cd383c7f141",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/jaguar.glb",
+      "source": "public/models/jaguar.glb",
+      "bytes": 5837480,
+      "md5": "539feb5cb7447da291e8c4e002c0276d",
+      "uploadedAt": "2026-10-07T05:46:38.790Z"
+    },
+    {
+      "key": "models/kea.glb",
+      "source": null,
+      "bytes": 2035320,
+      "md5": "22a145aeeb15973385a16809c47eddfe",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/king-cobra.glb",
+      "source": "public/models/king-cobra.glb",
+      "bytes": 898020,
+      "md5": "425eac849fe39427c1de54d87b9cedb2",
+      "uploadedAt": "2026-10-07T05:47:18.851Z"
+    },
+    {
+      "key": "models/komodo-dragon.glb",
+      "source": "public/models/komodo-dragon.glb",
+      "bytes": 4634140,
+      "md5": "938179df41d52909d7cfb5a3ba163112",
+      "uploadedAt": "2026-10-07T05:46:44.524Z"
+    },
+    {
+      "key": "models/landmarks/alhambra.glb",
+      "source": "public/models/landmarks/alhambra.glb",
+      "bytes": 8224564,
+      "md5": "d9d089acd775086426a267ab3493743a",
+      "uploadedAt": "2026-10-07T05:46:26.095Z"
+    },
+    {
+      "key": "models/landmarks/angkor-wat.glb",
+      "source": "public/models/landmarks/angkor-wat.glb",
+      "bytes": 2388912,
+      "md5": "c0087fd0a5fc3ae0ce95c16badea5270",
+      "uploadedAt": "2026-10-07T05:47:04.659Z"
+    },
+    {
+      "key": "models/landmarks/arc-de-triomphe.glb",
+      "source": "public/models/landmarks/arc-de-triomphe.glb",
+      "bytes": 2292300,
+      "md5": "f2bdbee4d11c73eaf85f77abefc22a1b",
+      "uploadedAt": "2026-10-07T05:47:07.043Z"
+    },
+    {
+      "key": "models/landmarks/big-ben.glb",
+      "source": "public/models/landmarks/big-ben.glb",
+      "bytes": 1107628,
+      "md5": "8150c2bdda132675bce4d42ded427f41",
+      "uploadedAt": "2026-10-07T05:47:15.567Z"
+    },
+    {
+      "key": "models/landmarks/borobudur.glb",
+      "source": "public/models/landmarks/borobudur.glb",
+      "bytes": 224400,
+      "md5": "e71d7775cca54da338c81108680a7e9f",
+      "uploadedAt": "2026-10-07T05:47:27.430Z"
+    },
+    {
+      "key": "models/landmarks/boudhanath.glb",
+      "source": "public/models/landmarks/boudhanath.glb",
+      "bytes": 208312,
+      "md5": "dbfeb139c07ba1de0ce17d016dafb1d4",
+      "uploadedAt": "2026-10-07T05:47:27.780Z"
+    },
+    {
+      "key": "models/landmarks/burj-khalifa.glb",
+      "source": "public/models/landmarks/burj-khalifa.glb",
+      "bytes": 75800,
+      "md5": "6e446e36b0b47674b4b0a8aad1c94763",
+      "uploadedAt": "2026-10-07T05:47:29.386Z"
+    },
+    {
+      "key": "models/landmarks/chateau-frontenac.glb",
+      "source": "public/models/landmarks/chateau-frontenac.glb",
+      "bytes": 1470700,
+      "md5": "a936e8a26f9a4e3a8d9d7d900034c4ff",
+      "uploadedAt": "2026-10-07T05:47:11.718Z"
+    },
+    {
+      "key": "models/landmarks/chichen-itza.glb",
+      "source": "public/models/landmarks/chichen-itza.glb",
+      "bytes": 1546576,
+      "md5": "d012812713667a11d260aff5dc4f44b0",
+      "uploadedAt": "2026-10-07T05:47:10.914Z"
+    },
+    {
+      "key": "models/landmarks/christ-the-redeemer.glb",
+      "source": "public/models/landmarks/christ-the-redeemer.glb",
+      "bytes": 4097780,
+      "md5": "36b6f61dafd9e35161a5fc3cba9426cc",
+      "uploadedAt": "2026-10-07T05:46:50.095Z"
+    },
+    {
+      "key": "models/landmarks/cn-tower.glb",
+      "source": "public/models/landmarks/cn-tower.glb",
+      "bytes": 1126980,
+      "md5": "26a180a6e98bdccc4a618e1a67aacb80",
+      "uploadedAt": "2026-10-07T05:47:14.532Z"
+    },
+    {
+      "key": "models/landmarks/cologne-cathedral.glb",
+      "source": "public/models/landmarks/cologne-cathedral.glb",
+      "bytes": 4058052,
+      "md5": "a94cb8637aed9b90ca7bf15cb130b4f9",
+      "uploadedAt": "2026-10-07T05:46:51.238Z"
+    },
+    {
+      "key": "models/landmarks/colosseum.glb",
+      "source": "public/models/landmarks/colosseum.glb",
+      "bytes": 3221772,
+      "md5": "98ab491cdd4117de6be5fc05232865b4",
+      "uploadedAt": "2026-10-07T05:46:57.331Z"
+    },
+    {
+      "key": "models/landmarks/djenne-mosque.glb",
+      "source": "public/models/landmarks/djenne-mosque.glb",
+      "bytes": 338632,
+      "md5": "174424741cfba48cf82ff3ef596a9384",
+      "uploadedAt": "2026-10-07T05:47:25.692Z"
+    },
+    {
+      "key": "models/landmarks/edinburgh-castle.glb",
+      "source": "public/models/landmarks/edinburgh-castle.glb",
+      "bytes": 1159432,
+      "md5": "9c8c7ffecb6be9657853e3187fda0671",
+      "uploadedAt": "2026-10-07T05:47:14.167Z"
+    },
+    {
+      "key": "models/landmarks/eiffel-tower.glb",
+      "source": "public/models/landmarks/eiffel-tower.glb",
+      "bytes": 1645248,
+      "md5": "5d40e40c63d60e94aac5204108d2bf20",
+      "uploadedAt": "2026-10-07T05:47:10.088Z"
+    },
+    {
+      "key": "models/landmarks/empire-state-building.glb",
+      "source": "public/models/landmarks/empire-state-building.glb",
+      "bytes": 4023164,
+      "md5": "c819c9803281c3a07359b95dced3c73c",
+      "uploadedAt": "2026-10-07T05:46:52.361Z"
+    },
+    {
+      "key": "models/landmarks/golden-gate-bridge.glb",
+      "source": "public/models/landmarks/golden-gate-bridge.glb",
+      "bytes": 369872,
+      "md5": "bf5b8b9e32cfb17e0e884a5201202d13",
+      "uploadedAt": "2026-10-07T05:47:25.271Z"
+    },
+    {
+      "key": "models/landmarks/great-pyramid-of-giza.glb",
+      "source": "public/models/landmarks/great-pyramid-of-giza.glb",
+      "bytes": 1545912,
+      "md5": "9742c5098ae9a70219525ff52511b8ec",
+      "uploadedAt": "2026-10-07T05:47:11.351Z"
+    },
+    {
+      "key": "models/landmarks/great-wall.glb",
+      "source": "public/models/landmarks/great-wall.glb",
+      "bytes": 279864,
+      "md5": "7dc76cd74c342dfea1c6c295d3d9e7f7",
+      "uploadedAt": "2026-10-07T05:47:26.679Z"
+    },
+    {
+      "key": "models/landmarks/hagia-sophia.glb",
+      "source": "public/models/landmarks/hagia-sophia.glb",
+      "bytes": 2407512,
+      "md5": "86fe4bf6ca7a2a044ed743113dde3875",
+      "uploadedAt": "2026-10-07T05:47:04.545Z"
+    },
+    {
+      "key": "models/landmarks/hassan-ii-mosque.glb",
+      "source": "public/models/landmarks/hassan-ii-mosque.glb",
+      "bytes": 2082708,
+      "md5": "b41de4fec528603515fd8578fa27ba70",
+      "uploadedAt": "2026-10-07T05:47:07.005Z"
+    },
+    {
+      "key": "models/landmarks/himeji-castle.glb",
+      "source": "public/models/landmarks/himeji-castle.glb",
+      "bytes": 3171168,
+      "md5": "87a67d98f2413881427b14d32a560739",
+      "uploadedAt": "2026-10-07T05:46:58.843Z"
+    },
+    {
+      "key": "models/landmarks/leaning-tower-of-pisa.glb",
+      "source": "public/models/landmarks/leaning-tower-of-pisa.glb",
+      "bytes": 1027140,
+      "md5": "1e772e74ae1e3342339a95106f6dce03",
+      "uploadedAt": "2026-10-07T05:47:17.064Z"
+    },
+    {
+      "key": "models/landmarks/machu-picchu.glb",
+      "source": "public/models/landmarks/machu-picchu.glb",
+      "bytes": 2274540,
+      "md5": "d4985c6557f500e33e55a54f4bb0aa4a",
+      "uploadedAt": "2026-10-07T05:47:05.874Z"
+    },
+    {
+      "key": "models/landmarks/marina-bay-sands.glb",
+      "source": "public/models/landmarks/marina-bay-sands.glb",
+      "bytes": 162540,
+      "md5": "f286a1cab8343c28d9f563ad9ec8301a",
+      "uploadedAt": "2026-10-07T05:47:28.531Z"
+    },
+    {
+      "key": "models/landmarks/milan-cathedral.glb",
+      "source": "public/models/landmarks/milan-cathedral.glb",
+      "bytes": 4130024,
+      "md5": "8c216b92e26d723600177d0f3a9008a3",
+      "uploadedAt": "2026-10-07T05:46:50.002Z"
+    },
+    {
+      "key": "models/landmarks/moai.glb",
+      "source": "public/models/landmarks/moai.glb",
+      "bytes": 1056748,
+      "md5": "66a20a88b611f5bd983916fc7bc6d24f",
+      "uploadedAt": "2026-10-07T05:47:15.630Z"
+    },
+    {
+      "key": "models/landmarks/mont-saint-michel.glb",
+      "source": "public/models/landmarks/mont-saint-michel.glb",
+      "bytes": 988444,
+      "md5": "406ea39e1d9626274f16d0b0643c27d5",
+      "uploadedAt": "2026-10-07T05:47:17.065Z"
+    },
+    {
+      "key": "models/landmarks/mount-rushmore.glb",
+      "source": "public/models/landmarks/mount-rushmore.glb",
+      "bytes": 4470980,
+      "md5": "fd474cf8f26d5abdfe9cc520a3b11655",
+      "uploadedAt": "2026-10-07T05:46:45.065Z"
+    },
+    {
+      "key": "models/landmarks/parthenon.glb",
+      "source": "public/models/landmarks/parthenon.glb",
+      "bytes": 321800,
+      "md5": "633de2afa47eec9cf860e66b2ee8a589",
+      "uploadedAt": "2026-10-07T05:47:26.177Z"
+    },
+    {
+      "key": "models/landmarks/petra.glb",
+      "source": "public/models/landmarks/petra.glb",
+      "bytes": 1610188,
+      "md5": "6092df1e9fa82cc855af084afe32d3e9",
+      "uploadedAt": "2026-10-07T05:47:10.574Z"
+    },
+    {
+      "key": "models/landmarks/petronas-towers.glb",
+      "source": "public/models/landmarks/petronas-towers.glb",
+      "bytes": 572308,
+      "md5": "f73edfbcd3c3d1c75473ac12b2f67578",
+      "uploadedAt": "2026-10-07T05:47:22.506Z"
+    },
+    {
+      "key": "models/landmarks/prague-castle.glb",
+      "source": "public/models/landmarks/prague-castle.glb",
+      "bytes": 1754128,
+      "md5": "69460f42f1bdee67568ac66e08a99603",
+      "uploadedAt": "2026-10-07T05:47:09.268Z"
+    },
+    {
+      "key": "models/landmarks/prambanan.glb",
+      "source": "public/models/landmarks/prambanan.glb",
+      "bytes": 7220136,
+      "md5": "4587400773d2bba754d76371d37be6f4",
+      "uploadedAt": "2026-10-07T05:46:30.778Z"
+    },
+    {
+      "key": "models/landmarks/sagrada-familia.glb",
+      "source": "public/models/landmarks/sagrada-familia.glb",
+      "bytes": 443484,
+      "md5": "aa715e74e433e51a7ea8d508f1617021",
+      "uploadedAt": "2026-10-07T05:47:24.667Z"
+    },
+    {
+      "key": "models/landmarks/saint-basils-cathedral.glb",
+      "source": "public/models/landmarks/saint-basils-cathedral.glb",
+      "bytes": 1661284,
+      "md5": "9ad16514d7d040ff32dc13ff0a19c9f6",
+      "uploadedAt": "2026-10-07T05:47:09.911Z"
+    },
+    {
+      "key": "models/landmarks/st-peters-basilica.glb",
+      "source": "public/models/landmarks/st-peters-basilica.glb",
+      "bytes": 2677632,
+      "md5": "e5cc124e86848fa77dfd3ee1c00bff12",
+      "uploadedAt": "2026-10-07T05:47:03.985Z"
+    },
+    {
+      "key": "models/landmarks/statue-of-liberty.glb",
+      "source": "public/models/landmarks/statue-of-liberty.glb",
+      "bytes": 219500,
+      "md5": "2d0a5c0c3e7942700c094c7ec1a821f2",
+      "uploadedAt": "2026-10-07T05:47:27.717Z"
+    },
+    {
+      "key": "models/landmarks/stonehenge.glb",
+      "source": "public/models/landmarks/stonehenge.glb",
+      "bytes": 4742224,
+      "md5": "27d26d2375c7d0ca814fa5a99c61cf78",
+      "uploadedAt": "2026-10-07T05:46:43.186Z"
+    },
+    {
+      "key": "models/landmarks/sydney-harbour-bridge.glb",
+      "source": "public/models/landmarks/sydney-harbour-bridge.glb",
+      "bytes": 179768,
+      "md5": "65fedbf76780af4f6a851b3f1a6f51ff",
+      "uploadedAt": "2026-10-07T05:47:28.464Z"
+    },
+    {
+      "key": "models/landmarks/sydney-opera-house.glb",
+      "source": "public/models/landmarks/sydney-opera-house.glb",
+      "bytes": 9221540,
+      "md5": "31433a5db230dbfd29d3e2e9a60daa2b",
+      "uploadedAt": "2026-10-07T05:46:25.738Z"
+    },
+    {
+      "key": "models/landmarks/taj-mahal.glb",
+      "source": "public/models/landmarks/taj-mahal.glb",
+      "bytes": 12596396,
+      "md5": "8c61d74c7661e5b2e9b21ab9c87acae7",
+      "uploadedAt": "2026-10-07T05:46:34.295Z"
+    },
+    {
+      "key": "models/landmarks/temple-of-heaven.glb",
+      "source": "public/models/landmarks/temple-of-heaven.glb",
+      "bytes": 9852,
+      "md5": "051965ac14c4165973ee616f10874887",
+      "uploadedAt": "2026-10-07T05:47:30.001Z"
+    },
+    {
+      "key": "models/landmarks/tower-bridge.glb",
+      "source": "public/models/landmarks/tower-bridge.glb",
+      "bytes": 3493548,
+      "md5": "05e0ed1206c489c459adb957e9f29afe",
+      "uploadedAt": "2026-10-07T05:46:55.986Z"
+    },
+    {
+      "key": "models/landmarks/trevi-fountain.glb",
+      "source": "public/models/landmarks/trevi-fountain.glb",
+      "bytes": 1898528,
+      "md5": "53ae237f90d2534566e7d43081bd563e",
+      "uploadedAt": "2026-10-07T05:47:08.895Z"
+    },
+    {
+      "key": "models/landmarks/uluru.glb",
+      "source": "public/models/landmarks/uluru.glb",
+      "bytes": 1212984,
+      "md5": "59ba61c4c92229d9401ddc5f8c9756f8",
+      "uploadedAt": "2026-10-07T05:47:12.844Z"
+    },
+    {
+      "key": "models/leatherback-turtle.glb",
+      "source": null,
+      "bytes": 7735940,
+      "md5": "e60582d68f80333c3fe36cf43d16930a",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/leopard-seal.glb",
+      "source": "public/models/leopard-seal.glb",
+      "bytes": 131148,
+      "md5": "bf1c8aeecb770c87b290f3294ccfb725",
+      "uploadedAt": "2026-10-07T05:47:28.853Z"
+    },
+    {
+      "key": "models/lion.glb",
+      "source": "public/models/lion.glb",
+      "bytes": 341076,
+      "md5": "5cfa1f514167e76586b7e81c6b2e360f",
+      "uploadedAt": "2026-10-07T05:47:25.775Z"
+    },
+    {
+      "key": "models/luna-moth.glb",
+      "source": "public/models/luna-moth.glb",
+      "bytes": 652304,
+      "md5": "52c4cd95978706494598c42b736ac31d",
+      "uploadedAt": "2026-10-07T05:47:21.044Z"
+    },
+    {
+      "key": "models/meerkat-alt2.glb",
+      "source": null,
+      "bytes": 379688,
+      "md5": "fe375b1575d4f240c4c0101eb9ee33ea",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/meerkat.glb",
+      "source": null,
+      "bytes": 369968,
+      "md5": "a4a0a1930337c991350b35b9b811eb4b",
+      "uploadedAt": "2026-10-07T11:59:31.067Z",
+      "note": "in the bucket, not produced from public/**"
+    },
+    {
+      "key": "models/megalodon.glb",
+      "source": "public/models/megalodon.glb",
+      "bytes": 475608,
+      "md5": "6135a5aeec7ae0d9bb1d574a801eb90d",
+      "uploadedAt": "2026-10-07T05:47:23.649Z"
+    },
+    {
+      "key": "models/monarch-butterfly.glb",
+      "source": "public/models/monarch-butterfly.glb",
+      "bytes": 231536,
+      "md5": "cc62eeb2f106d1d822d9a1a367e24357",
+      "uploadedAt": "2026-10-07T05:47:27.387Z"
+    },
+    {
+      "key": "models/moose.glb",
+      "source": "public/models/moose.glb",
+      "bytes": 829948,
+      "md5": "469563a9af5039ffc669a889f868d34e",
+      "uploadedAt": "2026-10-07T05:47:18.880Z"
+    },
+    {
+      "key": "models/mountain-gorilla.glb",
+      "source": "public/models/mountain-gorilla.glb",
+      "bytes": 343440,
+      "md5": "57d0959d358c1077059f69f510ebf87c",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/narwhal.glb",
+      "source": "public/models/narwhal.glb",
+      "bytes": 1090856,
+      "md5": "63589d6b3986e589e23c773cc2bb747d",
+      "uploadedAt": "2026-10-07T05:47:15.735Z"
+    },
+    {
+      "key": "models/ocean-sunfish.glb",
+      "source": null,
+      "bytes": 882756,
+      "md5": "309a4cfc36be161e54eb32e468830a77",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/ocellaris-clownfish.glb",
+      "source": "public/models/ocellaris-clownfish.glb",
+      "bytes": 1153600,
+      "md5": "c173a0a8b19ec7b5ba683c58d543af60",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/ocelot.glb",
+      "source": "public/models/ocelot.glb",
+      "bytes": 836524,
+      "md5": "9240d01c1679896d5dc567ebf2316de2",
+      "uploadedAt": "2026-10-07T05:47:18.422Z"
+    },
+    {
+      "key": "models/orca.glb",
+      "source": "public/models/orca.glb",
+      "bytes": 2984164,
+      "md5": "f78c68ebce3cf7da5a0e5469e09593ca",
+      "uploadedAt": "2026-10-07T05:46:59.518Z"
+    },
+    {
+      "key": "models/peregrine-falcon.glb",
+      "source": "public/models/peregrine-falcon.glb",
+      "bytes": 6295960,
+      "md5": "51536b1cf4f99320ad1be5c76e1c3f90",
+      "uploadedAt": "2026-10-07T05:46:36.838Z"
+    },
+    {
+      "key": "models/plains-zebra.glb",
+      "source": "public/models/plains-zebra.glb",
+      "bytes": 608316,
+      "md5": "6f75882fd1f492a289f18cb221487345",
+      "uploadedAt": "2026-10-07T05:47:21.457Z"
+    },
+    {
+      "key": "models/plants/bamboo.glb",
+      "source": "public/models/plants/bamboo.glb",
+      "bytes": 4267460,
+      "md5": "cb5d55e5f832a54c92724bc7643649e8",
+      "uploadedAt": "2026-10-07T05:46:47.660Z"
+    },
+    {
+      "key": "models/plants/banana.glb",
+      "source": "public/models/plants/banana.glb",
+      "bytes": 371392,
+      "md5": "dd5a32cd4206788b85558b02dc384244",
+      "uploadedAt": "2026-10-07T05:47:25.232Z"
+    },
+    {
+      "key": "models/plants/baobab.glb",
+      "source": "public/models/plants/baobab.glb",
+      "bytes": 3310092,
+      "md5": "a6a0dc37103e10941b78f847c4e094ee",
+      "uploadedAt": "2026-10-07T05:46:57.044Z"
+    },
+    {
+      "key": "models/plants/cactus-pack.glb",
+      "source": "public/models/plants/cactus-pack.glb",
+      "bytes": 3495548,
+      "md5": "f3a08225b7db6257aeb383fd7071a26f",
+      "uploadedAt": "2026-10-07T05:46:55.095Z"
+    },
+    {
+      "key": "models/plants/cactus.glb",
+      "source": "public/models/plants/cactus.glb",
+      "bytes": 3495548,
+      "md5": "f3a08225b7db6257aeb383fd7071a26f",
+      "uploadedAt": "2026-10-07T05:46:55.330Z"
+    },
+    {
+      "key": "models/plants/coffee.glb",
+      "source": "public/models/plants/coffee.glb",
+      "bytes": 1008084,
+      "md5": "178036e6bb8f5cfa30737c4bbed5bb84",
+      "uploadedAt": "2026-10-07T05:47:16.525Z"
+    },
+    {
+      "key": "models/plants/fig-tree.glb",
+      "source": "public/models/plants/fig-tree.glb",
+      "bytes": 3398732,
+      "md5": "17ebbe860579a5ac34e1d80a83c70d93",
+      "uploadedAt": "2026-10-07T05:46:57.063Z"
+    },
+    {
+      "key": "models/plants/gazebo.glb",
+      "source": "public/models/plants/gazebo.glb",
+      "bytes": 12009684,
+      "md5": "4b055af12435a4b6e0748b282d8ffc96",
+      "uploadedAt": "2026-10-07T05:47:42.972Z"
+    },
+    {
+      "key": "models/plants/giant-sequoia.glb",
+      "source": "public/models/plants/giant-sequoia.glb",
+      "bytes": 4320200,
+      "md5": "22fd434203c33c57a77b434a33b6248f",
+      "uploadedAt": "2026-10-07T05:46:47.277Z"
+    },
+    {
+      "key": "models/plants/ginkgo.glb",
+      "source": "public/models/plants/ginkgo.glb",
+      "bytes": 4261816,
+      "md5": "5174d36d0104f1862cbee10fca253f88",
+      "uploadedAt": "2026-10-07T05:46:48.041Z"
+    },
+    {
+      "key": "models/plants/hollow-knight-33-34-moss-charger.glb",
+      "source": "public/models/plants/hollow-knight-33-34-moss-charger.glb",
+      "bytes": 195548,
+      "md5": "23a0d6783bcf877ece37206d52bdc913",
+      "uploadedAt": "2026-10-07T05:47:28.274Z"
+    },
+    {
+      "key": "models/plants/ivy.glb",
+      "source": "public/models/plants/ivy.glb",
+      "bytes": 1173920,
+      "md5": "a6d38ef9acc79b8a8269bb15d94d5e77",
+      "uploadedAt": "2026-10-07T05:47:14.059Z"
+    },
+    {
+      "key": "models/plants/kelp.glb",
+      "source": "public/models/plants/kelp.glb",
+      "bytes": 314312,
+      "md5": "5d06eece6d91ef7cc2e86f4f718611b4",
+      "uploadedAt": "2026-10-07T05:47:26.183Z"
+    },
+    {
+      "key": "models/plants/lavender.glb",
+      "source": "public/models/plants/lavender.glb",
+      "bytes": 1205736,
+      "md5": "cf38f5aa0808b6827ff5a5643ea9cbb5",
+      "uploadedAt": "2026-10-07T05:47:13.412Z"
+    },
+    {
+      "key": "models/plants/lily-of-the-valley.glb",
+      "source": "public/models/plants/lily-of-the-valley.glb",
+      "bytes": 801792,
+      "md5": "682750f906d0885d4f423701493e4a19",
+      "uploadedAt": "2026-10-07T05:47:19.568Z"
+    },
+    {
+      "key": "models/plants/lotus.glb",
+      "source": "public/models/plants/lotus.glb",
+      "bytes": 2724472,
+      "md5": "a6cccae916872ce4fe90eb4602f578e4",
+      "uploadedAt": "2026-10-07T05:47:02.495Z"
+    },
+    {
+      "key": "models/plants/maple-tree.glb",
+      "source": "public/models/plants/maple-tree.glb",
+      "bytes": 4071596,
+      "md5": "7430a93f8ea3261a4c322b125940a942",
+      "uploadedAt": "2026-10-07T05:46:53.195Z"
+    },
+    {
+      "key": "models/plants/mediterranean-metalurgy-ue5-gate-ornamen.glb",
+      "source": "public/models/plants/mediterranean-metalurgy-ue5-gate-ornamen.glb",
+      "bytes": 7005112,
+      "md5": "aada98bcc231e3770c5fd1d3d91dc293",
+      "uploadedAt": "2026-10-07T05:46:38.268Z"
+    },
+    {
+      "key": "models/plants/oak.glb",
+      "source": "public/models/plants/oak.glb",
+      "bytes": 8686176,
+      "md5": "e9c0efd29952f66b8c992502ebfbf7b3",
+      "uploadedAt": "2026-10-07T05:46:21.050Z"
+    },
+    {
+      "key": "models/plants/orchid.glb",
+      "source": "public/models/plants/orchid.glb",
+      "bytes": 3712364,
+      "md5": "93aeb9e7ccf601d250b316a01e78641a",
+      "uploadedAt": "2026-10-07T05:46:54.877Z"
+    },
+    {
+      "key": "models/plants/poppy-playtime-daisy-the-flower-updated.glb",
+      "source": "public/models/plants/poppy-playtime-daisy-the-flower-updated.glb",
+      "bytes": 1543308,
+      "md5": "cfa06a59da960169b47492f839c55603",
+      "uploadedAt": "2026-10-07T05:47:11.606Z"
+    },
+    {
+      "key": "models/plants/saguaro.glb",
+      "source": "public/models/plants/saguaro.glb",
+      "bytes": 1598800,
+      "md5": "15598840086e075b033176d9d0ca6fb0",
+      "uploadedAt": "2026-10-07T05:47:11.053Z"
+    },
+    {
+      "key": "models/plants/sunflower.glb",
+      "source": "public/models/plants/sunflower.glb",
+      "bytes": 4669040,
+      "md5": "5be6e050ce8ee61dcacc9527f563ab06",
+      "uploadedAt": "2026-10-07T05:46:44.485Z"
+    },
+    {
+      "key": "models/plants/tulip-flower.glb",
+      "source": "public/models/plants/tulip-flower.glb",
+      "bytes": 2393232,
+      "md5": "22d46addb7959d2029ca7c49fbbb64f6",
+      "uploadedAt": "2026-10-07T05:47:04.056Z"
+    },
+    {
+      "key": "models/plants/tulip.glb",
+      "source": "public/models/plants/tulip.glb",
+      "bytes": 2393232,
+      "md5": "22d46addb7959d2029ca7c49fbbb64f6",
+      "uploadedAt": "2026-10-07T05:47:04.266Z"
+    },
+    {
+      "key": "models/plants/venus-flytrap.glb",
+      "source": "public/models/plants/venus-flytrap.glb",
+      "bytes": 4205092,
+      "md5": "e4bc44c9b1f268a608abe352e913dd95",
+      "uploadedAt": "2026-10-07T05:46:48.793Z"
+    },
+    {
+      "key": "models/plants/wheat.glb",
+      "source": "public/models/plants/wheat.glb",
+      "bytes": 3163448,
+      "md5": "9f1bf4243cec4a096304ac3acc30cb62",
+      "uploadedAt": "2026-10-07T05:46:57.844Z"
+    },
+    {
+      "key": "models/poison-dart-frog.glb",
+      "source": "public/models/poison-dart-frog.glb",
+      "bytes": 1896952,
+      "md5": "0d100929cd8cf61f97443e9dca955949",
+      "uploadedAt": "2026-10-07T05:47:09.077Z"
+    },
+    {
+      "key": "models/polar-bear.glb",
+      "source": "public/models/polar-bear.glb",
+      "bytes": 2746920,
+      "md5": "ea556684cc2a8aeab53e49bcbc8ea3d1",
+      "uploadedAt": "2026-10-07T05:47:01.920Z"
+    },
+    {
+      "key": "models/przewalskis-horse.glb",
+      "source": null,
+      "bytes": 6332,
+      "md5": "cba09d8beb2c8056ad2c8ade66a14fa0",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/quagga.glb",
+      "source": "public/models/quagga.glb",
+      "bytes": 549380,
+      "md5": "8172881ee8205fa1a83072cd37cd5921",
+      "uploadedAt": "2026-10-07T05:47:22.588Z"
+    },
+    {
+      "key": "models/red-bellied-piranha.glb",
+      "source": null,
+      "bytes": 4247228,
+      "md5": "05dac4bfd8ce9c87bc7f08ccd87adfde",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/red-kangaroo.glb",
+      "source": "public/models/red-kangaroo.glb",
+      "bytes": 1399260,
+      "md5": "843537f27918999bc09825fdb7a55642",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/reindeer.glb",
+      "source": null,
+      "bytes": 432772,
+      "md5": "4d37aa01711255adc3559845d73971f7",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/reticulated-python.glb",
+      "source": null,
+      "bytes": 1733036,
+      "md5": "69d70bfb7d6b2c3f90beae3030e47af4",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/saltwater-crocodile.glb",
+      "source": "public/models/saltwater-crocodile.glb",
+      "bytes": 204880,
+      "md5": "18cb3c05102707a65acf2e96588fb14c",
+      "uploadedAt": "2026-10-07T05:47:27.942Z"
+    },
+    {
+      "key": "models/scarlet-macaw.glb",
+      "source": "public/models/scarlet-macaw.glb",
+      "bytes": 587288,
+      "md5": "c616ca7e7e0ee9b6d439d7108f5b2cfd",
+      "uploadedAt": "2026-10-07T05:47:21.744Z"
+    },
+    {
+      "key": "models/sea-otter.glb",
+      "source": "public/models/sea-otter.glb",
+      "bytes": 1918760,
+      "md5": "fd0d0ec5ad52be6eb734a4199225f0d4",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/serval.glb",
+      "source": "public/models/serval.glb",
+      "bytes": 624484,
+      "md5": "4f0d45914d1e0adbb5ece294c876663b",
+      "uploadedAt": "2026-10-07T05:47:21.103Z"
+    },
+    {
+      "key": "models/smilodon.glb",
+      "source": "public/models/smilodon.glb",
+      "bytes": 656380,
+      "md5": "b54784e8272ee3938cd01d045b003990",
+      "uploadedAt": "2026-10-07T05:47:20.590Z"
+    },
+    {
+      "key": "models/snow-leopard.glb",
+      "source": "public/models/snow-leopard.glb",
+      "bytes": 673632,
+      "md5": "30e36a2075edba91e58e490e8382d587",
+      "uploadedAt": "2026-10-07T05:47:19.920Z"
+    },
+    {
+      "key": "models/snowy-owl.glb",
+      "source": "public/models/snowy-owl.glb",
+      "bytes": 305016,
+      "md5": "d3c99a9221147c85c4b49a86e9573be1",
+      "uploadedAt": "2026-10-07T05:47:26.212Z"
+    },
+    {
+      "key": "models/southern-cassowary.glb",
+      "source": null,
+      "bytes": 1763992,
+      "md5": "4c61980ac66d12a1feaae4e3bbd1667e",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/space/advanced-composition-explorer.glb",
+      "source": "public/models/space/advanced-composition-explorer.glb",
+      "bytes": 108872,
+      "md5": "46227ab575a4deb33088c301af4572df",
+      "uploadedAt": "2026-10-07T05:47:29.062Z"
+    },
+    {
+      "key": "models/space/advanced-crew-escape-suit.glb",
+      "source": "public/models/space/advanced-crew-escape-suit.glb",
+      "bytes": 322624,
+      "md5": "d2aa3e3d732375981ce4995e010a497a",
+      "uploadedAt": "2026-10-07T05:47:25.886Z"
+    },
+    {
+      "key": "models/space/aeronomy-of-ice-in-the-mesosphere.glb",
+      "source": "public/models/space/aeronomy-of-ice-in-the-mesosphere.glb",
+      "bytes": 321944,
+      "md5": "b7c28dc9eb2cc941a4af790db46054ba",
+      "uploadedAt": "2026-10-07T05:47:25.781Z"
+    },
+    {
+      "key": "models/space/agena-target-vehicle.glb",
+      "source": "public/models/space/agena-target-vehicle.glb",
+      "bytes": 456356,
+      "md5": "49b1e7f96428b0e3ad76c32fea3309c5",
+      "uploadedAt": "2026-10-07T05:47:23.680Z"
+    },
+    {
+      "key": "models/space/apollo-lunar-excursion-module.glb",
+      "source": "public/models/space/apollo-lunar-excursion-module.glb",
+      "bytes": 2297308,
+      "md5": "99e700528475b71680cd43cb929d1587",
+      "uploadedAt": "2026-10-07T13:53:50.363Z"
+    },
+    {
+      "key": "models/space/apollo-lunar-module.glb",
+      "source": "public/models/space/apollo-lunar-module.glb",
+      "bytes": 2297308,
+      "md5": "99e700528475b71680cd43cb929d1587",
+      "uploadedAt": "2026-10-07T13:53:50.340Z"
+    },
+    {
+      "key": "models/space/ares-1-b.glb",
+      "source": "public/models/space/ares-1-b.glb",
+      "bytes": 186296,
+      "md5": "9ff126c4be76fbaf43542da929be196a",
+      "uploadedAt": "2026-10-07T05:47:28.398Z"
+    },
+    {
+      "key": "models/space/argo.glb",
+      "source": "public/models/space/argo.glb",
+      "bytes": 241128,
+      "md5": "361ee2480a13ca3712c3538bd9210314",
+      "uploadedAt": "2026-10-07T05:47:27.092Z"
+    },
+    {
+      "key": "models/space/astronaut.glb",
+      "source": "public/models/space/astronaut.glb",
+      "bytes": 9946452,
+      "md5": "b4f2c6a5973d0953362a9dfa2ba5cb72",
+      "uploadedAt": "2026-10-07T05:46:27.912Z"
+    },
+    {
+      "key": "models/space/base-station.glb",
+      "source": "public/models/space/base-station.glb",
+      "bytes": 44316,
+      "md5": "f8bc5faab02af90a8e017eb23ca9c0f5",
+      "uploadedAt": "2026-10-07T05:47:29.801Z"
+    },
+    {
+      "key": "models/space/black-hole-astroriah.glb",
+      "source": "public/models/space/black-hole-astroriah.glb",
+      "bytes": 58380,
+      "md5": "3bc3a655091d3e2c78119b1cc58e2322",
+      "uploadedAt": "2026-10-07T13:53:56.565Z"
+    },
+    {
+      "key": "models/space/black-hole.glb",
+      "source": "public/models/space/black-hole.glb",
+      "bytes": 9725800,
+      "md5": "410a22fba8596512fe922769068e308d",
+      "uploadedAt": "2026-10-07T13:53:44.015Z"
+    },
+    {
+      "key": "models/space/bp-tauri.glb",
+      "source": "public/models/space/bp-tauri.glb",
+      "bytes": 1128460,
+      "md5": "59e58e6b43afb2375d5a6d61156fb7f4",
+      "uploadedAt": "2026-10-07T05:47:14.412Z"
+    },
+    {
+      "key": "models/space/callisto-moon.glb",
+      "source": "public/models/space/callisto-moon.glb",
+      "bytes": 3775300,
+      "md5": "3619d49b43fa2d42b6077e375e7385e9",
+      "uploadedAt": "2026-10-07T13:53:44.140Z"
+    },
+    {
+      "key": "models/space/chandra-x-ray-observatory.glb",
+      "source": "public/models/space/chandra-x-ray-observatory.glb",
+      "bytes": 258144,
+      "md5": "16b8d99982b9b4e8565740bdea2b4b9e",
+      "uploadedAt": "2026-10-07T05:47:26.856Z"
+    },
+    {
+      "key": "models/space/clementine.glb",
+      "source": "public/models/space/clementine.glb",
+      "bytes": 3454044,
+      "md5": "95e17b128dd097f120efd03c88281655",
+      "uploadedAt": "2026-10-07T05:46:56.018Z"
+    },
+    {
+      "key": "models/space/cloudsat-a.glb",
+      "source": "public/models/space/cloudsat-a.glb",
+      "bytes": 260660,
+      "md5": "4aba1eaeadd85d894491ca2306b72c8c",
+      "uploadedAt": "2026-10-07T05:47:26.918Z"
+    },
+    {
+      "key": "models/space/cloudsat-b.glb",
+      "source": "public/models/space/cloudsat-b.glb",
+      "bytes": 284508,
+      "md5": "e5f29da2490192d32ba4feb9c0d1e141",
+      "uploadedAt": "2026-10-07T05:47:26.734Z"
+    },
+    {
+      "key": "models/space/cloudsat-c.glb",
+      "source": "public/models/space/cloudsat-c.glb",
+      "bytes": 663388,
+      "md5": "a6154c53236dbd3b974e6dcea117d88a",
+      "uploadedAt": "2026-10-07T05:47:20.213Z"
+    },
+    {
+      "key": "models/space/curiosity-rover-msl.glb",
+      "source": "public/models/space/curiosity-rover-msl.glb",
+      "bytes": 4348356,
+      "md5": "c0dd86c1d7148d82c1a222432799c032",
+      "uploadedAt": "2026-10-07T05:46:46.756Z"
+    },
+    {
+      "key": "models/space/curiosity-rover.glb",
+      "source": "public/models/space/curiosity-rover.glb",
+      "bytes": 6286612,
+      "md5": "98602ff3e1eb2d7fa79b95c4364df38b",
+      "uploadedAt": "2026-10-07T05:46:43.752Z"
+    },
+    {
+      "key": "models/space/cyclone-global-navigation-satellite-syst.glb",
+      "source": "public/models/space/cyclone-global-navigation-satellite-syst.glb",
+      "bytes": 1612632,
+      "md5": "0f5a363b1fddbf7e3d1fe95821079089",
+      "uploadedAt": "2026-10-07T05:47:10.154Z"
+    },
+    {
+      "key": "models/space/deep-space-1.glb",
+      "source": "public/models/space/deep-space-1.glb",
+      "bytes": 917112,
+      "md5": "038ac9ec4a75b8a76df67b4f5277c83e",
+      "uploadedAt": "2026-10-07T13:53:54.587Z"
+    },
+    {
+      "key": "models/space/deep-space-climate-observatory-dscovr-tr.glb",
+      "source": "public/models/space/deep-space-climate-observatory-dscovr-tr.glb",
+      "bytes": 48036,
+      "md5": "18e463edff847fb4a00f39db0592f292",
+      "uploadedAt": "2026-10-07T13:53:56.620Z"
+    },
+    {
+      "key": "models/space/earth-observing-1-eo-1.glb",
+      "source": "public/models/space/earth-observing-1-eo-1.glb",
+      "bytes": 222264,
+      "md5": "17ce52dce30ed59599a6711c9cc22e1f",
+      "uploadedAt": "2026-10-07T05:47:27.491Z"
+    },
+    {
+      "key": "models/space/earth.glb",
+      "source": "public/models/space/earth.glb",
+      "bytes": 1692684,
+      "md5": "c59179dd8f35d49ea74b0901e54077a4",
+      "uploadedAt": "2026-10-07T05:47:09.845Z"
+    },
+    {
+      "key": "models/space/extravehicular-mobility-unit.glb",
+      "source": "public/models/space/extravehicular-mobility-unit.glb",
+      "bytes": 1901860,
+      "md5": "cd7e2c05c3e1f8d192adcdb51bcb4329",
+      "uploadedAt": "2026-10-07T05:47:08.560Z"
+    },
+    {
+      "key": "models/space/far-ultraviolet-spectroscopic-explorer.glb",
+      "source": "public/models/space/far-ultraviolet-spectroscopic-explorer.glb",
+      "bytes": 96972,
+      "md5": "3738deecf388a9304d4c62ff2d16b887",
+      "uploadedAt": "2026-10-07T05:47:29.046Z"
+    },
+    {
+      "key": "models/space/galaxy.glb",
+      "source": "public/models/space/galaxy.glb",
+      "bytes": 1136452,
+      "md5": "d4fa20c0389a0abf78ad6d6b558e2913",
+      "uploadedAt": "2026-10-07T13:53:53.427Z"
+    },
+    {
+      "key": "models/space/ganymede-moon.glb",
+      "source": "public/models/space/ganymede-moon.glb",
+      "bytes": 3660744,
+      "md5": "dfec9472706b3a05cc37a5206dc9dc0a",
+      "uploadedAt": "2026-10-07T13:53:45.199Z"
+    },
+    {
+      "key": "models/space/gemini-spacesuit.glb",
+      "source": "public/models/space/gemini-spacesuit.glb",
+      "bytes": 300692,
+      "md5": "061f38cce28bb2a5dae8896272329e1b",
+      "uploadedAt": "2026-10-07T05:47:26.304Z"
+    },
+    {
+      "key": "models/space/gingerbread-man.glb",
+      "source": "public/models/space/gingerbread-man.glb",
+      "bytes": 4464164,
+      "md5": "831938facbfce612ba0e2fa9dd8c0716",
+      "uploadedAt": "2026-10-07T13:53:42.207Z"
+    },
+    {
+      "key": "models/space/hammer.glb",
+      "source": "public/models/space/hammer.glb",
+      "bytes": 4979300,
+      "md5": "9c9f0e7e7a655b88f81e2c3889a37382",
+      "uploadedAt": "2026-10-07T05:46:44.470Z"
+    },
+    {
+      "key": "models/space/helmet.glb",
+      "source": "public/models/space/helmet.glb",
+      "bytes": 4916312,
+      "md5": "071f796307ae686a9cd0713b2c319eb6",
+      "uploadedAt": "2026-10-07T05:46:45.696Z"
+    },
+    {
+      "key": "models/space/hubble-space-telescope-a.glb",
+      "source": "public/models/space/hubble-space-telescope-a.glb",
+      "bytes": 5393992,
+      "md5": "9726ea9d1d0fbdd36c27c7ef75ad801a",
+      "uploadedAt": "2026-10-07T05:46:42.093Z"
+    },
+    {
+      "key": "models/space/hubble-space-telescope-b.glb",
+      "source": "public/models/space/hubble-space-telescope-b.glb",
+      "bytes": 7326096,
+      "md5": "915afeae97f48e85fc017e476867fcde",
+      "uploadedAt": "2026-10-07T05:46:31.747Z"
+    },
+    {
+      "key": "models/space/hubble-space-telescope.glb",
+      "source": "public/models/space/hubble-space-telescope.glb",
+      "bytes": 5393992,
+      "md5": "9726ea9d1d0fbdd36c27c7ef75ad801a",
+      "uploadedAt": "2026-10-07T05:46:40.314Z"
+    },
+    {
+      "key": "models/space/hubble.glb",
+      "source": "public/models/space/hubble.glb",
+      "bytes": 5393992,
+      "md5": "9726ea9d1d0fbdd36c27c7ef75ad801a",
+      "uploadedAt": "2026-10-07T13:53:41.746Z"
+    },
+    {
+      "key": "models/space/international-space-station-iss-a.glb",
+      "source": "public/models/space/international-space-station-iss-a.glb",
+      "bytes": 1059156,
+      "md5": "944347246f5483c3233abbc7b5ad724e",
+      "uploadedAt": "2026-10-07T13:53:53.786Z"
+    },
+    {
+      "key": "models/space/international-space-station-iss-b.glb",
+      "source": "public/models/space/international-space-station-iss-b.glb",
+      "bytes": 474060,
+      "md5": "4b8bb9dfb89e31b462f2266c89965954",
+      "uploadedAt": "2026-10-07T13:53:54.829Z"
+    },
+    {
+      "key": "models/space/international-space-station-iss-e-intern.glb",
+      "source": "public/models/space/international-space-station-iss-e-intern.glb",
+      "bytes": 1059156,
+      "md5": "944347246f5483c3233abbc7b5ad724e",
+      "uploadedAt": "2026-10-07T05:47:15.297Z"
+    },
+    {
+      "key": "models/space/international-space-station.glb",
+      "source": "public/models/space/international-space-station.glb",
+      "bytes": 1059156,
+      "md5": "944347246f5483c3233abbc7b5ad724e",
+      "uploadedAt": "2026-10-07T05:47:15.535Z"
+    },
+    {
+      "key": "models/space/international-x-ray-observatory.glb",
+      "source": "public/models/space/international-x-ray-observatory.glb",
+      "bytes": 461812,
+      "md5": "4decf15b12f67d4d7eb29e5ffadd3bb5",
+      "uploadedAt": "2026-10-07T05:47:23.802Z"
+    },
+    {
+      "key": "models/space/interstellar-boundary-explorer-ibex.glb",
+      "source": "public/models/space/interstellar-boundary-explorer-ibex.glb",
+      "bytes": 1302428,
+      "md5": "0466ce0374902c83d72f3cfa01e5d213",
+      "uploadedAt": "2026-10-07T05:47:12.422Z"
+    },
+    {
+      "key": "models/space/james-webb-space-telescope.glb",
+      "source": "public/models/space/james-webb-space-telescope.glb",
+      "bytes": 5834896,
+      "md5": "706af5f4a993d42d064fc0a7af1b5d46",
+      "uploadedAt": "2026-10-07T05:46:37.823Z"
+    },
+    {
+      "key": "models/space/jupiter.glb",
+      "source": "public/models/space/jupiter.glb",
+      "bytes": 2876476,
+      "md5": "eda9f4593228d5b696434a11774291d2",
+      "uploadedAt": "2026-10-07T05:47:01.501Z"
+    },
+    {
+      "key": "models/space/landsat-7.glb",
+      "source": "public/models/space/landsat-7.glb",
+      "bytes": 158688,
+      "md5": "1856f2a1de8c0f30a043a9e25ce21bc0",
+      "uploadedAt": "2026-10-07T05:47:28.739Z"
+    },
+    {
+      "key": "models/space/landsat-8.glb",
+      "source": "public/models/space/landsat-8.glb",
+      "bytes": 3148496,
+      "md5": "d8e20211303228d3fe970ebb762a8c4e",
+      "uploadedAt": "2026-10-07T05:46:58.814Z"
+    },
+    {
+      "key": "models/space/laser-interferometer-space-antenna-lisa.glb",
+      "source": "public/models/space/laser-interferometer-space-antenna-lisa.glb",
+      "bytes": 139184,
+      "md5": "30f74ed6e8c417934ef3370690d7e6b9",
+      "uploadedAt": "2026-10-07T05:47:28.914Z"
+    },
+    {
+      "key": "models/space/lunar-atmosphere-and-dust-environment-ex.glb",
+      "source": "public/models/space/lunar-atmosphere-and-dust-environment-ex.glb",
+      "bytes": 233332,
+      "md5": "18aa5046c0e5c9c904207b762279b65a",
+      "uploadedAt": "2026-10-07T05:47:27.305Z"
+    },
+    {
+      "key": "models/space/lunar-reconnaissance-orbiter-a.glb",
+      "source": "public/models/space/lunar-reconnaissance-orbiter-a.glb",
+      "bytes": 287012,
+      "md5": "095a4870f636c04290bdb9afdddc1994",
+      "uploadedAt": "2026-10-07T05:47:26.601Z"
+    },
+    {
+      "key": "models/space/mars-atmosphere-and-volatile-evolution-m.glb",
+      "source": "public/models/space/mars-atmosphere-and-volatile-evolution-m.glb",
+      "bytes": 1601496,
+      "md5": "5e60e616072c081779b4889d5f9f3727",
+      "uploadedAt": "2026-10-07T05:47:10.500Z"
+    },
+    {
+      "key": "models/space/mars-global-surveyor.glb",
+      "source": "public/models/space/mars-global-surveyor.glb",
+      "bytes": 51240,
+      "md5": "b32ed42a0fa862eb7298e03f4d49878c",
+      "uploadedAt": "2026-10-07T13:53:56.687Z"
+    },
+    {
+      "key": "models/space/mars-reconnaissance-orbiter-mro-a.glb",
+      "source": "public/models/space/mars-reconnaissance-orbiter-mro-a.glb",
+      "bytes": 2619640,
+      "md5": "9917428ca0f7873ac18e8be163520785",
+      "uploadedAt": "2026-10-07T13:53:47.562Z"
+    },
+    {
+      "key": "models/space/mars-reconnaissance-orbiter-mro-c.glb",
+      "source": "public/models/space/mars-reconnaissance-orbiter-mro-c.glb",
+      "bytes": 1210672,
+      "md5": "f1cfb32c0ed9991cc40923f26c7df921",
+      "uploadedAt": "2026-10-07T05:47:13.074Z"
+    },
+    {
+      "key": "models/space/mars-rover.glb",
+      "source": "public/models/space/mars-rover.glb",
+      "bytes": 4556392,
+      "md5": "d73113f42ea4070021c67441db214590",
+      "uploadedAt": "2026-10-07T13:53:39.371Z"
+    },
+    {
+      "key": "models/space/mars.glb",
+      "source": "public/models/space/mars.glb",
+      "bytes": 1201016,
+      "md5": "98b8e7dbd0261058cecebe6110a358be",
+      "uploadedAt": "2026-10-07T05:47:13.592Z"
+    },
+    {
+      "key": "models/space/mercury-planet-brass-stylised.glb",
+      "source": "public/models/space/mercury-planet-brass-stylised.glb",
+      "bytes": 3431784,
+      "md5": "dbdc77ff047a752b3485a6d265f1b45e",
+      "uploadedAt": "2026-10-07T13:53:46.362Z"
+    },
+    {
+      "key": "models/space/mercury-planet.glb",
+      "source": "public/models/space/mercury-planet.glb",
+      "bytes": 3431784,
+      "md5": "dbdc77ff047a752b3485a6d265f1b45e",
+      "uploadedAt": "2026-10-07T13:53:46.883Z"
+    },
+    {
+      "key": "models/space/mercury-spacesuit.glb",
+      "source": "public/models/space/mercury-spacesuit.glb",
+      "bytes": 371160,
+      "md5": "b7c00682e1bdc2289f379a69c41db8e9",
+      "uploadedAt": "2026-10-07T05:47:25.386Z"
+    },
+    {
+      "key": "models/space/mercury.glb",
+      "source": "public/models/space/mercury.glb",
+      "bytes": 338220,
+      "md5": "0b946d8423b23bbc66844af1f7f8ed1d",
+      "uploadedAt": "2026-10-07T05:47:25.807Z"
+    },
+    {
+      "key": "models/space/meteorite.glb",
+      "source": "public/models/space/meteorite.glb",
+      "bytes": 1285728,
+      "md5": "7d62bfdc15b2395a306e3ab93c427166",
+      "uploadedAt": "2026-10-07T13:53:51.877Z"
+    },
+    {
+      "key": "models/space/meteorites.glb",
+      "source": "public/models/space/meteorites.glb",
+      "bytes": 1285728,
+      "md5": "7d62bfdc15b2395a306e3ab93c427166",
+      "uploadedAt": "2026-10-07T13:53:52.309Z"
+    },
+    {
+      "key": "models/space/mir.glb",
+      "source": "public/models/space/mir.glb",
+      "bytes": 20688,
+      "md5": "e53ddd727ba0727da103ce4af6e38c01",
+      "uploadedAt": "2026-10-07T05:47:29.716Z"
+    },
+    {
+      "key": "models/space/moon.glb",
+      "source": "public/models/space/moon.glb",
+      "bytes": 422184,
+      "md5": "a643072a37a042eff208e76e90bd408c",
+      "uploadedAt": "2026-10-07T05:47:24.867Z"
+    },
+    {
+      "key": "models/space/nancy-grace-roman-space-telescope-a.glb",
+      "source": "public/models/space/nancy-grace-roman-space-telescope-a.glb",
+      "bytes": 991656,
+      "md5": "354ef7437dbdb32f75d47161af46a6b6",
+      "uploadedAt": "2026-10-07T05:47:17.069Z"
+    },
+    {
+      "key": "models/space/nancy-grace-roman-space-telescope-b.glb",
+      "source": "public/models/space/nancy-grace-roman-space-telescope-b.glb",
+      "bytes": 167912,
+      "md5": "69fcf0f9cb905eac37e3d726297e1d99",
+      "uploadedAt": "2026-10-07T05:47:28.340Z"
+    },
+    {
+      "key": "models/space/near-shoemaker.glb",
+      "source": "public/models/space/near-shoemaker.glb",
+      "bytes": 692656,
+      "md5": "4d76c3e60f02bd6f399c41c1490a1076",
+      "uploadedAt": "2026-10-07T05:47:21.370Z"
+    },
+    {
+      "key": "models/space/neptune-v2.glb",
+      "source": "public/models/space/neptune-v2.glb",
+      "bytes": 2365744,
+      "md5": "763c4a2ea09ced1eb0fe390217aa9723",
+      "uploadedAt": "2026-10-07T13:53:49.186Z"
+    },
+    {
+      "key": "models/space/neptune.glb",
+      "source": "public/models/space/neptune.glb",
+      "bytes": 2365744,
+      "md5": "763c4a2ea09ced1eb0fe390217aa9723",
+      "uploadedAt": "2026-10-07T05:47:06.722Z"
+    },
+    {
+      "key": "models/space/ocean-surface-topography-mission-ostm-ja.glb",
+      "source": "public/models/space/ocean-surface-topography-mission-ostm-ja.glb",
+      "bytes": 921416,
+      "md5": "627cc67b591e3d74ba074d29f62c2c59",
+      "uploadedAt": "2026-10-07T05:47:18.194Z"
+    },
+    {
+      "key": "models/space/parker-solar-probe-suns-kisser.glb",
+      "source": "public/models/space/parker-solar-probe-suns-kisser.glb",
+      "bytes": 1581432,
+      "md5": "317d35696977f816a0d2c6f46fcdb800",
+      "uploadedAt": "2026-10-07T13:53:53.072Z"
+    },
+    {
+      "key": "models/space/parker-solar-probe.glb",
+      "source": "public/models/space/parker-solar-probe.glb",
+      "bytes": 234428,
+      "md5": "8fbb3576dd78327e53a35770c29b44e2",
+      "uploadedAt": "2026-10-07T05:47:27.305Z"
+    },
+    {
+      "key": "models/space/planet-earth-alt-drag-to-change-lighting.glb",
+      "source": "public/models/space/planet-earth-alt-drag-to-change-lighting.glb",
+      "bytes": 1692684,
+      "md5": "c59179dd8f35d49ea74b0901e54077a4",
+      "uploadedAt": "2026-10-07T13:53:51.001Z"
+    },
+    {
+      "key": "models/space/planet-earth.glb",
+      "source": "public/models/space/planet-earth.glb",
+      "bytes": 1692684,
+      "md5": "c59179dd8f35d49ea74b0901e54077a4",
+      "uploadedAt": "2026-10-07T13:53:52.501Z"
+    },
+    {
+      "key": "models/space/planet-neptune.glb",
+      "source": "public/models/space/planet-neptune.glb",
+      "bytes": 2365744,
+      "md5": "763c4a2ea09ced1eb0fe390217aa9723",
+      "uploadedAt": "2026-10-07T13:53:49.613Z"
+    },
+    {
+      "key": "models/space/planet-nine.glb",
+      "source": "public/models/space/planet-nine.glb",
+      "bytes": 439368,
+      "md5": "41681c42efb740133b8ba235d246d751",
+      "uploadedAt": "2026-10-07T13:53:55.221Z"
+    },
+    {
+      "key": "models/space/planet-saturn.glb",
+      "source": "public/models/space/planet-saturn.glb",
+      "bytes": 302976,
+      "md5": "1eaa612966a8156edf4ef1878b4e186b",
+      "uploadedAt": "2026-10-07T13:53:55.593Z"
+    },
+    {
+      "key": "models/space/planetary-nebula.glb",
+      "source": "public/models/space/planetary-nebula.glb",
+      "bytes": 571684,
+      "md5": "61d3b0a329a01773ae9775e7f3cf4c6a",
+      "uploadedAt": "2026-10-07T13:53:54.590Z"
+    },
+    {
+      "key": "models/space/quick-scatterometer-quikscat.glb",
+      "source": "public/models/space/quick-scatterometer-quikscat.glb",
+      "bytes": 4459200,
+      "md5": "606316b77c2d3fcf994d73f40ff5f190",
+      "uploadedAt": "2026-10-07T05:46:55.097Z"
+    },
+    {
+      "key": "models/space/radome.glb",
+      "source": "public/models/space/radome.glb",
+      "bytes": 1038228,
+      "md5": "18f40bf940821a2289a5dde2a2e8349f",
+      "uploadedAt": "2026-10-07T05:47:16.301Z"
+    },
+    {
+      "key": "models/space/robonaut-2.glb",
+      "source": "public/models/space/robonaut-2.glb",
+      "bytes": 822508,
+      "md5": "d6814ca231b6fdbbc2b8e9009ce051ec",
+      "uploadedAt": "2026-10-07T05:47:19.340Z"
+    },
+    {
+      "key": "models/space/rocket-engine.glb",
+      "source": "public/models/space/rocket-engine.glb",
+      "bytes": 553580,
+      "md5": "e4e7e9fdd37081305f9f8a848f339b06",
+      "uploadedAt": "2026-10-07T13:53:54.486Z"
+    },
+    {
+      "key": "models/space/rosetta.glb",
+      "source": "public/models/space/rosetta.glb",
+      "bytes": 418188,
+      "md5": "b7ff03feaf9b2754467dba2a42745b56",
+      "uploadedAt": "2026-10-07T05:47:25.122Z"
+    },
+    {
+      "key": "models/space/rs-2200.glb",
+      "source": "public/models/space/rs-2200.glb",
+      "bytes": 1168560,
+      "md5": "1fa787eb8052babbb63fa38274528b63",
+      "uploadedAt": "2026-10-07T13:53:53.858Z"
+    },
+    {
+      "key": "models/space/saturn-v.glb",
+      "source": "public/models/space/saturn-v.glb",
+      "bytes": 827436,
+      "md5": "720cdba203b978367362c246de51cabc",
+      "uploadedAt": "2026-10-07T05:47:19.195Z"
+    },
+    {
+      "key": "models/space/saturn.glb",
+      "source": "public/models/space/saturn.glb",
+      "bytes": 302976,
+      "md5": "1eaa612966a8156edf4ef1878b4e186b",
+      "uploadedAt": "2026-10-07T05:47:26.362Z"
+    },
+    {
+      "key": "models/space/skylab.glb",
+      "source": "public/models/space/skylab.glb",
+      "bytes": 96164,
+      "md5": "fc0ed5c2af484801c3942297514bf740",
+      "uploadedAt": "2026-10-07T05:47:29.183Z"
+    },
+    {
+      "key": "models/space/solar-and-heliospheric-observatory.glb",
+      "source": "public/models/space/solar-and-heliospheric-observatory.glb",
+      "bytes": 82448,
+      "md5": "b4eaed8ff5e0f2abcad7452e611b20b7",
+      "uploadedAt": "2026-10-07T05:47:29.271Z"
+    },
+    {
+      "key": "models/space/solar-dynamics-observatory.glb",
+      "source": "public/models/space/solar-dynamics-observatory.glb",
+      "bytes": 1187416,
+      "md5": "fa1aa9bd5d06a2f9212a96dff41c7cc5",
+      "uploadedAt": "2026-10-07T05:47:13.967Z"
+    },
+    {
+      "key": "models/space/solar-radiation-and-climate-experiment-s.glb",
+      "source": "public/models/space/solar-radiation-and-climate-experiment-s.glb",
+      "bytes": 365188,
+      "md5": "0baa89842ad11c8f3cb3fcde96cb0416",
+      "uploadedAt": "2026-10-07T05:47:25.617Z"
+    },
+    {
+      "key": "models/space/solar-system.glb",
+      "source": "public/models/space/solar-system.glb",
+      "bytes": 3395732,
+      "md5": "ba5ccbde25d609fe0421dd8f9d3b0555",
+      "uploadedAt": "2026-10-07T13:53:49.495Z"
+    },
+    {
+      "key": "models/space/solar-terrestrial-relations-observatory.glb",
+      "source": "public/models/space/solar-terrestrial-relations-observatory.glb",
+      "bytes": 161704,
+      "md5": "488ea4fcc2054abcb986bf8d45e65490",
+      "uploadedAt": "2026-10-07T05:47:28.612Z"
+    },
+    {
+      "key": "models/space/space-shuttle-c.glb",
+      "source": "public/models/space/space-shuttle-c.glb",
+      "bytes": 5172496,
+      "md5": "7f1834e7eec557d3702f5b43f988be0f",
+      "uploadedAt": "2026-10-07T05:46:40.701Z"
+    },
+    {
+      "key": "models/space/space-shuttle-challenger.glb",
+      "source": "public/models/space/space-shuttle-challenger.glb",
+      "bytes": 748492,
+      "md5": "53970c4c284edd7226a8e25933261a6e",
+      "uploadedAt": "2026-10-07T13:53:54.182Z"
+    },
+    {
+      "key": "models/space/space-shuttle-d.glb",
+      "source": "public/models/space/space-shuttle-d.glb",
+      "bytes": 6742120,
+      "md5": "9dd9582fc4e766397d0257f4ecbb21bb",
+      "uploadedAt": "2026-10-07T05:46:34.638Z"
+    },
+    {
+      "key": "models/space/space-shuttle-discovery.glb",
+      "source": "public/models/space/space-shuttle-discovery.glb",
+      "bytes": 5172496,
+      "md5": "7f1834e7eec557d3702f5b43f988be0f",
+      "uploadedAt": "2026-10-07T13:53:40.594Z"
+    },
+    {
+      "key": "models/space/space-station.glb",
+      "source": "public/models/space/space-station.glb",
+      "bytes": 7113700,
+      "md5": "0e4c982ba15cb30ec383f33b59061c77",
+      "uploadedAt": "2026-10-07T13:53:45.966Z"
+    },
+    {
+      "key": "models/space/space-suit.glb",
+      "source": "public/models/space/space-suit.glb",
+      "bytes": 15158624,
+      "md5": "1bb7a3e976c1d0eca2255fb2a44883fd",
+      "uploadedAt": "2026-10-07T13:53:52.333Z"
+    },
+    {
+      "key": "models/space/spitzer-space-telescope.glb",
+      "source": "public/models/space/spitzer-space-telescope.glb",
+      "bytes": 218104,
+      "md5": "ad3e462faaa85fa8a22b4139f617182d",
+      "uploadedAt": "2026-10-07T05:47:27.778Z"
+    },
+    {
+      "key": "models/space/submillimeter-wave-astronomy-satellite-s.glb",
+      "source": "public/models/space/submillimeter-wave-astronomy-satellite-s.glb",
+      "bytes": 63860,
+      "md5": "7d9a059f79667467cb6aaff88788e7c8",
+      "uploadedAt": "2026-10-07T13:53:56.186Z"
+    },
+    {
+      "key": "models/space/sun.glb",
+      "source": "public/models/space/sun.glb",
+      "bytes": 1901512,
+      "md5": "21a0a2dce446b161edbd53889676653c",
+      "uploadedAt": "2026-10-07T05:47:08.787Z"
+    },
+    {
+      "key": "models/space/telescope.glb",
+      "source": "public/models/space/telescope.glb",
+      "bytes": 497560,
+      "md5": "e6d8bfb7e080d6207211d14d8e3f09ba",
+      "uploadedAt": "2026-10-07T13:53:55.111Z"
+    },
+    {
+      "key": "models/space/titan.glb",
+      "source": "public/models/space/titan.glb",
+      "bytes": 1194832,
+      "md5": "2bd72cbde4a169c803a7cfad8948da48",
+      "uploadedAt": "2026-10-07T13:53:52.576Z"
+    },
+    {
+      "key": "models/space/total-ozone-mapping-spectrometer-toms.glb",
+      "source": "public/models/space/total-ozone-mapping-spectrometer-toms.glb",
+      "bytes": 93416,
+      "md5": "bd352bd70b545cbdc82ce970cc1aac6f",
+      "uploadedAt": "2026-10-07T05:47:29.216Z"
+    },
+    {
+      "key": "models/space/transiting-exoplanet-survey-satellite-te.glb",
+      "source": "public/models/space/transiting-exoplanet-survey-satellite-te.glb",
+      "bytes": 72480,
+      "md5": "c101445e571c7ff314c7220c7e71e597",
+      "uploadedAt": "2026-10-07T05:47:29.382Z"
+    },
+    {
+      "key": "models/space/tropical-rainfall-measuring-mission-trmm.glb",
+      "source": "public/models/space/tropical-rainfall-measuring-mission-trmm.glb",
+      "bytes": 193408,
+      "md5": "07d04be84305745e046e9d15dd5c17ec",
+      "uploadedAt": "2026-10-07T05:47:28.180Z"
+    },
+    {
+      "key": "models/space/umbriel.glb",
+      "source": "public/models/space/umbriel.glb",
+      "bytes": 299028,
+      "md5": "f8c6b6f6f69832f74064cbb4d022763a",
+      "uploadedAt": "2026-10-07T13:53:55.796Z"
+    },
+    {
+      "key": "models/space/uranus.glb",
+      "source": "public/models/space/uranus.glb",
+      "bytes": 435832,
+      "md5": "4814634035ad436ed39a2d9e57d95284",
+      "uploadedAt": "2026-10-07T05:47:24.797Z"
+    },
+    {
+      "key": "models/space/van-allen-probes.glb",
+      "source": "public/models/space/van-allen-probes.glb",
+      "bytes": 373304,
+      "md5": "5ffa92360b3956286636eecf714585ef",
+      "uploadedAt": "2026-10-07T13:53:55.651Z"
+    },
+    {
+      "key": "models/space/vehicle-assembly-building-vab.glb",
+      "source": "public/models/space/vehicle-assembly-building-vab.glb",
+      "bytes": 311956,
+      "md5": "fe91b26372fbac55ec5b98ccb0259406",
+      "uploadedAt": "2026-10-07T13:53:55.611Z"
+    },
+    {
+      "key": "models/space/venus.glb",
+      "source": "public/models/space/venus.glb",
+      "bytes": 469432,
+      "md5": "77b704ec3d3748c5a3945ee56b5fc06e",
+      "uploadedAt": "2026-10-07T05:47:23.641Z"
+    },
+    {
+      "key": "models/space/voyager-1.glb",
+      "source": "public/models/space/voyager-1.glb",
+      "bytes": 1985836,
+      "md5": "0cda041738efa5227dba1c89684131de",
+      "uploadedAt": "2026-10-07T05:47:08.231Z"
+    },
+    {
+      "key": "models/space/wilkinson-microwave-anisotropy-probe-wma.glb",
+      "source": "public/models/space/wilkinson-microwave-anisotropy-probe-wma.glb",
+      "bytes": 439364,
+      "md5": "7a5a6beef4278702eca59f71e470291c",
+      "uploadedAt": "2026-10-07T05:47:24.745Z"
+    },
+    {
+      "key": "models/space/wind.glb",
+      "source": "public/models/space/wind.glb",
+      "bytes": 6780180,
+      "md5": "9fe3d5fc2083acb667fa856cf86df07d",
+      "uploadedAt": "2026-10-07T05:46:34.688Z"
+    },
+    {
+      "key": "models/space/wrench.glb",
+      "source": "public/models/space/wrench.glb",
+      "bytes": 4152940,
+      "md5": "9d9db2a16cd29912f6688b45c0fcbe45",
+      "uploadedAt": "2026-10-07T05:46:49.367Z"
+    },
+    {
+      "key": "models/sperm-whale.glb",
+      "source": "public/models/sperm-whale.glb",
+      "bytes": 2886204,
+      "md5": "d35a791ea3fab40ff2e848a8368e8179",
+      "uploadedAt": "2026-10-07T05:47:00.677Z"
+    },
+    {
+      "key": "models/spotted-hyena.glb",
+      "source": "public/models/spotted-hyena.glb",
+      "bytes": 437944,
+      "md5": "75fea92c293a4c10d33d0ad97efdbc2c",
+      "uploadedAt": "2026-10-07T05:47:24.711Z"
+    },
+    {
+      "key": "models/stellers-sea-cow.glb",
+      "source": "public/models/stellers-sea-cow.glb",
+      "bytes": 1288204,
+      "md5": "e392c348f429e1ecee3c039749f1e7ee",
+      "uploadedAt": "2026-10-07T05:47:12.856Z"
+    },
+    {
+      "key": "models/three-toed-sloth.glb",
+      "source": null,
+      "bytes": 616852,
+      "md5": "e873e7d304e0dfda80ff7f0f606b0fa4",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/thylacine.glb",
+      "source": "public/models/thylacine.glb",
+      "bytes": 2112100,
+      "md5": "84dab110c0d143d13dd65ecd13ff2099",
+      "contentType": "model/gltf-binary",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/toco-toucan.glb",
+      "source": "public/models/toco-toucan.glb",
+      "bytes": 145688,
+      "md5": "baa670c2d3529575ef30eb2f4b05b0cc",
+      "uploadedAt": "2026-10-07T05:47:28.871Z"
+    },
+    {
+      "key": "models/tyrannosaurus-rex.glb",
+      "source": "public/models/tyrannosaurus-rex.glb",
+      "bytes": 482972,
+      "md5": "1af4456a47c8a68c23b624ad6ad2b8ad",
+      "uploadedAt": "2026-10-07T05:47:23.285Z"
+    },
+    {
+      "key": "models/vehicles/airbus-a380.glb",
+      "source": "public/models/vehicles/airbus-a380.glb",
+      "bytes": 508036,
+      "md5": "a5b6cf5916b987a4562658be18ef055d",
+      "uploadedAt": "2026-10-07T05:47:22.541Z"
+    },
+    {
+      "key": "models/vehicles/bell-uh-1.glb",
+      "source": "public/models/vehicles/bell-uh-1.glb",
+      "bytes": 872768,
+      "md5": "d359c9c993e126d663365ee5b0e32d5f",
+      "uploadedAt": "2026-10-07T05:47:18.433Z"
+    },
+    {
+      "key": "models/vehicles/boeing-747.glb",
+      "source": "public/models/vehicles/boeing-747.glb",
+      "bytes": 448272,
+      "md5": "7f8d064a1024feccec5f8bccee82f92f",
+      "uploadedAt": "2026-10-07T05:47:24.382Z"
+    },
+    {
+      "key": "models/vehicles/concorde.glb",
+      "source": "public/models/vehicles/concorde.glb",
+      "bytes": 458868,
+      "md5": "f58610f59a8ff944f74cb68d096b15a9",
+      "uploadedAt": "2026-10-07T05:47:23.544Z"
+    },
+    {
+      "key": "models/vehicles/fire-engine.glb",
+      "source": "public/models/vehicles/fire-engine.glb",
+      "bytes": 249504,
+      "md5": "9f2405b4126901b5bb9ea55371fee25f",
+      "uploadedAt": "2026-10-07T05:47:27.044Z"
+    },
+    {
+      "key": "models/vehicles/formula-1-car.glb",
+      "source": "public/models/vehicles/formula-1-car.glb",
+      "bytes": 613496,
+      "md5": "95103199052eebb1821e4af59148bb4b",
+      "uploadedAt": "2026-10-07T05:47:21.437Z"
+    },
+    {
+      "key": "models/vehicles/harley-davidson.glb",
+      "source": "public/models/vehicles/harley-davidson.glb",
+      "bytes": 868136,
+      "md5": "27f518dfbe03fef4ee8aef6c7b3df293",
+      "uploadedAt": "2026-10-07T05:47:18.094Z"
+    },
+    {
+      "key": "models/vehicles/hot-air-balloon.glb",
+      "source": "public/models/vehicles/hot-air-balloon.glb",
+      "bytes": 981940,
+      "md5": "f14faccee69732379739291a40d0e9e1",
+      "uploadedAt": "2026-10-07T05:47:17.401Z"
+    },
+    {
+      "key": "models/vehicles/road-bicycle.glb",
+      "source": "public/models/vehicles/road-bicycle.glb",
+      "bytes": 8187832,
+      "md5": "8ddc920a2f5f5839ef9a7c1b6892931b",
+      "uploadedAt": "2026-10-07T05:46:30.106Z"
+    },
+    {
+      "key": "models/vehicles/routemaster.glb",
+      "source": "public/models/vehicles/routemaster.glb",
+      "bytes": 152352,
+      "md5": "40f1f8642fb911715c75df4ace6c43b3",
+      "uploadedAt": "2026-10-07T05:47:28.711Z"
+    },
+    {
+      "key": "models/vehicles/shinkansen.glb",
+      "source": "public/models/vehicles/shinkansen.glb",
+      "bytes": 579912,
+      "md5": "dedaab3db096ab66cb97c9cd3cf5610e",
+      "uploadedAt": "2026-10-07T05:47:22.190Z"
+    },
+    {
+      "key": "models/vehicles/tesla-model-s.glb",
+      "source": "public/models/vehicles/tesla-model-s.glb",
+      "bytes": 2044212,
+      "md5": "4ef8bdca5e3ebbbcb8a30667de61a001",
+      "uploadedAt": "2026-10-07T05:47:07.907Z"
+    },
+    {
+      "key": "models/vehicles/titanic.glb",
+      "source": "public/models/vehicles/titanic.glb",
+      "bytes": 205052,
+      "md5": "6f9dbee146cabecc4c421a2b639e2ab9",
+      "uploadedAt": "2026-10-07T05:47:27.901Z"
+    },
+    {
+      "key": "models/vehicles/toyota-corolla.glb",
+      "source": "public/models/vehicles/toyota-corolla.glb",
+      "bytes": 438856,
+      "md5": "bdc45e7db7155a9159ef280aa3a29e79",
+      "uploadedAt": "2026-10-07T05:47:24.713Z"
+    },
+    {
+      "key": "models/veiled-chameleon.glb",
+      "source": null,
+      "bytes": 458516,
+      "md5": "4869e1b831d3d12a36059275c0f93f16",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/walrus.glb",
+      "source": null,
+      "bytes": 2035584,
+      "md5": "b6079fa3a86351876cb32236d8b44f72",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/weddell-seal.glb",
+      "source": "public/models/weddell-seal.glb",
+      "bytes": 43120,
+      "md5": "2413e780702f28a0e42ab32c579be52b",
+      "uploadedAt": "2026-10-07T05:47:29.717Z"
+    },
+    {
+      "key": "models/west-indian-manatee.glb",
+      "source": null,
+      "bytes": 2477012,
+      "md5": "4390f6a9af79c42348ddf4b19bfb50b3",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "models/whale-shark.glb",
+      "source": "public/models/whale-shark.glb",
+      "bytes": 1987904,
+      "md5": "4fc29d01f1bc167ffcc87750c99b46fc",
+      "uploadedAt": "2026-10-07T05:47:08.068Z"
+    },
+    {
+      "key": "models/white-rhinoceros.glb",
+      "source": "public/models/white-rhinoceros.glb",
+      "bytes": 1524768,
+      "md5": "ed45ac9818822d593dd6efde2f19e22b",
+      "uploadedAt": "2026-10-07T05:47:11.636Z"
+    },
+    {
+      "key": "models/wolverine.glb",
+      "source": "public/models/wolverine.glb",
+      "bytes": 2077880,
+      "md5": "2eb060e7f2fe6855753e819487da4900",
+      "uploadedAt": "2026-10-07T05:47:07.365Z"
+    },
+    {
+      "key": "models/woolly-mammoth.glb",
+      "source": "public/models/woolly-mammoth.glb",
+      "bytes": 1112996,
+      "md5": "f4b8a502d5fe0c7b22cac26733cf4478",
+      "uploadedAt": "2026-10-07T05:47:15.288Z"
+    },
+    {
+      "key": "originals/models/american-alligator.glb",
+      "source": null,
+      "bytes": 5692244,
+      "md5": "90130f0ba9a02f18641a0e0006373d5e",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/axolotl.glb",
+      "source": null,
+      "bytes": 504640,
+      "md5": "f74fe81689ac296e8c40ce5df9f12448",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/blue-ringed-octopus.glb",
+      "source": null,
+      "bytes": 9211584,
+      "md5": "e800232df0463bebd8464fde1a81fab5",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/california-condor.glb",
+      "source": null,
+      "bytes": 3021676,
+      "md5": "4aeda772e6a9827ca46c06a151aa9797",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/capybara.glb",
+      "source": null,
+      "bytes": 2610180,
+      "md5": "fcbedbdabce164609337eecd982a0fce",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/gila-monster.glb",
+      "source": null,
+      "bytes": 371076,
+      "md5": "762087f7365b24486d221e875dd4eeb4",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/hippopotamus.glb",
+      "source": null,
+      "bytes": 4034740,
+      "md5": "1c7d730627f3c78ca4bb867136c29384",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/komodo-dragon.glb",
+      "source": null,
+      "bytes": 4634312,
+      "md5": "13780e193057dc907eb8ca6de8fbae9e",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "originals/models/monarch-butterfly.glb",
+      "source": null,
+      "bytes": 231708,
+      "md5": "20b5165f79884bfcc81efb603b41c08f",
+      "contentType": "model/gltf-binary",
+      "note": "in the bucket, not produced from public/**",
+      "uploadedAt": null
+    },
+    {
+      "key": "previews/african-bush-elephant.webp",
+      "source": "public/previews/african-bush-elephant.webp",
+      "bytes": 9970,
+      "md5": "841e648269cd672a540fe01e1b076f48",
+      "uploadedAt": "2026-10-07T09:34:46.836Z"
+    },
+    {
+      "key": "previews/african-penguin.webp",
+      "source": null,
+      "bytes": 9884,
+      "md5": "3713b27a37c1bbccf57a21ebeb2cd1fc",
+      "uploadedAt": "2026-10-07T12:38:48.671Z",
+      "note": "in the bucket, not produced from public/**"
+    },
+    {
+      "key": "previews/american-alligator.webp",
+      "source": "public/previews/american-alligator.webp",
+      "bytes": 5778,
+      "md5": "8d465c2fb674366e6e9440fda632f185",
+      "uploadedAt": "2026-10-07T09:35:02.744Z"
+    },
+    {
+      "key": "previews/american-bison.webp",
+      "source": "public/previews/american-bison.webp",
+      "bytes": 7880,
+      "md5": "3548c5e1e879ebf6b6a94553a288727b",
+      "uploadedAt": "2026-10-07T09:34:51.931Z"
+    },
+    {
+      "key": "previews/arctic-fox.webp",
+      "source": "public/previews/arctic-fox.webp",
+      "bytes": 5102,
+      "md5": "79a67f2946a2691cf2a87538f3ff3b99",
+      "uploadedAt": "2026-10-07T09:35:05.849Z"
+    },
+    {
+      "key": "previews/axolotl.webp",
+      "source": "public/previews/axolotl.webp",
+      "bytes": 6708,
+      "md5": "c30605646f7bbd453da2351047212ec8",
+      "uploadedAt": "2026-10-07T09:34:59.293Z"
+    },
+    {
+      "key": "previews/bald-eagle.webp",
+      "source": "public/previews/bald-eagle.webp",
+      "bytes": 9704,
+      "md5": "deccf5f0f26ec462b86efc10726346c8",
+      "uploadedAt": "2026-10-07T09:34:47.084Z"
+    },
+    {
+      "key": "previews/black-mamba.webp",
+      "source": "public/previews/black-mamba.webp",
+      "bytes": 9486,
+      "md5": "626b08fd3c24fa717897c8cc781b77bc",
+      "uploadedAt": "2026-10-07T09:34:47.464Z"
+    },
+    {
+      "key": "previews/blue-ringed-octopus.webp",
+      "source": "public/previews/blue-ringed-octopus.webp",
+      "bytes": 12638,
+      "md5": "f2575fe49e61290bd453d07ec7370b9e",
+      "uploadedAt": "2026-10-07T09:34:19.887Z"
+    },
+    {
+      "key": "previews/blue-whale.webp",
+      "source": "public/previews/blue-whale.webp",
+      "bytes": 3990,
+      "md5": "57bab7736824021ea90db7c25cd3ef40",
+      "uploadedAt": "2026-10-07T09:35:09.593Z"
+    },
+    {
+      "key": "previews/bottlenose-dolphin.webp",
+      "source": "public/previews/bottlenose-dolphin.webp",
+      "bytes": 3558,
+      "md5": "e9eb786042cdef0b3a5ccd06b68fc694",
+      "uploadedAt": "2026-10-07T09:35:11.433Z"
+    },
+    {
+      "key": "previews/california-condor.webp",
+      "source": "public/previews/california-condor.webp",
+      "bytes": 5630,
+      "md5": "0437d74f890c40f18496994de7367c16",
+      "uploadedAt": "2026-10-07T09:35:02.901Z"
+    },
+    {
+      "key": "previews/california-sea-lion.webp",
+      "source": "public/previews/california-sea-lion.webp",
+      "bytes": 5572,
+      "md5": "9745fa146bdbfc71d099ce038dfa17ba",
+      "uploadedAt": "2026-10-07T10:08:05.532Z"
+    },
+    {
+      "key": "previews/capybara.webp",
+      "source": "public/previews/capybara.webp",
+      "bytes": 8836,
+      "md5": "4cd1620fa92b52a1163f128c92ab3771",
+      "uploadedAt": "2026-10-07T09:34:49.159Z"
+    },
+    {
+      "key": "previews/cheetah.webp",
+      "source": "public/previews/cheetah.webp",
+      "bytes": 15930,
+      "md5": "353885e6af23c51c96eeaa9483139fe9",
+      "uploadedAt": "2026-10-07T09:34:15.898Z"
+    },
+    {
+      "key": "previews/chimpanzee.webp",
+      "source": "public/previews/chimpanzee.webp",
+      "bytes": 6138,
+      "md5": "7183855efeffb31a32596bac92f095ae",
+      "uploadedAt": "2026-10-07T09:35:00.738Z"
+    },
+    {
+      "key": "previews/common-ostrich.webp",
+      "source": "public/previews/common-ostrich.webp",
+      "bytes": 10132,
+      "md5": "e5aeba42d8b99311443eca8eff0d6644",
+      "uploadedAt": "2026-10-07T09:34:42.182Z"
+    },
+    {
+      "key": "previews/deathstalker-scorpion.webp",
+      "source": "public/previews/deathstalker-scorpion.webp",
+      "bytes": 12662,
+      "md5": "dc1931569a11c371930c117aa0896f79",
+      "uploadedAt": "2026-10-07T09:34:19.583Z"
+    },
+    {
+      "key": "previews/dodo.webp",
+      "source": "public/previews/dodo.webp",
+      "bytes": 5444,
+      "md5": "05053c2130e88016f2fcca110a294a53",
+      "uploadedAt": "2026-10-07T09:35:04.859Z"
+    },
+    {
+      "key": "previews/electric-eel.webp",
+      "source": "public/previews/electric-eel.webp",
+      "bytes": 3844,
+      "md5": "b1cd8503a034102c334803eff63d7a45",
+      "uploadedAt": "2026-10-07T09:35:11.122Z"
+    },
+    {
+      "key": "previews/emperor-dragonfly.webp",
+      "source": "public/previews/emperor-dragonfly.webp",
+      "bytes": 7402,
+      "md5": "b85fdece53f4cf4820a748b9958fe93b",
+      "uploadedAt": "2026-10-07T09:34:53.469Z"
+    },
+    {
+      "key": "previews/emperor-scorpion.webp",
+      "source": "public/previews/emperor-scorpion.webp",
+      "bytes": 14244,
+      "md5": "8249c44f8fdbe1f02b1a0d4be8f24d1d",
+      "uploadedAt": "2026-10-07T09:34:16.983Z"
+    },
+    {
+      "key": "previews/european-mantis.webp",
+      "source": "public/previews/european-mantis.webp",
+      "bytes": 10040,
+      "md5": "253470985c48c28feaa8c656c7cbb154",
+      "uploadedAt": "2026-10-07T09:34:46.486Z"
+    },
+    {
+      "key": "previews/fennec-fox.webp",
+      "source": "public/previews/fennec-fox.webp",
+      "bytes": 6754,
+      "md5": "fcac117fd5c896f759b96bf482b9fb1e",
+      "uploadedAt": "2026-10-07T09:34:58.607Z"
+    },
+    {
+      "key": "previews/giant-anteater.webp",
+      "source": "public/previews/giant-anteater.webp",
+      "bytes": 8348,
+      "md5": "550fc80386bcd50337bba7f11cfde633",
+      "uploadedAt": "2026-10-07T09:34:50.791Z"
+    },
+    {
+      "key": "previews/giant-clam.webp",
+      "source": "public/previews/giant-clam.webp",
+      "bytes": 16804,
+      "md5": "57a8742029391e914901eb020c912973",
+      "uploadedAt": "2026-10-07T09:34:15.412Z"
+    },
+    {
+      "key": "previews/giant-manta-ray.webp",
+      "source": "public/previews/giant-manta-ray.webp",
+      "bytes": 9118,
+      "md5": "c132f6cfa5b0d5b909bc69f593337563",
+      "uploadedAt": "2026-10-07T09:34:48.334Z"
+    },
+    {
+      "key": "previews/giant-panda.webp",
+      "source": "public/previews/giant-panda.webp",
+      "bytes": 5508,
+      "md5": "0d3551f55f157d452c6c79594847ae93",
+      "uploadedAt": "2026-10-07T09:35:03.972Z"
+    },
+    {
+      "key": "previews/giant-squid.webp",
+      "source": "public/previews/giant-squid.webp",
+      "bytes": 14826,
+      "md5": "0200108713061731e45df70200acf3ba",
+      "uploadedAt": "2026-10-07T09:34:16.494Z"
+    },
+    {
+      "key": "previews/gila-monster.webp",
+      "source": "public/previews/gila-monster.webp",
+      "bytes": 5248,
+      "md5": "44d4b26e2173614b0223237cadfe26cd",
+      "uploadedAt": "2026-10-07T09:35:05.022Z"
+    },
+    {
+      "key": "previews/giraffe.webp",
+      "source": "public/previews/giraffe.webp",
+      "bytes": 10968,
+      "md5": "7a3a842fc1dcd19a290842a01b556795",
+      "uploadedAt": "2026-10-07T09:34:24.042Z"
+    },
+    {
+      "key": "previews/goliath-birdeater.webp",
+      "source": "public/previews/goliath-birdeater.webp",
+      "bytes": 12400,
+      "md5": "f08992374d124912835b5f79597f4aea",
+      "uploadedAt": "2026-10-07T09:34:20.453Z"
+    },
+    {
+      "key": "previews/gray-wolf.webp",
+      "source": "public/previews/gray-wolf.webp",
+      "bytes": 7336,
+      "md5": "6b2ceee82c020ceb6f2d03d68567c4f2",
+      "uploadedAt": "2026-10-07T09:34:53.450Z"
+    },
+    {
+      "key": "previews/great-white-shark.webp",
+      "source": "public/previews/great-white-shark.webp",
+      "bytes": 4392,
+      "md5": "204d00894b75a9c6490c354e6c11c659",
+      "uploadedAt": "2026-10-07T09:35:08.088Z"
+    },
+    {
+      "key": "previews/greater-flamingo.webp",
+      "source": "public/previews/greater-flamingo.webp",
+      "bytes": 7786,
+      "md5": "e7bdb68858e5950952fc4b406c539272",
+      "uploadedAt": "2026-10-07T09:34:51.916Z"
+    },
+    {
+      "key": "previews/green-sea-turtle.webp",
+      "source": "public/previews/green-sea-turtle.webp",
+      "bytes": 8188,
+      "md5": "34193bd4ad9190218da1919d004019db",
+      "uploadedAt": "2026-10-07T09:34:51.239Z"
+    },
+    {
+      "key": "previews/harpy-eagle.webp",
+      "source": "public/previews/harpy-eagle.webp",
+      "bytes": 7562,
+      "md5": "7e97bc9ea4ef1318205ca8b566011d42",
+      "uploadedAt": "2026-10-07T09:34:52.983Z"
+    },
+    {
+      "key": "previews/hellbender.webp",
+      "source": "public/previews/hellbender.webp",
+      "bytes": 10764,
+      "md5": "8824d67fa47bfd735f0dd9ab589a469c",
+      "uploadedAt": "2026-10-07T09:34:40.485Z"
+    },
+    {
+      "key": "previews/hippopotamus.webp",
+      "source": "public/previews/hippopotamus.webp",
+      "bytes": 10776,
+      "md5": "20bc7d18ff9070531fc5a6d80dea6129",
+      "uploadedAt": "2026-10-07T09:34:39.694Z"
+    },
+    {
+      "key": "previews/hoatzin.webp",
+      "source": "public/previews/hoatzin.webp",
+      "bytes": 8514,
+      "md5": "c7efe0548507d72e9f79cb5fa26a3641",
+      "uploadedAt": "2026-10-07T09:34:49.867Z"
+    },
+    {
+      "key": "previews/humpback-whale.webp",
+      "source": "public/previews/humpback-whale.webp",
+      "bytes": 6218,
+      "md5": "9a70da5ce894b679208f11cb3786acca",
+      "uploadedAt": "2026-10-07T09:35:00.502Z"
+    },
+    {
+      "key": "previews/jaguar.webp",
+      "source": "public/previews/jaguar.webp",
+      "bytes": 20706,
+      "md5": "dcaa0e0441550ff700776f924e6110b8",
+      "uploadedAt": "2026-10-07T09:34:12.402Z"
+    },
+    {
+      "key": "previews/king-cobra.webp",
+      "source": "public/previews/king-cobra.webp",
+      "bytes": 9794,
+      "md5": "087ea70e48276cff4af9e93b3668e97a",
+      "uploadedAt": "2026-10-07T09:34:46.867Z"
+    },
+    {
+      "key": "previews/komodo-dragon.webp",
+      "source": "public/previews/komodo-dragon.webp",
+      "bytes": 7140,
+      "md5": "dd5e60d647b5cdc3daa79e48f6d4f467",
+      "uploadedAt": "2026-10-07T09:34:54.962Z"
+    },
+    {
+      "key": "previews/landmarks/alhambra.webp",
+      "source": "public/previews/landmarks/alhambra.webp",
+      "bytes": 25082,
+      "md5": "7ffcd8d19c62078be1dfee3ab0b755cf",
+      "uploadedAt": "2026-10-07T09:34:10.746Z"
+    },
+    {
+      "key": "previews/landmarks/angkor-wat.webp",
+      "source": "public/previews/landmarks/angkor-wat.webp",
+      "bytes": 10698,
+      "md5": "06bb33778d36fb1ee2d31fb43392f7bb",
+      "uploadedAt": "2026-10-07T09:34:40.093Z"
+    },
+    {
+      "key": "previews/landmarks/arc-de-triomphe.webp",
+      "source": "public/previews/landmarks/arc-de-triomphe.webp",
+      "bytes": 30276,
+      "md5": "526d04fd8a192fc532e69b0b3f33f77e",
+      "uploadedAt": "2026-10-07T09:34:10.362Z"
+    },
+    {
+      "key": "previews/landmarks/big-ben.webp",
+      "source": "public/previews/landmarks/big-ben.webp",
+      "bytes": 7020,
+      "md5": "54eb74136f35ffbf66c008c01bff62ed",
+      "uploadedAt": "2026-10-07T09:34:59.641Z"
+    },
+    {
+      "key": "previews/landmarks/borobudur.webp",
+      "source": "public/previews/landmarks/borobudur.webp",
+      "bytes": 8246,
+      "md5": "0c2086af83b045d6ba379f057e9ac73f",
+      "uploadedAt": "2026-10-07T09:34:50.993Z"
+    },
+    {
+      "key": "previews/landmarks/boudhanath.webp",
+      "source": "public/previews/landmarks/boudhanath.webp",
+      "bytes": 18454,
+      "md5": "c95cd16e0682a130584b558c3d6bcd56",
+      "uploadedAt": "2026-10-07T09:34:14.820Z"
+    },
+    {
+      "key": "previews/landmarks/burj-khalifa.webp",
+      "source": "public/previews/landmarks/burj-khalifa.webp",
+      "bytes": 3166,
+      "md5": "558b84d0b43e8a4583bac2f56ca897c4",
+      "uploadedAt": "2026-10-07T09:35:12.461Z"
+    },
+    {
+      "key": "previews/landmarks/chateau-frontenac.webp",
+      "source": "public/previews/landmarks/chateau-frontenac.webp",
+      "bytes": 12034,
+      "md5": "ebf97d0f5c4c50def7f95a1c43f687eb",
+      "uploadedAt": "2026-10-07T09:34:20.838Z"
+    },
+    {
+      "key": "previews/landmarks/chichen-itza.webp",
+      "source": "public/previews/landmarks/chichen-itza.webp",
+      "bytes": 22718,
+      "md5": "ebd33e273a2e8430330c4221c32ee428",
+      "uploadedAt": "2026-10-07T09:34:11.708Z"
+    },
+    {
+      "key": "previews/landmarks/christ-the-redeemer.webp",
+      "source": "public/previews/landmarks/christ-the-redeemer.webp",
+      "bytes": 5852,
+      "md5": "b6270c3ce063b7a01e76a419f7e4404c",
+      "uploadedAt": "2026-10-07T09:35:02.631Z"
+    },
+    {
+      "key": "previews/landmarks/cn-tower.webp",
+      "source": "public/previews/landmarks/cn-tower.webp",
+      "bytes": 10254,
+      "md5": "75f5977243a7a1b274316dbd7a295b79",
+      "uploadedAt": "2026-10-07T09:34:41.200Z"
+    },
+    {
+      "key": "previews/landmarks/cologne-cathedral.webp",
+      "source": "public/previews/landmarks/cologne-cathedral.webp",
+      "bytes": 27702,
+      "md5": "a7a8b1751293f5b3ac7b65c15f6b1b64",
+      "uploadedAt": "2026-10-07T09:34:09.770Z"
+    },
+    {
+      "key": "previews/landmarks/colosseum.webp",
+      "source": "public/previews/landmarks/colosseum.webp",
+      "bytes": 18468,
+      "md5": "ee6e48455ba971c5f50cbadb90de6420",
+      "uploadedAt": "2026-10-07T10:08:05.542Z"
+    },
+    {
+      "key": "previews/landmarks/djenne-mosque.webp",
+      "source": "public/previews/landmarks/djenne-mosque.webp",
+      "bytes": 10604,
+      "md5": "00952eaacefa4f0c9b6e23b08c9f1093",
+      "uploadedAt": "2026-10-07T10:08:05.539Z"
+    },
+    {
+      "key": "previews/landmarks/edinburgh-castle.webp",
+      "source": "public/previews/landmarks/edinburgh-castle.webp",
+      "bytes": 7110,
+      "md5": "5b6661e90fd571c083d310752b9cd07b",
+      "uploadedAt": "2026-10-07T09:34:54.573Z"
+    },
+    {
+      "key": "previews/landmarks/eiffel-tower.webp",
+      "source": "public/previews/landmarks/eiffel-tower.webp",
+      "bytes": 7006,
+      "md5": "cf5e2ce89fe480bcbfad07502a95ecb0",
+      "uploadedAt": "2026-10-07T09:34:56.834Z"
+    },
+    {
+      "key": "previews/landmarks/empire-state-building.webp",
+      "source": "public/previews/landmarks/empire-state-building.webp",
+      "bytes": 3490,
+      "md5": "43f959ca469a5e843407fcd683471a4f",
+      "uploadedAt": "2026-10-07T09:35:12.010Z"
+    },
+    {
+      "key": "previews/landmarks/golden-gate-bridge.webp",
+      "source": "public/previews/landmarks/golden-gate-bridge.webp",
+      "bytes": 7070,
+      "md5": "9b20053c83c04d4918cb4d425bd21ba2",
+      "uploadedAt": "2026-10-07T09:34:58.510Z"
+    },
+    {
+      "key": "previews/landmarks/great-pyramid-of-giza.webp",
+      "source": "public/previews/landmarks/great-pyramid-of-giza.webp",
+      "bytes": 5220,
+      "md5": "58f8e1b4c5a4f770a6d341b33af498db",
+      "uploadedAt": "2026-10-07T09:35:05.426Z"
+    },
+    {
+      "key": "previews/landmarks/great-wall.webp",
+      "source": "public/previews/landmarks/great-wall.webp",
+      "bytes": 3942,
+      "md5": "7b3e073678a38c9bd021159f845bd8a7",
+      "uploadedAt": "2026-10-07T09:35:10.139Z"
+    },
+    {
+      "key": "previews/landmarks/hagia-sophia.webp",
+      "source": "public/previews/landmarks/hagia-sophia.webp",
+      "bytes": 19446,
+      "md5": "6e2993a1d9cff3c94ea156bec9e649ac",
+      "uploadedAt": "2026-10-07T09:34:13.389Z"
+    },
+    {
+      "key": "previews/landmarks/hassan-ii-mosque.webp",
+      "source": "public/previews/landmarks/hassan-ii-mosque.webp",
+      "bytes": 12548,
+      "md5": "9c3c18ab891e6fb68226530394fc106c",
+      "uploadedAt": "2026-10-07T09:34:19.864Z"
+    },
+    {
+      "key": "previews/landmarks/himeji-castle.webp",
+      "source": "public/previews/landmarks/himeji-castle.webp",
+      "bytes": 11144,
+      "md5": "1f3722e9511833a950356967a483177a",
+      "uploadedAt": "2026-10-07T09:34:21.851Z"
+    },
+    {
+      "key": "previews/landmarks/leaning-tower-of-pisa.webp",
+      "source": "public/previews/landmarks/leaning-tower-of-pisa.webp",
+      "bytes": 15528,
+      "md5": "ee0a2792808400173db626c21b99f428",
+      "uploadedAt": "2026-10-07T09:34:16.368Z"
+    },
+    {
+      "key": "previews/landmarks/machu-picchu.webp",
+      "source": "public/previews/landmarks/machu-picchu.webp",
+      "bytes": 15068,
+      "md5": "1443f17b4941ac15bef9f69dee2fe212",
+      "uploadedAt": "2026-10-07T09:34:16.401Z"
+    },
+    {
+      "key": "previews/landmarks/marina-bay-sands.webp",
+      "source": "public/previews/landmarks/marina-bay-sands.webp",
+      "bytes": 6680,
+      "md5": "e056a0157e10e755ac0b452c05890885",
+      "uploadedAt": "2026-10-07T09:34:59.425Z"
+    },
+    {
+      "key": "previews/landmarks/milan-cathedral.webp",
+      "source": "public/previews/landmarks/milan-cathedral.webp",
+      "bytes": 19352,
+      "md5": "2db560d28aeb672ad41a750a77de99e0",
+      "uploadedAt": "2026-10-07T09:34:13.851Z"
+    },
+    {
+      "key": "previews/landmarks/moai.webp",
+      "source": "public/previews/landmarks/moai.webp",
+      "bytes": 5720,
+      "md5": "bda6d8c10e6e5a6e1ba2efd40c26da6a",
+      "uploadedAt": "2026-10-07T09:35:02.744Z"
+    },
+    {
+      "key": "previews/landmarks/mont-saint-michel.webp",
+      "source": "public/previews/landmarks/mont-saint-michel.webp",
+      "bytes": 10892,
+      "md5": "84ee3fd78503a864b3be11c5e9348845",
+      "uploadedAt": "2026-10-07T09:34:37.579Z"
+    },
+    {
+      "key": "previews/landmarks/mount-rushmore.webp",
+      "source": "public/previews/landmarks/mount-rushmore.webp",
+      "bytes": 18914,
+      "md5": "78e7ad25e8cf44897f704667fdf79c61",
+      "uploadedAt": "2026-10-07T09:34:13.977Z"
+    },
+    {
+      "key": "previews/landmarks/parthenon.webp",
+      "source": "public/previews/landmarks/parthenon.webp",
+      "bytes": 4118,
+      "md5": "004c4d67e39cc117c88b479c8f980603",
+      "uploadedAt": "2026-10-07T09:35:09.266Z"
+    },
+    {
+      "key": "previews/landmarks/petra.webp",
+      "source": "public/previews/landmarks/petra.webp",
+      "bytes": 13806,
+      "md5": "1ec0a28de70ac90fe745db597bc3bdca",
+      "uploadedAt": "2026-10-07T09:34:17.483Z"
+    },
+    {
+      "key": "previews/landmarks/petronas-towers.webp",
+      "source": "public/previews/landmarks/petronas-towers.webp",
+      "bytes": 11698,
+      "md5": "64905724097ebdb09b62da87a368dbc5",
+      "uploadedAt": "2026-10-07T09:34:21.423Z"
+    },
+    {
+      "key": "previews/landmarks/prague-castle.webp",
+      "source": "public/previews/landmarks/prague-castle.webp",
+      "bytes": 19836,
+      "md5": "684126b1b67e8e5db3898b82814b0020",
+      "uploadedAt": "2026-10-07T09:34:12.952Z"
+    },
+    {
+      "key": "previews/landmarks/prambanan.webp",
+      "source": "public/previews/landmarks/prambanan.webp",
+      "bytes": 21832,
+      "md5": "20779104d518e591492bd423ceb1c2bb",
+      "uploadedAt": "2026-10-07T09:34:11.812Z"
+    },
+    {
+      "key": "previews/landmarks/sagrada-familia.webp",
+      "source": "public/previews/landmarks/sagrada-familia.webp",
+      "bytes": 28896,
+      "md5": "5c1b9ea613a0b4b2206d21f1fcac23e5",
+      "uploadedAt": "2026-10-07T09:34:10.785Z"
+    },
+    {
+      "key": "previews/landmarks/saint-basils-cathedral.webp",
+      "source": "public/previews/landmarks/saint-basils-cathedral.webp",
+      "bytes": 19392,
+      "md5": "e5bc6478692c5837286d00a4e051ea4a",
+      "uploadedAt": "2026-10-07T09:34:13.389Z"
+    },
+    {
+      "key": "previews/landmarks/st-peters-basilica.webp",
+      "source": "public/previews/landmarks/st-peters-basilica.webp",
+      "bytes": 23058,
+      "md5": "25dc96caf025a119b12ece9dfb8e3b66",
+      "uploadedAt": "2026-10-07T09:34:11.344Z"
+    },
+    {
+      "key": "previews/landmarks/statue-of-liberty.webp",
+      "source": "public/previews/landmarks/statue-of-liberty.webp",
+      "bytes": 4528,
+      "md5": "ef50d5408af0e481656099e72192e02c",
+      "uploadedAt": "2026-10-07T09:35:07.688Z"
+    },
+    {
+      "key": "previews/landmarks/stonehenge.webp",
+      "source": "public/previews/landmarks/stonehenge.webp",
+      "bytes": 11634,
+      "md5": "8c6f83c3257edae35fe218dbb1489f1e",
+      "uploadedAt": "2026-10-07T09:34:21.501Z"
+    },
+    {
+      "key": "previews/landmarks/sydney-harbour-bridge.webp",
+      "source": "public/previews/landmarks/sydney-harbour-bridge.webp",
+      "bytes": 7968,
+      "md5": "97feef928d811a85a8e9410f185edf10",
+      "uploadedAt": "2026-10-07T09:34:51.566Z"
+    },
+    {
+      "key": "previews/landmarks/sydney-opera-house.webp",
+      "source": "public/previews/landmarks/sydney-opera-house.webp",
+      "bytes": 3032,
+      "md5": "d4fc5e3d67459176b7bbf8d6db04f95d",
+      "uploadedAt": "2026-10-07T09:35:13.039Z"
+    },
+    {
+      "key": "previews/landmarks/taj-mahal.webp",
+      "source": "public/previews/landmarks/taj-mahal.webp",
+      "bytes": 9698,
+      "md5": "a2b4d2eee54de5e14e177e39d6b066bf",
+      "uploadedAt": "2026-10-07T09:34:47.211Z"
+    },
+    {
+      "key": "previews/landmarks/temple-of-heaven.webp",
+      "source": "public/previews/landmarks/temple-of-heaven.webp",
+      "bytes": 3874,
+      "md5": "c57bddbedf1d9cc8a0e1a1094969bab6",
+      "uploadedAt": "2026-10-07T09:35:10.512Z"
+    },
+    {
+      "key": "previews/landmarks/tower-bridge.webp",
+      "source": "public/previews/landmarks/tower-bridge.webp",
+      "bytes": 10502,
+      "md5": "db10275756b0718dcad62d8bb8058274",
+      "uploadedAt": "2026-10-07T09:34:40.663Z"
+    },
+    {
+      "key": "previews/landmarks/trevi-fountain.webp",
+      "source": "public/previews/landmarks/trevi-fountain.webp",
+      "bytes": 13010,
+      "md5": "06481b1df9087b2a54c48766db6693c7",
+      "uploadedAt": "2026-10-07T09:34:18.614Z"
+    },
+    {
+      "key": "previews/landmarks/uluru.webp",
+      "source": "public/previews/landmarks/uluru.webp",
+      "bytes": 11294,
+      "md5": "13fb3b5eedad0c2b8dc931c5f23915f5",
+      "uploadedAt": "2026-10-07T09:34:21.540Z"
+    },
+    {
+      "key": "previews/leopard-seal.webp",
+      "source": "public/previews/leopard-seal.webp",
+      "bytes": 5904,
+      "md5": "6a735c9d0157ad71a213d7a5ca99dc9d",
+      "uploadedAt": "2026-10-07T09:35:01.476Z"
+    },
+    {
+      "key": "previews/lion.webp",
+      "source": "public/previews/lion.webp",
+      "bytes": 11500,
+      "md5": "1b0dcbe30f169bcad745ee60cbfc2ea2",
+      "uploadedAt": "2026-10-07T09:34:21.484Z"
+    },
+    {
+      "key": "previews/luna-moth.webp",
+      "source": "public/previews/luna-moth.webp",
+      "bytes": 5444,
+      "md5": "c50e2c801fdfa011e497d0d9bafd087a",
+      "uploadedAt": "2026-10-07T09:35:03.971Z"
+    },
+    {
+      "key": "previews/meerkat.webp",
+      "source": null,
+      "bytes": 3286,
+      "md5": "f41257eb5e15483179812acd47e1f882",
+      "uploadedAt": "2026-10-07T11:45:41.567Z",
+      "note": "in the bucket, not produced from public/**"
+    },
+    {
+      "key": "previews/megalodon.webp",
+      "source": "public/previews/megalodon.webp",
+      "bytes": 5102,
+      "md5": "eefdba3b41e4f655df8b7a115266da7e",
+      "uploadedAt": "2026-10-07T09:35:06.021Z"
+    },
+    {
+      "key": "previews/monarch-butterfly.webp",
+      "source": "public/previews/monarch-butterfly.webp",
+      "bytes": 10100,
+      "md5": "8934433325edc6775eb7ee55edaea668",
+      "uploadedAt": "2026-10-07T09:34:42.176Z"
+    },
+    {
+      "key": "previews/moose.webp",
+      "source": "public/previews/moose.webp",
+      "bytes": 13036,
+      "md5": "509213d8cf19b6d8c3ac8303609b82c9",
+      "uploadedAt": "2026-10-07T09:34:18.574Z"
+    },
+    {
+      "key": "previews/narwhal.webp",
+      "source": "public/previews/narwhal.webp",
+      "bytes": 3720,
+      "md5": "dd75b008d0d5fc7c362d926d015afea6",
+      "uploadedAt": "2026-10-07T09:35:11.390Z"
+    },
+    {
+      "key": "previews/ocelot.webp",
+      "source": "public/previews/ocelot.webp",
+      "bytes": 9190,
+      "md5": "d5be1a97d7f143f3471388a32f1ef339",
+      "uploadedAt": "2026-10-07T09:34:47.847Z"
+    },
+    {
+      "key": "previews/orca.webp",
+      "source": "public/previews/orca.webp",
+      "bytes": 20314,
+      "md5": "f8cfbbbfff4dea74ca649aab2b2fe9bf",
+      "uploadedAt": "2026-10-07T09:34:12.875Z"
+    },
+    {
+      "key": "previews/peregrine-falcon.webp",
+      "source": "public/previews/peregrine-falcon.webp",
+      "bytes": 10756,
+      "md5": "91d7e60691c14abddff722dee39ddf15",
+      "uploadedAt": "2026-10-07T09:34:39.110Z"
+    },
+    {
+      "key": "previews/plains-zebra.webp",
+      "source": "public/previews/plains-zebra.webp",
+      "bytes": 14512,
+      "md5": "405503faf73c2a5bf893de9210a27c11",
+      "uploadedAt": "2026-10-07T09:34:17.083Z"
+    },
+    {
+      "key": "previews/plants/bamboo.webp",
+      "source": "public/previews/plants/bamboo.webp",
+      "bytes": 6872,
+      "md5": "80e46f4ef663d89cd3e19e8ba4da59de",
+      "uploadedAt": "2026-10-07T09:34:57.626Z"
+    },
+    {
+      "key": "previews/plants/banana.webp",
+      "source": "public/previews/plants/banana.webp",
+      "bytes": 7608,
+      "md5": "b7358dfd22cc863844cc04dc5f89eb6e",
+      "uploadedAt": "2026-10-07T09:34:52.567Z"
+    },
+    {
+      "key": "previews/plants/baobab.webp",
+      "source": "public/previews/plants/baobab.webp",
+      "bytes": 23330,
+      "md5": "408961cf96e384caab8e7a9c6d0e4a85",
+      "uploadedAt": "2026-10-07T09:34:11.409Z"
+    },
+    {
+      "key": "previews/plants/cactus-pack.webp",
+      "source": "public/previews/plants/cactus-pack.webp",
+      "bytes": 10056,
+      "md5": "c8abb0a65705012f3155eac9b2566a6a",
+      "uploadedAt": "2026-10-07T09:34:42.287Z"
+    },
+    {
+      "key": "previews/plants/cactus.webp",
+      "source": "public/previews/plants/cactus.webp",
+      "bytes": 10056,
+      "md5": "c8abb0a65705012f3155eac9b2566a6a",
+      "uploadedAt": "2026-10-07T09:34:46.370Z"
+    },
+    {
+      "key": "previews/plants/coffee.webp",
+      "source": "public/previews/plants/coffee.webp",
+      "bytes": 13230,
+      "md5": "e28fc73794d86037b440a0b0f641640d",
+      "uploadedAt": "2026-10-07T09:34:17.986Z"
+    },
+    {
+      "key": "previews/plants/fig-tree.webp",
+      "source": "public/previews/plants/fig-tree.webp",
+      "bytes": 21454,
+      "md5": "ea41a335f8f703bd2756cfa9240e2087",
+      "uploadedAt": "2026-10-07T09:34:11.760Z"
+    },
+    {
+      "key": "previews/plants/gazebo.webp",
+      "source": "public/previews/plants/gazebo.webp",
+      "bytes": 5888,
+      "md5": "04f6c194cb21f8f34d9fa4d24c440b92",
+      "uploadedAt": "2026-10-07T09:35:02.010Z"
+    },
+    {
+      "key": "previews/plants/giant-sequoia.webp",
+      "source": "public/previews/plants/giant-sequoia.webp",
+      "bytes": 27320,
+      "md5": "25178fe77319fae7197d20d0740f520f",
+      "uploadedAt": "2026-10-07T09:34:10.657Z"
+    },
+    {
+      "key": "previews/plants/ginkgo.webp",
+      "source": "public/previews/plants/ginkgo.webp",
+      "bytes": 17794,
+      "md5": "45e99f64ed7212720af054adf846b2aa",
+      "uploadedAt": "2026-10-07T09:34:14.944Z"
+    },
+    {
+      "key": "previews/plants/hollow-knight-33-34-moss-charger.webp",
+      "source": "public/previews/plants/hollow-knight-33-34-moss-charger.webp",
+      "bytes": 6166,
+      "md5": "f9642a1220a3be84938e64a4a7d69ff9",
+      "uploadedAt": "2026-10-07T09:35:00.513Z"
+    },
+    {
+      "key": "previews/plants/ivy.webp",
+      "source": "public/previews/plants/ivy.webp",
+      "bytes": 25346,
+      "md5": "5649aef5d904681039370579e7d52f91",
+      "uploadedAt": "2026-10-07T09:34:10.802Z"
+    },
+    {
+      "key": "previews/plants/kelp.webp",
+      "source": "public/previews/plants/kelp.webp",
+      "bytes": 4868,
+      "md5": "5888450b41ec5c7b5f7011ff56416a0c",
+      "uploadedAt": "2026-10-07T09:35:06.555Z"
+    },
+    {
+      "key": "previews/plants/lavender.webp",
+      "source": "public/previews/plants/lavender.webp",
+      "bytes": 9164,
+      "md5": "a6614a430d08a5ec6e8591cfabac4f2f",
+      "uploadedAt": "2026-10-07T09:34:48.271Z"
+    },
+    {
+      "key": "previews/plants/lily-of-the-valley.webp",
+      "source": "public/previews/plants/lily-of-the-valley.webp",
+      "bytes": 3944,
+      "md5": "3ae9f1792a5c70f61c8b96fbc4de4e40",
+      "uploadedAt": "2026-10-07T09:35:10.129Z"
+    },
+    {
+      "key": "previews/plants/lotus.webp",
+      "source": "public/previews/plants/lotus.webp",
+      "bytes": 5288,
+      "md5": "2029fa1b7ec4c9fba43322648465a2a6",
+      "uploadedAt": "2026-10-07T09:35:05.637Z"
+    },
+    {
+      "key": "previews/plants/maple-tree.webp",
+      "source": "public/previews/plants/maple-tree.webp",
+      "bytes": 37806,
+      "md5": "971af456ec02c85b2fb5eea63933b534",
+      "uploadedAt": "2026-10-07T09:34:09.903Z"
+    },
+    {
+      "key": "previews/plants/mediterranean-metalurgy-ue5-gate-ornamen.webp",
+      "source": "public/previews/plants/mediterranean-metalurgy-ue5-gate-ornamen.webp",
+      "bytes": 9168,
+      "md5": "8941310a12f3ee4795e2e4adc1df9720",
+      "uploadedAt": "2026-10-07T09:34:48.141Z"
+    },
+    {
+      "key": "previews/plants/oak.webp",
+      "source": "public/previews/plants/oak.webp",
+      "bytes": 29862,
+      "md5": "513aea4c4cc316cd61c8186d7f9b1dc0",
+      "uploadedAt": "2026-10-07T09:34:09.748Z"
+    },
+    {
+      "key": "previews/plants/orchid.webp",
+      "source": "public/previews/plants/orchid.webp",
+      "bytes": 13240,
+      "md5": "288400fda5c5845aea9c728c546c5cf9",
+      "uploadedAt": "2026-10-07T09:34:18.126Z"
+    },
+    {
+      "key": "previews/plants/poppy-playtime-daisy-the-flower-updated.webp",
+      "source": "public/previews/plants/poppy-playtime-daisy-the-flower-updated.webp",
+      "bytes": 5548,
+      "md5": "d0e65090dc69acb3427bbb47541e34fb",
+      "uploadedAt": "2026-10-07T09:35:03.972Z"
+    },
+    {
+      "key": "previews/plants/saguaro.webp",
+      "source": "public/previews/plants/saguaro.webp",
+      "bytes": 8310,
+      "md5": "89680109f7f38202ca1ae4d8454bda0e",
+      "uploadedAt": "2026-10-07T09:34:50.988Z"
+    },
+    {
+      "key": "previews/plants/sunflower.webp",
+      "source": "public/previews/plants/sunflower.webp",
+      "bytes": 5988,
+      "md5": "ddcae4378472680512c15ace832b926c",
+      "uploadedAt": "2026-10-07T09:35:01.599Z"
+    },
+    {
+      "key": "previews/plants/tulip-flower.webp",
+      "source": "public/previews/plants/tulip-flower.webp",
+      "bytes": 6556,
+      "md5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "uploadedAt": "2026-10-07T09:34:59.425Z"
+    },
+    {
+      "key": "previews/plants/tulip.webp",
+      "source": "public/previews/plants/tulip.webp",
+      "bytes": 6556,
+      "md5": "d7ad6501ee730dc6cdd585a2fc846d52",
+      "uploadedAt": "2026-10-07T09:34:59.521Z"
+    },
+    {
+      "key": "previews/plants/venus-flytrap.webp",
+      "source": "public/previews/plants/venus-flytrap.webp",
+      "bytes": 10130,
+      "md5": "7eb2d7a0e8e5aa87856a7aa0713ed551",
+      "uploadedAt": "2026-10-07T09:34:41.948Z"
+    },
+    {
+      "key": "previews/plants/wheat.webp",
+      "source": "public/previews/plants/wheat.webp",
+      "bytes": 10836,
+      "md5": "a8e5139636590fe8c593d6697a1fa710",
+      "uploadedAt": "2026-10-07T09:34:39.831Z"
+    },
+    {
+      "key": "previews/poison-dart-frog.webp",
+      "source": "public/previews/poison-dart-frog.webp",
+      "bytes": 16368,
+      "md5": "9ba46b7c61e28b85cf7f1966a03db2c9",
+      "uploadedAt": "2026-10-07T09:34:15.451Z"
+    },
+    {
+      "key": "previews/polar-bear.webp",
+      "source": "public/previews/polar-bear.webp",
+      "bytes": 4496,
+      "md5": "47d1ab2dda003ba190991ec9ba31ba46",
+      "uploadedAt": "2026-10-07T09:35:07.963Z"
+    },
+    {
+      "key": "previews/quagga.webp",
+      "source": "public/previews/quagga.webp",
+      "bytes": 12190,
+      "md5": "ab11159be6ef714fee7dcbe0df9ef383",
+      "uploadedAt": "2026-10-07T09:34:20.743Z"
+    },
+    {
+      "key": "previews/saltwater-crocodile.webp",
+      "source": "public/previews/saltwater-crocodile.webp",
+      "bytes": 8618,
+      "md5": "e8ba6bd564bb5cab828e63848bad57f1",
+      "uploadedAt": "2026-10-07T09:34:49.337Z"
+    },
+    {
+      "key": "previews/scarlet-macaw.webp",
+      "source": "public/previews/scarlet-macaw.webp",
+      "bytes": 6334,
+      "md5": "ae9cf7eee5e345c4c53186ca26b083c5",
+      "uploadedAt": "2026-10-07T09:35:00.501Z"
+    },
+    {
+      "key": "previews/serval.webp",
+      "source": "public/previews/serval.webp",
+      "bytes": 6222,
+      "md5": "bc14a9d4d2e5bf9a8814466729e1deb3",
+      "uploadedAt": "2026-10-07T09:35:00.511Z"
+    },
+    {
+      "key": "previews/smilodon.webp",
+      "source": "public/previews/smilodon.webp",
+      "bytes": 12920,
+      "md5": "f957022fb5ee5d961992162886474f2e",
+      "uploadedAt": "2026-10-07T09:34:18.927Z"
+    },
+    {
+      "key": "previews/snow-leopard.webp",
+      "source": "public/previews/snow-leopard.webp",
+      "bytes": 8936,
+      "md5": "eccc4225a6d8bd5fcc11c9711175deff",
+      "uploadedAt": "2026-10-07T09:34:48.813Z"
+    },
+    {
+      "key": "previews/snowy-owl.webp",
+      "source": "public/previews/snowy-owl.webp",
+      "bytes": 7118,
+      "md5": "8e25e997dbee2268d4a4453a675a1f51",
+      "uploadedAt": "2026-10-07T09:34:54.572Z"
+    },
+    {
+      "key": "previews/space/advanced-composition-explorer.webp",
+      "source": "public/previews/space/advanced-composition-explorer.webp",
+      "bytes": 4298,
+      "md5": "3e0adc6aaf5be061b0529d4f3ccf5cd1",
+      "uploadedAt": "2026-10-07T09:35:08.908Z"
+    },
+    {
+      "key": "previews/space/advanced-crew-escape-suit.webp",
+      "source": "public/previews/space/advanced-crew-escape-suit.webp",
+      "bytes": 13142,
+      "md5": "d74aed887f939d70cf664fb1117277f9",
+      "uploadedAt": "2026-10-07T09:34:18.544Z"
+    },
+    {
+      "key": "previews/space/aeronomy-of-ice-in-the-mesosphere.webp",
+      "source": "public/previews/space/aeronomy-of-ice-in-the-mesosphere.webp",
+      "bytes": 11270,
+      "md5": "d46a1fb3644a57ad295b5166b8b9f1e9",
+      "uploadedAt": "2026-10-07T09:34:21.706Z"
+    },
+    {
+      "key": "previews/space/agena-target-vehicle.webp",
+      "source": "public/previews/space/agena-target-vehicle.webp",
+      "bytes": 4420,
+      "md5": "76f98d2ce5889d8f12c27a99fe0efe04",
+      "uploadedAt": "2026-10-07T09:35:08.213Z"
+    },
+    {
+      "key": "previews/space/ares-1-b.webp",
+      "source": "public/previews/space/ares-1-b.webp",
+      "bytes": 5186,
+      "md5": "6cd475e0a597d0facc6e57ff97e84cee",
+      "uploadedAt": "2026-10-07T09:35:05.849Z"
+    },
+    {
+      "key": "previews/space/argo.webp",
+      "source": "public/previews/space/argo.webp",
+      "bytes": 10710,
+      "md5": "224d511fecd26be002589821965b9b9b",
+      "uploadedAt": "2026-10-07T09:34:39.207Z"
+    },
+    {
+      "key": "previews/space/astronaut.webp",
+      "source": "public/previews/space/astronaut.webp",
+      "bytes": 4312,
+      "md5": "3c84fef926298ab47856668ecc6e8eb9",
+      "uploadedAt": "2026-10-07T09:35:08.965Z"
+    },
+    {
+      "key": "previews/space/base-station.webp",
+      "source": "public/previews/space/base-station.webp",
+      "bytes": 2682,
+      "md5": "caf31b80b28161863162af5897e1eb4e",
+      "uploadedAt": "2026-10-07T09:35:13.378Z"
+    },
+    {
+      "key": "previews/space/bp-tauri.webp",
+      "source": "public/previews/space/bp-tauri.webp",
+      "bytes": 3934,
+      "md5": "70dc951b4322c788afaf92680c206a1f",
+      "uploadedAt": "2026-10-07T09:35:10.427Z"
+    },
+    {
+      "key": "previews/space/chandra-x-ray-observatory.webp",
+      "source": "public/previews/space/chandra-x-ray-observatory.webp",
+      "bytes": 3618,
+      "md5": "5f8a4fd6affdf5ec6a2b865a2f2e63c4",
+      "uploadedAt": "2026-10-07T09:35:11.469Z"
+    },
+    {
+      "key": "previews/space/clementine.webp",
+      "source": "public/previews/space/clementine.webp",
+      "bytes": 8584,
+      "md5": "878ff092e4456f584a5dc741050e174a",
+      "uploadedAt": "2026-10-07T09:34:49.512Z"
+    },
+    {
+      "key": "previews/space/cloudsat-a.webp",
+      "source": "public/previews/space/cloudsat-a.webp",
+      "bytes": 7898,
+      "md5": "ce7299b6fbed196474a0d1fe9e1a8cbb",
+      "uploadedAt": "2026-10-07T09:34:51.710Z"
+    },
+    {
+      "key": "previews/space/cloudsat-b.webp",
+      "source": "public/previews/space/cloudsat-b.webp",
+      "bytes": 10306,
+      "md5": "bd7a2a6d0686706846111e8e77e9b270",
+      "uploadedAt": "2026-10-07T09:34:41.025Z"
+    },
+    {
+      "key": "previews/space/cloudsat-c.webp",
+      "source": "public/previews/space/cloudsat-c.webp",
+      "bytes": 7108,
+      "md5": "67df66289cefa8b1af3a18dd8b1a843a",
+      "uploadedAt": "2026-10-07T09:34:55.697Z"
+    },
+    {
+      "key": "previews/space/curiosity-rover-msl.webp",
+      "source": "public/previews/space/curiosity-rover-msl.webp",
+      "bytes": 16228,
+      "md5": "10b4f9dc7d6a9de40c608d4e5350e15f",
+      "uploadedAt": "2026-10-07T09:34:15.853Z"
+    },
+    {
+      "key": "previews/space/curiosity-rover.webp",
+      "source": "public/previews/space/curiosity-rover.webp",
+      "bytes": 18692,
+      "md5": "f512ccd63ffeed8b8106aca0addc023a",
+      "uploadedAt": "2026-10-07T09:34:14.440Z"
+    },
+    {
+      "key": "previews/space/cyclone-global-navigation-satellite-syst.webp",
+      "source": "public/previews/space/cyclone-global-navigation-satellite-syst.webp",
+      "bytes": 5412,
+      "md5": "7ad1b0014a603ee221f198e316cddbb1",
+      "uploadedAt": "2026-10-07T09:35:04.165Z"
+    },
+    {
+      "key": "previews/space/earth-observing-1-eo-1.webp",
+      "source": "public/previews/space/earth-observing-1-eo-1.webp",
+      "bytes": 10134,
+      "md5": "9cdc7b632807fd0162cb06cb7c29029a",
+      "uploadedAt": "2026-10-07T09:34:42.458Z"
+    },
+    {
+      "key": "previews/space/earth.webp",
+      "source": "public/previews/space/earth.webp",
+      "bytes": 18804,
+      "md5": "383087f076281c1ab9bfa25adbed74f6",
+      "uploadedAt": "2026-10-07T09:34:14.361Z"
+    },
+    {
+      "key": "previews/space/extravehicular-mobility-unit.webp",
+      "source": "public/previews/space/extravehicular-mobility-unit.webp",
+      "bytes": 17980,
+      "md5": "6b6729d7d14eeeb99e83d255ccb2fc1d",
+      "uploadedAt": "2026-10-07T09:34:14.924Z"
+    },
+    {
+      "key": "previews/space/far-ultraviolet-spectroscopic-explorer.webp",
+      "source": "public/previews/space/far-ultraviolet-spectroscopic-explorer.webp",
+      "bytes": 3928,
+      "md5": "dd37a2555c2d22676c8414e8dddd756c",
+      "uploadedAt": "2026-10-07T09:35:10.266Z"
+    },
+    {
+      "key": "previews/space/gemini-spacesuit.webp",
+      "source": "public/previews/space/gemini-spacesuit.webp",
+      "bytes": 7442,
+      "md5": "690a08d1f59e77efa3986e343c3c5726",
+      "uploadedAt": "2026-10-07T09:34:53.661Z"
+    },
+    {
+      "key": "previews/space/hammer.webp",
+      "source": "public/previews/space/hammer.webp",
+      "bytes": 4220,
+      "md5": "6fd86ecef22be2a6a1a00f5434a48bc9",
+      "uploadedAt": "2026-10-07T09:35:09.368Z"
+    },
+    {
+      "key": "previews/space/helmet.webp",
+      "source": "public/previews/space/helmet.webp",
+      "bytes": 20476,
+      "md5": "a2c53f75ac040e998c055bb1e6ad32bc",
+      "uploadedAt": "2026-10-07T09:34:12.799Z"
+    },
+    {
+      "key": "previews/space/hubble-space-telescope-a.webp",
+      "source": "public/previews/space/hubble-space-telescope-a.webp",
+      "bytes": 12812,
+      "md5": "429ca380f3a3bef731587380526b2d33",
+      "uploadedAt": "2026-10-07T09:34:19.522Z"
+    },
+    {
+      "key": "previews/space/hubble-space-telescope-b.webp",
+      "source": "public/previews/space/hubble-space-telescope-b.webp",
+      "bytes": 10476,
+      "md5": "bfffb26248089886dd9a0cdd8a2370e4",
+      "uploadedAt": "2026-10-07T09:34:40.937Z"
+    },
+    {
+      "key": "previews/space/hubble-space-telescope.webp",
+      "source": "public/previews/space/hubble-space-telescope.webp",
+      "bytes": 12812,
+      "md5": "429ca380f3a3bef731587380526b2d33",
+      "uploadedAt": "2026-10-07T09:34:19.533Z"
+    },
+    {
+      "key": "previews/space/international-x-ray-observatory.webp",
+      "source": "public/previews/space/international-x-ray-observatory.webp",
+      "bytes": 6970,
+      "md5": "f23e5e698eb3edaf8a8064eaab6eec0c",
+      "uploadedAt": "2026-10-07T09:34:57.455Z"
+    },
+    {
+      "key": "previews/space/interstellar-boundary-explorer-ibex.webp",
+      "source": "public/previews/space/interstellar-boundary-explorer-ibex.webp",
+      "bytes": 12722,
+      "md5": "dc7529c39c9ae10800d4d8665bc3650c",
+      "uploadedAt": "2026-10-07T09:34:19.547Z"
+    },
+    {
+      "key": "previews/space/james-webb-space-telescope.webp",
+      "source": "public/previews/space/james-webb-space-telescope.webp",
+      "bytes": 10266,
+      "md5": "80145611067512616bffb74e45f125e1",
+      "uploadedAt": "2026-10-07T09:34:41.065Z"
+    },
+    {
+      "key": "previews/space/jupiter.webp",
+      "source": "public/previews/space/jupiter.webp",
+      "bytes": 7136,
+      "md5": "2ac2c08807a3e70aca230fc6a999a1c6",
+      "uploadedAt": "2026-10-07T09:34:56.692Z"
+    },
+    {
+      "key": "previews/space/landsat-7.webp",
+      "source": "public/previews/space/landsat-7.webp",
+      "bytes": 4180,
+      "md5": "dcec872bd7645411c55d0cd77f79e7c9",
+      "uploadedAt": "2026-10-07T09:35:09.424Z"
+    },
+    {
+      "key": "previews/space/landsat-8.webp",
+      "source": "public/previews/space/landsat-8.webp",
+      "bytes": 13458,
+      "md5": "22c648db2a13a1810c2993fe3032b419",
+      "uploadedAt": "2026-10-07T09:34:17.895Z"
+    },
+    {
+      "key": "previews/space/laser-interferometer-space-antenna-lisa.webp",
+      "source": "public/previews/space/laser-interferometer-space-antenna-lisa.webp",
+      "bytes": 5892,
+      "md5": "c9597b3225e9ac03de30d0905ed8348d",
+      "uploadedAt": "2026-10-07T09:35:01.598Z"
+    },
+    {
+      "key": "previews/space/lunar-atmosphere-and-dust-environment-ex.webp",
+      "source": "public/previews/space/lunar-atmosphere-and-dust-environment-ex.webp",
+      "bytes": 10918,
+      "md5": "1469ecdc28cb680f427fa618b1b43813",
+      "uploadedAt": "2026-10-07T09:34:40.039Z"
+    },
+    {
+      "key": "previews/space/lunar-reconnaissance-orbiter-a.webp",
+      "source": "public/previews/space/lunar-reconnaissance-orbiter-a.webp",
+      "bytes": 7088,
+      "md5": "2476d6a4e5c6ce65ad04857fb6cb4b44",
+      "uploadedAt": "2026-10-07T09:34:54.775Z"
+    },
+    {
+      "key": "previews/space/mars-atmosphere-and-volatile-evolution-m.webp",
+      "source": "public/previews/space/mars-atmosphere-and-volatile-evolution-m.webp",
+      "bytes": 8756,
+      "md5": "af45a31d74f6d5f445562a5922cceeb4",
+      "uploadedAt": "2026-10-07T09:34:49.246Z"
+    },
+    {
+      "key": "previews/space/mars-reconnaissance-orbiter-mro-c.webp",
+      "source": "public/previews/space/mars-reconnaissance-orbiter-mro-c.webp",
+      "bytes": 7714,
+      "md5": "5dd2832a77eee4571ef542d10d663832",
+      "uploadedAt": "2026-10-07T09:34:52.540Z"
+    },
+    {
+      "key": "previews/space/mars.webp",
+      "source": "public/previews/space/mars.webp",
+      "bytes": 3034,
+      "md5": "f2fcac170c0cfdd41038f1452bdf1071",
+      "uploadedAt": "2026-10-07T09:35:13.055Z"
+    },
+    {
+      "key": "previews/space/mercury-spacesuit.webp",
+      "source": "public/previews/space/mercury-spacesuit.webp",
+      "bytes": 5304,
+      "md5": "4ff006b4fdc528d62266047855744e66",
+      "uploadedAt": "2026-10-07T09:35:04.550Z"
+    },
+    {
+      "key": "previews/space/mercury.webp",
+      "source": "public/previews/space/mercury.webp",
+      "bytes": 3174,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be",
+      "uploadedAt": "2026-10-07T09:35:12.437Z"
+    },
+    {
+      "key": "previews/space/mir.webp",
+      "source": "public/previews/space/mir.webp",
+      "bytes": 3892,
+      "md5": "ea27ad84e9939256313bedb3bc4c39d3",
+      "uploadedAt": "2026-10-07T09:35:10.492Z"
+    },
+    {
+      "key": "previews/space/moon.webp",
+      "source": "public/previews/space/moon.webp",
+      "bytes": 3174,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be",
+      "uploadedAt": "2026-10-07T09:35:12.698Z"
+    },
+    {
+      "key": "previews/space/nancy-grace-roman-space-telescope-a.webp",
+      "source": "public/previews/space/nancy-grace-roman-space-telescope-a.webp",
+      "bytes": 8426,
+      "md5": "07bff8cf67d219bce4d8502ccf544ce6",
+      "uploadedAt": "2026-10-07T09:34:50.133Z"
+    },
+    {
+      "key": "previews/space/nancy-grace-roman-space-telescope-b.webp",
+      "source": "public/previews/space/nancy-grace-roman-space-telescope-b.webp",
+      "bytes": 13720,
+      "md5": "8684d3c52794fb14d1c261f594da80b8",
+      "uploadedAt": "2026-10-07T09:34:17.714Z"
+    },
+    {
+      "key": "previews/space/near-shoemaker.webp",
+      "source": "public/previews/space/near-shoemaker.webp",
+      "bytes": 9358,
+      "md5": "715ead5ae8fcc980a75d51b03ef9a632",
+      "uploadedAt": "2026-10-07T09:34:47.905Z"
+    },
+    {
+      "key": "previews/space/neptune.webp",
+      "source": "public/previews/space/neptune.webp",
+      "bytes": 12284,
+      "md5": "6b3c1ab79bfefe836423119baaed60a4",
+      "uploadedAt": "2026-10-07T09:34:20.475Z"
+    },
+    {
+      "key": "previews/space/ocean-surface-topography-mission-ostm-ja.webp",
+      "source": "public/previews/space/ocean-surface-topography-mission-ostm-ja.webp",
+      "bytes": 8442,
+      "md5": "fa18a5f9cc6fc26640f3f5e58bee8246",
+      "uploadedAt": "2026-10-07T09:34:50.218Z"
+    },
+    {
+      "key": "previews/space/parker-solar-probe.webp",
+      "source": "public/previews/space/parker-solar-probe.webp",
+      "bytes": 6826,
+      "md5": "69d259d48b57d83d223937011cc22a2f",
+      "uploadedAt": "2026-10-07T09:34:57.874Z"
+    },
+    {
+      "key": "previews/space/quick-scatterometer-quikscat.webp",
+      "source": "public/previews/space/quick-scatterometer-quikscat.webp",
+      "bytes": 17568,
+      "md5": "8838c24151d0d278c10524f377a42728",
+      "uploadedAt": "2026-10-07T09:34:15.319Z"
+    },
+    {
+      "key": "previews/space/radome.webp",
+      "source": "public/previews/space/radome.webp",
+      "bytes": 12522,
+      "md5": "06374855d41ffa99bc373273570f44c9",
+      "uploadedAt": "2026-10-07T09:34:20.463Z"
+    },
+    {
+      "key": "previews/space/robonaut-2.webp",
+      "source": "public/previews/space/robonaut-2.webp",
+      "bytes": 4560,
+      "md5": "1d064d32d0ce6578a285b4214897652e",
+      "uploadedAt": "2026-10-07T09:35:07.687Z"
+    },
+    {
+      "key": "previews/space/rosetta.webp",
+      "source": "public/previews/space/rosetta.webp",
+      "bytes": 5278,
+      "md5": "0b8437c34582532d5e213b9d5eb1a3ed",
+      "uploadedAt": "2026-10-07T09:35:05.022Z"
+    },
+    {
+      "key": "previews/space/saturn-v.webp",
+      "source": "public/previews/space/saturn-v.webp",
+      "bytes": 1808,
+      "md5": "9592fdc028c5fb9b03522aa338fb11da",
+      "uploadedAt": "2026-10-07T09:35:13.405Z"
+    },
+    {
+      "key": "previews/space/saturn.webp",
+      "source": "public/previews/space/saturn.webp",
+      "bytes": 4568,
+      "md5": "069e010cbc779e4ecb9b419ec25bc3a2",
+      "uploadedAt": "2026-10-07T09:35:07.082Z"
+    },
+    {
+      "key": "previews/space/skylab.webp",
+      "source": "public/previews/space/skylab.webp",
+      "bytes": 9082,
+      "md5": "e8013275166e1f040994f10f7c61c3f5",
+      "uploadedAt": "2026-10-07T09:34:48.601Z"
+    },
+    {
+      "key": "previews/space/solar-and-heliospheric-observatory.webp",
+      "source": "public/previews/space/solar-and-heliospheric-observatory.webp",
+      "bytes": 9030,
+      "md5": "524863ccb9af923dd4b53377244ebe25",
+      "uploadedAt": "2026-10-07T09:34:48.750Z"
+    },
+    {
+      "key": "previews/space/solar-dynamics-observatory.webp",
+      "source": "public/previews/space/solar-dynamics-observatory.webp",
+      "bytes": 12326,
+      "md5": "ee087728c1bda7b807f3e4af639099ac",
+      "uploadedAt": "2026-10-07T09:34:20.560Z"
+    },
+    {
+      "key": "previews/space/solar-radiation-and-climate-experiment-s.webp",
+      "source": "public/previews/space/solar-radiation-and-climate-experiment-s.webp",
+      "bytes": 5092,
+      "md5": "94c6a4105104bf6bc46d7778a72e7f35",
+      "uploadedAt": "2026-10-07T09:35:06.022Z"
+    },
+    {
+      "key": "previews/space/solar-terrestrial-relations-observatory.webp",
+      "source": "public/previews/space/solar-terrestrial-relations-observatory.webp",
+      "bytes": 5682,
+      "md5": "0dc737814df3792ed46ec81692bacd4d",
+      "uploadedAt": "2026-10-07T09:35:03.073Z"
+    },
+    {
+      "key": "previews/space/space-shuttle-c.webp",
+      "source": "public/previews/space/space-shuttle-c.webp",
+      "bytes": 7710,
+      "md5": "76266bd0dee4283f62a19f72c8849015",
+      "uploadedAt": "2026-10-07T09:34:52.541Z"
+    },
+    {
+      "key": "previews/space/space-shuttle-d.webp",
+      "source": "public/previews/space/space-shuttle-d.webp",
+      "bytes": 6356,
+      "md5": "229bb3736bbc4f095f590a584dc3a45b",
+      "uploadedAt": "2026-10-07T10:08:05.545Z"
+    },
+    {
+      "key": "previews/space/spitzer-space-telescope.webp",
+      "source": "public/previews/space/spitzer-space-telescope.webp",
+      "bytes": 7990,
+      "md5": "60eec384c3f7b265406fc0b338bc0b28",
+      "uploadedAt": "2026-10-07T09:34:51.458Z"
+    },
+    {
+      "key": "previews/space/sun.webp",
+      "source": "public/previews/space/sun.webp",
+      "bytes": 31748,
+      "md5": "b1d42bdd58eb6c0c341961ff74497931",
+      "uploadedAt": "2026-10-07T09:34:09.637Z"
+    },
+    {
+      "key": "previews/space/total-ozone-mapping-spectrometer-toms.webp",
+      "source": "public/previews/space/total-ozone-mapping-spectrometer-toms.webp",
+      "bytes": 7516,
+      "md5": "485995d8a2ae611067170320ee1cdfa0",
+      "uploadedAt": "2026-10-07T09:34:53.046Z"
+    },
+    {
+      "key": "previews/space/transiting-exoplanet-survey-satellite-te.webp",
+      "source": "public/previews/space/transiting-exoplanet-survey-satellite-te.webp",
+      "bytes": 4572,
+      "md5": "10f3fcc6db4b50e93e80fa2cf17e3fc2",
+      "uploadedAt": "2026-10-07T09:35:07.082Z"
+    },
+    {
+      "key": "previews/space/tropical-rainfall-measuring-mission-trmm.webp",
+      "source": "public/previews/space/tropical-rainfall-measuring-mission-trmm.webp",
+      "bytes": 3716,
+      "md5": "70a33226b2020a32c1eb78c7ae4952ca",
+      "uploadedAt": "2026-10-07T09:35:11.211Z"
+    },
+    {
+      "key": "previews/space/uranus.webp",
+      "source": "public/previews/space/uranus.webp",
+      "bytes": 22258,
+      "md5": "741aa5f9fc36d698f3ef3794b74f13fc",
+      "uploadedAt": "2026-10-07T09:34:11.929Z"
+    },
+    {
+      "key": "previews/space/venus.webp",
+      "source": "public/previews/space/venus.webp",
+      "bytes": 3174,
+      "md5": "8002d9a3bafb9203db2818b4f7e559be",
+      "uploadedAt": "2026-10-07T09:35:12.360Z"
+    },
+    {
+      "key": "previews/space/voyager-1.webp",
+      "source": "public/previews/space/voyager-1.webp",
+      "bytes": 6736,
+      "md5": "bbff97ba595c66eb30662a465fc482e8",
+      "uploadedAt": "2026-10-07T09:34:58.670Z"
+    },
+    {
+      "key": "previews/space/wilkinson-microwave-anisotropy-probe-wma.webp",
+      "source": "public/previews/space/wilkinson-microwave-anisotropy-probe-wma.webp",
+      "bytes": 4838,
+      "md5": "145ded24bc91da5b3c745ef35441406b",
+      "uploadedAt": "2026-10-07T09:35:06.556Z"
+    },
+    {
+      "key": "previews/space/wind.webp",
+      "source": "public/previews/space/wind.webp",
+      "bytes": 6496,
+      "md5": "480b15452a4f7a16d2379434ba643229",
+      "uploadedAt": "2026-10-07T09:34:59.641Z"
+    },
+    {
+      "key": "previews/space/wrench.webp",
+      "source": "public/previews/space/wrench.webp",
+      "bytes": 6002,
+      "md5": "c85f699abfab62ae4e87f92004727ce5",
+      "uploadedAt": "2026-10-07T09:35:01.797Z"
+    },
+    {
+      "key": "previews/sperm-whale.webp",
+      "source": "public/previews/sperm-whale.webp",
+      "bytes": 4678,
+      "md5": "c55fce889b3fc7e5dfec3cf5639f3eae",
+      "uploadedAt": "2026-10-07T09:35:06.906Z"
+    },
+    {
+      "key": "previews/spotted-hyena.webp",
+      "source": "public/previews/spotted-hyena.webp",
+      "bytes": 8352,
+      "md5": "bfe01c417f0b838b2a9be0e95d809bbf",
+      "uploadedAt": "2026-10-07T09:34:50.451Z"
+    },
+    {
+      "key": "previews/stellers-sea-cow.webp",
+      "source": "public/previews/stellers-sea-cow.webp",
+      "bytes": 6150,
+      "md5": "40fd16183b1bf6563b05ad72db3e6457",
+      "uploadedAt": "2026-10-07T09:35:00.738Z"
+    },
+    {
+      "key": "previews/toco-toucan.webp",
+      "source": "public/previews/toco-toucan.webp",
+      "bytes": 15750,
+      "md5": "385d129440ef5aee66a01977467a7978",
+      "uploadedAt": "2026-10-07T09:34:15.971Z"
+    },
+    {
+      "key": "previews/tyrannosaurus-rex.webp",
+      "source": "public/previews/tyrannosaurus-rex.webp",
+      "bytes": 5866,
+      "md5": "f8ffdc67bfbb566f0c8d988de79270bb",
+      "uploadedAt": "2026-10-07T09:35:01.867Z"
+    },
+    {
+      "key": "previews/vehicles/airbus-a380.webp",
+      "source": "public/previews/vehicles/airbus-a380.webp",
+      "bytes": 3202,
+      "md5": "4532e0da1f8b99f0e287d1b9564c9dad",
+      "uploadedAt": "2026-10-07T09:35:12.126Z"
+    },
+    {
+      "key": "previews/vehicles/bell-uh-1.webp",
+      "source": "public/previews/vehicles/bell-uh-1.webp",
+      "bytes": 7454,
+      "md5": "f2c7d4d11945949722f3dbf5b4b6c3b6",
+      "uploadedAt": "2026-10-07T09:34:53.449Z"
+    },
+    {
+      "key": "previews/vehicles/boeing-747.webp",
+      "source": "public/previews/vehicles/boeing-747.webp",
+      "bytes": 6952,
+      "md5": "6de5c16c7539a744c6134b4158723374",
+      "uploadedAt": "2026-10-07T09:34:56.739Z"
+    },
+    {
+      "key": "previews/vehicles/concorde.webp",
+      "source": "public/previews/vehicles/concorde.webp",
+      "bytes": 4346,
+      "md5": "c0341bece9ca687b9c4a71fb38d0f022",
+      "uploadedAt": "2026-10-07T09:35:08.585Z"
+    },
+    {
+      "key": "previews/vehicles/fire-engine.webp",
+      "source": "public/previews/vehicles/fire-engine.webp",
+      "bytes": 14100,
+      "md5": "54ed15e3e87c7d8f0fa508d361f7bcfe",
+      "uploadedAt": "2026-10-07T09:34:17.484Z"
+    },
+    {
+      "key": "previews/vehicles/formula-1-car.webp",
+      "source": "public/previews/vehicles/formula-1-car.webp",
+      "bytes": 12940,
+      "md5": "e1415464e29a899d1aba6f646c0594ca",
+      "uploadedAt": "2026-10-07T09:34:18.850Z"
+    },
+    {
+      "key": "previews/vehicles/harley-davidson.webp",
+      "source": "public/previews/vehicles/harley-davidson.webp",
+      "bytes": 14552,
+      "md5": "115049791cc6cd0573abecede7a70a2b",
+      "uploadedAt": "2026-10-07T09:34:16.788Z"
+    },
+    {
+      "key": "previews/vehicles/hot-air-balloon.webp",
+      "source": "public/previews/vehicles/hot-air-balloon.webp",
+      "bytes": 10236,
+      "md5": "b9809dfd82d189ac96285ec7318c1789",
+      "uploadedAt": "2026-10-07T09:34:41.587Z"
+    },
+    {
+      "key": "previews/vehicles/road-bicycle.webp",
+      "source": "public/previews/vehicles/road-bicycle.webp",
+      "bytes": 19188,
+      "md5": "4d47a6d51ca39dcdb272165fb57e8022",
+      "uploadedAt": "2026-10-07T09:34:13.852Z"
+    },
+    {
+      "key": "previews/vehicles/routemaster.webp",
+      "source": "public/previews/vehicles/routemaster.webp",
+      "bytes": 19530,
+      "md5": "8743ffec6d5e295142ea1a9c5426bd88",
+      "uploadedAt": "2026-10-07T09:34:12.876Z"
+    },
+    {
+      "key": "previews/vehicles/shinkansen.webp",
+      "source": "public/previews/vehicles/shinkansen.webp",
+      "bytes": 4634,
+      "md5": "8b39aef65e8f7234fbe4bbe918450d17",
+      "uploadedAt": "2026-10-07T09:35:07.083Z"
+    },
+    {
+      "key": "previews/vehicles/tesla-model-s.webp",
+      "source": "public/previews/vehicles/tesla-model-s.webp",
+      "bytes": 8396,
+      "md5": "bc99b19a5e827f5ddac3b9f75667635f",
+      "uploadedAt": "2026-10-07T09:34:50.402Z"
+    },
+    {
+      "key": "previews/vehicles/titanic.webp",
+      "source": "public/previews/vehicles/titanic.webp",
+      "bytes": 6864,
+      "md5": "d85309210cd430703fc46fe786de8c7c",
+      "uploadedAt": "2026-10-07T09:34:57.699Z"
+    },
+    {
+      "key": "previews/vehicles/toyota-corolla.webp",
+      "source": "public/previews/vehicles/toyota-corolla.webp",
+      "bytes": 8562,
+      "md5": "4506e28ee6efb87213fe357319271a9f",
+      "uploadedAt": "2026-10-07T09:34:49.962Z"
+    },
+    {
+      "key": "previews/weddell-seal.webp",
+      "source": "public/previews/weddell-seal.webp",
+      "bytes": 3662,
+      "md5": "b6b5521632d361c31021f3ef8a903c3b",
+      "uploadedAt": "2026-10-07T09:35:11.285Z"
+    },
+    {
+      "key": "previews/whale-shark.webp",
+      "source": "public/previews/whale-shark.webp",
+      "bytes": 4370,
+      "md5": "5eed46ddf4a9d6cbf01502e02e512593",
+      "uploadedAt": "2026-10-07T09:35:08.208Z"
+    },
+    {
+      "key": "previews/white-rhinoceros.webp",
+      "source": "public/previews/white-rhinoceros.webp",
+      "bytes": 7756,
+      "md5": "7301f0993077a8c5127029819392f1b9",
+      "uploadedAt": "2026-10-07T09:34:52.336Z"
+    },
+    {
+      "key": "previews/wolverine.webp",
+      "source": "public/previews/wolverine.webp",
+      "bytes": 9498,
+      "md5": "5ad22138c9a9db858b11e89aa282d01b",
+      "uploadedAt": "2026-10-07T09:34:47.349Z"
+    },
+    {
+      "key": "previews/woolly-mammoth.webp",
+      "source": "public/previews/woolly-mammoth.webp",
+      "bytes": 21230,
+      "md5": "0b605dd6c8f5b9996bb70fba4163c125",
+      "uploadedAt": "2026-10-07T09:34:12.311Z"
+    },
+    {
+      "key": "sounds/bald-eagle.mp3",
+      "source": "public/sounds/bald-eagle.mp3",
+      "bytes": 249314,
+      "md5": "994aef37bf5430e93f2045a6edfcb603",
+      "uploadedAt": "2026-10-07T05:46:04.211Z"
+    },
+    {
+      "key": "sounds/blue-whale.ogg",
+      "source": "public/sounds/blue-whale.ogg",
+      "bytes": 17682,
+      "md5": "619190c103ece0b26ffb48587baf612e",
+      "uploadedAt": "2026-10-07T05:46:04.524Z"
+    },
+    {
+      "key": "sounds/giant-panda.ogg",
+      "source": "public/sounds/giant-panda.ogg",
+      "bytes": 31793,
+      "md5": "fecdfb2ca26845d6d58b9aedbd4fbbe3",
+      "uploadedAt": "2026-10-07T05:46:04.347Z"
+    },
+    {
+      "key": "sounds/gray-wolf.ogg",
+      "source": "public/sounds/gray-wolf.ogg",
+      "bytes": 161833,
+      "md5": "02e728c27ac5a4250ad7b8dc8c6c5df3",
+      "uploadedAt": "2026-10-07T05:46:03.410Z"
+    },
+    {
+      "key": "sounds/lion.ogg",
+      "source": "public/sounds/lion.ogg",
+      "bytes": 77611,
+      "md5": "71e8f2c4fda4fb793660d8f8fa25b43e",
+      "uploadedAt": "2026-10-07T05:46:04.020Z"
+    },
+    {
+      "key": "sounds/toco-toucan.ogg",
+      "source": "public/sounds/toco-toucan.ogg",
+      "bytes": 96704,
+      "md5": "2e2af89a844bb020f1f635fff9b0cdc6",
+      "uploadedAt": "2026-10-07T05:46:03.408Z"
+    }
+  ]
+}

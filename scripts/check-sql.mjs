@@ -122,13 +122,20 @@ function readTable(name) {
 const animalsTable = readTable("animals");
 const columnNames = new Set(animalsTable.columns.map((column) => column.name));
 
-test("schema defines the three tables the app queries", () => {
-  const declared = [...schema.matchAll(/create table if not exists public\.([a-z_]+)/g)].map((match) => match[1]);
+test("every relation the app queries is one the schema creates", () => {
+  // This used to assert "3 tables". A count is the wrong invariant: it fails when a phase adds a
+  // table (Phase 25 added three) and it passes when a phase renames one to something else. What
+  // matters is that the names resolve, so each one is looked for as a table **or** a view.
+  const tables = new Set([...schema.matchAll(/create table if not exists public\.([a-z_]+)/g)].map((match) => match[1]));
+  const views = new Set([...schema.matchAll(/create or replace view public\.([a-z_]+)/g)].map((match) => match[1]));
   const used = [...supabaseClient.matchAll(/^\s{2}\w+:\s*"([a-z_]+)"/gm)].map((match) => match[1]);
 
-  assert.ok(used.length >= 3, `expected TABLES to declare 3 tables, found ${used.length}`);
-  for (const table of used) {
-    assert.ok(declared.includes(table), `lib/supabase.ts queries "${table}" but schema.sql does not create it`);
+  assert.ok(used.length >= 3, `expected TABLES to declare at least the original three, found ${used.length}`);
+  for (const relation of used) {
+    assert.ok(
+      tables.has(relation) || views.has(relation),
+      `lib/supabase.ts queries "${relation}" but schema.sql neither creates the table nor the view`,
+    );
   }
 });
 

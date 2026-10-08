@@ -204,14 +204,23 @@ Give each newly fetched species one look in the browser; that is the only thing 
 
 ## What the shipped catalogue contains
 
-24 species fetched from Sketchfab, all **CC BY 4.0**, and all compressed with:
+73 species fetched from Sketchfab, all **CC BY 4.0**, and all compressed with:
 
 ```bash
 gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp --texture-size 1024
 ```
 
-**61 MB → 10 MB (84% smaller)**, with a valid glTF 2.0 container and `KHR_draco_mesh_compression` in
-`extensionsRequired` for every file.
+The first 24 files went **61 MB → 10 MB (84% smaller)**, with a valid glTF 2.0 container and
+`KHR_draco_mesh_compression` in `extensionsRequired` for every file.
+
+Measured on the catalogue as it stands today (`data/model-attribution.json`): **73 models, 136.1 MB on disk,
+2,127,639 triangles**, a median file of **0.95 MB** and a largest of **20.3 MB**. The per-model figures are the
+ones the site is actually served: `public/models/` is what a browser fetches, and every entry names its own
+author, licence and source.
+
+The second catalogue, **47 historic landmarks** (`data/landmarks/`), is fetched by
+`scripts/fetch-landmark-models.mjs` under exactly the same licence allow-list, title gate, polygon budget and
+compression step — see `## The 25 MB ceiling, and why it is measured twice` below.
 
 Because the models are DRACO-compressed, the decoder is vendored in `public/draco/` (copied from
 `three/examples/jsm/libs/draco/`) and is the **default** decoder path — no CDN request, and the app works
@@ -220,6 +229,44 @@ offline. After compressing or otherwise editing a model, refresh its manifest en
 ```bash
 npm run models:fetch -- --rehash
 ```
+
+## The 25 MB ceiling, and why it is measured twice
+
+The project's ceiling on a model file is **25 MB**. It comes from the asset bucket: `animal-assets` has a
+`file_size_limit` of 25 MB, so a file over it could never be uploaded, and a file that cannot be uploaded is a
+file this project cannot republish.
+
+For two sessions the pipeline enforced that ceiling in the wrong place. `PROVIDERS.sketchfab.download` compared
+the **declared** size — the number Sketchfab publishes for its glTF conversion, *before* DRACO — against the
+25 MB and refused anything larger. Three real monuments were refused on that number:
+
+| Candidate | Declared | What it actually ships as |
+| --- | --- | --- |
+| Cologne Cathedral | 39.3 MB | **3.87 MB** |
+| Milan Cathedral | 33.8 MB | **3.94 MB** |
+| Prambanan | 29.9 MB | **6.89 MB** |
+
+All three are *smaller than the heaviest file the site already serves* (`taj-mahal`, 12.02 MB). The number being
+enforced was not the number that matters, and the cost of the mistake was three famous buildings missing from a
+world catalogue.
+
+So the rule is now two rules, both measurable:
+
+1. **Before the download:** declared size ≤ `maxBytes × declaredHeadroom` (2×, so 50 MB). This exists only to
+   avoid pulling a 400 MB photogrammetry scan down a slow link; it is not a budget, and nothing ships because it
+   passed.
+2. **After compression:** the file that is about to be written to `public/models/` is measured against
+   `maxBytes` itself. Over the ceiling, it is deleted, the landmark is reported unsourced with the measured
+   size in the reason, and the next candidate is tried.
+
+Step 2 did not exist before this change, which was the real defect: a file that compressed to 40 MB would have
+shipped, because the only gate ran before the compression that produced it. `scripts/check-models.mjs` pins both
+halves — including the order, because a pipeline that measured before compressing would pass a file the site
+cannot serve.
+
+The flags follow the same split: `--max-mb=<n>` sets the ceiling, and raising it raises the headroom with it.
+Run `npm run models:fetch -- --report` to see declared sizes, and `scripts/fetch-landmark-models.mjs --slug=<slug>`
+(dry run) to see which candidate a landmark would take and why the others were refused.
 
 ## Search overrides
 

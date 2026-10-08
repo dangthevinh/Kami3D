@@ -1,5 +1,8 @@
 node_modules/
 .next/
+# A build run beside an open dev server writes its own directory, so the two cannot
+# corrupt each other (see the note on distDir in next.config.ts).
+.next-build/
 out/
 build/
 .env
@@ -17,6 +20,10 @@ public/models/*.zip
 
 # Supabase CLI scratch state (created by any supabase command).
 supabase/.temp/
+
+# Scratch frames from a one-off visual audit. Nothing in the repository creates or reads
+# them, so they are not a build output — just local state that belongs to no one.
+.audit_tmp/
 
 # Guard rail: every value lives in .env.local. A tracked template in this
 # project twice collected real keys, so the filename is blocked outright.

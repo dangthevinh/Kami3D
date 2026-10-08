@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Kami3D · R2 probe</title></head>
+<body>
+<pre id="out">running…</pre>
+<script>
+// Runs inside a real browser, served over HTTP, so the origin and the fetch are the same shape the
+// 3D view uses. --PROBE-URLS-- is replaced by the script with the two URLs under test.
+const payload = /*--PROBE-URLS--*/ null;
+const results = [];
+
+async function probeModel(url) {
+  const started = performance.now();
+  try {
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    results.push({ name: "model fetch (useGLTF path)", ok: response.ok, status: response.status, bytes: buffer.byteLength, ms: Math.round(performance.now() - started), detail: "fetch() resolved, loader would parse " + buffer.byteLength + " bytes" });
+  } catch (error) {
+    results.push({ name: "model fetch (useGLTF path)", ok: false, status: 0, bytes: 0, ms: Math.round(performance.now() - started), detail: String((error && error.message) || error) });
+  }
+}
+
+function probeAudio(url) {
+  return new Promise((resolve) => {
+    const started = performance.now();
+    const audio = new Audio();
+    audio.preload = "auto";
+    const done = (ok, detail) => resolve(results.push({ name: "audio element (SoundButton path)", ok: ok, status: ok ? 200 : 0, bytes: -1, ms: Math.round(performance.now() - started), detail: detail }));
+    audio.oncanplaythrough = () => done(true, "canplaythrough fired");
+    audio.onerror = () => done(false, "media error " + (audio.error && audio.error.code));
+    audio.src = url;
+    setTimeout(() => done(false, "no canplaythrough within 15 s"), 15000);
+  });
+}
+
+(async () => {
+  await Promise.all([probeModel(payload.model), probeAudio(payload.sound)]);
+  document.getElementById("out").textContent = JSON.stringify(results, null, 2);
+  await fetch("/result", { method: "POST", body: JSON.stringify({ results: results }) });
+})();
+</script>
+</body>
+</html>

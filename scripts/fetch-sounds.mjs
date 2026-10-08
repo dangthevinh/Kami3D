@@ -47,6 +47,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ANIMALS } from "../data/animals.ts";
+import { createR2, readR2Config } from "./r2.mjs";
 import {
   SOUND_DURATION,
   SOUND_SIZE,
@@ -65,7 +66,6 @@ const OVERRIDES_FILE = join(ROOT, "data", "sound-queries.json");
 
 const USER_AGENT = "Kami3D-sound-fetcher/1.0 (+https://github.com/dangthevinh/Kami3D)";
 const REQUEST_DELAY_MS = 250;
-const BUCKET = "animal-sounds";
 
 /** Populated from the CLI. */
 const CONFIG = {
@@ -447,32 +447,42 @@ export function creditLine({ title, author, license, provider, licenseUrl, sourc
 }
 
 /* -------------------------------------------------------------------------- */
-/* Supabase                                                                   */
+/* Object storage                                                             */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Cloudflare R2 — the only place a recording is stored.
+ *
+ * The key is `sounds/<file>`: the same relative path under `public/sounds/` that the repository
+ * keeps, and the same one `sound_assets.storage_path` records. Same path, different host, so the six
+ * rows written before the move already name keys that exist.
+ */
+let r2Client = null;
+
+function requireR2() {
+  if (r2Client) return r2Client;
+
+  const config = readR2Config();
+  if (!config.configured) {
+    throw new Error("Cloudflare R2 is not configured — missing " + config.missing.join(", ") + " (see README.md)");
+  }
+  r2Client = createR2(config);
+  return r2Client;
+}
+
+/**
+ * Supabase is still the database and the source of the licence record; it is no longer a file host.
+ */
 function supabaseConfig() {
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "";
   return { url, key, ready: Boolean(url && key) };
 }
 
-/** Uploads to the public bucket and returns the URL a browser can play. */
-async function uploadToStorage({ url, key }, path, bytes, mime) {
-  const response = await fetch(`${url}/storage/v1/object/${BUCKET}/${path}`, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${key}`,
-      apikey: key,
-      "content-type": mime,
-      "x-upsert": "true",
-      "cache-control": "public, max-age=31536000, immutable",
-    },
-    body: bytes,
-    signal: AbortSignal.timeout(60_000),
-  });
-
-  if (!response.ok) throw new Error(`storage upload failed: ${response.status} ${await response.text()}`);
-  return `${url}/storage/v1/object/public/${BUCKET}/${path}`;
+/** Uploads a recording and returns the URL a browser can play. */
+async function uploadToStorage(r2, path, bytes, mime) {
+  const put = await r2.put("sounds/" + path, bytes, mime, "public, max-age=31536000, immutable");
+  return put.publicUrl;
 }
 
 async function rest({ url, key }, path, init = {}) {
@@ -680,9 +690,18 @@ async function fetchSounds(flags) {
   }
 
   await mkdir(SOUND_DIR, { recursive: true });
-  if (flags.upload && !supabase.ready) {
-    console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local.");
-    return;
+  if (flags.upload) {
+    // Two systems, two failures, two sentences. The file goes to R2; the row that credits it goes to
+    // Supabase. Reporting the wrong one sends an operator to the wrong dashboard.
+    const config = readR2Config();
+    if (!config.configured) {
+      console.error("--upload needs Cloudflare R2 for the file: missing " + config.missing.join(", ") + " in .env.local.");
+      return;
+    }
+    if (!supabase.ready) {
+      console.error("--upload needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for the sound_assets row.");
+      return;
+    }
   }
 
   let written = 0;
@@ -762,7 +781,7 @@ async function fetchSounds(flags) {
         const contentType = normaliseAudioMime(best.candidate.mime) ?? "audio/mpeg";
         entry.mime = contentType;
         entry.storagePath = fileName;
-        entry.publicUrl = await uploadToStorage(supabase, fileName, bytes, contentType);
+        entry.publicUrl = await uploadToStorage(requireR2(), fileName, bytes, contentType);
         await recordInDatabase(supabase, animal, entry);
         await writeAttribution(attribution);
         uploaded += 1;

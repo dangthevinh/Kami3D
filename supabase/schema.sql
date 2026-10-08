@@ -1612,7 +1612,7 @@ values (
   'animal-assets',
   'animal-assets',
   true,
-  26214400, -- 25 MB: a DRACO-compressed GLB plus its textures
+  41943040, -- 40 MB: a DRACO-compressed GLB plus its textures (raised with FACE_BUDGET.max on 2026-10-06)
   array[
     'model/gltf-binary', 'model/gltf+json',
     'image/png', 'image/jpeg', 'image/webp', 'image/avif',
@@ -2787,3 +2787,643 @@ comment on function public.current_user_id() is
 
 revoke all on function public.current_user_id() from public;
 grant execute on function public.current_user_id() to anon, authenticated;
+
+/* ==========================================================================
+   Phase 25 - Multi-category catalogue
+   ==========================================================================
+
+   Until now the site held one kind of thing: an animal. Every surface - the grid, the 3D viewer,
+   the size chart, the quiz, the map - was written around `public.animals`, and the next three
+   modules (space, plants, vehicles) each need the same machinery over a different subject.
+
+   So this block adds the general shape and **does not move the animals**. That is the deliberate
+   part, and it is worth stating because the obvious migration - copy every animal into `items`,
+   repoint six foreign keys, drop the table - buys tidiness at the cost of the one thing this
+   project cannot afford to lose: the 73 species, their geodata, their favourites, their quiz scores
+   and their view counts are all correct today, and a migration that touches them can only make that
+   worse. Backwards compatibility is not a courtesy here; it is the risk control.
+
+   What exists after this block:
+
+     categories        the list of subjects, with the six that ship
+     items             an entry in any category that is not the animal catalogue
+     catalog_items     a view: the animals projected into the item shape, unioned with items
+
+   The view is how "everything in the catalogue" is asked for in one query, and it is declared
+   `security_invoker` so it reads with the caller's own permissions and RLS - a view that reads with
+   the definer's rights is how a public view quietly becomes a way around every policy on the tables
+   underneath it.
+   ========================================================================== */
+
+create table if not exists public.categories (
+  id          text primary key check (id ~ '^[a-z][a-z0-9-]{1,31}$'),
+  name        text not null check (length(btrim(name)) between 1 and 60),
+  tagline     text,
+  description text,
+  /** A lucide icon name, resolved on the client - the database does not know about glyphs. */
+  icon        text,
+  accent      text[] not null default '{#35f0c0,#0b3d3a}',
+  sort_order  integer not null default 100,
+  is_public   boolean not null default true,
+  /** False for a catalogue with no 3D viewer, so the UI can hide the model affordances. */
+  has_models  boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
+comment on table public.categories is
+  'The subjects the catalogue can hold (Phase 25). "animals" is one of them and its rows live in public.animals, not here - see the catalog_items view.';
+
+create table if not exists public.items (
+  id          uuid primary key default gen_random_uuid(),
+  category_id text not null references public.categories (id) on delete cascade,
+  slug        text not null check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+  name        text not null check (length(btrim(name)) between 1 and 160),
+  latin_name  text,
+  description text,
+  model_url   text,
+  image_url   text,
+  sound_url   text,
+  scale_ratio numeric check (scale_ratio is null or scale_ratio > 0),
+  accent      text[] not null default '{#35f0c0,#0b3d3a}',
+  popularity  integer not null default 50 check (popularity between 1 and 100),
+  /**
+   * Everything that is true of one category and not of the others: a planet's mass, a car's power,
+   * a plant's family. A column per field would be a table that grows a column every phase; this is
+   * the same choice the manga layout made for its pages.
+   */
+  metadata    jsonb not null default '{}'::jsonb,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  constraint items_slug_unique unique (category_id, slug)
+);
+
+comment on table public.items is
+  'One entry in any catalogue other than the animals (Phase 25). The animal catalogue keeps its own table: 73 species with geodata, favourites, quiz scores and view counts are correct today, and moving them would risk that for tidiness.';
+
+create index if not exists items_category_idx on public.items (category_id, popularity desc);
+create index if not exists items_metadata_idx on public.items using gin (metadata jsonb_path_ops);
+
+-- The same trigger the rest of the schema uses; defined earlier in this file, so this is a rebind.
+drop trigger if exists items_touch on public.items;
+create trigger items_touch before update on public.items
+  for each row execute function public.touch_updated_at();
+
+alter table public.categories enable row level security;
+alter table public.items      enable row level security;
+
+-- Read: everybody, for a category that is public. Write: admins only, and the check is the same
+-- `public.is_admin()` every other admin surface uses - one definition of "admin", not a second one.
+drop policy if exists "categories are publicly readable" on public.categories;
+create policy "categories are publicly readable"
+  on public.categories for select
+  to anon, authenticated
+  using (is_public);
+
+drop policy if exists "categories are written by admins" on public.categories;
+create policy "categories are written by admins"
+  on public.categories for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "items are publicly readable" on public.items;
+create policy "items are publicly readable"
+  on public.items for select
+  to anon, authenticated
+  using (exists (select 1 from public.categories c where c.id = category_id and c.is_public));
+
+drop policy if exists "items are written by admins" on public.items;
+create policy "items are written by admins"
+  on public.items for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- Order matters: the revoke comes first, or it takes back the select granted a line above it.
+revoke all on public.categories, public.items from anon, authenticated;
+grant select on public.categories, public.items to anon, authenticated;
+grant insert, update, delete on public.categories, public.items to authenticated;
+
+/**
+ * Everything in the catalogue, in one shape.
+ *
+ * The animals are projected rather than copied, so there is exactly one row per animal in the
+ * database and it is still the one every foreign key points at. `metadata` carries what is true of
+ * an animal and not of a planet: the columns stay where they are, and a reader that only wants the
+ * common shape does not have to know about them.
+ */
+create or replace view public.catalog_items
+with (security_invoker = true)
+as
+  select
+    'animals'::text                     as category_id,
+    a.id,
+    a.slug,
+    a.name,
+    a.latin_name,
+    a.description,
+    a.model_url,
+    a.image_url,
+    a.sound_url,
+    a.scale_ratio,
+    a.accent,
+    a.popularity,
+    jsonb_strip_nulls(jsonb_build_object(
+      'kind', a.category,
+      'habitat', a.habitat,
+      'region', a.region,
+      'conservation_status', a.conservation_status,
+      'diet', a.diet,
+      'weight_kg', a.weight_kg,
+      'length_m', a.length_m,
+      'height_m', a.height_m,
+      'lifespan_years', a.lifespan_years,
+      'is_prehistoric', a.is_prehistoric,
+      'fun_facts', to_jsonb(a.fun_facts)
+    ))                                 as metadata,
+    a.created_at
+  from public.animals a
+  union all
+  select
+    i.category_id,
+    i.id,
+    i.slug,
+    i.name,
+    i.latin_name,
+    i.description,
+    i.model_url,
+    i.image_url,
+    i.sound_url,
+    i.scale_ratio,
+    i.accent,
+    i.popularity,
+    i.metadata,
+    i.created_at
+  from public.items i;
+
+comment on view public.catalog_items is
+  'Every catalogue entry in one shape (Phase 25). security_invoker, so it reads with the caller''s RLS and is not a way around the policies on animals and items.';
+
+-- The six categories that ship. "space", "plants" and "vehicles" exist before their items do: a
+-- category with no entries is a section that is being built, which is a thing the site says.
+--
+-- Three of the six hold catalogues that are not rows in `items` and never will be: the animals live in
+-- `public.animals` (projected by the view above, so their 73 rows and six foreign keys stay where they
+-- are), the 47 landmarks live in `data/landmarks/`, and `buildings` is the modern subset of those same
+-- 47, selected by the rule in `data/buildings.ts`. The app projects all three - see `lib/catalog.ts` -
+-- and this seed only has to say that each subject exists. `data/categories.ts` is the bundled twin of
+-- this list, and `scripts/check-catalog.mjs` fails if the two disagree about an id or about this order.
+insert into public.categories (id, name, tagline, icon, accent, sort_order, is_public, has_models) values
+  ('animals',      'Animals',      'The encyclopedia it started as',         'PawPrint',  '{#35f0c0,#0b3d3a}', 10, true, true),
+  ('space',        'Space',        'Planets, moons and the machines we sent','Rocket',    '{#8ab4ff,#131a3a}', 20, true, true),
+  ('plants',       'Plants',       'Trees, flowers, fungi and their uses',   'Sprout',    '{#7ee787,#0f2a17}', 30, true, true),
+  ('vehicles',     'Vehicles',     'Machines that move people',              'Car',       '{#ffb457,#301a05}', 40, true, true),
+  ('buildings',    'Modern Buildings', 'Skyscrapers, towers and the structures of the machine age', 'Building2', '{#c9d6e4,#1b2531}', 50, true, true),
+  ('architecture', 'Architecture', 'Monuments that outlived their builders', 'Landmark',  '{#e9dcc3,#2b2419}', 60, true, true)
+on conflict (id) do update
+  set name = excluded.name,
+      tagline = excluded.tagline,
+      icon = excluded.icon,
+      accent = excluded.accent,
+      sort_order = excluded.sort_order;
+
+/* ==========================================================================
+   Saved catalogue items (Phase 30)
+   ==========================================================================
+
+   The animal favourites live in `public.user_favorites`, keyed by a uuid with a
+   foreign key onto `public.animals` - which works because every species is a row.
+   Two of the six subjects are not rows at all: the 47 landmarks live in
+   `data/landmarks/` and the 46 space, plant and vehicle entries in their own data
+   files, so there is no uuid to point at. What every one of them does have is a
+   **key**: `<category>:<slug>` - the same string `lib/catalog-project.ts` already
+   builds as a catalogue item's id.
+
+   So this table stores keys rather than foreign keys, and the two systems stay
+   apart on purpose: migrating the animal favourites would mean rewriting rows
+   whose uuid every other table already points at, for no gain a reader can see.
+   ========================================================================== */
+
+create table if not exists public.saved_items (
+  user_id    text not null,
+  item_key   text not null check (item_key ~ '^[a-z][a-z0-9-]{0,31}:[a-z0-9]+(-[a-z0-9]+)*$'),
+  created_at timestamptz not null default now(),
+  primary key (user_id, item_key)
+);
+
+comment on table public.saved_items is
+  'A catalogue entry a signed-in visitor saved, by <category>:<slug> (Phase 30). Keys rather than foreign keys, because the landmarks, planets, plants and vehicles are not rows in any table.';
+
+create index if not exists saved_items_user_idx on public.saved_items (user_id, created_at desc);
+
+alter table public.saved_items enable row level security;
+
+-- A visitor reads and writes **their own** rows, and nothing here is public: a saved list is nobody
+-- else's business. The check is the same `current_user_id()` every per-user table uses.
+drop policy if exists "saved items belong to their owner" on public.saved_items;
+create policy "saved items belong to their owner"
+  on public.saved_items for all
+  to authenticated
+  using (user_id = public.current_user_id())
+  with check (user_id = public.current_user_id());
+
+-- Order matters: the revoke comes first, or it takes back the grants below it.
+revoke all on public.saved_items from anon, authenticated;
+grant select, insert, delete on public.saved_items to authenticated;
+
+/* ==========================================================================
+   Phase 31 - Security hardening: least privilege on the tables themselves
+   ==========================================================================
+
+   Measured on the deployed database before this block, with the Management API:
+
+     - **150 privileges that are not SELECT** were granted to `anon` and `authenticated` across the
+       public schema. RLS governs rows, and it governs INSERT/UPDATE/DELETE - but it does **not** govern
+       TRUNCATE, REFERENCES or TRIGGER, which are table-level. `anon` therefore held
+       `TRUNCATE ON public.animals`: a visitor with nothing but the anon key could have emptied the
+       species table, and no policy would have been consulted.
+     - the same roles held INSERT/UPDATE/DELETE on tables they have no business writing, relying on the
+       absence of a policy rather than on the absence of the privilege. Row level security is the second
+       line; the privilege is the first.
+
+   What this block changes, and what it deliberately does not:
+
+     - `anon` keeps **SELECT** and loses every other privilege on every table in this schema. Nothing
+       the site does as a guest needs more, and a guest is the one caller we cannot identify.
+     - `authenticated` keeps SELECT, and keeps INSERT/UPDATE/DELETE **only where a policy means it** -
+       the per-user tables. Everything else it loses, so a policy that is accidentally widened later
+       still cannot let a signed-in visitor write an animal.
+     - `REFERENCES` and `TRIGGER` are revoked from both, because those are schema privileges: nothing
+       the API does needs them.
+     - EXECUTE on functions is **not** touched here. The site calls RPCs as a guest on purpose
+       (`increment_animal_view`, `quiz_stats`, the leaderboard views), and revoking broadly would take
+       the product down to close a door nobody has walked through. The functions that mutate state check
+       their own caller - see `public.current_user_id()` in each one.
+   ========================================================================== */
+
+-- The footguns first: these are the ones RLS cannot stop.
+revoke truncate, references, trigger on all tables in schema public from anon, authenticated;
+
+-- A guest reads. It does not write anything, anywhere.
+revoke insert, update, delete, truncate, references, trigger on all tables in schema public from anon;
+grant select on all tables in schema public to anon;
+
+-- A signed-in visitor reads, and writes only the tables a policy written for them governs.
+revoke insert, update, delete on all tables in schema public from authenticated;
+
+grant insert, update, delete on public.user_favorites       to authenticated;
+grant insert, update, delete on public.quiz_scores          to authenticated;
+grant insert, update, delete on public.user_settings        to authenticated;
+grant insert, update, delete on public.saved_items          to authenticated;
+grant insert, update, delete on public.data2map_user_prefs  to authenticated;
+grant insert, update, delete on public.manga_projects       to authenticated;
+grant insert, update, delete on public.manga_chapters       to authenticated;
+grant insert, update, delete on public.manga_pages          to authenticated;
+grant insert, update, delete on public.manga_panels         to authenticated;
+grant insert, update, delete on public.manga_bubbles        to authenticated;
+grant insert, update, delete on public.manga_likes          to authenticated;
+grant insert, update, delete on public.manga_comments       to authenticated;
+grant insert, update, delete on public.manga_follows        to authenticated;
+
+-- A table created by a later phase must not be born with the privileges this block just removed.
+alter default privileges in schema public revoke insert, update, delete, truncate, references, trigger on tables from anon;
+alter default privileges in schema public revoke insert, update, delete, truncate, references, trigger on tables from authenticated;
+alter default privileges in schema public grant select on tables to anon, authenticated;
+
+/* ==========================================================================
+   Phase 31 (part 2) - the security event log, and who may write to a bucket
+   ==========================================================================
+
+   Part 1 above took the table privileges away. This is the other half of requirement 6 of the phase
+   brief ("logging & monitoring"), plus requirement 3 ("Storage: only a user's own folder").
+
+   1. public.security_events
+      One row per refusal or notable event. `lib/security-log.ts` writes it, best effort: no service key
+      means one throttled console line, never a failed request. The address is stored as a **prefix**
+      (/24, /48) because a log is the easiest place to leak personal data, and the row carries no body,
+      no token and no query string.
+
+      Readable by admins only. The subtlety worth writing down: the default privileges at the end of
+      part 1 grant SELECT on new tables to anon and authenticated, so a table like this one has to
+      **take it back** - otherwise the very block that tightened the schema would have handed the log to
+      every visitor and left RLS as the only thing filtering it. Measured: with the revoke, the anon key
+      answers 401 on this table instead of 200 [].
+
+   2. Storage: folder ownership
+      The panel bucket is public to read and was servable to nobody but the service role. A signed-in
+      member may now write *only inside their own folder* - the first path segment must equal
+      public.current_user_id(), which is the same helper every per-user table uses. The two asset
+      buckets (animal-assets, animal-sounds) keep **no** client write policy at all: a model is fetched
+      and published by the pipeline, and a licence line has to exist before the file does.
+   ========================================================================== */
+
+create table if not exists public.security_events (
+  id             bigint generated always as identity primary key,
+  created_at     timestamptz not null default now(),
+  kind           text not null check (kind in (
+                   'admin-denied', 'cross-site', 'rate-limited', 'auth-denied',
+                   'webhook-signature', 'payment-webhook', 'content-unlocked'
+                 )),
+  route          text,
+  actor_id       text,
+  -- The /24 (IPv4) or /48 (IPv6) prefix, never the host: see lib/sanitize.ts anonymiseAddress().
+  address_prefix text,
+  detail         jsonb not null default '{}'::jsonb
+);
+
+comment on table public.security_events is
+  'Refusals and notable security events, written best-effort by lib/security-log.ts (Phase 31). Addresses are stored as a network prefix, never a host. Rows older than 90 days are pruned by hand: delete from public.security_events where created_at < now() - interval ''90 days'';';
+
+create index if not exists security_events_created_idx on public.security_events (created_at desc);
+create index if not exists security_events_kind_idx on public.security_events (kind, created_at desc);
+
+alter table public.security_events enable row level security;
+
+-- Admins read the log; nobody else, including a signed-in visitor. No insert policy exists on purpose:
+-- only the service role writes here, so a caller cannot forge an event either.
+drop policy if exists "only admins read the security log" on public.security_events;
+create policy "only admins read the security log"
+  on public.security_events for select
+  to authenticated
+  using (public.is_admin());
+
+-- The default privileges from part 1 hand SELECT to anon on every new table. Take it back here.
+revoke all on public.security_events from anon;
+grant select on public.security_events to authenticated;
+grant select, insert on public.security_events to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Storage: a member writes inside their own folder, and nowhere else
+-- ---------------------------------------------------------------------------
+
+drop policy if exists "a member uploads panels in their own folder" on storage.objects;
+create policy "a member uploads panels in their own folder"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'manga-panels'
+    and (storage.foldername(name))[1] = public.current_user_id()
+  );
+
+drop policy if exists "a member replaces panels in their own folder" on storage.objects;
+create policy "a member replaces panels in their own folder"
+  on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'manga-panels'
+    and (storage.foldername(name))[1] = public.current_user_id()
+  )
+  with check (
+    bucket_id = 'manga-panels'
+    and (storage.foldername(name))[1] = public.current_user_id()
+  );
+
+drop policy if exists "a member deletes panels in their own folder" on storage.objects;
+create policy "a member deletes panels in their own folder"
+  on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'manga-panels'
+    and (storage.foldername(name))[1] = public.current_user_id()
+  );
+
+-- Deliberately absent, and asserted as absent by npm run check:security:
+--   insert/update/delete policies on storage.objects for animal-assets and animal-sounds.
+
+/* ==========================================================================
+   Phase 32 - Lemon Squeezy: subscriptions, one-time purchases, and who may read them
+   ==========================================================================
+
+   Two tables, and the shape of both comes from one decision: **the webhook is the only writer**. A
+   browser never inserts a subscription, a visitor never marks an order paid, and no route in the app
+   accepts a "I have paid" claim from a client. So neither table has an insert or update policy at all -
+   row level security with a read policy and nothing else - and the service role (the webhook) is the
+   one writer. A missing policy is a denial in Postgres, which is a stronger statement than a check in
+   a route that a later refactor can drop.
+
+   What is deliberately **not** stored: nothing about a card. Lemon Squeezy hosts the checkout and the
+   payment method never reaches this server; what arrives here is an id, a status and a date.
+
+   Money is stored in **integer cents**, never a float: 19.99 is not representable, and a price that
+   drifts by a hundredth is a bug somebody has to explain to an accountant.
+
+   `plan` and `status` are nullable **on purpose**. Lemon Squeezy can send a variant this deployment
+   does not sell, and a status string this build has never seen; refusing those rows would answer 500 to
+   a real payment and earn a retry storm, so the row is stored, the entitlement arithmetic ignores it
+   (lib/payments/entitlements.ts), and the settings page can say what it does not recognise.
+   ========================================================================== */
+
+create table if not exists public.subscriptions (
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            text not null,
+  plan               text check (plan is null or plan in ('premium-monthly', 'premium-yearly', 'unlock-extinct-models', 'manga-studio-pro')),
+  status             text check (status is null or status in ('on_trial', 'active', 'paused', 'past_due', 'unpaid', 'cancelled', 'expired')),
+  -- The Lemon Squeezy subscription id. Unique, which is what makes a redelivered webhook an update
+  -- rather than a second entitlement.
+  lemon_squeezy_id   text not null unique,
+  lemon_customer_id  text,
+  lemon_order_id     text,
+  variant_id         text,
+  renews_at          timestamptz,
+  ends_at            timestamptz,
+  -- Lemon Squeezy has no column by this name: it is ends_at when a subscription is cancelled and
+  -- renews_at otherwise, and it is stored because it is the column every entitlement question reads.
+  current_period_end timestamptz,
+  last_event         text,
+  created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now()
+);
+
+comment on table public.subscriptions is
+  'One row per Lemon Squeezy subscription, keyed by its id (Phase 32). Written only by the webhook with the service role; a visitor may read their own rows and nobody may write from a browser.';
+
+create index if not exists subscriptions_user_idx on public.subscriptions (user_id);
+create index if not exists subscriptions_period_idx on public.subscriptions (current_period_end desc nulls last);
+
+create table if not exists public.purchases (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           text not null,
+  product           text check (product is null or product in ('premium-monthly', 'premium-yearly', 'unlock-extinct-models', 'manga-studio-pro')),
+  -- Set when a purchase is about one piece of content rather than a pack; Phase 33 reads it.
+  content_id        text,
+  status            text check (status is null or status in ('paid', 'pending', 'refunded', 'failed')),
+  lemon_squeezy_id  text not null unique,
+  variant_id        text,
+  total_cents       integer,
+  currency          text,
+  last_event        text,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+
+comment on table public.purchases is
+  'One row per Lemon Squeezy order (Phase 32). Only status = paid grants anything, so a refund takes the entitlement back without deleting the record of the sale.';
+
+create index if not exists purchases_user_idx on public.purchases (user_id);
+
+alter table public.subscriptions enable row level security;
+alter table public.purchases     enable row level security;
+
+-- A visitor reads their own subscription and their own receipts, and nothing else. There is no write
+-- policy on either table: the webhook writes with the service role.
+drop policy if exists "a subscription is legible to its owner" on public.subscriptions;
+create policy "a subscription is legible to its owner"
+  on public.subscriptions for select
+  to authenticated
+  using (user_id = public.current_user_id());
+
+drop policy if exists "a purchase is legible to its owner" on public.purchases;
+create policy "a purchase is legible to its owner"
+  on public.purchases for select
+  to authenticated
+  using (user_id = public.current_user_id());
+
+-- Order matters: the revoke comes first, or it takes back the grant below it.
+revoke all on public.subscriptions, public.purchases from anon, authenticated;
+grant select on public.subscriptions, public.purchases to authenticated;
+grant select, insert, update on public.subscriptions, public.purchases to service_role;
+
+/* ==========================================================================
+   Phase 33 - Ad placements, locked content, and what a visitor has unlocked
+   ==========================================================================
+
+   Three tables, and one rule that shapes all of them: **nothing is locked and no ad is shown until an
+   admin says so.** An empty `locked_contents` means every page renders exactly as it did before this
+   phase, and every placement starts `enabled = false` - a deployment must not begin showing
+   advertisements because a page was opened.
+
+   Why the placements are rows rather than a constant in the code: the brief asks an admin to be able to
+   switch each position on and off, and a switch that only exists in a source file is not a switch. The
+   *catalogue* of positions still lives in code (`lib/ads.ts`), because a page can only render an ad
+   where it has a hole for one; the table is what decides whether that hole is filled today. A row whose
+   id is not in the catalogue is ignored rather than rendered somewhere unexpected.
+
+   `locked_contents.content_id` is a **text key**, not a foreign key: the things that are locked are an
+   animal, a catalogue entry, a manga chapter - they are not rows in one table, exactly like
+   `saved_items.item_key` in Phase 30.
+
+   `user_unlocks` is the one table here a visitor writes, and the policy narrows **how**: an insert is
+   allowed only with `method = 'ad'`. A purchase unlock is written by the webhook with the service role,
+   so a client cannot claim to have paid by typing the word.
+   ========================================================================== */
+
+create table if not exists public.ad_placements (
+  id          text primary key,
+  label       text not null,
+  enabled     boolean not null default false,
+  provider    text not null default 'placeholder' check (provider in ('placeholder', 'adsense', 'ezoic')),
+  -- The AdSense slot id for this position. Null for the placeholder provider, which has no slot.
+  slot_id     text,
+  note        text,
+  updated_at  timestamptz not null default now()
+);
+
+comment on table public.ad_placements is
+  'One row per ad position the app can render (Phase 33). Off by default: an ad appears only where an admin switched it on and a provider is configured. The list of positions is code (lib/ads.ts); this table is the switch.';
+
+insert into public.ad_placements (id, label, enabled, provider, note) values
+  ('sidebar', 'Sidebar', false, 'placeholder', 'Beside the content column on wide screens.'),
+  ('below-content', 'Below content', false, 'placeholder', 'After the article body, above the footer.'),
+  ('in-list', 'Between list items', false, 'placeholder', 'After the first row of a grid, never over a 3D canvas.')
+on conflict (id) do nothing;
+
+alter table public.ad_placements enable row level security;
+
+-- Every page that can show an ad has to read the switches, including for a guest.
+drop policy if exists "ad placements are publicly readable" on public.ad_placements;
+create policy "ad placements are publicly readable"
+  on public.ad_placements for select
+  to anon, authenticated
+  using (true);
+
+-- Only an admin changes them. This is the one admin-writable table, and `is_admin()` is the same check
+-- the console and every /api/admin route use.
+drop policy if exists "only an admin changes an ad placement" on public.ad_placements;
+create policy "only an admin changes an ad placement"
+  on public.ad_placements for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+revoke all on public.ad_placements from anon, authenticated;
+grant select on public.ad_placements to anon, authenticated;
+grant update on public.ad_placements to authenticated;
+
+create table if not exists public.locked_contents (
+  content_id      text primary key,
+  label           text not null,
+  kind            text not null check (kind in ('model', 'chapter', 'catalog-entry')),
+  -- Which ways out are offered. A row that lists neither is a locked door with no key, so the check
+  -- refuses it.
+  unlock_methods  text[] not null default array['ad', 'purchase']::text[]
+                    check (array_length(unlock_methods, 1) between 1 and 2),
+  -- The Phase 32 plan whose purchase unlocks this, when buying is one of the ways out.
+  purchase_plan   text,
+  ad_seconds      integer not null default 15 check (ad_seconds between 5 and 120),
+  active          boolean not null default true,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+comment on table public.locked_contents is
+  'Content that needs unlocking (Phase 33). Empty by default: nothing is locked until an admin marks it. content_id is a text key such as "model:tyrannosaurus-rex" or "chapter:<uuid>", because the locked things are not rows of one table.';
+
+create index if not exists locked_contents_active_idx on public.locked_contents (active);
+
+alter table public.locked_contents enable row level security;
+
+-- A page has to know whether to draw a lock before it knows who is asking.
+drop policy if exists "locked content is publicly readable" on public.locked_contents;
+create policy "locked content is publicly readable"
+  on public.locked_contents for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "only an admin marks content as locked" on public.locked_contents;
+create policy "only an admin marks content as locked"
+  on public.locked_contents for all
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+revoke all on public.locked_contents from anon, authenticated;
+grant select on public.locked_contents to anon, authenticated;
+grant insert, update, delete on public.locked_contents to authenticated;
+
+create table if not exists public.user_unlocks (
+  user_id     text not null,
+  content_id  text not null,
+  method      text not null check (method in ('ad', 'purchase', 'admin')),
+  unlocked_at timestamptz not null default now(),
+  primary key (user_id, content_id)
+);
+
+comment on table public.user_unlocks is
+  'What one visitor has unlocked, and how (Phase 33). The primary key makes an unlock idempotent: watching the ad twice is still one row.';
+
+create index if not exists user_unlocks_user_idx on public.user_unlocks (user_id, unlocked_at desc);
+
+alter table public.user_unlocks enable row level security;
+
+drop policy if exists "an unlock belongs to its owner" on public.user_unlocks;
+create policy "an unlock belongs to its owner"
+  on public.user_unlocks for select
+  to authenticated
+  using (user_id = public.current_user_id());
+
+-- The narrowing that matters: a browser may record an **ad** unlock and nothing else. A purchase is
+-- written by the webhook with the service role, so "I paid" cannot be typed into a request body.
+drop policy if exists "a member records their own ad unlock" on public.user_unlocks;
+create policy "a member records their own ad unlock"
+  on public.user_unlocks for insert
+  to authenticated
+  with check (user_id = public.current_user_id() and method = 'ad');
+
+revoke all on public.user_unlocks from anon, authenticated;
+grant select, insert on public.user_unlocks to authenticated;
+grant select, insert, update, delete on public.user_unlocks to service_role;
+
+
+-- A model or a call is published by scripts/ that records its licence first; a browser upload path
+-- would let a file exist with no credit line, which is the one rule this catalogue does not bend.
+

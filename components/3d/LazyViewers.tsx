@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { MountWhenVisible } from "@/components/3d/MountWhenVisible";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Animal } from "@/types/animal";
+import type { ViewableModel } from "@/types/viewable";
 
 /**
  * Deferred entry points for the two heavy WebGL surfaces.
@@ -52,7 +53,8 @@ const SizeComparison = dynamic(() => import("@/components/3d/SizeComparison").th
   loading: () => <ComparisonSkeleton />,
 });
 
-export function LazyModelViewer({ animal }: { animal: Animal }) {
+/** Any subject the viewer can draw - a species or a landmark. See `types/viewable.ts`. */
+export function LazyModelViewer({ animal }: { animal: ViewableModel }) {
   return (
     <MountWhenVisible placeholder={<ViewerSkeleton label="Loading 3D viewer…" />}>
       <ModelViewer animal={animal} />

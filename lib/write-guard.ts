@@ -3,6 +3,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 
 import { clientKey, createRateLimiter, sameOriginVerdict, type RateLimitRule } from "@/lib/request-guard";
+import { noteSecurityEvent } from "@/lib/security-log";
 
 /**
  * One guard for every route that writes.
@@ -31,10 +32,15 @@ export interface WriteGuardOptions {
 }
 
 export function guardWrite(request: Request, { name, rule, expectedHost }: WriteGuardOptions): NextResponse | null {
+  const address = clientKey(request.headers);
+  const route = new URL(request.url).pathname;
+
   const verdict = sameOriginVerdict(request.headers, expectedHost);
   if (verdict === "cross-site") {
     // A browser told us this came from somewhere else. Page script cannot set that header, which is
-    // what makes it worth refusing on.
+    // what makes it worth refusing on. Phase 31 records the refusal; the call is fire-and-forget
+    // because a guard that waits for a log write is a guard an attacker can slow down.
+    void noteSecurityEvent({ kind: "cross-site", route, address, detail: { bucket: name } });
     return NextResponse.json({ error: "cross-site requests are not accepted" }, { status: 403 });
   }
 
@@ -44,9 +50,15 @@ export function guardWrite(request: Request, { name, rule, expectedHost }: Write
     limiters.set(name, limiter);
   }
 
-  const key = clientKey(request.headers) ?? name + ":shared";
+  const key = address ?? name + ":shared";
   const result = limiter.check(key, rule);
   if (!result.allowed) {
+    void noteSecurityEvent({
+      kind: "rate-limited",
+      route,
+      address,
+      detail: { bucket: name, limit: result.limit, retryAfterSeconds: result.retryAfterSeconds },
+    });
     return NextResponse.json(
       { error: "too many requests" },
       { status: 429, headers: { "retry-after": String(Math.max(1, result.retryAfterSeconds)) } },

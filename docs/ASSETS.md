@@ -5,13 +5,148 @@ about replacing those placeholders with production media.
 
 ## Where files live
 
-| Asset | Column | Storage | Notes |
+| Asset | Column | Where it actually is | Notes |
 | --- | --- | --- | --- |
-| 3D model | `model_url` | `animal-assets` bucket | `.glb` preferred, DRACO-compressed |
-| Photo / illustration | `image_url` | `animal-assets` bucket | AVIF/WebP, served through `next/image` |
-| Call recording | `sound_url` | `animal-assets` bucket | `.mp3` or `.ogg`, no autoplay |
+| 3D model | `model_url` | `public/models/**` in this repository, mirrored on R2 | `.glb` preferred, DRACO-compressed |
+| Photo / illustration | `image_url` | `public/images/**` or a Supabase Storage URL | AVIF/WebP, served through `next/image` |
+| Call recording | `sound_url` | `public/sounds/**` in this repository, mirrored on R2 | `.mp3` or `.ogg`, no autoplay |
 
-The bucket is public-read and capped at 25 MB per file with a MIME allow-list (see `supabase/schema.sql`).
+Both columns store a **host-free path** (`/models/lion.glb`), never a full URL — the host is decided in one
+place when a page reads the row (`lib/r2.ts`). That is what makes moving hosts a one-line change instead of a
+79-row migration.
+
+## Supabase Storage is retired
+
+**Nothing writes to Supabase Storage any more.** It was never the library it was assumed to be, and the
+measurement is what settled it:
+
+| Bucket | Objects found | What they were |
+| --- | --- | --- |
+| `animal-assets` | **107** | 69 identical to R2, 35 models that existed nowhere else, 9 pre-compression originals |
+| `animal-sounds` | 6 | the recordings, already mirrored |
+| `manga-panels` | 0 | — |
+
+PLAN.md recorded `animal-assets` as holding 0 objects. It held 179,8 MiB, including 35 models for species
+that are in neither `data/**` nor the `animals` table. A script that trusted the note would have deleted
+them. So the retirement is a script that proves before it deletes:
+
+```bash
+node scripts/migrate-storage-to-r2.mjs            # report only: what is there, what is safe
+node scripts/migrate-storage-to-r2.mjs --restore  # copy and verify, never delete
+node scripts/migrate-storage-to-r2.mjs --apply    # copy, verify by md5, rewrite rows, then empty it
+```
+
+The order is the safety argument: **compare by md5** (R2's ETag is the md5 of a single-part upload, so the R2
+side need not be downloaded), **copy** what is missing, **read every copy back over the public URL**, only then
+**rewrite** the rows, and only then **delete**. It refuses to delete anything that is not accounted for.
+
+Where a Supabase object had *different* bytes from the served file — the 9 pre-compression originals — the
+served copy was **not** overwritten. `models/axolotl.glb` on R2 is the file the site serves and the file the
+repository holds, and those two must stay identical; the original is parked at `originals/models/axolotl.glb`
+instead. `data/r2-manifest.json` records both, and an entry with `source: null` means "on R2, produced from no
+file in this repository".
+
+### Where a write goes now
+
+| What | Module | Key |
+| --- | --- | --- |
+| Admin upload, published model | `lib/model-publish.ts` | `uploads/models/<slug>-<stamp>.glb` |
+| Admin inbox, published and rejected | `lib/upload-ingest.ts` | `uploads/inbox/**`, `uploads/published/**`, `uploads/rejected/**` |
+| Manga panel image | `lib/manga/panel.ts` | `panels/<user>/<chapter>/<uuid>.png` |
+| Pipeline downloads | `scripts/fetch-models.mjs`, `scripts/fetch-sounds.mjs` | `models/<file>`, `sounds/<file>` |
+
+All of it goes through `lib/r2-storage.ts`, which is the only module holding object-store credentials, and
+through `lib/r2-paths.ts`, which holds the one rule that turns an old bucket path into an R2 key. Supabase is
+still the database — `model_assets`, `sound_assets` and `animals` all live there, and a `public_url` column
+now names an R2 URL.
+
+## The CDN (Cloudflare R2)
+
+`public/models/**` and `public/sounds/**` are mirrored to a Cloudflare R2 bucket. The push is resumable and
+byte-verified, not a "copy files somewhere" script:
+
+```bash
+npm run r2:check     # ListObjectsV2 + PutObject + public GET + DeleteObject — do the keys work at all?
+npm run r2:push      # push sounds and models; skips anything already there by size, so it resumes
+npm run r2:verify    # HEAD every manifest key over the PUBLIC url and compare bytes with the repository
+npm run r2:probe     # ask real Chrome whether a browser may load a model / a recording from the CDN
+npm run r2:list      # what is in the bucket right now
+```
+
+### The key is the path
+
+A key is the path under `public/` with the leading slash dropped, so `public/models/lion.glb` is the key
+`models/lion.glb`. **Changing the host, not the path** is what makes this cheap: nothing in `data/**` and
+nothing in Postgres has to move, because both store host-free paths already.
+
+The receipt is committed as `data/r2-manifest.json`: one line per object, with its byte count and the md5 R2
+reported as the ETag. `npm run check:r2` compares that manifest against every `model_url` and `sound_url` in
+the data files, so a model the catalogue points at but the bucket does not have fails a test instead of
+producing a 404 in production.
+
+### Two switches, deliberately apart
+
+| Variable | Means |
+| --- | --- |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | **Where the bucket is.** The scripts upload here. |
+| `NEXT_PUBLIC_R2_ASSETS=on` | **Whether the site reads from it.** Anything else keeps the repository copy. |
+
+Uploading 488 MB and changing what a visitor downloads are different events, and this migration needs them
+apart for a reason a real browser settled:
+
+```
+npm run r2:probe
+→ CHẶN  model fetch (useGLTF path)   Failed to fetch
+→ OK    audio element (SoundButton)  canplaythrough fired
+```
+
+A public R2 bucket sends **no** `access-control-allow-origin` header. `useGLTF` goes through `fetch()`
+(three's `FileLoader`), so a model cannot be read cross-origin from it — while an `<audio>` element has no
+such restriction, which is why recordings already play from R2 and models do not yet.
+
+**Before setting `NEXT_PUBLIC_R2_ASSETS=on`, add a CORS rule to the bucket** (Cloudflare dashboard → R2 →
+bucket → Settings → CORS policy): allow `GET` and `HEAD` from origin `*`. The S3 key in `.env.local` is
+object-scoped, so `PutBucketCors` answers 403; either use the dashboard or create a token with Admin Read &
+Write and run `npm run r2:cors`, then confirm with `npm run r2:probe`.
+
+Serve from a custom domain before this is production traffic: `pub-*.r2.dev` is Cloudflare's development
+endpoint, rate-limited and without an SLA. Swapping the base URL is then a one-variable change.
+
+## Card previews: a picture of the model, not the model
+
+Every card in the catalogue draws a **rendered picture** of its model before anything is fetched. The
+renderer walks `public/models/**` and writes `public/previews/<same path>.webp`:
+
+```bash
+node scripts/render-model-previews.mjs            # resumable: skips what already exists
+node scripts/render-model-previews.mjs --force    # re-render everything
+npm run r2:push -- --previews                     # mirror the images to the CDN
+```
+
+- **512×512 WebP, transparent background, 3/4 view**, lit to match the model viewer on the species page.
+- The card places it with `object-contain`, so nothing is cropped, on the entry's own accent gradient.
+- `data/previews.json` is the receipt: one entry per image with its bytes and md5.
+- `lib/model-previews.ts` derives the path from `model_url` — `/models/lion.glb` → `/previews/lion.webp`,
+  `/models/landmarks/taj-mahal.glb` → `/previews/landmarks/taj-mahal.webp` — so there is **no column, no
+  migration and no index shipped to the browser**. A model with no picture (or a picture that fails to
+  load) keeps the emoji plate the card has always had.
+
+### Why not draw the model on hover
+
+It used to. `lib/model-preview.ts` allowed it only under 1.5 MB / 75k triangles, which meant most of the
+catalogue — every landmark, every large animal — could never show anything but an emoji, and a hover could
+start a download nobody asked for. A picture costs a few kilobytes, works for every model regardless of
+size, and answers the same question the hover was answering: *what does this look like?*
+
+The live model is still drawn on the card for entries inside that budget, unchanged — the picture is the
+state before that, and the state when there is no model to draw.
+
+### Keeping the repository copy
+
+The repository keeps every file. That is decision 0b: a self-host and Demo Mode must run with no keys at all, so
+the bundled copy is the fallback rather than a leftover. It also means the 488 MB is duplicated by design — if
+you would rather the repository not carry it, that is a separate decision with a separate cost (the local dev
+setup and the offline deployment both stop having models).
 
 ## Naming convention
 

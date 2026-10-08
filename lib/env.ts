@@ -22,6 +22,9 @@ export const publicEnv = {
    * if you would rather not ship the ~1.8 MB of decoder files.
    */
   dracoDecoderPath: process.env.NEXT_PUBLIC_DRACO_DECODER_PATH || "/draco/",
+  // The Cloudflare R2 flags deliberately live in `lib/r2.ts` rather than here: that module is imported
+  // directly by `scripts/check-r2.mjs` and through `lib/catalog-project.ts`, and every `lib` module a
+  // suite imports with plain Node has to be free of `@/…` imports.
 } as const;
 
 /** Clerk is only wired up when the publishable key is present in the client bundle. */

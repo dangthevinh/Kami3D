@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { webpackInfrastructureConsole } from "./lib/webpack-log-filter";
+
 /** Allow next/image to serve Supabase storage renders when a project is configured. */
 const supabaseHost = (() => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,6 +12,32 @@ const supabaseHost = (() => {
     return null;
   }
 })();
+
+/**
+ * The R2 host, which the Content-Security-Policy below has to name explicitly.
+ *
+ * A CSP is an allow-list, and an allow-list that does not mention the CDN is a CDN that does not work
+ * — the failure is not a broken page but a silently missing image, or a 3D viewer that never loads
+ * and shows its fallback. Derived from the same variable the app uses, so the two cannot disagree.
+ */
+const r2Origin = (() => {
+  const url = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  if (!url) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * The same origin, as a ready-to-append CSP source.
+ *
+ * Appended rather than hard-coded: a custom domain, a second bucket or a staging environment must not
+ * require editing a policy by hand. This policy is report-only today, but one that is wrong the day it
+ * is enforced is worse than none — "measure before enforce" cuts both ways.
+ */
+const r2Source = r2Origin ? " " + r2Origin : "";
 
 /**
  * Canonical URLs, the sitemap and every OpenGraph tag are built from
@@ -28,6 +56,12 @@ if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_SITE_URL &
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // `next build` and `next dev` write the same directory by default, and this project measured what
+  // that costs: with a dev server open, three builds stopped after webpack with no output for 18 to 33
+  // minutes and never wrote a `BUILD_ID`. `NEXT_DIST_DIR` lets a build be measured beside a running
+  // dev server without touching its output; `NEXT_DIR` is the same switch for scripts/bundle-budget.mjs,
+  // which reads the build it is pointed at. CI and `next start` keep the default.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Pin the tracing root: an unrelated lockfile in a parent directory otherwise
   // makes Next infer the wrong workspace root.
   outputFileTracingRoot: __dirname,
@@ -39,12 +73,23 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "cdn.jsdelivr.net" },
       ...(supabaseHost ? [{ protocol: "https" as const, hostname: supabaseHost }] : []),
+      // Card previews and uploaded models, when they are served from R2.
+      ...(r2Origin ? [{ protocol: "https" as const, hostname: new URL(r2Origin).hostname }] : []),
     ],
   },
   experimental: {
     optimizePackageImports: ["lucide-react", "@react-three/drei"],
   },
   eslint: { ignoreDuringBuilds: true },
+  webpack(config) {
+    // Webpack's cache-serialiser hint about third-party bundle sources is dropped; every other
+    // warning still prints. The measurements and the reasoning are in lib/webpack-log-filter.ts.
+    config.infrastructureLogging = {
+      ...(config.infrastructureLogging ?? {}),
+      console: webpackInfrastructureConsole(console),
+    };
+    return config;
+  },
   async headers() {
     return [
       {
@@ -80,12 +125,17 @@ const nextConfig: NextConfig = {
               // script tag for its hosted components.
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.com https://pagead2.googlesyndication.com https://*.googlesyndication.com",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://*.clerk.com https://img.clerk.com https://media.sketchfab.com https://*.googlesyndication.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://*.clerk.com https://img.clerk.com https://media.sketchfab.com https://*.googlesyndication.com" +
+                r2Source,
               "font-src 'self' data:",
               // MapLibre compiles its worker from a blob, and three fetches .glb plus the DRACO wasm.
               "worker-src 'self' blob:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://api.clerk.com https://*.tile.openstreetmap.org https://api.open-meteo.com https://overpass-api.de https://nominatim.openstreetmap.org https://*.googlesyndication.com",
-              "media-src 'self' https://*.supabase.co",
+              // `connect-src` is what a cross-origin `.glb` fetch is judged by once this policy stops
+              // being report-only — and a browser also needs the CDN to allow the origin back (a CORS
+              // rule on the bucket), which is a different setting in a different dashboard.
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.clerk.accounts.dev https://api.clerk.com https://*.tile.openstreetmap.org https://api.open-meteo.com https://overpass-api.de https://nominatim.openstreetmap.org https://*.googlesyndication.com" +
+                r2Source,
+              "media-src 'self' https://*.supabase.co" + r2Source,
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

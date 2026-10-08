@@ -5,7 +5,9 @@ import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server
 import { activeAuthProvider } from "@/lib/auth-provider";
 import { AUTH_HINT_COOKIE } from "@/lib/auth-hint";
 import { classifyChannel, honorsDoNotTrack, isPageRequest, routeClass } from "@/lib/channel";
-import { data2mapIsPublic, identityListed, isData2MapPath, isDatabaseAdmin } from "@/lib/data2map-access";
+import { comingSoonFor, type ComingSoonModule } from "@/lib/coming-soon";
+import { isAdminPath } from "@/lib/admin-gate";
+import { identityListed, isDatabaseAdmin } from "@/lib/data2map-access";
 
 /**
  * Session middleware.
@@ -37,13 +39,17 @@ const supabaseConfigured = Boolean(supabaseUrl && supabaseKey);
 const clerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY);
 
 /**
- * The Data2Map gate.
+ * The gate on the modules that are built but not launched.
  *
- * Data2Map is built but not launched, so the module answers **404** to everyone except the people
- * working on it. A 404 rather than a 403 on purpose: a section that is not public yet should not
- * announce that it exists. The check runs here, in the middleware, because the module's pages are
- * statically generated - asking a page to read a session would turn all seven of them dynamic, and
- * `check:bundle` measures their prerendered HTML.
+ * `lib/coming-soon.ts` is the list - Data2Map and Manga Studio today - and each of them answers
+ * **404** to everyone except the people working on it. A 404 rather than a 403 on purpose: a section
+ * that is not public yet should not announce that it exists. The check runs here, in the middleware,
+ * because the modules' pages are statically generated - asking a page to read a session would turn
+ * all of them dynamic, and `check:bundle` measures their prerendered HTML.
+ *
+ * The navbar greys these entries out and labels them "Coming soon". That is a courtesy to the
+ * visitor, not a lock: this file is the lock, it runs on every request, and it covers each module's
+ * API as well as its pages - a disabled button and an unreachable route are two different jobs.
  *
  * Admins are: the named allow-lists (cheap, no round trip), or a row in `public.app_admins` matched
  * against the **verified** session id - the same table `/admin/geodata` uses, read here with the
@@ -67,8 +73,28 @@ interface SessionIdentity {
   email?: string | null;
 }
 
-async function canSeeData2Map(identity: SessionIdentity): Promise<boolean> {
-  if (data2mapIsPublic()) return true;
+/** The three questions, in the same order for every module. Shared with `lib/module-gate.ts`. */
+async function canEnter(module: ComingSoonModule, identity: SessionIdentity): Promise<boolean> {
+  if (module.isOpen()) return true;
+  if (identityListed(identity)) return true;
+  if (identity.userId) return isDatabaseAdmin(identity.userId);
+  return false;
+}
+
+/**
+ * The console gate (Phase 31, requirement 5 of the brief).
+ *
+ * The `/admin/*` pages each asked `adminStatus()` and drew a "sign in" panel, which is a friendly
+ * answer but a late one: the page had already been rendered, and the rule was spread across three page
+ * files. This is the same two questions the modules ask, asked here so a non-admin gets the house 404
+ * before a single line of the console runs. A signed-in visitor who is not an admin is refused too -
+ * being signed in is not a role.
+ *
+ * Demo Mode has no identity at all, so it has no admin either: the console answers 404 there. The API
+ * routes keep their own gate (`app/api/admin/_lib/guard.ts`), which is where the refusal is recorded;
+ * running it here as well would buy a second database round trip and nothing else.
+ */
+async function canEnterConsole(identity: SessionIdentity): Promise<boolean> {
   if (identityListed(identity)) return true;
   if (identity.userId) return isDatabaseAdmin(identity.userId);
   return false;
@@ -76,13 +102,20 @@ async function canSeeData2Map(identity: SessionIdentity): Promise<boolean> {
 
 const clerkHandler = clerkEnabled
   ? clerkMiddleware(async (auth, request) => {
-      // Only the module pays for the check; every other route is untouched.
-      if (!isData2MapPath(request.nextUrl.pathname)) return undefined;
-      if (data2mapIsPublic()) return undefined;
+      // Only the gated paths pay for the check; every other route is untouched.
+      const pathname = request.nextUrl.pathname;
+      const module = comingSoonFor(pathname);
+      const moduleGated = Boolean(module && !module.isOpen());
+      const consoleGated = isAdminPath(pathname);
+      if (!moduleGated && !consoleGated) return undefined;
 
       const { userId, sessionClaims } = await auth();
       const email = typeof sessionClaims?.email === "string" ? sessionClaims.email : null;
-      return (await canSeeData2Map({ userId, email })) ? undefined : hiddenResponse();
+      const identity = { userId, email };
+
+      if (moduleGated && module && !(await canEnter(module, identity))) return hiddenResponse();
+      if (consoleGated && !(await canEnterConsole(identity))) return hiddenResponse();
+      return undefined;
     })
   : null;
 
@@ -207,9 +240,9 @@ export default async function middleware(request: NextRequest, event: NextFetchE
           ? await refreshSupabaseSession(request)
           : { response: NextResponse.next({ request }), identity: { userId: null, email: null } };
 
-      if (isData2MapPath(request.nextUrl.pathname) && !(await canSeeData2Map(refreshed.identity))) {
-        return hiddenResponse();
-      }
+      const gated = comingSoonFor(request.nextUrl.pathname);
+      if (gated && !(await canEnter(gated, refreshed.identity))) return hiddenResponse();
+      if (isAdminPath(request.nextUrl.pathname) && !(await canEnterConsole(refreshed.identity))) return hiddenResponse();
 
       return withAuthHint(refreshed.response, signedIn);
     }
@@ -228,11 +261,14 @@ export default async function middleware(request: NextRequest, event: NextFetchE
       return result;
     }
     default:
-      // No provider is configured (Demo Mode). There is nobody to be an admin, so the module is
-      // hidden here too - `npm run dev` and `NEXT_PUBLIC_DATA2MAP_PUBLIC=1` are the ways in.
-      if (isData2MapPath(request.nextUrl.pathname) && !data2mapIsPublic()) {
-        return hiddenResponse();
-      }
+      // No provider is configured (Demo Mode). There is nobody to be an admin, so the modules are
+      // hidden here too - `npm run dev` and the `NEXT_PUBLIC_*_PUBLIC` switches are the ways in.
+      const demo = comingSoonFor(request.nextUrl.pathname);
+      if (demo && !demo.isOpen()) return hiddenResponse();
+      // Demo Mode has no identity provider, so it has no admin either. The console answers 404 rather
+      // than drawing a "sign in" panel nobody can act on — and the API routes, which answer to
+      // requireAdmin(), refuse for the same reason.
+      if (isAdminPath(request.nextUrl.pathname)) return hiddenResponse();
       return NextResponse.next({ request });
   }
 }

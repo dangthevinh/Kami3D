@@ -30,20 +30,47 @@ export function cloneModel(source: THREE.Object3D): THREE.Object3D {
  * Framing a card from the wrong box is how a model ends up half outside its own tile.
  */
 /**
- * Where to move a model so that it stands on the floor and sits over the origin.
+ * A snapshot of every transform in a subtree, so a scan can move the model and put it back.
  *
- * Extracted so `npm run check:materials` can pin it without a WebGL context: the bug it fixes was
- * invisible in every screenshot until you knew to compare two boxes, and it is one line of arithmetic
- * that a later refactor could quietly invert.
+ * Sampling an animation writes to every bone it touches. Without this the model would be left in
+ * whichever sampled pose happened to be last - visible on any asset whose clip the viewer is not
+ * playing, which is every asset until a visitor presses play.
  */
-export function anchorOffset(box: THREE.Box3): [number, number, number] {
-  if (box.isEmpty()) return [0, 0, 0];
-  const centre = box.getCenter(new THREE.Vector3());
-  return [-centre.x, -box.min.y, -centre.z];
+export interface TransformSnapshot {
+  object: THREE.Object3D;
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  scale: THREE.Vector3;
+}
+
+export function cloneTransform(root: THREE.Object3D): TransformSnapshot[] {
+  const snapshot: TransformSnapshot[] = [];
+  root.traverse((object) => {
+    snapshot.push({
+      object,
+      position: object.position.clone(),
+      quaternion: object.quaternion.clone(),
+      scale: object.scale.clone(),
+    });
+  });
+  return snapshot;
+}
+
+export function restoreTransform(root: THREE.Object3D, snapshot: readonly TransformSnapshot[]): void {
+  for (const entry of snapshot) {
+    entry.object.position.copy(entry.position);
+    entry.object.quaternion.copy(entry.quaternion);
+    entry.object.scale.copy(entry.scale);
+  }
+  root.updateMatrixWorld(true);
 }
 
 export function posedBounds(root: THREE.Object3D): THREE.Box3 {
-  root.updateWorldMatrix(true, true);
+  // `updateMatrixWorld`, not `updateWorldMatrix`: a SkinnedMesh refreshes `bindMatrixInverse` inside
+  // the former, and `getVertexPosition` divides by it. Measuring with a stale one double-counts the
+  // object's own transform — measured: a group moved up 10 reported a box moved up 20 — and the
+  // anchor then lifts the model by the wrong amount. The renderer uses this method every frame.
+  root.updateMatrixWorld(true);
   const box = new THREE.Box3();
   const local = new THREE.Box3();
 

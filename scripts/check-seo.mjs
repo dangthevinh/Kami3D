@@ -111,7 +111,7 @@ test("the site node declares the search box the navbar actually implements", () 
   assert.equal(site["@id"], "https://kami3d.app/#website");
   assert.equal(site.inLanguage, "en");
   // /explore reads ?q=, so that is what the sitelinks search box must target.
-  assert.match(site.potentialAction.target.urlTemplate, /\/explore\?q=\{search_term_string\}$/);
+  assert.match(site.potentialAction.target.urlTemplate, /\/search\?q=\{search_term_string\}$/);
 });
 
 test("a species node carries the measurements the page renders", () => {

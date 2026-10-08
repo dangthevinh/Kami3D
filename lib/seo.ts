@@ -74,7 +74,9 @@ export function websiteJsonLd(facts: SiteFacts) {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${absolute(facts.siteUrl, "/explore")}?q={search_term_string}`,
+        // The unified search (Phase 30), which is what the navbar's box submits to: a SearchAction that
+        // points at a page where the query does not work is a promise to a crawler the site breaks.
+        urlTemplate: `${absolute(facts.siteUrl, "/search")}?q={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },
